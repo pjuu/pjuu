@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf8" />
+    <title>Pjuu</title>
+    <link href="{{ url_for('static', filename='css/reset.css') }}" rel="stylesheet" type="text/css" />
+    {% block includes %}{% endblock %}
+</head>
+<body>
+    <div id="wrapper">
+    {% block layout %}{% endblock %}
+    </div>
+    {% block js %}{% endblock %}
+</body>
+</html>

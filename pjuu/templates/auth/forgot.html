@@ -1,0 +1,16 @@
+{% extends 'auth/base.html' %}
+
+{% block header %}Forgotten Password{% endblock%}
+{% block form %}
+<form action="" method="post">
+    {{ form.username.label }}
+    {{ form.username }}
+    {{ form.csrf_token }}
+    <input type="submit" value="Reset my password" />
+</form>
+{% endblock %}
+{% block links %}
+    <div class="link">
+        Rememberd it? <a href="{{ url_for('login') }}">Login here</a>
+    </div>
+{% endblock %}

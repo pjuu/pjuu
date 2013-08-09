@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block includes %}
+<link href="{{ url_for('static', filename='css/users.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block layout %}
+<div id="header" class="clearfix">
+    <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52" />
+    <ul class="account">
+        <a href="{{ url_for('profile', username=user.username) }}"><li>{{user.username}}</li></a>
+        <a href="{{ url_for('logout') }}"><li>Logout</li></a>
+    </ul>
+</div>
+{% endblock %}

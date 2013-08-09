@@ -1,0 +1,105 @@
+/*
+** GLOBAL
+*/
+
+html, body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    padding-bottom: 1em;
+}
+
+html[xmlns] .clearfix {
+    display: block;
+}
+ 
+* html .clearfix {
+    height: 1%;
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+
+a {
+    color: #39F;
+    text-decoration: None;
+}
+
+a:hover {
+    color: #06F;
+}
+
+input[type=text],
+input[type=password],
+textarea {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    border-radius: 3px 3px 3px 3px;
+    box-sizing: border-box; /* Opera/IE 8+ */
+    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
+	-moz-box-sizing: border-box; /* Firefox */
+}
+
+#wrapper {
+    min-height: 100%;
+}
+
+/*
+** Header
+*/
+
+#header {
+	background-color: #9C0;
+    border: 1px solid #680;
+    border-radius: 3px 3px 3px 3px;
+	margin: 0.5em auto;
+	padding: 0;
+	width: 70em;
+}
+
+#header img {
+	float: left;
+	margin-left: 0.5em;
+}
+
+#header ul {
+	color: #FFF;
+	font-weight: 700;
+	line-height: 52px;
+	vertical-align: middle;
+}
+
+#header .menu {
+	float: left;
+	margin-left: 5em;
+}
+
+#header .account {
+	float: right;
+	margin-right: 0.5em;
+}
+
+#header li {
+	float: left;
+	padding: 0 0.5em;
+}
+
+#header li:hover {
+	background-color: #680;
+}
+
+#header a {
+	color: #FFF;
+	font-weight: 700;
+}
+
+#header a:hover {
+	text-decoration: underline;
+}

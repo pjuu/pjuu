@@ -1,0 +1,13 @@
+{% extends 'auth/base.html' %}
+
+{% block header %}Reset Password{% endblock%}
+{% block form %}
+<form action="" method="post">
+    {{ form.password.label_tag }}
+    {{ form.password }}
+    {{ form.password2.label_tag }}
+    {{ form.password2 }}
+    {% csrf_token %}
+    <input type="submit" value="Set password" />
+</form>
+{% endblock %}
