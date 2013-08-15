@@ -49,14 +49,23 @@ class User(db.Model):
         '''
         Returns boolean if self is following user
         '''
+        # May need optimizing as will be using InnoDB
         return self.following.filter(follow.c.followee_id == user.id).count() > 0
 
     def follow(self, user):
+        '''
+        Add `user` to following relationship. If not already following.
+        '''
         if not self.is_following(user):
             self.following.append(user)
-            return self
+            return True
+        return False
 
     def unfollow(self, user):
+        '''
+        Removes `user` from following relationship. If already following.
+        '''
         if self.is_following(user):
             self.following.remove(user)
-            return self
+            return True
+        return False
