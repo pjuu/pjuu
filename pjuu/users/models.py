@@ -28,6 +28,7 @@ class User(db.Model):
     active = db.Column(db.Boolean, default=True)
     banned = db.Column(db.Boolean, default=False)
     op = db.Column(db.Boolean, default=False)
+    login_attempts = db.Column(db.SmallInteger(unsigned=True))
 
     # All users this User is following
     following = db.relationship('User',

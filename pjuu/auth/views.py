@@ -5,6 +5,7 @@ from werkzeug import check_password_hash, generate_password_hash
 
 # Pjuu imports
 from pjuu import app, db
+from pjuu.lib.mail import send_mail
 from pjuu.users.models import User
 
 # Package imports
@@ -22,7 +23,7 @@ def inject_user():
     return dict(user=current_user)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def login():
     form = LoginForm(request.form)
@@ -61,7 +62,14 @@ def signup():
                             form.password.data)
             db.session.add(new_user)
             db.session.commit()
+            send_mail('Welcome to Pjuu', [new_user.email], 'Welcome')
             flash('Yay! Welcome. You can now login.', 'success')
             return redirect(url_for('login'))
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)
+
+@app.route('/forgot', methods=['GET', 'POST'])
+@anonymous_required
+def forgot():
+    form = ForgotForm(request.form)
+    return render_template('auth/forgot.html', form=form)

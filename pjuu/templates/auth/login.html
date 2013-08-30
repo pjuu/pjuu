@@ -1,6 +1,6 @@
 {% extends 'auth/base.html' %}
 
-{% block header %}Login{% endblock%}
+{% block header %}Sign In{% endblock%}
 {% block form %}
 <form action="" method="post">
     {{ form.username.label }}
@@ -8,9 +8,10 @@
     {{ form.password.label }}
     {{ form.password }}
     {{ form.csrf_token }}
-    <input type="submit" value="Login" tabindex="3"/>
+    <input type="submit" value="Sign In" tabindex="3"/>
 </form>
 {% endblock %}
 {% block links %}
-    <div class="link">Don't have an account? <a href="{{ url_for('signup') }}">Signup for free</a></div>
+    <div class="link">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up for free</a></div>
+    <div class="link">Forgotten your password? <a href="{{ url_for('forgot') }}">Recover it here</a></div>
 {% endblock %}

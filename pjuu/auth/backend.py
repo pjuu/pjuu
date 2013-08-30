@@ -8,7 +8,7 @@ from werkzeug.local import LocalProxy
 from werkzeug.security import check_password_hash
 
 # Pjuu imports
-from pjuu import app
+from pjuu import app, db
 from pjuu.users.models import User
 
 

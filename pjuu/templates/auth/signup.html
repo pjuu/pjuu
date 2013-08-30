@@ -1,6 +1,6 @@
 {% extends 'auth/base.html' %}
 
-{% block header %}Signup{% endblock %}
+{% block header %}Sign Up{% endblock %}
 {% block form %}
 <form action="" method="post">
     {{ form.username.label }}
@@ -31,9 +31,9 @@
         <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>.
     </div>
     {{ form.csrf_token }}
-    <input type="submit" value="Create account" />
+    <input type="submit" value="Create Account" />
 </form>
 {% endblock %}
 {% block links %}
-    <div class="link">Already have an account? <a href="{{ url_for('login') }}">Login here</a></div>
+    <div class="link">Already have an account? <a href="{{ url_for('login') }}">Sign In</a></div>
 {% endblock %}

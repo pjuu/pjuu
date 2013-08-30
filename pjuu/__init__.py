@@ -1,5 +1,6 @@
 # 3rd party imports
 from flask import Flask
+from flask.ext.mail import Mail
 from flask.ext.sqlalchemy import SQLAlchemy
 from redis import Redis
 # Pjuu imports
@@ -12,6 +13,8 @@ app = Flask(__name__)
 redis = Redis(db=1)
 # Set session handler to Redis
 app.session_interface = RedisSessionInterface(redis=redis, prefix='')
+# Create Flask-Mail
+mail = Mail(app)
 # Create SQL alchemy
 db = SQLAlchemy(app)
 

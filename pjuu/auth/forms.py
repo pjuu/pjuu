@@ -1,5 +1,6 @@
 # 3rd party imports
 from flask.ext.wtf import Form
+from flask_wtf import RecaptchaField
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
@@ -22,20 +23,24 @@ class LoginForm(Form):
 class ResetForm(Form):
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
-        Length(min=6), Required()])
+        Length(min=6,
+               message='Password must be atleast 6 characters long'),
+        Required()])
     password = PasswordField('Confirm password')
 
 
 class SignupForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$', message=('Username must be between 3 '
-            'and 16 characters and can only contain '
-            'lettrs, numbers and \'_\' characters.')),
+               'and 16 characters and can only contain '
+               'lettrs, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
-        Length(min=6), Required()])
+        Length(min=6,
+               message='Password must be atleast 6 characters long'),
+        Required()])
     password2 = PasswordField('Confirm password')
 
     def validate_username(form, field):

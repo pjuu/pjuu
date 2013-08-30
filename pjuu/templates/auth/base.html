@@ -7,7 +7,7 @@
 {% block layout %}
 <div id="logo"><img alt="Pjuu" src="{{ url_for('static', filename='img/logo_white.png') }}" /></div>
 <div id="auth">
-    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div id="messages">
                 {% for category, message in messages %}

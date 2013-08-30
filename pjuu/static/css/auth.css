@@ -163,7 +163,9 @@ textarea {
 
 #auth ul.errorlist {
     color: #F55;
-    margin: 0 1em 1em;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 0.5em;
 }
 
 #auth .link {
