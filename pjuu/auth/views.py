@@ -60,13 +60,16 @@ def signup():
             # User successfully signed up, create an account
             new_user = User(form.username.data, form.email.data,
                             form.password.data)
+            # Add new user to session
             db.session.add(new_user)
-            db.session.commit()
-            send_mail('Welcome to Pjuu', [new_user.email], 'Welcome')
+            send_mail('Welcome to Pjuu', [new_user.email], text_body='Welcome')
             flash('Yay! Welcome. You can now login.', 'success')
+            db.session.commit()
             return redirect(url_for('login'))
+        # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)
+
 
 @app.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required

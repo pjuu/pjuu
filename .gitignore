@@ -3,6 +3,8 @@
 *.pyo
 env
 env*
+migrations
+migrations*
 dist
 *.egg
 *.egg-info
