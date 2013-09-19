@@ -1,4 +1,5 @@
 # Stdlib imports
+from datetime import datetime
 from functools import wraps
 from urlparse import urlparse, urljoin
 
@@ -39,6 +40,9 @@ def authenticate(username, password):
 
 def login(user):
     session['user_id'] = user.id
+    user.last_login = datetime.now()
+    db.session.add(user)
+    db.session.commit()
 
 
 def logout():

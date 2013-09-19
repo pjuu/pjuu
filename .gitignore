@@ -11,3 +11,4 @@ dist
 _mailinglist
 .tox
 settings.py
+pjuu.db

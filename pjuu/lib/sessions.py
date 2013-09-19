@@ -1,6 +1,9 @@
 # This script is taken from flask.pocoo.org snippets
 
-import pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 from datetime import timedelta
 from uuid import uuid4
 from redis import Redis
