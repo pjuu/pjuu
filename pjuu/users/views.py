@@ -7,29 +7,51 @@ from werkzeug import check_password_hash, generate_password_hash
 from pjuu import app, db
 from pjuu.auth.backend import current_user
 from pjuu.auth.decorators import login_required
+from pjuu.users.models import User
+from pjuu.posts.forms import PostForm
+from pjuu.posts.models import Post
 
 
 @app.route('/')
 def feed():
+    post_form = PostForm()
     if not current_user:
         return redirect(url_for('login'))
-    return render_template('users/feed.html')
+    return render_template('users/feed.html', post_form=post_form)
 
 
 @app.route('/<username>')
 @login_required
 def profile(username):
-    return "Profile"
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    post_form = PostForm()
+    posts = Post.query.filter_by(user_id=user.id)
+    return render_template('users/posts.html', user=user, posts=posts,
+                           post_form=post_form)
 
 
 @app.route('/<username>/following')
 def following(username):
-    return "Following"
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+
+    following = user.following()
+
+    return render_template('users/following.html', user=user, following=following)
 
 
 @app.route('/<username>/followers')
 def followers(username):
-    return "Followers"
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+
+    followers = user.followers()
+
+    return render_template('users/followers.html', user=user, followers=followers)
 
 
 @app.route('/<username>/follow')

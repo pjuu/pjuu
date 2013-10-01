@@ -103,3 +103,46 @@ textarea {
 #header a:hover {
 	text-decoration: underline;
 }
+
+/*
+** Content
+*/
+
+#content {
+    margin: 0.5em auto;
+    padding: 0;
+    width: 60em;
+}
+
+h1 {
+    font-size: 2em;
+    color: #680;
+    margin: 0 0 0.5em 0;
+    border-bottom: 1px solid #680;
+    padding 1em 0;
+}
+
+/*
+** Profile
+*/
+
+#profile {
+    background-color: #FFF;
+    border: 1px solid #680;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0 auto 0.5em;
+    padding: 0.5em;
+}
+
+#profile .avatar {
+    float: left;
+}
+
+#profile .details {
+    float: left;
+    margin: 0 0 0 1em;
+}
+
+#profile .username {
+    font-size: 2em;
+}

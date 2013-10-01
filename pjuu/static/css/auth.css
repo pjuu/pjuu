@@ -178,3 +178,11 @@ textarea {
     text-align: center;
     width: 25em;
 }
+
+/*
+** Recaptcha
+*/
+
+#recaptcha_image {
+    margin: 0.5em auto 1em;
+}

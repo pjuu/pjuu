@@ -43,7 +43,7 @@ if __name__ == '__main__':
             username = raw_input('User Name: ')
             email = raw_input('E-Mail: ')
             password = getpass.getpass()
-            isstaff = raw_input('Staff? (y/n): ')
+            isstaff = raw_input('OP? (y/n): ')
             new_user = User(username, email, password)
             if isstaff.lower() == 'y':
                 new_user.is_staff = True
@@ -55,5 +55,5 @@ if __name__ == '__main__':
             sys.exit(2)
         sys.exit(0)
     else:
-        print "usage: %s run|createdb|dropdb|createjoe" % sys.argv[0]
+        print "usage: %s run|createdb|dropdb|createuser" % sys.argv[0]
         sys.exit(2)

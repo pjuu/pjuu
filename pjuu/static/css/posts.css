@@ -1,0 +1,33 @@
+textarea,
+textarea {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    border-radius: 3px 3px 3px 3px;
+    box-sizing: border-box; /* Opera/IE 8+ */
+    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
+    -moz-box-sizing: border-box; /* Firefox */
+    border: 1px solid #BBB;
+    display: block;
+    margin: 0 0 0.5em;
+    padding: 0.5em;
+    width: 100%;
+    resize: none;
+}
+
+input[type=submit] {
+    float: right;
+    font-weight: 700;
+    padding: 0.25em 0.5em;
+}
+
+/*
+** Authoring
+*/
+#author {
+    background-color: #DEDEDE;
+    border-color: #C8C8C8;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0 0 0.5em;
+    padding: 0.5em;
+}

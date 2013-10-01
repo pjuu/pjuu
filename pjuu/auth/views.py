@@ -12,7 +12,7 @@ from pjuu.users.models import User
 from .backend import (authenticate, current_user, is_safe_url,
                       login as plogin, logout as plogout)
 from .decorators import anonymous_required, login_required
-from .forms import ForgotForm, LoginForm, SignupForm
+from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
 
 
 @app.context_processor
@@ -20,7 +20,7 @@ def inject_user():
     '''
     Injects current `current_user` into the template environment as `user`
     '''
-    return dict(user=current_user)
+    return dict(current_user=current_user)
 
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -81,19 +81,13 @@ def signup():
             # Generate activation token
             # Sends activation e-mail to new user
             send_mail('Welcome', [new_user.email],
-                      text_body=render_template('auth/activate.email.txt'),
-                      html_body=render_template('auth/activate.email.html'))
-            flash('Yay! You\'ve signed up. Please check your e-mail', 'success')
+                      text_body=render_template('auth/welcome.email.txt'),
+                      html_body=render_template('auth/welcome.email.html'))
+            flash('Yay! You\'ve signed up. Please log in.', 'success')
             return redirect(url_for('login'))
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)
-
-
-@app.route('/signup/<token>')
-@anonymous_required
-def activate(token):
-    pass
 
 
 @app.route('/forgot', methods=['GET', 'POST'])
@@ -106,4 +100,5 @@ def forgot():
 @app.route('/forgot/<token>', methods=['GET', 'POST'])
 @anonymous_required
 def password_reset(token):
-    pass
+    form = ResetForm(request.form)
+    return render_template('auth/reset.html', form=form)

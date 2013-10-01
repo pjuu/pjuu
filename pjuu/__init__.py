@@ -29,3 +29,4 @@ app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
 # Import all Pjuu stuffs
 import users
+import posts
