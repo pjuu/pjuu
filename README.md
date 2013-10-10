@@ -14,5 +14,6 @@ $ cd pjuu
 $ virtualenv env
 $ pip install -r requirements.txt
 $ . env/bin/activate
+$ cp pjuu/settings_example.py pjuu/settings.py
 ```
 Hack away. Pjuu uses SQLite by default.
