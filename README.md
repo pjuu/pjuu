@@ -8,7 +8,7 @@ Dependencies
 
 Pjuu by default uses SQLite so there is no DBMS dependencies. You can switch this later through SQLAlchemy connection string. ILIKE is used so that SQLite is compatible with MySQL.
 
-The only dependencies system wise is *Redis*. This is used for session by default. If you know what you are doing you can remove this however. I always use this on my development server.
+The only dependencies system wise is **Redis**. This is used for session by default. If you know what you are doing you can remove this however. I always use this on my development server.
 
 Work on it
 ----------
