@@ -15,10 +15,12 @@ class Post(db.Model):
     created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     body = db.Column(db.String(512), nullable=False)
 
+    user = db.relationship('User', backref=db.backref('posts', order_by=created))
+
     def __init__(self, user, body, replyto=None):
         self.author = user.id
         self.replyto = replyto
         self.body = body
 
     def __repr__(self):
-        return '<Post %r>' % id
+        return '<Post %r>' % self.id

@@ -149,11 +149,26 @@ h1 {
 
 #profile-menu {
     border-bottom-width: 1px;
-    border-bottom-color: #CCC;
+    border-bottom-color: #AAA;
     border-bottom-style: solid;
+    margin: 0 0 1em 0;
+    font-weight: 700;
+}
+
+#profile-menu a {
+    color: #000;
 }
 
 #profile-menu li {
     float: left;
     padding: 0.5em 1em;
+    border-radius: 3px 3px 0 0;
+}
+
+#profile-menu li:hover {
+    background-color: #DDD;
+}
+
+#profile-menu .active {
+    background-color: #AAA;
 }

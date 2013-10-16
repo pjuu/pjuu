@@ -26,8 +26,14 @@ input[type=submit] {
 */
 #author {
     background-color: #DEDEDE;
-    border-color: #C8C8C8;
+    border: 1px solid #AAA;
     border-radius: 3px 3px 3px 3px;
     margin: 0 0 0.5em;
     padding: 0.5em;
+}
+
+#author .author-title {
+    color: #AAA;
+    font-size: 1.5em;
+    margin: 0 0 1.5em;
 }

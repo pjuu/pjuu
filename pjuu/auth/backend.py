@@ -1,6 +1,4 @@
 # Stdlib imports
-from datetime import datetime
-from functools import wraps
 from urlparse import urlparse, urljoin
 
 # 3rd party imports

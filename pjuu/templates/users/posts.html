@@ -1,12 +1,22 @@
 {% extends 'users/profile.html' %}
 
 {% block content %}
-{% if user == current_user %}
-    {% include 'posts/author.html' %}
-{% endif %}
-<ul id="profile-menu">
+<ul id="profile-menu" class="clearfix">
     <a href="{{ url_for('profile', username=user.username) }}"><li class="active">Posts</li></a>
     <a href="{{ url_for('followers', username=user.username) }}"><li>Followers</li></a>
     <a href="{{ url_for('following', username=user.username) }}"><li>Following</li></a>
+</ul>
+{% if user == current_user %}
+    {% include 'posts/author.html' %}
+{% endif %}
+<ul id="posts" class="clearfix">
+    {% for post in posts %}
+    <li>
+        <img src="{{post.user.email|gravatar(24)}}"><br>
+        {{post.user.username}}<br>
+        {{post.body}}<br>
+        {{post.created}}
+    </li>
+    {% endfor %}
 </ul>
 {% endblock %}

@@ -17,7 +17,8 @@ def feed():
     post_form = PostForm()
     if not current_user:
         return redirect(url_for('login'))
-    return render_template('users/feed.html', post_form=post_form)
+    return render_template('users/feed.html', post_form=post_form,
+                           author_title="Create a new post")
 
 
 @app.route('/<username>')
@@ -29,7 +30,7 @@ def profile(username):
     post_form = PostForm()
     posts = Post.query.filter_by(author=user.id).order_by(Post.created.desc())
     return render_template('users/posts.html', user=user, posts=posts,
-                           post_form=post_form)
+                           author_title="Create a new post", post_form=post_form)
 
 
 @app.route('/<username>/following')

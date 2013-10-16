@@ -1,9 +1,9 @@
 {% extends 'users/profile.html' %}
 
 {% block content %}
-<ul id="profile-menu">
-    <a href="{{ url_for('profile', username=user.username) }}"><li class="active">Posts</li></a>
-    <a href="{{ url_for('followers', username=user.username) }}"><li>Followers</li></a>
+<ul id="profile-menu" class="clearfix">
+    <a href="{{ url_for('profile', username=user.username) }}"><li>Posts</li></a>
+    <a href="{{ url_for('followers', username=user.username) }}"><li class="active">Followers</li></a>
     <a href="{{ url_for('following', username=user.username) }}"><li>Following</li></a>
 </ul>
 {% endblock %}
