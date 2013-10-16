@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash
 
 # Pjuu imports
 from pjuu import db
-from pjuu.posts.models import Post
 
 
 # Secondary table to store the Many-To-Many relationship of followers.
@@ -45,52 +44,3 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
-
-    def get_following(self):
-        pass
-
-    def get_following_count(self):
-        pass
-
-    def get_followers(self):
-        pass
-
-    def get_followers_count(self):
-        pass
-
-    def get_posts(self):
-        '''
-        Return all posts
-        '''
-        return Post.query.filter_by(user_id=self.id).all()
-
-    def get_posts_count(self):
-        '''
-        Return number of posts
-        '''
-        return Post.query.filter_by(user_id=self.id).count()
-
-    def is_following(self, user):
-        '''
-        Returns boolean if self is following user
-        '''
-        # May need optimizing as will be using InnoDB
-        return self.following.filter(follow.c.followee_id == user.id).count() > 0
-
-    def follow(self, user):
-        '''
-        Add `user` to following relationship. If not already following.
-        '''
-        if not self.is_following(user):
-            self.following.append(user)
-            return True
-        return False
-
-    def unfollow(self, user):
-        '''
-        Removes `user` from following relationship. If already following.
-        '''
-        if self.is_following(user):
-            self.following.remove(user)
-            return True
-        return False

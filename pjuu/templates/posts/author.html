@@ -1,7 +1,7 @@
 <div id="author" class="clearfix">
     Author
     <form action="/post" method="post">
-        <textarea id="body" name="body"></textarea>
+        {{ post_form.body }}
         {{ post_form.csrf_token }}
         <input type="submit" value="Post" />
     </form>

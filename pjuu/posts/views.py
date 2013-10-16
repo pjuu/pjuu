@@ -18,7 +18,10 @@ def post():
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url=url_for('profile', username=current_user.username)
     if form.validate():
-        new_post = Post(current_user, form.body.data)
-        db.session.add(new_post)
-        db.session.commit()
+        new_post = Post(current_user, form.body.data, replyto=None)
+        try:
+            db.session.add(new_post)
+            db.session.commit()
+        except:
+            abort(500)
     return redirect(redirect_url)

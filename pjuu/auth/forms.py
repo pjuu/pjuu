@@ -26,7 +26,7 @@ class ResetForm(Form):
         Length(min=6,
                message='Password must be atleast 6 characters long'),
         Required()])
-    password = PasswordField('Confirm password')
+    password2 = PasswordField('Confirm password')
 
 
 class SignupForm(Form):

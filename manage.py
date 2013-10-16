@@ -3,6 +3,7 @@ import getpass
 import sys
 import os.path
 
+import cherrypy
 from cherrypy import wsgiserver
 
 from pjuu import app, db
@@ -16,12 +17,20 @@ if __name__ == '__main__':
             """
             Run the Flask development server
             """
-            d = wsgiserver.WSGIPathInfoDispatcher({'/': app})
-            server = wsgiserver.CherryPyWSGIServer(('0.0.0.0', 5000), d)
+            cherrypy.tree.graft(app, '/')
+
+            cherrypy.config.update({
+                'engine.autoreload_on': True,
+                'log.screen': True,
+                'server.socket_port': 5000,
+                'server.socket_host': '0.0.0.0'
+            })
+
             try:
-                server.start()
+                cherrypy.engine.start()
+                cherrypy.engine.block()
             except KeyboardInterrupt:
-                server.stop()
+                cherrypy.engine.stop()
         elif sys.argv[1] == 'createdb':
             """
             Will create all tables in the database.

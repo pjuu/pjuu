@@ -27,7 +27,7 @@ def profile(username):
     if user is None:
         abort(404)
     post_form = PostForm()
-    posts = Post.query.filter_by(user_id=user.id)
+    posts = Post.query.filter_by(author=user.id).order_by(Post.created.desc())
     return render_template('users/posts.html', user=user, posts=posts,
                            post_form=post_form)
 
@@ -37,9 +37,7 @@ def following(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-
     following = user.following()
-
     return render_template('users/following.html', user=user, following=following)
 
 
@@ -48,9 +46,7 @@ def followers(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-
     followers = user.followers()
-
     return render_template('users/followers.html', user=user, followers=followers)
 
 
