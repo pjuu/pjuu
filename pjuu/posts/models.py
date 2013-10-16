@@ -1,6 +1,3 @@
-# Stdlib imports
-from datetime import datetime
-
 # Pjuu imports
 from pjuu import db
 
@@ -15,7 +12,7 @@ class Post(db.Model):
                        db.ForeignKey('user.id'), index=True, nullable=False)
     replyto = db.Column(db.Integer(unsigned=True),
                         db.ForeignKey('post.id'), index=True, nullable=True)
-    created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+    created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     body = db.Column(db.String(512), nullable=False)
 
     def __init__(self, user, body, replyto=None):

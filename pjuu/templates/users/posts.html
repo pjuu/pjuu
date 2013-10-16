@@ -4,12 +4,9 @@
 {% if user == current_user %}
     {% include 'posts/author.html' %}
 {% endif %}
-<h1>Posts</h1>
-{% for post in posts %}
-    <div>
-        <img src="https://www.gravatar.com/avatar/66a3f52af5cc93af06ef7cee230957b3.jpg?s=24" /><br>
-        {{post.body}}<br>
-        {{post.created}}
-    </div>
-{% endfor %}
+<ul id="profile-menu">
+    <a href="{{ url_for('profile', username=user.username) }}"><li class="active">Posts</li></a>
+    <a href="{{ url_for('followers', username=user.username) }}"><li>Followers</li></a>
+    <a href="{{ url_for('following', username=user.username) }}"><li>Following</li></a>
+</ul>
 {% endblock %}

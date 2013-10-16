@@ -1,6 +1,3 @@
-# Stdlib imports
-from datetime import datetime
-
 # 3rd party imports
 from werkzeug.security import generate_password_hash
 
@@ -21,7 +18,7 @@ class User(db.Model):
     email = db.Column(db.String(254), index=True, unique=True)
     password = db.Column(db.String(66))
 
-    created = db.Column(db.DateTime, default=datetime.now())
+    created = db.Column(db.DateTime, default=db.func.now())
     last_login = db.Column(db.DateTime)
 
     # Permissions stuff

@@ -57,7 +57,7 @@ def login(user):
     Will also update the users last_login time.
     """
     session['user_id'] = user.id
-    user.last_login = datetime.now()
+    user.last_login = db.func.now()
     db.session.add(user)
     db.session.commit()
 

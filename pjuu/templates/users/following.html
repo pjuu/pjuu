@@ -1,1 +1,12 @@
 {% extends 'users/profile.html' %}
+
+{% block content %}
+{% if user == current_user %}
+    {% include 'posts/author.html' %}
+{% endif %}
+<ul id="profile-menu">
+    <a href="{{ url_for('profile', username=user.username) }}"><li class="active">Posts</li></a>
+    <a href="{{ url_for('followers', username=user.username) }}"><li>Followers</li></a>
+    <a href="{{ url_for('following', username=user.username) }}"><li>Following</li></a>
+</ul>
+{% endblock %}

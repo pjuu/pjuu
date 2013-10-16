@@ -146,3 +146,14 @@ h1 {
 #profile .username {
     font-size: 2em;
 }
+
+#profile-menu {
+    border-bottom-width: 1px;
+    border-bottom-color: #CCC;
+    border-bottom-style: solid;
+}
+
+#profile-menu li {
+    float: left;
+    padding: 0.5em 1em;
+}

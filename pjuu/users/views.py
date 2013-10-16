@@ -37,7 +37,7 @@ def following(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    following = user.following()
+    following = user.following.all()
     return render_template('users/following.html', user=user, following=following)
 
 
@@ -46,7 +46,7 @@ def followers(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    followers = user.followers()
+    followers = user.followers.all()
     return render_template('users/followers.html', user=user, followers=followers)
 
 
