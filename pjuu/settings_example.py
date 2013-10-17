@@ -5,7 +5,7 @@ DEBUG = True
 SECRET_KEY = 'Development Key'
 
 # Flas-SQLAlchemy
-SQLALCHEMY_DATABASE_URI = 'sqlite:///pjuu.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///../pjuu.db'
 
 # Flask-Mail
 MAIL_SERVER = 'localhost'

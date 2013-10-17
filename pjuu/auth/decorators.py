@@ -20,6 +20,6 @@ def login_required(func):
     def decorated_view(*args, **kwargs):
         if not current_user:
             flash('You need to be logged in', 'info')
-            return redirect(url_for('login', next=request.path))
+            return redirect(url_for('signin', next=request.path))
         return func(*args, **kwargs)
     return decorated_view

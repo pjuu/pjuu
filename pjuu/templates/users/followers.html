@@ -6,4 +6,5 @@
     <a href="{{ url_for('followers', username=user.username) }}"><li class="active">Followers</li></a>
     <a href="{{ url_for('following', username=user.username) }}"><li>Following</li></a>
 </ul>
+{% include 'users/list_users.html' %}
 {% endblock %}

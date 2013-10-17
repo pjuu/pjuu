@@ -25,7 +25,7 @@ def inject_user():
 
 @app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
-def login():
+def signin():
     form = LoginForm(request.form)
     if request.method == 'POST':
         # Handles the passing of the next argument to the login view
@@ -50,15 +50,15 @@ def login():
                 flash('Invalid user name or password', 'error')
         else:
             flash('Invalid user name or password', 'error')
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/signin.html', form=form)
 
 
-@app.route('/logout')
-def logout():
+@app.route('/signout')
+def  signout():
     if current_user:
         plogout()
         flash('Successfully logged out!', 'success')
-    return redirect(url_for('login'))
+    return redirect(url_for('signin'))
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -84,7 +84,7 @@ def signup():
                       text_body=render_template('auth/welcome.email.txt'),
                       html_body=render_template('auth/welcome.email.html'))
             flash('Yay! You\'ve signed up. Please log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('signin'))
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)
