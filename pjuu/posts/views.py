@@ -21,6 +21,7 @@ def post():
             db.session.add(new_post)
             db.session.commit()
         except:
+            db.session.rollback()
             abort(500)
     return redirect(url_for('profile', username=current_user.username))
 
@@ -40,5 +41,6 @@ def comment(username, post_id):
             db.session.add(new_post)
             db.session.commit()
         except:
+            db.session.rollback()
             abort(500)
     return redirect(url_for('view_post', username=user.usename, post_id=post.id))
