@@ -61,32 +61,32 @@ def followers(username):
 @app.route('/<username>/follow')
 @login_required
 def follow(username):
-    f = User.query.filter_by(username=username).first()
-    if f is None:
+    user = User.query.filter_by(username=username).first()
+    if user is None:
         abort(404)
-    try:
-        current_user.following.append(f)
-        db.session.add(current_user)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        abort(500)
+    if not user == current_user:
+        current_user.following.append(user)
+        try:
+            db.session.add(current_user)
+            db.session.commit()
+        except:
+            db.session.rollback()
     return redirect(url_for('profile', username=username))
 
 
 @app.route('/<username>/unfollow')
 @login_required
 def unfollow(username):
-    f = User.query.filter_by(username=username).first()
-    if f is None:
+    user = User.query.filter_by(username=username).first()
+    if user is None:
         abort(404)
-    try:
-        current_user.following.remove(f)
-        db.session.add(current_user)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        abort(500)
+    if not user == current_user:
+        current_user.following.remove(user)
+        try:
+            db.session.add(current_user)
+            db.session.commit()
+        except:
+            db.session.rollback()
     return redirect(url_for('profile', username=username))
 
 

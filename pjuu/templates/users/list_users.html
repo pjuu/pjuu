@@ -1,0 +1,10 @@
+<ul>
+    {% for item in user_list %}
+    <li class="clearfix">
+        <img src="{{item.email|gravatar(48)}}" style="float: left">
+        <div style="float: left">
+            <div class="username"><a href="{{url_for('profile', username=item.username)}}">{{item.username}}</a></div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>

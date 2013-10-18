@@ -1,7 +1,7 @@
 <ul>
     {% for post in posts_list %}
     <li class="clearfix">
-        <img src="{{post.user.email|gravatar(24)}}" style="float: left">
+        <img src="{{post.user.email|gravatar(48)}}" style="float: left">
         <div style="float: left">
             <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a></div>
             <div class="created">{{post.created}}</div>

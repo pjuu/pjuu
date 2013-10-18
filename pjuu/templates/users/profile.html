@@ -2,7 +2,7 @@
 {% block contenthead %}
 <div id="profile" class="clearfix">
     <div class="avatar">
-        <img src="{{user.email|gravatar(48)}}" />
+        <img src="{{user.email|gravatar(96)}}" />
     </div>
     <div class="details">
         <div class="detail"><span class="username">{{user.username}}</span></div>
@@ -11,6 +11,15 @@
             <li>Followers<br>{{user.followers.count()}}</li>
             <li>Following<br>{{user.following.count()}}</li>
         </ul>
+        <div>
+            {% if user != current_user %}
+                {% if user|following %}
+                    <a href="{{url_for('unfollow', username=user.username)}}">Unfollow</a>
+                {% else %}
+                    <a href="{{url_for('follow', username=user.username)}}">Follow</a>
+                {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 {% if user == current_user %}
