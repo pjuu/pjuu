@@ -17,9 +17,9 @@ from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
 
 @app.context_processor
 def inject_user():
-    '''
-    Injects current `current_user` into the template environment as `user`
-    '''
+    """
+    Injects `current_user` into the Jinja environment
+    """
     return dict(current_user=current_user)
 
 
@@ -88,6 +88,12 @@ def signup():
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)
+
+
+@app.route('/signup/<token>', methods=['GET', 'POST'])
+@anonymous_required
+def activate(token):
+    pass
 
 
 @app.route('/forgot', methods=['GET', 'POST'])

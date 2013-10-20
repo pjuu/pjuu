@@ -19,6 +19,7 @@ class User(db.Model):
     email = db.Column(db.String(254), index=True, unique=True)
     password = db.Column(db.String(66))
 
+    # Date stuff
     created = db.Column(db.DateTime, default=db.func.now())
     last_login = db.Column(db.DateTime)
 

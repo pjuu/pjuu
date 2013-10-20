@@ -69,6 +69,11 @@ def logout():
 
 
 def is_safe_url(target):
+    """
+    Not sure what the point of checking a URL is at the moment.
+    I am using this because at some point it will be important.
+    TODO: Test this properly
+    """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \

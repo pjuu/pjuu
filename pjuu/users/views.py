@@ -12,6 +12,14 @@ from pjuu.posts.forms import PostForm
 from pjuu.posts.models import Post
 
 
+@app.template_filter('following')
+def following_filter(user):
+    '''
+    Checks if current user is following the user with id piped to filter 
+    '''
+    return user in current_user.following.all()
+
+
 @app.route('/')
 def feed():
     # login_required is not needed for this function to keep the base
@@ -19,6 +27,7 @@ def feed():
     post_form = PostForm()
     if not current_user:
         return redirect(url_for('signin'))
+    #TODO: Sort of the feed system. THIS IS VERY IMPORTANT
     return render_template('users/feed.html', post_form=post_form)
 
 
@@ -95,6 +104,16 @@ def unfollow(username):
 def view_post(username, post_id):
     post = Post.query.get(post_id)
     user = User.query.filter_by(username=username).first()
+    # How can this line fit under 80 char correctly?
     if not user or not post or not post.user.username.lower() == user.username.lower():
         abort(404)
     return render_template('users/post.html', user=user, post=post)
+
+
+@app.route('/search')
+@login_required
+def search():
+    """
+    Handles searching of users. This is all done via a query to GET.
+    """
+    pass
