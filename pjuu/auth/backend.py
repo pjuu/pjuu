@@ -35,6 +35,21 @@ def _load_useer():
     _app_ctx_stack.top.user = user
 
 
+def create_account(username, email, password):
+    """
+    Creates a user account. If this task fails a 500 will be thrown.
+    Returns the user account.
+    """
+    try:
+        new_user = User(username, email, password)
+        db.session.add()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        abort(500)
+    return new_user
+
+
 def authenticate(username, password):
     """
     Will authenticate a username/password combination.
@@ -55,9 +70,13 @@ def login(user):
     Will also update the users last_login time.
     """
     session['user_id'] = user.id
-    user.last_login = db.func.now()
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user.last_login = db.func.now()
+        db.session.add(user)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        abort(500)
 
 
 def logout():

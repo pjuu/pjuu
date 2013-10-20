@@ -20,15 +20,21 @@ def post():
             new_post = Post(current_user, form.body.data)
             db.session.add(new_post)
             db.session.commit()
+            flash('Posted', 'success')
         except:
             db.session.rollback()
             abort(500)
+    else:
+        flash('Posts must be between 2 and 512 characters long', 'error')
     return redirect(url_for('profile', username=current_user.username))
 
 
 @app.route('/<username>/<int:post_id>/comment', methods=['POST'])
 @login_required
 def comment(username, post_id):
+    """
+    Should this be in here??? Ah well.
+    """
     form = PostForm(request.form)
     # Check that the post_id matches up with that of the user
     user = User.query.filter_by(username=username)
@@ -40,7 +46,10 @@ def comment(username, post_id):
             new_comment = Comment(current_user, post_id, form.body.data)
             db.session.add(new_post)
             db.session.commit()
+            flash('Comment posted', 'success')
         except:
             db.session.rollback()
             abort(500)
+    else:
+        flash('Comments must be between 2 and 512 characters long.', 'error')
     return redirect(url_for('view_post', username=user.usename, post_id=post.id))

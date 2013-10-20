@@ -9,8 +9,7 @@ from pjuu.lib.mail import send_mail
 from pjuu.users.models import User
 
 # Package imports
-from .backend import (authenticate, current_user, is_safe_url,
-                      login as plogin, logout as plogout)
+from .backend import authenticate, current_user, is_safe_url, login, logout
 from .decorators import anonymous_required, login_required
 from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
 
@@ -35,6 +34,7 @@ def signin():
         if form.validate():
             username = form.username.data
             password = form.password.data
+            # Calls authenticate from backend.py
             user = authenticate(username, password)
             if user is not None:
                 if not user.active:
@@ -44,7 +44,7 @@ def signin():
                     flash('Your account has been banned. Naughty boy',
                           'warning')
                 else:
-                    plogin(user)
+                    login(user)
                     return redirect(redirect_url)
             else:
                 flash('Invalid user name or password', 'error')
@@ -54,9 +54,9 @@ def signin():
 
 
 @app.route('/signout')
-def  signout():
+def signout():
     if current_user:
-        plogout()
+        logout()
         flash('Successfully logged out!', 'success')
     return redirect(url_for('signin'))
 
@@ -68,23 +68,16 @@ def signup():
     if request.method == 'POST':
         if form.validate():
             # User successfully signed up, create an account
-            new_user = User(form.username.data, form.email.data,
-                            form.password.data)
-            # Add new user to session
-            try:
-                db.session.add(new_user)
-                db.session.commit()
-            except:
-                # If creating the new user fails throw a 500
-                db.session.rollback()
-                abort(500)
-            # Generate activation token
-            # Sends activation e-mail to new user
-            send_mail('Welcome', [new_user.email],
-                      text_body=render_template('auth/welcome.email.txt'),
-                      html_body=render_template('auth/welcome.email.html'))
-            flash('Yay! You\'ve signed up. Please log in.', 'success')
-            return redirect(url_for('signin'))
+            new_user = create_account(form.data.username, form.data.email,
+                                      form.data.password)
+            if new_user:
+                # TODO Generate activation token
+                # Sends activation e-mail to new user
+                send_mail('Welcome', [new_user.email],
+                          text_body=render_template('auth/welcome.email.txt'),
+                          html_body=render_template('auth/welcome.email.html'))
+                flash('Yay! You\'ve signed up. Please log in.', 'success')
+                return redirect(url_for('signin'))
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form', 'error')
     return render_template('auth/signup.html', form=form)

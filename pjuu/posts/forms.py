@@ -8,6 +8,4 @@ class PostForm(Form):
     '''
     This is the form used for Posts and Comments at the momment.
     '''
-    body = TextAreaField('Post',
-            [Length(min=2, max=512,
-                    message='Posts can only be 512 characters max')])
+    body = TextAreaField('Post', [Length(min=2, max=512, message='Posts can only be 512 characters max')])
