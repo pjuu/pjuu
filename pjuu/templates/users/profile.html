@@ -4,26 +4,27 @@
     <div class="avatar">
         <img src="{{user.email|gravatar(96)}}" />
     </div>
+    <ul class="stats">
+    {% if user != current_user %}
+        {% if user|following %}
+        <a href="{{url_for('unfollow', username=user.username)}}">
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
+        </a>
+        {% else %}
+        <a href="{{url_for('follow', username=user.username)}}">
+            <div class="action-button follow">Follow</div>
+        </a>
+        {% endif %}
+    {% else %}
+        <div class="action-button you">You</div>
+    {% endif %}
+        <a href="{{url_for('profile', username=user.username)}}"><li>{{user.posts.count()}} posts</li></a>
+        <a href="{{url_for('followers', username=user.username)}}"><li>{{user.followers.count()}} followers</li></a>
+        <a href="{{url_for('following', username=user.username)}}"><li>{{user.following.count()}} following</li></a>
+    </ul>
     <div class="details">
-        <div class="detail"><span class="username">{{user.username}}</span></div>
-        <ul class="stats">
-            <li>Posts<br>{{user.posts.count()}}</li>
-            <li>Followers<br>{{user.followers.count()}}</li>
-            <li>Following<br>{{user.following.count()}}</li>
-        </ul>
-        <div>
-            {% if user != current_user %}
-                {% if user|following %}
-                    <a href="{{url_for('unfollow', username=user.username)}}">Unfollow</a>
-                {% else %}
-                    <a href="{{url_for('follow', username=user.username)}}">Follow</a>
-                {% endif %}
-            {% endif %}
-        </div>
+        <div class="username">{{user.username}}</div>
+        <div class="body">{{user.about}}</div>
     </div>
 </div>
-{% if user == current_user %}
-    {% include 'users/author_post.html' %}
-{% endif %}
 {% endblock %}
-{% block content %}{% endblock %}

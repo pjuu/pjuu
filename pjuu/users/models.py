@@ -36,6 +36,9 @@ class User(db.Model):
         backref=db.backref('followers', lazy='dynamic'),
         lazy='dynamic')
 
+    # Social stuff
+    about = db.Column(db.String(512))
+
     def __init__(self, username, email, password):
         self.username = username
         self.email = email

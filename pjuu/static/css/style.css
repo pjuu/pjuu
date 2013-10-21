@@ -4,9 +4,10 @@
 
 html, body {
     background-color: #9C0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 13px;
+    line-height: 18px;
     padding-bottom: 1em;
 }
 
@@ -28,28 +29,31 @@ html[xmlns] .clearfix {
 }
 
 a {
-    color: #39F;
+    color: #36F;
     text-decoration: None;
 }
 
 a:hover {
-    color: #06F;
+    color: #33F;
 }
 
 input[type=text],
 input[type=password],
 textarea {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     font-weight: 400;
-    font-size: 13px;
+    font-size: 14px;
     border-radius: 3px 3px 3px 3px;
+    /* Support 100% width */
     box-sizing: border-box; /* Opera/IE 8+ */
     -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
 	-moz-box-sizing: border-box; /* Firefox */
 }
 
 #wrapper {
+    margin: 14px auto;
     min-height: 100%;
+    width: 960px;
 }
 
 /*
@@ -186,128 +190,52 @@ textarea {
 #recaptcha_image {
     margin: 0.5em auto 1em;
 }
-/*
-** GLOBAL
-*/
-
-html, body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    font-size: 13px;
-    padding-bottom: 1em;
-}
-
-html[xmlns] .clearfix {
-    display: block;
-}
- 
-* html .clearfix {
-    height: 1%;
-}
-
-.clearfix:after {
-    content: ".";
-    display: block;
-    clear: both;
-    visibility: hidden;
-    line-height: 0;
-    height: 0;
-}
-
-a {
-    color: #39F;
-    text-decoration: None;
-}
-
-a:hover {
-    color: #06F;
-}
-
-input[type=text],
-input[type=password],
-textarea {
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: 400;
-    font-size: 13px;
-    border-radius: 3px 3px 3px 3px;
-    box-sizing: border-box; /* Opera/IE 8+ */
-    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
-	-moz-box-sizing: border-box; /* Firefox */
-}
-
-#wrapper {
-    min-height: 100%;
-}
 
 /*
-** Header
+** Menu
 */
 
-#header {
-	background-color: #9C0;
-    border: 1px solid #680;
-    border-radius: 3px 3px 3px 3px;
-	margin: 0.5em auto;
-	padding: 0;
-	width: 70em;
+.menu {
+    float: left;
+    position: fixed;
+	width: 200px;
 }
 
-#header img {
-	float: left;
-	margin-left: 0.5em;
+.menu img {
+	margin: 0 auto;
 }
 
-#header ul {
-	color: #FFF;
+.menu ul {
+	color: #000;
 	font-weight: 700;
-	line-height: 52px;
-	vertical-align: middle;
 }
 
-#header .menu {
-	float: left;
-	margin-left: 5em;
+.menu li {
+    color: #3D4526;
+    border-radius: 3px 3px 3px 3px;
+	padding: 0.5em 0.5em;
 }
 
-#header .account {
-	float: right;
-	margin-right: 0.5em;
-}
-
-#header li {
-	float: left;
-	padding: 0 0.5em;
-}
-
-#header li:hover {
+.menu li:hover {
+    color: #FFF;
 	background-color: #680;
-}
-
-#header a {
-	color: #FFF;
-	font-weight: 700;
-}
-
-#header a:hover {
-	text-decoration: underline;
 }
 
 /*
 ** Content
 */
 
-#content {
-    margin: 0.5em auto;
-    padding: 0;
-    width: 60em;
+.content {
+    background-color: #FFF;
+    border: 1px solid #680;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0 0 0 214px;
+    width: 746;
 }
 
 h1 {
-    font-size: 2em;
-    color: #680;
-    margin: 0 0 0.5em 0;
-    border-bottom: 1px solid #680;
-    padding 1em 0;
+    font-weight: 700;
+    padding: 0.5em;
 }
 
 /*
@@ -315,48 +243,155 @@ h1 {
 */
 
 #profile {
-    background-color: #FFF;
-    border: 1px solid #680;
-    border-radius: 3px 3px 3px 3px;
-    margin: 0 auto 0.5em;
-    padding: 0.5em;
+    background-color: #BBB;
+    border-bottom: 1px solid #666;
+    margin: 0;
+    padding: 1em;
 }
 
 #profile .avatar {
     float: left;
+    padding: 1px;
+    border: 1px solid #444;
+}
+
+#profile .actions {
+    width: 100px;
+    float: right;
+    text-align: center;
 }
 
 #profile .details {
-    float: left;
-    margin: 0 0 0 1em;
+    margin: 0 110px 0 110px;
 }
 
 #profile .username {
     font-size: 2em;
 }
 
-#profile-menu {
-    border-bottom-width: 1px;
-    border-bottom-color: #AAA;
-    border-bottom-style: solid;
-    margin: 0 0 1em 0;
+#profile .stats {
+    color: #000;
+    float: right;
+    text-align: right;
+    width: 100px;
+}
+
+#profile .stats li {
+    border-radius: 3px 3px 3px 3px;
+    color: #000;
+    font-weight: 700;
+    padding: 0.5em 0.5em;
+}
+
+#profile .stats li:hover {
+    background-color: #888;
+}
+
+#profile .action-button {
+    color: #680;
+    background-color: #EEE;
+    border: 1px solid #CCC;
+    border-radius: 3px 3px 3px 3px;
+    font-weight: 700;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em 0;
+    text-align: center;
+}
+
+#profile .you {
+    color: #69F;
+    background-color: #9CF;
+    border: 1px solid #69F;
+}
+
+#profile .follow:hover {
+    color: #FFF;
+    border-color: #2A2;
+    background-color: #3C3;
+}
+
+#profile .unfollow {
+    color: #FFF;
+    border-color: #2A2;
+    background-color: #3C3;
+}
+
+#profile .unfollow:hover {
+    border-color: #A00;
+    background-color: #C00;
+}
+
+/*
+** Author
+*/
+
+#author {
+    background-color: #DDD;
+    margin: 0 auto;
+}
+
+/*
+** Lists
+*/
+
+.list {
+    padding: 1em;
+}
+
+.list .last {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.list .empty {
+    color: #777;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.list .item {
+    margin: 0 0 1em;
+    padding: 0 0 1em;
+    border-bottom: 1px solid #BBB;
+}
+
+/*
+** Post
+*/
+
+.post {
+    /* Nout ATM */
+}
+
+.post .contents {
+    margin: 0 0 0 64px;
+}
+
+.list .username {
+    font-size: 15px;
     font-weight: 700;
 }
 
-#profile-menu a {
-    color: #000;
+.list .created {
+    font-size: 11px;
+    font-weight: 400;
 }
 
-#profile-menu li {
-    float: left;
-    padding: 0.5em 1em;
-    border-radius: 3px 3px 0 0;
+.list .body {
+    padding: 7px 0;
+    word-wrap: break-word;
 }
 
-#profile-menu li:hover {
-    background-color: #DDD;
+.user {
+    /* Nout ATM */
 }
 
-#profile-menu .active {
-    background-color: #AAA;
+.user .contents {
+    margin: 0 128px 0 64px;
+}
+
+.user .action {
+    float: right;
 }

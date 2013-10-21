@@ -1,10 +1,16 @@
-<ul>
+<ul class="list">
     {% for item in user_list %}
-    <li class="clearfix">
-        <img src="{{item.email|gravatar(48)}}" style="float: left">
-        <div style="float: left">
+    <li class="{% if loop.last %}last{% else %}item{% endif %} user clearfix">
+        <img class="avatar" src="{{item.email|gravatar(48)}}" style="float: left">
+        <div class="action">
+            Follow
+        </div>
+        <div class="contents">
             <div class="username"><a href="{{url_for('profile', username=item.username)}}">{{item.username}}</a></div>
+            <div class="about">About message.</div>
         </div>
     </li>
+    {% else %}
+    <div class="empty">No users</div>
     {% endfor %}
 </ul>

@@ -10,6 +10,7 @@ from pjuu.auth.decorators import login_required
 from pjuu.users.models import User
 from pjuu.posts.forms import PostForm
 from pjuu.posts.models import Post
+from .backend import follow_user, unfollow_user
 
 
 @app.template_filter('following')
@@ -81,13 +82,8 @@ def follow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    if not user == current_user:
-        current_user.following.append(user)
-        try:
-            db.session.add(current_user)
-            db.session.commit()
-        except:
-            db.session.rollback()
+    if follow_user(current_user, user):
+        flash('You have started following this user')
     return redirect(url_for('profile', username=username))
 
 
@@ -97,13 +93,8 @@ def unfollow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    if not user == current_user:
-        current_user.following.remove(user)
-        try:
-            db.session.add(current_user)
-            db.session.commit()
-        except:
-            db.session.rollback()
+    if unfollow_user(current_user, user):
+        flash('You have unfollowed this user', 'success')
     return redirect(url_for('profile', username=username))
 
 

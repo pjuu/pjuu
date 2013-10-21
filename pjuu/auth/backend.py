@@ -2,7 +2,7 @@
 from urlparse import urlparse, urljoin
 
 # 3rd party imports
-from flask import _app_ctx_stack, request, session
+from flask import _app_ctx_stack, request, session, abort
 from werkzeug.local import LocalProxy
 from werkzeug.security import check_password_hash
 
@@ -42,7 +42,7 @@ def create_account(username, email, password):
     """
     try:
         new_user = User(username, email, password)
-        db.session.add()
+        db.session.add(new_user)
         db.session.commit()
     except:
         db.session.rollback()

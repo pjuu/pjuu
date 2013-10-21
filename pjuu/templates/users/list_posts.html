@@ -1,13 +1,14 @@
-<ul>
+<ul class="list">
     {% for post in posts_list %}
-    <li class="clearfix">
-        <img src="{{post.user.email|gravatar(48)}}" style="float: left">
-        <div style="float: left">
-            <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a></div>
-            <div class="created">{{post.created}}</div>
+    <li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
+        <img class="avatar" src="{{post.user.email|gravatar(48)}}" style="float: left">
+        <div class="contents">
+            <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
             <div class="body">{{post.body}}</div>
-            <div class="comment-count">{{post.comments.count()}}</div>
+            <div class="comment-count">{{post.comments.count()}} comments</div>
         </div>
     </li>
+    {% else %}
+    <div class="empty">No posts</div>
     {% endfor %}
 </ul>

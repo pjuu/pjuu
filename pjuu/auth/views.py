@@ -9,7 +9,8 @@ from pjuu.lib.mail import send_mail
 from pjuu.users.models import User
 
 # Package imports
-from .backend import authenticate, current_user, is_safe_url, login, logout
+from .backend import (authenticate, current_user, is_safe_url, login,
+                      logout, create_account)
 from .decorators import anonymous_required, login_required
 from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
 
@@ -68,8 +69,8 @@ def signup():
     if request.method == 'POST':
         if form.validate():
             # User successfully signed up, create an account
-            new_user = create_account(form.data.username, form.data.email,
-                                      form.data.password)
+            new_user = create_account(form.username.data, form.email.data,
+                                      form.password.data)
             if new_user:
                 # TODO Generate activation token
                 # Sends activation e-mail to new user
