@@ -13,6 +13,8 @@ The only dependencies system wise is **Redis**. This is used for session by defa
 Work on it
 ----------
 
+**THIS IS NOT TRUE AT THE MOMENT. PLEASE TAKE IN TO ACCOUNT ALEMBIC**
+
 Setup the development environment:
 ```
 $ git clone git@github.com:pjuu/pjuu.git
