@@ -7,6 +7,10 @@ from .backend import current_user
 
 
 def anonymous_required(func):
+    """
+    Will stop a user going to a page which requires a user to be
+    logged out (login, signup, etc...)
+    """
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user:
@@ -16,6 +20,10 @@ def anonymous_required(func):
 
 
 def login_required(func):
+    """
+    Will stop a user going to a page which requires a user to be
+    logged in (feed, profile, etc...)
+    """
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:

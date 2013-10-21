@@ -1,10 +1,4 @@
 {% extends 'base.html' %}
-
-{% block includes %}
-<link href="{{ url_for('static', filename='css/users.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ url_for('static', filename='css/posts.css') }}" rel="stylesheet" type="text/css" />
-{% endblock %}
-
 {% block layout %}
 <div id="header" class="clearfix">
     <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52" />
@@ -15,7 +9,15 @@
     </ul>
 </div>
 <div id="content" class="clearfix">
-    {% block contenthead %}{% endblock %}
-    {% block content %}{% endblock %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div id="messages">
+            {% for category, message in messages %}
+            <div class="message {{ category|safe }}">{{ message|safe }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
 </div>
 {% endblock %}

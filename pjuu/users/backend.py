@@ -1,5 +1,6 @@
+# Pjuu imports
 from pjuu import app
-from pjuu.auth.backend import current_user
+from pjuu.auth import current_user
 
 
 @app.template_filter('following')
