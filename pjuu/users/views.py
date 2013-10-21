@@ -34,6 +34,14 @@ def profile(username):
                            post_form=post_form)
 
 
+@app.route('/<username>/avatar')
+def avatar(username):
+    """
+    Future usage to remove the MD5'd e-mail from the Gravatar URL.
+    """
+    pass
+
+
 @app.route('/<username>/following')
 @login_required
 def following(username):
