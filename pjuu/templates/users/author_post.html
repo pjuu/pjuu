@@ -1,5 +1,7 @@
-<div class="author clearfix">
-    <span class="author-title">New post</span>
+<div id="author-hider">
+    Create a new post
+</div>
+<div id="author" class="clearfix">
     <form action="/post" method="post">
         {{ post_form.body }}
         {{ post_form.csrf_token }}

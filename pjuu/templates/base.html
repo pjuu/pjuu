@@ -5,11 +5,17 @@
     <title>Pjuu</title>
     <link href="{{ url_for('static', filename='css/reset.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
 </head>
 <body>
     <div id="wrapper">
     {% block layout %}{% endblock %}
     </div>
     {% block js %}{% endblock %}
+    <script>
+        $("#author-hider").click(function() {
+            $("#author").toggle()
+        });
+    </script>
 </body>
 </html>

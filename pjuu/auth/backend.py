@@ -44,7 +44,8 @@ def create_account(username, email, password):
         new_user = User(username, email, password)
         db.session.add(new_user)
         db.session.commit()
-    except:
+    except Exception as e:
+        print e
         db.session.rollback()
         abort(500)
     return new_user

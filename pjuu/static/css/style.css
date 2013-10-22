@@ -208,6 +208,7 @@ textarea {
 .menu ul {
 	color: #000;
 	font-weight: 700;
+    margin: 1em 0 0;
 }
 
 .menu li {
@@ -219,6 +220,26 @@ textarea {
 .menu li:hover {
     color: #FFF;
 	background-color: #680;
+}
+
+#search {
+    background-color: #680;
+    border-radius: 3px 3px 3px 3px;
+    color: #FFF;
+    margin: 1em 0 0;
+    padding: 0.5em;
+}
+
+#search input[type=text] {
+    border: 1px solid #BBB;
+    margin: 0.5em 0;
+    padding: 0.5em;
+    width: 100%;
+}
+
+#search input[type=submit] {
+    font-weight: 700;
+    padding: 0.25em 0.5em;
 }
 
 /*
@@ -234,6 +255,8 @@ textarea {
 }
 
 h1 {
+    color: #680;
+    font-size: 1.5em;
     font-weight: 700;
     padding: 0.5em;
 }
@@ -243,15 +266,15 @@ h1 {
 */
 
 #profile {
-    background-color: #BBB;
-    border-bottom: 1px solid #666;
+    color: #FFF;
+    background-color: #680;
     margin: 0;
     padding: 1em;
 }
 
 #profile .avatar {
     float: left;
-    padding: 1px;
+    margin: 0;
     border: 1px solid #444;
 }
 
@@ -269,8 +292,11 @@ h1 {
     font-size: 2em;
 }
 
+#profile .body {
+    margin: 1em 0 0;
+}
+
 #profile .stats {
-    color: #000;
     float: right;
     text-align: right;
     width: 100px;
@@ -278,46 +304,44 @@ h1 {
 
 #profile .stats li {
     border-radius: 3px 3px 3px 3px;
-    color: #000;
+    color: #FFF;
     font-weight: 700;
     padding: 0.5em 0.5em;
 }
 
 #profile .stats li:hover {
-    background-color: #888;
+    color: #000;
+    background-color: #9C0;
 }
 
-#profile .action-button {
+.action-button {
     color: #680;
     background-color: #EEE;
-    border: 1px solid #CCC;
+    border: 1px solid #FFF;
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
     margin: 0 0 0.5em 0;
     padding: 0.5em 0;
     text-align: center;
+    width: 100px
 }
 
-#profile .you {
+.you {
     color: #69F;
     background-color: #9CF;
-    border: 1px solid #69F;
 }
 
-#profile .follow:hover {
+.follow:hover {
     color: #FFF;
-    border-color: #2A2;
     background-color: #3C3;
 }
 
-#profile .unfollow {
+.unfollow {
     color: #FFF;
-    border-color: #2A2;
     background-color: #3C3;
 }
 
-#profile .unfollow:hover {
-    border-color: #A00;
+.unfollow:hover {
     background-color: #C00;
 }
 
@@ -326,8 +350,45 @@ h1 {
 */
 
 #author {
-    background-color: #DDD;
-    margin: 0 auto;
+    background-color: #FFC;
+    border-color: #666;
+    border-style: solid;
+    border-width: 0 1px 1px;
+    display: none;
+    margin: 0 0.5em;
+    padding: 0.5em;
+}
+
+#author textarea {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    border: 1px solid #666;
+    border-radius: 3px 3px 3px 3px;
+    /* Support 100% width */
+    box-sizing: border-box; /* Opera/IE 8+ */
+    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
+    -moz-box-sizing: border-box; /* Firefox */
+    width: 100%;
+    resize: none;
+    padding: 0.5em;
+}
+
+#author input[type=submit] {
+    float: right;
+    font-weight: 700;
+    padding: 0.25em 0.5em
+}
+
+#author-hider {
+    background-color: #FC0;
+    border: 1px solid #666;
+    border-radius: 2px 2px 2px 2px;
+    cursor: pointer;
+    font-weight: 700;
+    margin: 0.5em 0.5em 0;
+    padding: 0.5em 0;
+    text-align: center;
 }
 
 /*
@@ -349,6 +410,7 @@ h1 {
     font-size: 15px;
     font-weight: 700;
     text-align: center;
+    padding-bottom: 1em;
 }
 
 .list .item {

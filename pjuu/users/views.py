@@ -5,7 +5,7 @@ from werkzeug import check_password_hash, generate_password_hash
 
 # Pjuu imports
 from pjuu import app, db
-from pjuu.auth.backend import current_user
+from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.users.models import User
 from pjuu.posts.forms import PostForm
@@ -29,7 +29,11 @@ def feed():
     if not current_user:
         return redirect(url_for('signin'))
     #TODO: Sort of the feed system. THIS IS VERY IMPORTANT
-    return render_template('users/feed.html', post_form=post_form)
+    # This is temporary and will not scale.
+    following = current_user.following.all()
+    following.append(current_user)
+    posts = Post.query.filter(Post.author.in_(u.id for u in following)).order_by(Post.created.desc()).limit(1000)
+    return render_template('users/feed.html', post_form=post_form, posts_list=posts)
 
 
 @app.route('/<username>')
@@ -82,9 +86,14 @@ def follow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
+
+    redirect_url = request.values.get('next', None)
+    if not redirect_url or not is_safe_url(redirect_url):
+        redirect_url=url_for('profile', username=username)
+
     if follow_user(current_user, user):
         flash('You have started following this user')
-    return redirect(url_for('profile', username=username))
+    return redirect(redirect_url)
 
 
 @app.route('/<username>/unfollow')
@@ -93,9 +102,14 @@ def unfollow(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
+
+    redirect_url = request.values.get('next', None)
+    if not redirect_url or not is_safe_url(redirect_url):
+        redirect_url=url_for('profile', username=usernmae)
+
     if unfollow_user(current_user, user):
         flash('You have unfollowed this user', 'success')
-    return redirect(url_for('profile', username=username))
+    return redirect(redirect_url)
 
 
 @app.route('/<username>/<int:post_id>')
@@ -115,4 +129,13 @@ def search():
     """
     Handles searching of users. This is all done via a query to GET.
     """
-    pass
+    results = []
+    return render_template('users/search.html', results=results)
+
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    notifications = []
+    return render_template('users/notifications.html',
+                           notifications=notifications)

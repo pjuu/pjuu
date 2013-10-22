@@ -1,0 +1,12 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="post-main clearfix">
+        <img class="avatar" src="{{post.user.email|gravatar(96)}}" style="float: left">
+        <div class="contents">
+            <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
+            <div class="body">{{post.body}}</div>
+            <div class="comment-count">{{post.comments.count()}} comments</div>
+        </div>
+</div>
+{% endblock %}

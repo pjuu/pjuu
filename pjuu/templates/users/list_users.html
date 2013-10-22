@@ -3,11 +3,23 @@
     <li class="{% if loop.last %}last{% else %}item{% endif %} user clearfix">
         <img class="avatar" src="{{item.email|gravatar(48)}}" style="float: left">
         <div class="action">
-            Follow
+        {% if item != current_user %}
+        {% if item|following %}
+        <a href="{{url_for('unfollow', username=item.username, next=request.path)}}">
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
+        </a>
+        {% else %}
+        <a href="{{url_for('follow', username=item.username, next=request.path)}}">
+            <div class="action-button follow">Follow</div>
+        </a>
+        {% endif %}
+    {% else %}
+        <div class="action-button you">You</div>
+    {% endif %}
         </div>
         <div class="contents">
             <div class="username"><a href="{{url_for('profile', username=item.username)}}">{{item.username}}</a></div>
-            <div class="about">About message.</div>
+            <div class="about">{{item.about}}</div>
         </div>
     </li>
     {% else %}

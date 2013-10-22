@@ -15,8 +15,10 @@ follow = db.Table('follow',
 
 class User(db.Model):
     id = db.Column(db.Integer(unsigned=True), primary_key=True)
-    username = db.Column(db.String(16), index=True, unique=True)
-    email = db.Column(db.String(254), index=True, unique=True)
+    username = db.Column(db.String(16), index=True, unique=True,
+                         nullable=False)
+    email = db.Column(db.String(254), index=True, unique=True,
+                      nullable=False)
     password = db.Column(db.String(66))
 
     # Date stuff
@@ -37,7 +39,7 @@ class User(db.Model):
         lazy='dynamic')
 
     # Social stuff
-    about = db.Column(db.String(512))
+    about = db.Column(db.String(512), default='', nullable=False)
 
     def __init__(self, username, email, password):
         self.username = username

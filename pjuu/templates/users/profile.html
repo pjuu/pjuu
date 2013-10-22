@@ -27,4 +27,7 @@
         <div class="body">{{user.about}}</div>
     </div>
 </div>
+{% if user == current_user %}
+    {% include 'users/author_post.html' %}
+{% endif %}
 {% endblock %}
