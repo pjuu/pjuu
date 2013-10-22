@@ -123,6 +123,12 @@ def view_post(username, post_id):
     return render_template('users/post.html', user=user, post=post)
 
 
+@app.route('/settings')
+@login_required
+def settings():
+    return render_template('users/settings.html')
+
+
 @app.route('/search')
 @login_required
 def search():
