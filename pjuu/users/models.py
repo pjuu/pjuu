@@ -7,8 +7,12 @@ from pjuu import db
 
 # Secondary table to store the Many-To-Many relationship of followers.
 follow = db.Table('follow',
-    db.Column('user_id', db.Integer(unsigned=True), db.ForeignKey('user.id')),
-    db.Column('followee_id', db.Integer(unsigned=True), db.ForeignKey('user.id')),
+    db.Column('created', db.DateTime, default=db.func.now(),
+              index=True, nullable=False),
+    db.Column('user_id', db.Integer(unsigned=True), db.ForeignKey('user.id'),
+              index=True, nullable=False),
+    db.Column('followee_id', db.Integer(unsigned=True),
+              db.ForeignKey('user.id'), index=True, nullable=False),
     db.UniqueConstraint('user_id', 'followee_id', name='uix_follow')
 )
 

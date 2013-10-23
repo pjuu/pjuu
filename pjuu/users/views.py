@@ -38,12 +38,19 @@ def feed():
 
 @app.route('/<username>')
 @login_required
-def profile(username):
+def profile(username):    
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
+
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except:
+        page = 1
+
     post_form = PostForm()
-    posts = Post.query.filter_by(author=user.id).order_by(Post.created.desc())
+    posts = Post.query.filter_by(author=user.id).order_by(Post.created.desc()).paginate(page, 10, False)
     return render_template('users/posts.html', user=user, posts_list=posts,
                            post_form=post_form)
 
