@@ -1,5 +1,5 @@
 <ul class="list">
-    {% for item in user_list %}
+    {% for item in user_list.items %}
     <li class="{% if loop.last %}last{% else %}item{% endif %} user clearfix">
         <img class="avatar" src="{{item.email|gravatar(48)}}" style="float: left">
         <div class="action">

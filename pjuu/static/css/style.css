@@ -245,11 +245,50 @@ textarea {
 ** Content
 */
 
+#messages {
+	margin: 0 0 0 214px;
+}
+
+#messages .message {
+    border: 1px solid #CCC;
+    border-radius: 3px 3px 3px 3px;
+    font-weight: 700;
+    margin: 0 auto 1em;
+    padding: 1em;
+    text-align: center;
+    width: 25em;
+}
+
+#messages .error {
+    background-color: #FCC;
+    border-color: #F55;
+    color: #F55;
+}
+
+#messages .info {
+    background-color: #BEF;
+    border-color: #09F;
+    color: #09F;
+}
+
+#messages .success {
+    background-color: #CFB;
+    border-color: #0B0;
+    color: #0B0;
+}
+
+#messages .warning {
+    background-color: #FFC;
+    border-color: #AA3;
+    color: #AA3;
+}
+
 .content {
     background-color: #FFF;
     border: 1px solid #680;
     border-radius: 3px 3px 3px 3px;
     margin: 0 0 0 214px;
+    padding: 0 0 1em 0;
     width: 746;
 }
 
@@ -431,6 +470,12 @@ h1 {
     margin: 0 0 0 64px;
 }
 
+.post .comment-count {
+	background-color: #DDD;
+	border-radius: 3px 3px 3px 3px;
+	padding: 0.5em;
+}
+
 .list .username {
     font-size: 15px;
     font-weight: 700;
@@ -459,12 +504,45 @@ h1 {
 }
 
 /*
+** Main Post page
+*/
+
+#post-main {
+	padding: 1em;
+}
+
+#post-main .contents {
+    margin: 0 0 0 112px;
+}
+
+#post-main .username {
+	font-size: 15px;
+    font-weight: 700;
+}
+
+#post-main .created {
+	font-size: 11px;
+    font-weight: 400;
+}
+
+#post-main .body {
+	padding: 7px 0;
+    word-wrap: break-word;
+}
+
+/*
 ** Pagination
 */
 
 #pagination {
-    padding: 0 0.5em 0.5em;
+    color: #999;
+    padding: 0 0.5em;
     margin: 2em 0 0;
+}
+
+#pagination a {
+    color: #000;
+    font-weight: 700;
 }
 
 #pagination .prev {

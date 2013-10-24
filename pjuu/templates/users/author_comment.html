@@ -1,6 +1,8 @@
+<div id="author-hider">
+    Make a comment
+</div>
 <div id="author" class="clearfix">
-    <span class="author-title">Comment</span>
-    <form action="/post" method="post">
+    <form action="{{ url_for('comment', username=post.user.username, post_id=post.id)  }}" method="post">
         {{ post_form.body }}
         {{ post_form.csrf_token }}
         <input type="submit" value="Post" />

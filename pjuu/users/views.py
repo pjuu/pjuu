@@ -39,7 +39,9 @@ def feed():
 
     following = current_user.following.all()
     following.append(current_user)
-    posts = Post.query.filter(Post.author.in_(u.id for u in following)).order_by(Post.created.desc()).paginate(page, 20, False)
+    posts = Post.query.filter(Post.author.in_(u.id for u in following))\
+            .order_by(Post.created.desc())\
+            .paginate(page, app.config['FEED_ITEMS_PER_PAGE'], False)
     return render_template('users/feed.html', post_form=post_form, posts_list=posts)
 
 
@@ -47,6 +49,7 @@ def feed():
 @login_required
 def profile(username):    
     user = User.query.filter_by(username=username).first()
+
     if user is None:
         abort(404)
 
@@ -57,27 +60,30 @@ def profile(username):
         page = 1
 
     post_form = PostForm()
-    posts = Post.query.filter_by(author=user.id).order_by(Post.created.desc()).paginate(page, 10, False)
+    posts = Post.query.filter_by(author=user.id)\
+            .order_by(Post.created.desc())\
+            .paginate(page, app.config['PROFILE_ITEMS_PER_PAGE'], False)
     return render_template('users/posts.html', user=user, posts_list=posts,
                            post_form=post_form)
-
-
-@app.route('/<username>/avatar')
-def avatar(username):
-    """
-    Future usage to remove the MD5'd e-mail from the Gravatar URL.
-    """
-    pass
 
 
 @app.route('/<username>/following')
 @login_required
 def following(username):
     user = User.query.filter_by(username=username).first()
+
     if user is None:
         abort(404)
+
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except:
+        page = 1
+
     post_form = PostForm()
-    following = user.following.all()
+    following = user.following\
+                .paginate(page, app.config['PROFILE_ITEMS_PER_PAGE'], False)
     return render_template('users/following.html', user=user,
                            post_form=post_form, user_list=following)
 
@@ -86,10 +92,19 @@ def following(username):
 @login_required
 def followers(username):
     user = User.query.filter_by(username=username).first()
+
     if user is None:
         abort(404)
+
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except:
+        page = 1
+
     post_form = PostForm()
-    followers = user.followers.all()
+    followers = user.followers\
+                .paginate(page, app.config['PROFILE_ITEMS_PER_PAGE'], False)
     return render_template('users/followers.html', user=user,
                            post_form=post_form, user_list=followers)
 
@@ -98,6 +113,7 @@ def followers(username):
 @login_required
 def follow(username):
     user = User.query.filter_by(username=username).first()
+
     if user is None:
         abort(404)
 
@@ -114,6 +130,7 @@ def follow(username):
 @login_required
 def unfollow(username):
     user = User.query.filter_by(username=username).first()
+
     if user is None:
         abort(404)
 
@@ -131,10 +148,13 @@ def unfollow(username):
 def view_post(username, post_id):
     post = Post.query.get(post_id)
     user = User.query.filter_by(username=username).first()
-    # How can this line fit under 80 char correctly?
-    if not user or not post or not post.user.username.lower() == user.username.lower():
+    
+    if not user or not post or post.user is not user:
         abort(404)
-    return render_template('users/post.html', user=user, post=post)
+
+    post_form = PostForm()
+    return render_template('users/post.html', user=user, post=post,
+                           post_form=post_form)
 
 
 @app.route('/settings')
@@ -149,8 +169,12 @@ def search():
     """
     Handles searching of users. This is all done via a query to GET.
     """
-    results = []
-    return render_template('users/search.html', results=results)
+    query = request.values.get('query', None)
+    if query is not None:
+        results = User.query.filter(User.username.ilike(query))\
+                  .limit(50)
+    return render_template('users/search.html', query=query,
+                           user_list=results)
 
 
 @app.route('/notifications')
