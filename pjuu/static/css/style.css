@@ -457,3 +457,26 @@ h1 {
 .user .action {
     float: right;
 }
+
+/*
+** Pagination
+*/
+
+#pagination {
+    padding: 0 0.5em 0.5em;
+    margin: 2em 0 0;
+}
+
+#pagination .prev {
+    float: left;
+    padding: 0.5em 1em;
+    border: 1px solid #999;
+    background-color: #CCC;
+}
+
+#pagination .next {
+    float: right;
+    padding: 0.5em 1em;
+    border: 1px solid #999;
+    background-color: #CCC;
+}

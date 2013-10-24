@@ -19,3 +19,5 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 # Flask-WTF
 CSRF_ENABLE = True
 CSRF_SESSION_KEY = SECRET_KEY
+
+ITEMS_PER_PAGE = 50

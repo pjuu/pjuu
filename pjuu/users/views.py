@@ -30,9 +30,16 @@ def feed():
         return redirect(url_for('signin'))
     #TODO: Sort of the feed system. THIS IS VERY IMPORTANT
     # This is temporary and will not scale.
+
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except:
+        page = 1
+
     following = current_user.following.all()
     following.append(current_user)
-    posts = Post.query.filter(Post.author.in_(u.id for u in following)).order_by(Post.created.desc()).limit(1000)
+    posts = Post.query.filter(Post.author.in_(u.id for u in following)).order_by(Post.created.desc()).paginate(page, 20, False)
     return render_template('users/feed.html', post_form=post_form, posts_list=posts)
 
 

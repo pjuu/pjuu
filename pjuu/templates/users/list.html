@@ -4,7 +4,7 @@
         <div class="empty">{% block empty %}{% endblock %}</div>
     {% endfor %}
     {% if pagination.has_prev or pagination.has_next %}
-        <div id="pagination">
+        <div id="pagination" class="clearfix">
         {% if pagination.has_prev %}
             <a href="{{ request.path + "?page=%s" % pagination.prev_num }}">
                 <div class="prev">

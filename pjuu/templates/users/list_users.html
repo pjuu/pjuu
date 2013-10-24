@@ -25,4 +25,30 @@
     {% else %}
     <div class="empty">No users</div>
     {% endfor %}
+    {% if user_list.has_prev or user_list.has_next %}
+        <div id="pagination" class="clearfix">
+        {% if posts_list.has_prev %}
+            <a href="{{ request.path + "?page=%s" % user_list.prev_num }}">
+                <div class="prev">
+                    << Newer
+                </div>
+            </a>
+        {% else %}
+            <div class="prev">
+                << Newer
+            </div>
+        {% endif %}
+        {% if user_list.has_next %}
+            <a href="{{ request.path + "?page=%s" % user_list.next_num }}">
+                <div class="next">
+                    Older >>
+                </div>
+            </a>
+        {% else %}
+            <div class="next">
+                Older >>
+            </div>
+        {% endif %}
+        </div>
+    {% endif %}
 </ul>

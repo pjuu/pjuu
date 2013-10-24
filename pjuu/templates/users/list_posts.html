@@ -14,15 +14,29 @@
     <div class="empty">No posts</div>
     {% endfor %}
     {% if posts_list.has_prev or posts_list.has_next %}
+        <div id="pagination" class="clearfix">
         {% if posts_list.has_prev %}
-            <a href="{{ request.path + "?page=%s" % posts_list.prev_num }}">Newer</a>
+            <a href="{{ request.path + "?page=%s" % posts_list.prev_num }}">
+                <div class="prev">
+                    << Newer
+                </div>
+            </a>
         {% else %}
-            Newer
+            <div class="prev">
+                << Newer
+            </div>
         {% endif %}
         {% if posts_list.has_next %}
-            <a href="{{ request.path + "?page=%s" % posts_list.next_num }}">Older</a>
+            <a href="{{ request.path + "?page=%s" % posts_list.next_num }}">
+                <div class="next">
+                    Older >>
+                </div>
+            </a>
         {% else %}
-            Older
+            <div class="next">
+                Older >>
+            </div>
         {% endif %}
+        </div>
     {% endif %}
 </ul>
