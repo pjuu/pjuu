@@ -20,4 +20,5 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 CSRF_ENABLE = True
 CSRF_SESSION_KEY = SECRET_KEY
 
+# Pagination
 ITEMS_PER_PAGE = 50
