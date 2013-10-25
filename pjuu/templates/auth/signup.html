@@ -27,7 +27,7 @@
     {{ form.password2.label }}
     {{ form.password2 }}
     <div class="terms">
-        By clicking the button below you agree to our<br />
+        By pressing "Create Account" you agree to our<br />
         <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>.
     </div>
     {{ form.csrf_token }}
@@ -35,5 +35,5 @@
 </form>
 {% endblock %}
 {% block links %}
-    <div class="link">Already have an account? <a href="{{ url_for('signin') }}">Sign In</a></div>
+    <div class="link">Already have an account? <a href="{{ url_for('signin') }}">Sign In here</a></div>
 {% endblock %}

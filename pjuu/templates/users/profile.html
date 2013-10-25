@@ -1,9 +1,7 @@
 {% extends 'users/base.html' %}
-{% block contenthead %}
+{% block main %}
 <div id="profile" class="clearfix">
-    <div class="avatar">
-        <img src="{{user.email|gravatar(96)}}" />
-    </div>
+    <img class="avatar" src="{{user.email|gravatar(96)}}" />
     <ul class="stats">
     {% if user != current_user %}
         {% if user|following %}
@@ -32,4 +30,7 @@
 {% if user == current_user %}
     {% include 'users/author_post.html' %}
 {% endif %}
+<div id="content" class="clearfix">
+	{% block content %}{% endblock %}
+</div>
 {% endblock %}

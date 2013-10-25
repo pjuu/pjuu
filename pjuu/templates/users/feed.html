@@ -1,7 +1,9 @@
 {% extends 'users/base.html' %}
 
-{% block content %}
-{% include 'users/author_post.html' %}
-<h1>Feed</h1>
-{% include 'users/list_posts.html' %}
+{% block main %}
+	{% include 'users/author_post.html' %}
+	<div id="content" class="clearfix">
+		<h1>Feed</h1>
+		{% include 'users/list_posts.html' %}
+	</div>
 {% endblock %}

@@ -56,6 +56,43 @@ textarea {
 }
 
 /*
+** Flash message formatting
+*/
+
+#messages .message {
+    border: 1px solid #CCC;
+    border-radius: 3px 3px 3px 3px;
+    font-weight: 700;
+    margin: 0 auto 1em;
+    padding: 1em;
+    text-align: center;
+}
+
+#messages .error {
+    background-color: #FCC;
+    border-color: #F55;
+    color: #F55;
+}
+
+#messages .info {
+    background-color: #BEF;
+    border-color: #09F;
+    color: #09F;
+}
+
+#messages .success {
+    background-color: #CFB;
+    border-color: #0B0;
+    color: #0B0;
+}
+
+#messages .warning {
+    background-color: #FFC;
+    border-color: #AA3;
+    color: #AA3;
+}
+
+/*
 ** LOGO
 */
 
@@ -69,38 +106,9 @@ textarea {
 ** AUTH
 */
 
-#auth #messages .message {
-    border: 1px solid #CCC;
-    border-radius: 3px 3px 3px 3px;
-    font-weight: 700;
-    margin: 0 auto 1em;
-    padding: 1em;
-    text-align: center;
-    width: 25em;
-}
-
-#auth #messages .error {
-    background-color: #FCC;
-    border-color: #F55;
-    color: #F55;
-}
-
-#auth #messages .info {
-    background-color: #BEF;
-    border-color: #09F;
-    color: #09F;
-}
-
-#auth #messages .success {
-    background-color: #CFB;
-    border-color: #0B0;
-    color: #0B0;
-}
-
-#auth #messages .warning {
-    background-color: #FFC;
-    border-color: #AA3;
-    color: #AA3;
+#auth {
+	margin: 0 auto;
+	width: 30em;
 }
 
 #auth .form {
@@ -109,7 +117,6 @@ textarea {
     border-radius: 3px 3px 3px 3px;
     margin: 0 auto;
     padding: 1em;
-    width: 25em;
 }
 
 #auth .form .header {
@@ -179,49 +186,40 @@ textarea {
     margin: 1em auto;
     padding: 1em;
     text-align: center;
-    width: 25em;
-}
-
-/*
-** Recaptcha
-*/
-
-#recaptcha_image {
-    margin: 0.5em auto 1em;
 }
 
 /*
 ** Menu
 */
 
-.menu {
+#menu {
     float: left;
     position: fixed;
 	width: 200px;
 }
 
-.menu img {
+#menu img {
 	margin: 0 auto;
 }
 
-.menu ul {
-	color: #000;
+#menu ul {
+	color: #000;color: #FFF;
 	font-weight: 700;
     margin: 1em 0 0;
 }
 
-.menu li {
+#menu li {
     color: #3D4526;
     border-radius: 3px 3px 3px 3px;
 	padding: 0.5em 0.5em;
 }
 
-.menu li:hover {
+#menu li:hover {
     color: #FFF;
 	background-color: #680;
 }
 
-#search {
+#menu .search {
     background-color: #680;
     border-radius: 3px 3px 3px 3px;
     color: #FFF;
@@ -229,70 +227,39 @@ textarea {
     padding: 0.5em;
 }
 
-#search input[type=text] {
+#menu .search input[type=text] {
     border: 1px solid #BBB;
     margin: 0.5em 0;
     padding: 0.5em;
     width: 100%;
 }
 
-#search input[type=submit] {
+#menu .search input[type=submit] {
     font-weight: 700;
     padding: 0.25em 0.5em;
+}
+
+/*
+** Main
+*/
+
+#main {
+    margin: 0 0 0 214px;
+    width: 746;
 }
 
 /*
 ** Content
 */
 
-#messages {
-	margin: 0 0 0 214px;
-}
-
-#messages .message {
-    border: 1px solid #CCC;
-    border-radius: 3px 3px 3px 3px;
-    font-weight: 700;
-    margin: 0 auto 1em;
-    padding: 1em;
-    text-align: center;
-    width: 25em;
-}
-
-#messages .error {
-    background-color: #FCC;
-    border-color: #F55;
-    color: #F55;
-}
-
-#messages .info {
-    background-color: #BEF;
-    border-color: #09F;
-    color: #09F;
-}
-
-#messages .success {
-    background-color: #CFB;
-    border-color: #0B0;
-    color: #0B0;
-}
-
-#messages .warning {
-    background-color: #FFC;
-    border-color: #AA3;
-    color: #AA3;
-}
-
-.content {
+#content {
     background-color: #FFF;
     border: 1px solid #680;
-    border-radius: 3px 3px 3px 3px;
-    margin: 0 0 0 214px;
+    border-radius: 5px;
     padding: 0 0 1em 0;
-    width: 746;
 }
 
-h1 {
+#content h1 {
     color: #680;
     font-size: 1.5em;
     font-weight: 700;
@@ -304,16 +271,19 @@ h1 {
 */
 
 #profile {
-    color: #FFF;
     background-color: #680;
+    border-radius: 5px;
+    color: #FFF;
     margin: 0;
     padding: 1em;
 }
 
 #profile .avatar {
+    border: 1px solid #444;
+    border-radius: 3px;
+	display: block;
     float: left;
     margin: 0;
-    border: 1px solid #444;
 }
 
 #profile .actions {
@@ -323,7 +293,7 @@ h1 {
 }
 
 #profile .details {
-    margin: 0 110px 0 110px;
+    margin: 0 120px 0 110px;
 }
 
 #profile .username {
@@ -387,15 +357,41 @@ h1 {
 ** Author
 */
 
+.comment-hider {
+	background-color: #9CF;
+    border: 1px solid #666;
+}
+
+.post-hider {
+    background-color: #FF6;
+    border: 1px solid #666;
+}
+
+.comment-form {
+	background-color: #CCF;
+}
+
+.post-form {
+	background-color: #FFC;
+}
+
+#author-hider {
+    border-radius: 3px 3px 0 0;
+    cursor: pointer;
+    font-weight: 700;
+    padding: 0.5em 0;
+    text-align: center;
+    margin: 0.5em 0;
+}
+
 #author {
-    background-color: #FFC;
     border-color: #666;
     border-style: solid;
     border-width: 0 1px 1px;
     border-radius: 0 0 3px 3px;
     display: none;
-    margin: 0 0.5em;
     padding: 0.5em;
+    margin: 0 0 0.5em;
 }
 
 #author textarea {
@@ -419,17 +415,6 @@ h1 {
     padding: 0.25em 0.5em
 }
 
-#author-hider {
-    background-color: #FC0;
-    border: 1px solid #666;
-    border-radius: 3px 3px 0 0;
-    cursor: pointer;
-    font-weight: 700;
-    margin: 0.5em 0.5em 0;
-    padding: 0.5em 0;
-    text-align: center;
-}
-
 /*
 ** Lists
 */
@@ -449,7 +434,6 @@ h1 {
     font-size: 15px;
     font-weight: 700;
     text-align: center;
-    padding-bottom: 1em;
 }
 
 .list .item {
@@ -508,7 +492,11 @@ h1 {
 */
 
 #post-main {
-	padding: 1em;
+    background-color: #FFF;
+    border-radius: 5px;
+    color: #000;
+    margin: 0 0 0.5em;
+    padding: 1em;
 }
 
 #post-main .contents {
@@ -536,8 +524,7 @@ h1 {
 
 #pagination {
     color: #999;
-    padding: 0 0.5em;
-    margin: 2em 0 0;
+    padding: 0 1em;
 }
 
 #pagination a {
@@ -549,6 +536,7 @@ h1 {
     float: left;
     padding: 0.5em 1em;
     border: 1px solid #999;
+    border-radius: 4px;
     background-color: #CCC;
 }
 
@@ -556,5 +544,6 @@ h1 {
     float: right;
     padding: 0.5em 1em;
     border: 1px solid #999;
+    border-radius: 4px;
     background-color: #CCC;
 }

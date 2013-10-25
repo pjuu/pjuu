@@ -1,32 +1,31 @@
 {% extends 'base.html' %}
 {% block layout %}
-<div class="menu clearfix">
+<div id="menu" class="clearfix">
     <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52" />
     <ul class="account">
         <a href="{{ url_for('feed') }}"><li>Feed</li></a>
         <a href="{{ url_for('profile', username=current_user.username) }}"><li>Profile</li></a>
         <a href="{{ url_for('notifications') }}"><li>Notifications</li></a>
         <a href="{{ url_for('signout') }}"><li>Sign Out</li></a>
-        <div id="search">
-            <form action="/search" method="GET">
-                <label for="query">Search</label>
-                <input type="text" name="query" />
-                <input type="submit" value="Search" />
-            </form>
-        </div>
     </ul>
+    <div class="search">
+	    <form action="{{ url_for('search') }}" method="GET">
+	        <label for="query">Search</label>
+	        <input type="text" name="query" />
+	        <input type="submit" value="Search" />
+	    </form>
+	</div>
 </div>
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="messages">
-        {% for category, message in messages %}
-        <div class="message {{ category|safe }}">{{ message|safe }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-{% endwith %}
-<div class="content clearfix">
-{% block contenthead %}{% endblock %}
-{% block content %}{% endblock %}
+<div id="main">
+	{% with messages = get_flashed_messages(with_categories=true) %}
+	    {% if messages %}
+	    <div id="messages">
+	        {% for category, message in messages %}
+	        <div class="message {{ category|safe }}">{{ message|safe }}</div>
+	        {% endfor %}
+	    </div>
+	    {% endif %}
+	{% endwith %}
+	{% block main %}{% endblock %}
 </div>
 {% endblock %}

@@ -1,26 +1,28 @@
 {% extends 'users/base.html' %}
 
-{% block content %}
-<div id="post-main" class="clearfix">
-        <img class="avatar" src="{{post.user.email|gravatar(96)}}" style="float: left">
-        <div class="contents">
-            <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
-            <div class="body">{{post.body}}</div>
-        </div>
-</div>
-<h1>Comments</h1>
-<ul class="list">
-    {% for comment in post.comments %}
-    <li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
-        <img class="avatar" src="{{comment.user.email|gravatar(48)}}" style="float: left">
-        <div class="contents">
-            <div class="username"><a href="{{url_for('profile', username=comment.user.username)}}">{{comment.user.username}}</a><span class="created"> @ {{ comment.created }}</span></div>
-            <div class="body">{{comment.body}}</div>
-        </div>
-    </li>
-    {% else %}
-    <div class="empty">No comments</div>
-    {% endfor %}
- </ul>
- {% include 'users/author_comment.html' %}
+{% block main %}
+	<div id="post-main" class="clearfix">
+    	<img class="avatar" src="{{post.user.email|gravatar(96)}}" style="float: left">
+    	<div class="contents">
+        	<div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
+        	<div class="body">{{post.body}}</div>
+    	</div>
+	</div>
+	<div id="content" class="clearfix">
+		<h1>Comments</h1>
+		<ul class="list">
+    		{% for comment in post.comments %}
+    		<li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
+        		<img class="avatar" src="{{comment.user.email|gravatar(48)}}" style="float: left">
+        		<div class="contents">
+            		<div class="username"><a href="{{url_for('profile', username=comment.user.username)}}">{{comment.user.username}}</a><span class="created"> @ {{ comment.created }}</span></div>
+            		<div class="body">{{comment.body}}</div>
+        		</div>
+    		</li>
+    		{% else %}
+    		<div class="empty">No comments</div>
+    		{% endfor %}
+ 		</ul>
+	</div>
+	{% include 'users/author_comment.html' %}
 {% endblock %}

@@ -15,7 +15,8 @@ class Post(db.Model):
 
     user = db.relationship('User', backref=db.backref('posts',
                                                       order_by=created,
-                                                      lazy="dynamic"))
+                                                      lazy="dynamic",
+                                                      cascade="all,delete"))
 
     def __init__(self, user, body):
         self.author = user.id
@@ -38,10 +39,13 @@ class Comment(db.Model):
     created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     body = db.Column(db.String(512), nullable=False)
 
+    # No backref needed for User to comments
     user = db.relationship('User')
+    
     post = db.relationship('Post', backref=db.backref('comments',
                                                       order_by=created,
-                                                      lazy="dynamic"))
+                                                      lazy="dynamic",
+                                                      cascade="all,delete"))
 
     def __init__(self, user, replyto, body):
         self.author = user.id

@@ -136,7 +136,7 @@ def unfollow(username):
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url=url_for('profile', username=usernmae)
+        redirect_url=url_for('profile', username=username)
 
     if unfollow_user(current_user, user):
         flash('You have unfollowed this user', 'success')
@@ -148,13 +148,39 @@ def unfollow(username):
 def view_post(username, post_id):
     post = Post.query.get(post_id)
     user = User.query.filter_by(username=username).first()
-    
+
     if not user or not post or post.user is not user:
         abort(404)
 
     post_form = PostForm()
     return render_template('users/post.html', user=user, post=post,
                            post_form=post_form)
+
+
+@app.route('/<username>/<int:post_id>/delete')
+def delete_post(username, post_id):
+    post = Post.query.get(post_id)
+    user = User.query.filter_by(username=username).first()
+    
+    if not user or not post or post.user is not user:
+        abort(404)
+
+    if user != current_user:
+        abort(403)
+
+    try:
+        db.session.delete(post)
+        db.session.commit()
+    except Exception as e:
+        print e
+        db.session.rollback()
+        abort(500)
+
+    redirect_url = request.values.get('next', None)
+    if not redirect_url or not is_safe_url(redirect_url):
+        redirect_url=url_for('profile', username=username)
+
+    return redirect(redirect_url)
 
 
 @app.route('/settings')

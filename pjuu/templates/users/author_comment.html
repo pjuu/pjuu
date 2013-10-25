@@ -1,7 +1,7 @@
-<div id="author-hider">
+<div id="author-hider" class="comment-hider">
     Make a comment
 </div>
-<div id="author" class="clearfix">
+<div id="author" class="clearfix comment-form">
     <form action="{{ url_for('comment', username=post.user.username, post_id=post.id)  }}" method="post">
         {{ post_form.body }}
         {{ post_form.csrf_token }}
