@@ -1,6 +1,5 @@
 # 3rd party imports
 from flask.ext.wtf import Form
-from flask_wtf import RecaptchaField
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 

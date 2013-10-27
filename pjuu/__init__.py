@@ -4,6 +4,7 @@ from hashlib import md5
 from flask import Flask
 from flask.ext.mail import Mail
 from flask.ext.sqlalchemy import SQLAlchemy
+from itsdangerous import TimedSerializer
 from redis import Redis
 # Pjuu imports
 from lib.sessions import RedisSessionInterface

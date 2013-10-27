@@ -3,12 +3,18 @@ from urlparse import urlparse, urljoin
 
 # 3rd party imports
 from flask import _app_ctx_stack, request, session, abort
+from itsdangerous import TimedSerializer
 from werkzeug.local import LocalProxy
 from werkzeug.security import check_password_hash
 
 # Pjuu imports
 from pjuu import app, db
 from pjuu.users.models import User
+
+# Signers
+activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='activate')
+forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='forgot')
+email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='email')
 
 
 # Can be used anywhere to get the current logged in user.
