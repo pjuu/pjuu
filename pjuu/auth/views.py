@@ -90,8 +90,7 @@ def signup():
 @app.route('/signup/<token>')
 @anonymous_required
 def activate(token):
-    print token
-    data = check_token(activate_signer, token.encode('ascii'))
+    data = check_token(activate_signer, token)
     if data is not None:
         try:
             user = User.query.filter_by(username=data['username']).first()
@@ -112,6 +111,23 @@ def activate(token):
 @anonymous_required
 def forgot():
     form = ForgotForm(request.form)
+    if request.method == 'POST':
+        username = form.username.data
+        if '@' in username:
+            user = User.query.filter(User.email.ilike(username)).first()
+        else:
+            user = User.query.filter(User.username.ilike(username)).first()
+        if user:
+            token = generate_token(forgot_signer,
+                                   {'username': user.username})
+            send_mail('Password reset', [user.email],
+                      text_body=render_template('auth/forgot.email.txt',
+                                                token=token),
+                      html_body=render_template('auth/forgot.email.html',
+                                                token=token))
+        flash('If we can find your record we will e-mail a reset link too you',
+              'information')
+        return redirect(url_for('signin'))
     return render_template('auth/forgot.html', form=form)
 
 
@@ -119,4 +135,9 @@ def forgot():
 @anonymous_required
 def password_reset(token):
     form = ResetForm(request.form)
+    data = check_token(forgot_signer, token.encode)
+    if data is not None:
+        pass
+    else:
+        flash('Invalid token.', 'error')
     return render_template('auth/reset.html', form=form)

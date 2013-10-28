@@ -26,13 +26,13 @@ class User(db.Model):
     password = db.Column(db.String(66))
 
     # Date stuff
-    created = db.Column(db.DateTime, default=db.func.now())
-    last_login = db.Column(db.DateTime)
+    created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
+    last_login = db.Column(db.DateTime, nullable=False)
 
     # Permissions stuff
-    active = db.Column(db.Boolean, default=False)
-    banned = db.Column(db.Boolean, default=False)
-    op = db.Column(db.Boolean, default=False)
+    active = db.Column(db.Boolean, default=False, nullable=False)
+    banned = db.Column(db.Boolean, default=False, nullable=False)
+    op = db.Column(db.Boolean, default=False, nullable=False)
 
     # All users this User is following
     following = db.relationship('User',

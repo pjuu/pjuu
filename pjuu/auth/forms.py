@@ -28,6 +28,20 @@ class ResetForm(Form):
     password2 = PasswordField('Confirm password')
 
 
+class PasswordChangeForm(Form):
+    password = PasswordField('Password')
+    new_password = PasswordField('New password', [
+        EqualTo('new_password2', message='Passwords must match'),
+        Length(min=6,
+               message='Password must be atleast 6 characters long'),
+        Required()])
+    new_password2 = PasswordField('Confirm new password')
+
+
+class EmailChangeForm(Form):
+    pass
+
+
 class SignupForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$', message=('Username must be between 3 '

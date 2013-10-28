@@ -13,6 +13,7 @@ from werkzeug.security import check_password_hash
 from pjuu import app, db
 from pjuu.users.models import User
 
+
 # Signers
 activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_ACTIVATE'])
 forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_FORGOT'])
@@ -100,7 +101,6 @@ def is_safe_url(target):
     """
     Not sure what the point of checking a URL is at the moment.
     I am using this because at some point it will be important.
-    TODO: Test this properly
     """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
@@ -109,6 +109,9 @@ def is_safe_url(target):
 
 
 def generate_token(signer, data):
+    """
+    Generates a token using the signer passed in.
+    """
     try:
         token = b64encode(signer.dumps(data))
     except:
@@ -117,9 +120,11 @@ def generate_token(signer, data):
 
 
 def check_token(signer, token):
-    print token
-    signed_data = b64decode(token)
-    print signed_data
+    """
+    Checks a token. If it fails returns None if it works the data
+    from the original token will me passed back.
+    """
+    signed_data = b64decode(token.encode('ascii'))
     try:
         data = signer.loads(signed_data, max_age=86400)
     except:
