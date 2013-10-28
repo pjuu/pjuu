@@ -30,7 +30,7 @@ class User(db.Model):
     last_login = db.Column(db.DateTime)
 
     # Permissions stuff
-    active = db.Column(db.Boolean, default=True)
+    active = db.Column(db.Boolean, default=False)
     banned = db.Column(db.Boolean, default=False)
     op = db.Column(db.Boolean, default=False)
 

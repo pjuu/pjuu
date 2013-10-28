@@ -1,23 +1,19 @@
-# Stdlib imports
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-
 # 3rd party imports
 from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug import check_password_hash, generate_password_hash
 
 # Pjuu imports
-from pjuu import app, db, signer
+from pjuu import app, db
 from pjuu.lib.mail import send_mail
 from pjuu.users.models import User
 
 # Package imports
 from .backend import (authenticate, current_user, is_safe_url, login,
                       logout, create_account, activate_signer, forgot_signer,
-                      email_signer)
+                      email_signer, generate_token, check_token)
 from .decorators import anonymous_required, login_required
 from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
-from .models import Token
 
 
 @app.context_processor
@@ -77,11 +73,12 @@ def signup():
             new_user = create_account(form.username.data, form.email.data,
                                       form.password.data)
             if new_user:
-                token = urlsafe_b64encode(activate_signer.dumps(new_user.username))
+                token = generate_token(activate_signer,
+                                       {'username': new_user.username})
                 send_mail('Activation', [new_user.email],
-                          text_body=render_template('auth/activation.email.txt',
+                          text_body=render_template('auth/activate.email.txt',
                                                     token=token),
-                          html_body=render_template('auth/activation.email.html',
+                          html_body=render_template('auth/activate.email.html',
                                                     token=token))
                 flash('Yay! You\'ve signed up. Please check your e-mails to activate your account.', 'success')
                 return redirect(url_for('signin'))
@@ -93,12 +90,21 @@ def signup():
 @app.route('/signup/<token>')
 @anonymous_required
 def activate(token):
-    try:
-        username = urlsafe_b64decode(activation_signer.loads(tokens))
-    except SignatureExpired:
-        flash('That token has expired :(', 'error')
-    except:
-        flash('Invalid token.')
+    print token
+    data = check_token(activate_signer, token.encode('ascii'))
+    if data is not None:
+        try:
+            user = User.query.filter_by(username=data['username']).first()
+            user.active = True
+            db.session.add(user)
+            db.session.commit()
+            flash('Youre account has now been activated.', 'success')
+        except:
+            db.session.rollback()
+            abort(500)
+    else:
+        flash('Invalid token.', 'error')
+        return redirect(url_for('signup'))
     return redirect(url_for('signin'))
 
 

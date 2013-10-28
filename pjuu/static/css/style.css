@@ -60,35 +60,31 @@ textarea {
 */
 
 #messages .message {
-    border: 1px solid #CCC;
+    border: 1px solid #FFF;
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
     margin: 0 auto 1em;
-    padding: 1em;
+    padding: 0.5em;
     text-align: center;
 }
 
 #messages .error {
     background-color: #FCC;
-    border-color: #F55;
     color: #F55;
 }
 
 #messages .info {
     background-color: #BEF;
-    border-color: #09F;
     color: #09F;
 }
 
 #messages .success {
     background-color: #CFB;
-    border-color: #0B0;
     color: #0B0;
 }
 
 #messages .warning {
     background-color: #FFC;
-    border-color: #AA3;
     color: #AA3;
 }
 

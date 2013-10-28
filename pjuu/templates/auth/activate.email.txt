@@ -1,0 +1,9 @@
+Pjuu
+
+Please press the link below to activate your account.
+
+<a href="{{ url_for('activate', token=token) }}">Activate Account</a>
+
+If you can't press this. Please follow the link below:
+
+{{ url_for('activate', token=token) }}

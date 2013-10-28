@@ -1,4 +1,6 @@
 # Stdlib imports
+from base64 import (urlsafe_b64encode as b64encode,
+                    urlsafe_b64decode as b64decode)
 from urlparse import urlparse, urljoin
 
 # 3rd party imports
@@ -12,9 +14,9 @@ from pjuu import app, db
 from pjuu.users.models import User
 
 # Signers
-activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='activate')
-forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='forgot')
-email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt='email')
+activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_ACTIVATE'])
+forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_FORGOT'])
+email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_EMAIL'])
 
 
 # Can be used anywhere to get the current logged in user.
@@ -104,3 +106,22 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
            ref_url.netloc == test_url.netloc
+
+
+def generate_token(signer, data):
+    try:
+        token = b64encode(signer.dumps(data))
+    except:
+        return None
+    return token
+
+
+def check_token(signer, token):
+    print token
+    signed_data = b64decode(token)
+    print signed_data
+    try:
+        data = signer.loads(signed_data, max_age=86400)
+    except:
+        return None
+    return data
