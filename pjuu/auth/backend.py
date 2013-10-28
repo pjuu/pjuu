@@ -7,7 +7,7 @@ from urlparse import urlparse, urljoin
 from flask import _app_ctx_stack, request, session, abort
 from itsdangerous import TimedSerializer
 from werkzeug.local import LocalProxy
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Pjuu imports
 from pjuu import app, db
@@ -33,7 +33,7 @@ def _get_user():
 
 
 @app.before_request
-def _load_useer():
+def _load_user():
     """
     If the user is logged in, will place the user object on the
     application context.
@@ -42,6 +42,18 @@ def _load_useer():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
     _app_ctx_stack.top.user = user
+
+
+def get_username(username):
+    """
+    Return a user object from a username. Will check if username is an e-mail.
+    Return None if it does not locate a user
+    """
+    if '@' in username:
+        user = User.query.filter(User.email.ilike(username)).first()
+    else:
+        user = User.query.filter(User.username.ilike(username)).first()
+    return user
 
 
 def create_account(username, email, password):
@@ -53,8 +65,8 @@ def create_account(username, email, password):
         new_user = User(username, email, password)
         db.session.add(new_user)
         db.session.commit()
-    except Exception as e:
-        print e
+    except:
+        # The Otter is broken
         db.session.rollback()
         abort(500)
     return new_user
@@ -65,10 +77,7 @@ def authenticate(username, password):
     Will authenticate a username/password combination.
     If successful will return a user object else will return None.
     """
-    if '@' in username:
-        user = User.query.filter(User.email.ilike(username)).first()
-    else:
-        user = User.query.filter(User.username.ilike(username)).first()
+    user = get_username(username)
     if user and check_password_hash(user.password, password):
         return user
     return None
@@ -85,16 +94,61 @@ def login(user):
         db.session.add(user)
         db.session.commit()
     except:
+        # The Otter is broken
         db.session.rollback()
+        # Lets make sure to log the user out. THIS WILL HAVE HAPPENED
+        logout()
         abort(500)
 
-
+    
 def logout():
     """
     Removes the user id from the session. If it isn't there then
     nothing bad happens.
     """
     session.pop('user_id', None)
+
+
+def activate(user):
+    """
+    Sets the user account to active.
+    """
+    try:
+        user.active = True
+        db.session.add(user)
+        db.session.commit()
+    except:
+        # The Otter is broken
+        db.session.rollback()
+        abort(500)
+
+
+def change_password(user, password):
+    """
+    Sets `user`s password to `password`.
+    """
+    try:
+        user.password = generate_password_hash(password)
+        db.session.add(user)
+        db.session.commit()
+    except:
+        # The Otter is broken
+        db.session.rollback()
+        abort(500)
+
+
+def change_email(user, email):
+    """
+    Set `user`s email to `email`
+    """
+    try:
+        user.email = email
+        db.session.add(user)
+        db.session.commit()
+    except:
+        # The Otter is broken
+        db.session.rollback()
+        abort(500)
 
 
 def is_safe_url(target):
@@ -113,7 +167,7 @@ def generate_token(signer, data):
     Generates a token using the signer passed in.
     """
     try:
-        token = b64encode(signer.dumps(data))
+        token = b64encode(signer.dumps(data).encode('ascii'))
     except:
         return None
     return token
@@ -121,12 +175,12 @@ def generate_token(signer, data):
 
 def check_token(signer, token):
     """
-    Checks a token. If it fails returns None if it works the data
-    from the original token will me passed back.
+    Checks a token againt the passed in signer.
+    If it fails returns None if it works the data from the
+    original token will me passed back.
     """
-    signed_data = b64decode(token.encode('ascii'))
     try:
-        data = signer.loads(signed_data, max_age=86400)
+        data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
     except:
         return None
     return data

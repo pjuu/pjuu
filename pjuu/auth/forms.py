@@ -39,7 +39,14 @@ class PasswordChangeForm(Form):
 
 
 class EmailChangeForm(Form):
-    pass
+    password = PasswordField('Password')
+    new_email = TextField('New e-mail address', [Email(),
+                          Length(max=254), Required()])
+
+    def validate_email(form, field):
+        user = user.query.filter(User.email.ilike(field.data)).first()
+        if user is not None:
+            raise ValidationError('E-Mail address already in use')
 
 
 class SignupForm(Form):

@@ -13,7 +13,8 @@ from .backend import (authenticate, current_user, is_safe_url, login,
                       logout, create_account, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token)
 from .decorators import anonymous_required, login_required
-from .forms import ForgotForm, LoginForm, ResetForm, SignupForm
+from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
+                    PasswordChangeForm, EmailChangeForm)
 
 
 @app.context_processor
@@ -87,23 +88,32 @@ def signup():
     return render_template('auth/signup.html', form=form)
 
 
-@app.route('/signup/<token>')
+@app.route('/activate/<token>')
 @anonymous_required
 def activate(token):
+    # Attempt to get the data from the token
     data = check_token(activate_signer, token)
     if data is not None:
         try:
+            # Attempt to activate the users account
             user = User.query.filter_by(username=data['username']).first()
             user.active = True
             db.session.add(user)
             db.session.commit()
+            # If we have got to this point. Send a welcome e-mail :)
+            send_mail('Welcome', user.email,
+                      text_body=render_template('auth/welcome.email.txt'),
+                      html_body=render_template('auth/welcome.email.html'))
             flash('Youre account has now been activated.', 'success')
         except:
+            # Something went wrong. Show them the broken Otter.
             db.session.rollback()
             abort(500)
     else:
+        # The token is either out of date or has been tampered with
         flash('Invalid token.', 'error')
         return redirect(url_for('signup'))
+    # Go to signin if successful
     return redirect(url_for('signin'))
 
 
@@ -113,6 +123,7 @@ def forgot():
     form = ForgotForm(request.form)
     if request.method == 'POST':
         username = form.username.data
+        #TODO: Make this a function. It checks for users
         if '@' in username:
             user = User.query.filter(User.email.ilike(username)).first()
         else:
@@ -125,19 +136,37 @@ def forgot():
                                                 token=token),
                       html_body=render_template('auth/forgot.email.html',
                                                 token=token))
-        flash('If we can find your record we will e-mail a reset link too you',
+        flash('If we have you user record we have e-mailed a reset link too you',
               'information')
         return redirect(url_for('signin'))
     return render_template('auth/forgot.html', form=form)
 
 
-@app.route('/forgot/<token>', methods=['GET', 'POST'])
+@app.route('/reset/<token>', methods=['GET', 'POST'])
 @anonymous_required
 def password_reset(token):
     form = ResetForm(request.form)
     data = check_token(forgot_signer, token.encode)
     if data is not None:
-        pass
+        try:
+            user = User.query.filter_by(username=data['username']).first()
+        except:
+            # Something went wrong
+            db.session.rollback()
+            abort(500)
     else:
         flash('Invalid token.', 'error')
+        return redirect(url_for('forgot'))
     return render_template('auth/reset.html', form=form)
+
+
+@app.route('/change_password', method['POST'])
+@login_required
+def password_change():
+    pass
+
+
+@app.route('/change_email', methods=['POST'])
+@login_required
+def email_change():
+    pass
