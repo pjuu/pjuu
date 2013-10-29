@@ -1,0 +1,37 @@
+{% extends 'users/base.html' %}
+
+{% block main %}
+	<div id="content" class="clearfix">
+		<h1>Account settings</h1>
+        <div id="setting" class="clearfix">
+            <h2>Change password</h2>
+            <form action="{{ url_for('change_password') }}" method="POST">
+                {{ change_password_form.password.label }}
+                {{ change_password_form.password }}
+                {{ change_password_form.new_password.label }}
+                {{ change_password_form.new_password }}
+                {{ change_password_form.new_password2.label }}
+                {{ change_password_form.new_password2 }}
+                <input type="submit" value="Change password">
+            </form>
+        </div>
+        <div id="setting" class="clearfix">
+            <h2>Change e-mail address</h2>
+            <form action="{{ url_for('change_email') }}" method="POST">
+                {{ change_email_form.password.label }}
+                {{ change_email_form.password }}
+                {{ change_email_form.new_email.label }}
+                {{ change_email_form.new_email }}
+                <input type="submit" value="Change e-mail address">
+            </form>
+        </div>
+        <div id="setting" class="clearfix">
+            <h2>Delete account</h2>
+            <form action="{{ url_for('delete_account') }}" method="POST">
+                {{ delete_account_form.password.label }}
+                {{ delete_account_form.password }}
+                <input class="delete" type="submit" value="Delete account">
+            </form>
+        </div>
+	</div>
+{% endblock %}

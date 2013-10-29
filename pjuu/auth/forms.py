@@ -72,3 +72,7 @@ class SignupForm(Form):
         user = User.query.filter(User.email.ilike(field.data)).first()
         if user is not None:
             raise ValidationError('E-mail address already in use')
+
+
+class DeleteAccountForm(Form):
+    password = PasswordField('Password')

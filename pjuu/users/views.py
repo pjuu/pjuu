@@ -183,10 +183,10 @@ def delete_post(username, post_id):
     return redirect(redirect_url)
 
 
-@app.route('/settings')
+@app.route('/settings/profile')
 @login_required
-def settings():
-    return render_template('users/settings.html')
+def settings_profile():
+    return render_template('users/settings_profile.html')
 
 
 @app.route('/search')
@@ -209,3 +209,9 @@ def notifications():
     notifications = []
     return render_template('users/notifications.html',
                            notifications=notifications)
+
+
+@app.route('/change_about', methods=['POST'])
+@login_required
+def change_about(): 
+    pass

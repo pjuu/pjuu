@@ -47,6 +47,7 @@ textarea {
     box-sizing: border-box; /* Opera/IE 8+ */
     -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
 	-moz-box-sizing: border-box; /* Firefox */
+    width: 100%;
 }
 
 #wrapper {
@@ -542,4 +543,42 @@ textarea {
     border: 1px solid #999;
     border-radius: 4px;
     background-color: #CCC;
+}
+
+/*
+** Setting blocks
+*/
+
+#setting {
+    margin: 0 auto;
+    padding: 1em;
+    width: 30em;
+}
+
+#setting h2 {
+    border-bottom: 1px solid #680;
+    color: #680;
+    font-family: Georgia, Garamond, serif;
+    font-size: 1.25em;
+    margin: 0 0 0.75em;
+    padding: 0 0 0.25em;
+}
+
+#setting input[type=text],
+#setting input[type=password] {
+    border: 1px solid #BBB;
+    display: block;
+    margin: 0.5em 0 1em;
+    padding: 0.5em;
+    width: 100%;
+}
+
+#setting input[type=submit] {
+    float: right;
+    font-weight: 700;
+    padding: 0.25em 0.5em;
+}
+
+#setting form label {
+    font-weight: 700;
 }

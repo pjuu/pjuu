@@ -11,10 +11,13 @@ from pjuu.users.models import User
 # Package imports
 from .backend import (authenticate, current_user, is_safe_url, login,
                       logout, create_account, activate_signer, forgot_signer,
-                      email_signer, generate_token, check_token)
+                      email_signer, generate_token, check_token,
+                      activate as be_activate,
+                      change_password as be_change_password,
+                      get_username)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
-                    PasswordChangeForm, EmailChangeForm)
+                    PasswordChangeForm, EmailChangeForm, DeleteAccountForm)
 
 
 @app.context_processor
@@ -28,39 +31,50 @@ def inject_user():
 @app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
+    """
+    Logs a user in.
+    Will authenticate username/password, check account activation and
+    if the user is banned or not before setting user_id in session.
+    """
     form = LoginForm(request.form)
     if request.method == 'POST':
+
         # Handles the passing of the next argument to the login view
         redirect_url = request.values.get('next', None)
         if not redirect_url or not is_safe_url(redirect_url):
-            redirect_url=url_for('feed')
+            redirect_url = url_for('feed')
+
         if form.validate():
-            username = form.username.data
-            password = form.password.data
             # Calls authenticate from backend.py
-            user = authenticate(username, password)
+            user = authenticate(form.username.data, form.password.data)
             if user is not None:
                 if not user.active:
-                    flash('Please activate your account. Check your e-mails',
+                    flash('Please activate your account. Check your e-mails.',
                           'warning')
                 elif user.banned:
-                    flash('Your account has been banned. Naughty boy',
+                    flash('You have been banned. Naughty boy.',
                           'warning')
                 else:
                     login(user)
                     return redirect(redirect_url)
             else:
-                flash('Invalid user name or password', 'error')
+                flash('Invalid user name or password.', 'error')
         else:
-            flash('Invalid user name or password', 'error')
+            flash('Invalid user name or password.', 'error')
+
     return render_template('auth/signin.html', form=form)
 
 
-@app.route('/signout')
+@app.route('/signout', methods=['GET'])
 def signout():
+    """
+    Logs a user out.
+    This will always go to /signin regardless. If user was actually
+    logged out it will let them know.
+    """
     if current_user:
         logout()
-        flash('Successfully logged out!', 'success')
+        flash('Successfully logged out.', 'success')
     return redirect(url_for('signin'))
 
 
@@ -77,96 +91,120 @@ def signup():
                 token = generate_token(activate_signer,
                                        {'username': new_user.username})
                 send_mail('Activation', [new_user.email],
-                          text_body=render_template('auth/activate.email.txt',
+                          text_body=render_template('emails/activate.txt',
                                                     token=token),
-                          html_body=render_template('auth/activate.email.html',
+                          html_body=render_template('emails/activate.html',
                                                     token=token))
-                flash('Yay! You\'ve signed up. Please check your e-mails to activate your account.', 'success')
+                flash('Yay! You\'ve signed up.<br>Please check your e-mails '
+                      'to activate your account.', 'success')
                 return redirect(url_for('signin'))
         # This will fire if the form is invalid
-        flash('Oh no! There are errors in your signup form', 'error')
+        flash('Oh no! There are errors in your signup form.', 'error')
     return render_template('auth/signup.html', form=form)
 
 
-@app.route('/activate/<token>')
+@app.route('/signup/<token>', methods=['GET'])
 @anonymous_required
 def activate(token):
     # Attempt to get the data from the token
     data = check_token(activate_signer, token)
+
     if data is not None:
-        try:
-            # Attempt to activate the users account
-            user = User.query.filter_by(username=data['username']).first()
-            user.active = True
-            db.session.add(user)
-            db.session.commit()
+        # Attempt to activate the users account
+        user = get_username(data['username'])
+        if user:
+            be_activate(user)
             # If we have got to this point. Send a welcome e-mail :)
             send_mail('Welcome', user.email,
-                      text_body=render_template('auth/welcome.email.txt'),
-                      html_body=render_template('auth/welcome.email.html'))
-            flash('Youre account has now been activated.', 'success')
-        except:
-            # Something went wrong. Show them the broken Otter.
-            db.session.rollback()
-            abort(500)
-    else:
-        # The token is either out of date or has been tampered with
-        flash('Invalid token.', 'error')
-        return redirect(url_for('signup'))
-    # Go to signin if successful
-    return redirect(url_for('signin'))
+                      text_body=render_template('emails/welcome.txt'),
+                      html_body=render_template('emails/welcome.html'))
+            flash('Your account has now been activated.', 'success')
+            return redirect(url_for('signin'))
+    # The token is either out of date or has been tampered with
+    flash('Invalid token.', 'error')
+    return redirect(url_for('signup'))
 
 
 @app.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required
 def forgot():
     form = ForgotForm(request.form)
+    # We always go to /signin after a POST
     if request.method == 'POST':
-        username = form.username.data
-        #TODO: Make this a function. It checks for users
-        if '@' in username:
-            user = User.query.filter(User.email.ilike(username)).first()
-        else:
-            user = User.query.filter(User.username.ilike(username)).first()
+        user = get_username(form.username.data)
         if user:
+            # Only send e-mails to user which exist.
             token = generate_token(forgot_signer,
                                    {'username': user.username})
             send_mail('Password reset', [user.email],
-                      text_body=render_template('auth/forgot.email.txt',
+                      text_body=render_template('emails/forgot.txt',
                                                 token=token),
-                      html_body=render_template('auth/forgot.email.html',
+                      html_body=render_template('emails/forgot.html',
                                                 token=token))
-        flash('If we have you user record we have e-mailed a reset link too you',
-              'information')
+        flash('If we have you user record we have e-mailed a reset '
+              'link too you.', 'information')
         return redirect(url_for('signin'))
     return render_template('auth/forgot.html', form=form)
 
 
-@app.route('/reset/<token>', methods=['GET', 'POST'])
+@app.route('/forgot/<token>', methods=['GET', 'POST'])
 @anonymous_required
 def password_reset(token):
     form = ResetForm(request.form)
-    data = check_token(forgot_signer, token.encode)
+    data = check_token(forgot_signer, token)
+
     if data is not None:
-        try:
-            user = User.query.filter_by(username=data['username']).first()
-        except:
-            # Something went wrong
-            db.session.rollback()
-            abort(500)
+        if request.method == 'POST':
+            if form.validate():
+                user = get_username(data['username'])
+                be_change_password(user, data['email'])
+                flash('Your password has been reset. Please login.', 'success')
+                return redirect(url_for('signin'))
+            else:
+                flash('Oh no! There are errors in your reset form.', 'error')
     else:
         flash('Invalid token.', 'error')
-        return redirect(url_for('forgot'))
+        return redirect(url_for('signin'))
+
     return render_template('auth/reset.html', form=form)
 
 
-@app.route('/change_password', method['POST'])
+# Account settings. These require the user to be logged in
+
+
+@app.route('/settings/account', methods=['GET'])
 @login_required
-def password_change():
-    pass
+def settings_account():
+    change_password_form = PasswordChangeForm()
+    change_email_form = EmailChangeForm()
+    delete_account_form = DeleteAccountForm()
+    return render_template('auth/settings_account.html',
+                           change_password_form=change_password_form,
+                           change_email_form=change_email_form,
+                           delete_account_form=delete_account_form)
+
+
+@app.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    form = PasswordChangeForm(request.form)
+    return redirect(url_for('settings_account'))
 
 
 @app.route('/change_email', methods=['POST'])
 @login_required
-def email_change():
+def change_email(token=None):
+    form = EmailChangeForm(request.form)
+    return redirect(url_for('settings_account'))
+
+
+@app.route('/change_email/<token>', methods=['GET'])
+@login_required
+def confirm_change_email(token):
+    return redirect(url_for('settings_account'))
+
+
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
     pass

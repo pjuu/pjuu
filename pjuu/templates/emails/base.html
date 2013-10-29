@@ -1,0 +1,49 @@
+<html>
+<head>
+    <style>
+        body {
+            color: #000;
+            font-size: 14px;
+            line-height: 20px;
+        }
+        a {
+            color: #36F;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        a:hover {
+            color: #33F;
+        }
+        h1 {
+            color: #690;
+            font-size: 1.5em;
+            margin: 0 0 14px;
+            padding: 14px;
+        }
+        .content {
+            padding: 14px;
+        }
+        .content-footer {
+            color: #888;
+            padding: 14px;
+        }
+        .footer {
+            color: #000;
+            background-color: #888;
+            margin: 14px 0 0;
+            padding: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pjuu</h1>
+    <div class="content">
+        {% block content %}
+    </div>
+    <div class="content-footer">
+        {% block content-footer %}
+    </div>
+    <div class="footer">
+    </div>
+</body>
+</html>
