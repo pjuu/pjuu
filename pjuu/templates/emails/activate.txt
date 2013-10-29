@@ -1,0 +1,23 @@
+{% extends 'emails/base.txt' %}
+
+{% block content %}
+Hi,
+
+Thank you for singing up for Pjuu.
+
+You will be doing socially stuff in just a moment. We just need you to activate your account.
+
+If you can press the link below you will be able to sign in.
+
+<a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a>
+
+If you can not press the above link please copy and paste the below in to your web browser of choice.
+
+{{ url_for('activate', token=token, _external=True) }}
+{% endblock %}
+
+{% block content_footer %}
+If you have received this e-mail but have no signed up for the Pjuu then you can ignore this e-mail.
+
+We will not e-mail you again if you decide not to activate this account.
+{% endblock %}
