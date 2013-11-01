@@ -3,11 +3,11 @@
 {% block header %}Reset Password{% endblock%}
 {% block form %}
 <form action="" method="post">
-    {{ form.password.label_tag }}
+    {{ form.password.label }}
     {{ form.password }}
-    {{ form.password2.label_tag }}
+    {{ form.password2.label }}
     {{ form.password2 }}
-    {% csrf_token %}
+    {{ form.csrf_token }}
     <input type="submit" value="Set password" />
 </form>
 {% endblock %}

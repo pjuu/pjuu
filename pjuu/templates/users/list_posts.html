@@ -1,14 +1,17 @@
-<ul class="list">
+<ul id="list">
     {% for post in posts_list.items %}
     <li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
-        <a href="{{ url_for('view_post', username=post.user.username, post_id=post.id) }}">
-            <img class="avatar" src="{{post.user.email|gravatar(48)}}" style="float: left">
-            <div class="contents">
-                <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
-                <div class="body">{{post.body}}</div>
-                <div class="comment-count">{{post.comments.count()}} comments</div>
-            </div>
-        </a>
+        <img class="avatar" src="{{post.user.email|gravatar(48)}}" />
+        <div class="action">
+            {% if post.user == current_user %}
+            <a href="{{ url_for('delete_post', username=post.user.username, post_id=post.id) }}"><div class="delete">X</div></a>
+            {% endif %}
+        </div>
+        <div class="contents">
+            <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
+            <div class="body">{{post.body}}</div>
+            <div class="comment-count"><a href="{{ url_for('view_post', username=post.user.username, post_id=post.id) }}">View post</a> &middot; {{post.comments.count()}} comments</div>
+        </div>
     </li>
     {% else %}
     <div class="empty">No posts</div>

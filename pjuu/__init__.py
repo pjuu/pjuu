@@ -1,5 +1,6 @@
 # Stdlib imports
 from hashlib import md5
+import logging
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail

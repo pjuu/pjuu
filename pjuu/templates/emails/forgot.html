@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+    <p>You have asked for a password reset.</p>
+    <p>If you can press the link below you will be able to reset for password.</p>
+    <p><a href="{{ url_for('reset', token=token, _external=True) }}" target="_blank">Reset Password</a></p>
+{% endblock %}
+
+{% block content_footer %}
+    <p>If you have received this e-mail but have not asked for a password reset you can ignore this e-mail.<br>
+    We will not e-mail you again if you decide not to activate this account.</p>
+{% endblock %}

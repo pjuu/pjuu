@@ -1,0 +1,18 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+You have asked for a password reset.
+
+If you can press the link below you will be able to reset for password.
+
+<a href="{{ url_for('reset', token=token, _external=True) }}" target="_blank">Reset Password</a>
+
+If you can not press the above link please copy and paste the below in to your web browser of choice.
+
+{{ url_for('reset', token=token, _external=True) }}
+{% endblock %}
+
+{% block content_footer %}
+If you have received this e-mail but have not asked for a password reset you can ignore this e-mail.<br>
+We will not e-mail you again if you decide not to activate this account.
+{% endblock %}

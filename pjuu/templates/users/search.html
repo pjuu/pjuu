@@ -1,6 +1,8 @@
 {% extends 'users/base.html' %}
 
-{% block content %}
-<h1>Search Results</h1>
-{% include 'users/list_users.html' %}
+{% block main %}
+<div id="content" class="clearfix">
+    <h1>Search Results</h1>
+    {% include 'users/list_users.html' %}
+</div>
 {% endblock %}

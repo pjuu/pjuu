@@ -27,7 +27,7 @@ class User(db.Model):
 
     # Date stuff
     created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
-    last_login = db.Column(db.DateTime, nullable=False)
+    last_login = db.Column(db.DateTime)
 
     # Permissions stuff
     active = db.Column(db.Boolean, default=False, nullable=False)

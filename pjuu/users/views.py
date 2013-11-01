@@ -158,6 +158,7 @@ def view_post(username, post_id):
 
 
 @app.route('/<username>/<int:post_id>/delete')
+@login_required
 def delete_post(username, post_id):
     post = Post.query.get(post_id)
     user = User.query.filter_by(username=username).first()
@@ -183,22 +184,33 @@ def delete_post(username, post_id):
     return redirect(redirect_url)
 
 
-@app.route('/settings/profile')
+@app.route('/<username>/<int:post_id>/<int:comment_id>/delete')
 @login_required
-def settings_profile():
-    return render_template('users/settings_profile.html')
+def delete_comment(username, post_id, comment_id):
+    pass
 
 
-@app.route('/search')
+@app.route('/search', methods=['GET'])
 @login_required
 def search():
     """
     Handles searching of users. This is all done via a query to GET.
     """
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except:
+        page = 1
+
+
     query = request.values.get('query', None)
-    if query is not None:
+    
+    if query is not None and query != '':
+        query = '%' + query + '%'
         results = User.query.filter(User.username.ilike(query))\
-                  .limit(50)
+                  .paginate(page, app.config['PROFILE_ITEMS_PER_PAGE'], False)
+    else:
+        return redirect(url_for('feed'))
     return render_template('users/search.html', query=query,
                            user_list=results)
 
@@ -209,9 +221,3 @@ def notifications():
     notifications = []
     return render_template('users/notifications.html',
                            notifications=notifications)
-
-
-@app.route('/change_about', methods=['POST'])
-@login_required
-def change_about(): 
-    pass

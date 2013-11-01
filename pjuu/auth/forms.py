@@ -7,7 +7,7 @@ from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 from pjuu.users.models import User
 
 # Package imports
-from .backend import authenticate
+from .backend import check_username
 
 
 class ForgotForm(Form):
@@ -64,8 +64,8 @@ class SignupForm(Form):
     password2 = PasswordField('Confirm password')
 
     def validate_username(form, field):
-        user = User.query.filter(User.username.ilike(field.data)).first()
-        if user is not None:
+        check = check_username(field.data)
+        if not check:
             raise ValidationError('User name already in use')
 
     def validate_email(form, field):

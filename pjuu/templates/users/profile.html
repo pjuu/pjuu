@@ -14,9 +14,7 @@
         </a>
         {% endif %}
     {% else %}
-        <a href="{{url_for('settings_profile')}}">
-            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action-button you">You</div>
-        </a>
+        <div class="action-button you">You</div>
     {% endif %}
         <a href="{{url_for('profile', username=user.username)}}"><li>{{user.posts.count()}} posts</li></a>
         <a href="{{url_for('followers', username=user.username)}}"><li>{{user.followers.count()}} followers</li></a>

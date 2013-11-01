@@ -4,9 +4,8 @@
     <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52" />
     <ul class="account">
         <a href="{{ url_for('feed') }}"><li>Feed</li></a>
-        <a href="{{ url_for('profile', username=current_user.username) }}"><li>Profile</li></a>
+        <a href="{{ url_for('profile', username=current_user.username) }}"><li>{{current_user.username}}</li></a>
         <a href="{{ url_for('notifications') }}"><li>Notifications</li></a>
-        <a href="{{ url_for('settings_account') }}"><li>Settings</li></a>
         <a href="{{ url_for('signout') }}"><li>Sign Out</li></a>
     </ul>
     <div class="search">

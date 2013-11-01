@@ -10,10 +10,15 @@
 	</div>
 	<div id="content" class="clearfix">
 		<h1>Comments</h1>
-		<ul class="list">
+		<ul id="list">
     		{% for comment in post.comments %}
     		<li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
-        		<img class="avatar" src="{{comment.user.email|gravatar(48)}}" style="float: left">
+        		<img class="avatar" src="{{comment.user.email|gravatar(48)}}">
+                <div class="action">
+                    {% if comment.user == current_user %}
+                    <a href="{{ url_for('delete_comment', username=post.user.username, post_id=post.id, comment_id=comment.id) }}"><div class="delete">X</div></a>
+                    {% endif %}
+                </div>
         		<div class="contents">
             		<div class="username"><a href="{{url_for('profile', username=comment.user.username)}}">{{comment.user.username}}</a><span class="created"> @ {{ comment.created }}</span></div>
             		<div class="body">{{comment.body}}</div>

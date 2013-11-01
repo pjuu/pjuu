@@ -61,32 +61,31 @@ textarea {
 */
 
 #messages .message {
-    border: 1px solid #FFF;
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
-    margin: 0 auto 1em;
+    margin: 0 auto 0.5em;
     padding: 0.5em;
     text-align: center;
 }
 
 #messages .error {
-    background-color: #FCC;
-    color: #F55;
+    background-color: #C00;
+    color: #600;
 }
 
-#messages .info {
-    background-color: #BEF;
-    color: #09F;
+#messages .information {
+    background-color: #39F;
+    color: #1A4C80;
 }
 
 #messages .success {
-    background-color: #CFB;
-    color: #0B0;
+    background-color: #0F0;
+    color: #080;
 }
 
 #messages .warning {
     background-color: #FFC;
-    color: #AA3;
+    color: #880;
 }
 
 /*
@@ -94,7 +93,7 @@ textarea {
 */
 
 #logo {
-    margin: 2em auto;
+    margin: 1em auto;
     width: 210px;
     height: 105px;
 }
@@ -196,6 +195,7 @@ textarea {
 }
 
 #menu img {
+    display: block;
 	margin: 0 auto;
 }
 
@@ -253,7 +253,6 @@ textarea {
     background-color: #FFF;
     border: 1px solid #680;
     border-radius: 5px;
-    padding: 0 0 1em 0;
 }
 
 #content h1 {
@@ -271,7 +270,7 @@ textarea {
     background-color: #680;
     border-radius: 5px;
     color: #FFF;
-    margin: 0;
+    margin: 0 0 0.5em;
     padding: 1em;
 }
 
@@ -378,7 +377,7 @@ textarea {
     font-weight: 700;
     padding: 0.5em 0;
     text-align: center;
-    margin: 0.5em 0;
+    margin: 0.5em 0 0.5em;
 }
 
 #author {
@@ -416,64 +415,78 @@ textarea {
 ** Lists
 */
 
-.list {
+#list {
     padding: 1em;
 }
 
-.list .last {
+#list .last {
     margin-bottom: 0;
     border-bottom: 0;
     padding-bottom: 0;
 }
 
-.list .empty {
+#list .empty {
     color: #777;
     font-size: 15px;
     font-weight: 700;
     text-align: center;
 }
 
-.list .item {
+#list .item {
     margin: 0 0 1em;
     padding: 0 0 1em;
     border-bottom: 1px solid #BBB;
 }
 
-/*
-** Post
-*/
-
-.post {
-    /* Nout ATM */
+#list .avatar {
+    float: left;
 }
 
-.post .contents {
-    margin: 0 0 0 64px;
-}
-
-.post .comment-count {
-	background-color: #DDD;
-	border-radius: 3px 3px 3px 3px;
-	padding: 0.5em;
-}
-
-.list .username {
+#list .username {
     font-size: 15px;
     font-weight: 700;
 }
 
-.list .created {
+#list .created {
     font-size: 11px;
     font-weight: 400;
 }
 
-.list .body {
+#list .body {
     padding: 7px 0;
     word-wrap: break-word;
 }
 
-.user {
-    /* Nout ATM */
+/*
+** List types
+*/
+
+.post .contents {
+    margin: 0 64px 0 64px;
+}
+
+.post .comment-count {
+    background-color: #DFDFDF;
+	border-radius: 3px 3px 3px 3px;
+	padding: 0.25em 0.5em;
+}
+
+.post .action {
+    float: right;
+    height: 24px;
+    width: 24px;
+}
+
+.post .action .delete {
+    color: #F00;
+    border-radius: 5px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.post .action .delete:hover {
+    background-color: #F00;
+    color: #FFF;
 }
 
 .user .contents {

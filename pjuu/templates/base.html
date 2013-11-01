@@ -6,21 +6,13 @@
     <link href="{{ url_for('static', filename='css/reset.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css" />
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='js/ga.js') }}" text="text/javascript"></script>
 </head>
 <body>
-    <div id="wrapper">
+    <div id="wrapper" class="clearfix">
     {% block layout %}{% endblock %}
     </div>
     {% block js %}{% endblock %}
-    <script>
-        $("#author-hider").click(function() {
-        	$("#author").toggle();
-    		if ($("#author").is(":hidden")) {
-        		$("#author-hider").css("margin", "0.5em 0");
-	    	} else {
-    			$("#author-hider").css("margin", "0.5em 0 0");
-    		}
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/generic.js') }}" text="text/javascript"></script>
 </body>
 </html>

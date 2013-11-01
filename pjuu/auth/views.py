@@ -14,7 +14,7 @@ from .backend import (authenticate, current_user, is_safe_url, login,
                       email_signer, generate_token, check_token,
                       activate as be_activate,
                       change_password as be_change_password,
-                      get_username)
+                      get_username, check_username)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
                     PasswordChangeForm, EmailChangeForm, DeleteAccountForm)
@@ -115,7 +115,7 @@ def activate(token):
         if user:
             be_activate(user)
             # If we have got to this point. Send a welcome e-mail :)
-            send_mail('Welcome', user.email,
+            send_mail('Welcome', [user.email],
                       text_body=render_template('emails/welcome.txt'),
                       html_body=render_template('emails/welcome.html'))
             flash('Your account has now been activated.', 'success')
@@ -149,7 +149,7 @@ def forgot():
 
 @app.route('/forgot/<token>', methods=['GET', 'POST'])
 @anonymous_required
-def password_reset(token):
+def reset(token):
     form = ResetForm(request.form)
     data = check_token(forgot_signer, token)
 
@@ -167,44 +167,3 @@ def password_reset(token):
         return redirect(url_for('signin'))
 
     return render_template('auth/reset.html', form=form)
-
-
-# Account settings. These require the user to be logged in
-
-
-@app.route('/settings/account', methods=['GET'])
-@login_required
-def settings_account():
-    change_password_form = PasswordChangeForm()
-    change_email_form = EmailChangeForm()
-    delete_account_form = DeleteAccountForm()
-    return render_template('auth/settings_account.html',
-                           change_password_form=change_password_form,
-                           change_email_form=change_email_form,
-                           delete_account_form=delete_account_form)
-
-
-@app.route('/change_password', methods=['POST'])
-@login_required
-def change_password():
-    form = PasswordChangeForm(request.form)
-    return redirect(url_for('settings_account'))
-
-
-@app.route('/change_email', methods=['POST'])
-@login_required
-def change_email(token=None):
-    form = EmailChangeForm(request.form)
-    return redirect(url_for('settings_account'))
-
-
-@app.route('/change_email/<token>', methods=['GET'])
-@login_required
-def confirm_change_email(token):
-    return redirect(url_for('settings_account'))
-
-
-@app.route('/delete_account', methods=['POST'])
-@login_required
-def delete_account():
-    pass
