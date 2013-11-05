@@ -4,7 +4,7 @@ from flask import (abort, flash, g, redirect, render_template, request,
 from werkzeug import check_password_hash, generate_password_hash
 
 # Pjuu imports
-from pjuu import app, db
+from pjuu import app, cache, db
 from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.users.models import User
