@@ -3,6 +3,11 @@
 {% block main %}
 	<div id="post-main" class="clearfix">
     	<img class="avatar" src="{{post.user.email|gravatar(96)}}" style="float: left">
+        <div class="action">
+            {% if post.user == current_user %}
+            <a href="{{ url_for('delete_post', username=post.user.username, post_id=post.id) }}"><div class="delete">X</div></a>
+            {% endif %}
+        </div>
     	<div class="contents">
         	<div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
         	<div class="body">{{post.body}}</div>

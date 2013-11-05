@@ -9,7 +9,7 @@ from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.users.models import User
 from pjuu.posts.forms import PostForm
-from pjuu.posts.models import Post
+from pjuu.posts.models import Post, Comment
 from .backend import follow_user, unfollow_user
 
 
@@ -122,7 +122,7 @@ def follow(username):
         redirect_url=url_for('profile', username=username)
 
     if follow_user(current_user, user):
-        flash('You have started following this user')
+        flash('You have started following this user', 'information')
     return redirect(redirect_url)
 
 
@@ -172,8 +172,7 @@ def delete_post(username, post_id):
     try:
         db.session.delete(post)
         db.session.commit()
-    except Exception as e:
-        print e
+    except:
         db.session.rollback()
         abort(500)
 
@@ -187,7 +186,24 @@ def delete_post(username, post_id):
 @app.route('/<username>/<int:post_id>/<int:comment_id>/delete')
 @login_required
 def delete_comment(username, post_id, comment_id):
-    pass
+    user = User.query.filter_by(username=username).first()
+    post = Post.query.get(post_id)
+    comment = Comment.query.get(comment_id)
+
+    if not user or not post or not comment or post.user is not user or comment.post is not post:
+        abort(404)
+
+    if comment.user != current_user:
+        abort(403)
+
+    try:
+        db.session.delete(comment)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        abort(500)
+
+    return redirect(url_for('view_post', username=username, post_id=post_id))
 
 
 @app.route('/search', methods=['GET'])

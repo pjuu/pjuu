@@ -157,7 +157,7 @@ def reset(token):
         if request.method == 'POST':
             if form.validate():
                 user = get_username(data['username'])
-                be_change_password(user, data['email'])
+                be_change_password(user, form.password.data)
                 flash('Your password has been reset. Please login.', 'success')
                 return redirect(url_for('signin'))
             else:

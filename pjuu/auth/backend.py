@@ -97,10 +97,11 @@ def get_username(username):
     Return a user object from a username. Will check if username is an e-mail.
     Return None if it does not locate a user
     """
+    username = username.lower()
     if '@' in username:
-        user = User.query.filter(User.email.ilike(username)).first()
+        user = User.query.filter(db.func.lower(User.email) == username).first()
     else:
-        user = User.query.filter(User.username.ilike(username)).first()
+        user = User.query.filter(db.func.lower(User.username) == username).first()
     return user
 
 
@@ -109,8 +110,10 @@ def check_username(username):
     Used to check for username availablity inside the signup form.
     Returns true if the name is free false otherwise
     """
-    reserved = username.lower() in reserved_names
-    exists = User.query.filter(User.username.ilike(username)).first()
+    username = username.lower()
+    reserved = username in reserved_names
+    exists = User.query.filter(db.func.lower(User.username) == username)\
+             .first()
     if reserved or exists:
         return False
     else:
@@ -127,8 +130,8 @@ def create_account(username, email, password):
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
+        print e
         # The Otter is broken
-        print "ERROR: create_account: ", e
         db.session.rollback()
         abort(500)
     return new_user

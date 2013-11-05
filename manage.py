@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # 3rd party imports
+from werkzeug.debug import DebuggedApplication
 import cherrypy
 from flask.ext.migrate import Migrate, MigrateCommand
-from flask.ext.script import Manager
+from flask.ext.script import Manager, Server
 # Pjuu imports
 from pjuu import app, db
+
 
 migrate = Migrate(app, db)
 manager = Manager(app)
@@ -13,7 +15,8 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def runserver():
-    cherrypy.tree.graft(app, '/')
+    dapp = DebuggedApplication(app, True)
+    cherrypy.tree.graft(dapp, '/')
     cherrypy.config.update({
         'engine.autoreload_on': True,
         'log.screen': True,

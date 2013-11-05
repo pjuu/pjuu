@@ -4,6 +4,7 @@ from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Pjuu imports
+from pjuu import db
 from pjuu.users.models import User
 
 # Package imports
@@ -44,7 +45,8 @@ class EmailChangeForm(Form):
                           Length(max=254), Required()])
 
     def validate_email(form, field):
-        user = user.query.filter(User.email.ilike(field.data)).first()
+        email = field.data.lower()
+        user = user.query.filter(db.func.lower(email) == email).first()
         if user is not None:
             raise ValidationError('E-Mail address already in use')
 
@@ -69,7 +71,8 @@ class SignupForm(Form):
             raise ValidationError('User name already in use')
 
     def validate_email(form, field):
-        user = User.query.filter(User.email.ilike(field.data)).first()
+        email = field.data.lower()
+        user = User.query.filter(db.func.lower(User.email == email)).first()
         if user is not None:
             raise ValidationError('E-mail address already in use')
 
