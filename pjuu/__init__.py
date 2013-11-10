@@ -30,5 +30,6 @@ app.config.from_object('pjuu.settings')
 app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
 # Import all Pjuu stuffs
+from lib.error_handling import *
 import users
 import posts

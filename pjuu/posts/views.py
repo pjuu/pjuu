@@ -1,7 +1,6 @@
 # 3rd party imports
 from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
-
 # Pjuu imports
 from pjuu import app, db
 from pjuu.auth.backend import current_user, is_safe_url
@@ -14,7 +13,6 @@ from .models import Comment, Post
 @app.route('/post', methods=['POST'])
 @login_required
 def post():
-
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url=url_for('profile', username=current_user.username)
@@ -37,9 +35,6 @@ def post():
 @app.route('/<username>/<int:post_id>/comment', methods=['POST'])
 @login_required
 def comment(username, post_id):
-    """
-    Should this be in here??? Ah well.
-    """
     form = PostForm(request.form)
     # Check that the post_id matches up with that of the user
     user = User.query.filter_by(username=username).first()
@@ -59,3 +54,56 @@ def comment(username, post_id):
     else:
         flash('Comments must be between 2 and 512 characters long.', 'error')
     return redirect(url_for('view_post', username=username, post_id=post.id))
+
+
+@app.route('/<username>/<int:post_id>')
+@login_required
+def view_post(username, post_id):
+    post = Post.query.get(post_id)
+    user = User.query.filter_by(username=username).first()
+
+    if not user or not post or post.user is not user:
+        abort(404)
+
+    post_form = PostForm()
+    return render_template('users/post.html', user=user, post=post,
+                           post_form=post_form)
+
+
+@app.route('/<username>/<int:post_id>/upvote', methods=['GET'])
+@app.route('/<username>/<int:post_id>/<int:comment_id>/upvote', methods=['GET'])
+def upvote(username, post_id, comment_id=None):
+    pass
+
+
+@app.route('/<username>/<int:post_id>/downvote', methods=['GET'])
+@app.route('/<username>/<int:post_id>/<int:comment_id>/downvote', methods=['GET'])
+def downvote(username, post_id, comment_id=None):
+    pass
+
+
+@app.route('/<username>/<int:post_id>/delete')
+@app.route('/<username>/<int:post_id>/<int:comment_id>/delete')
+@login_required
+def delete_post(username, post_id, comment_id=None):
+    post = Post.query.get(post_id)
+    user = User.query.filter_by(username=username).first()
+    
+    if not user or not post or post.user is not user:
+        abort(404)
+
+    if user != current_user:
+        abort(403)
+
+    try:
+        db.session.delete(post)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        abort(500)
+
+    redirect_url = request.values.get('next', None)
+    if not redirect_url or not is_safe_url(redirect_url):
+        redirect_url=url_for('profile', username=username)
+
+    return redirect(redirect_url)

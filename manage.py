@@ -15,8 +15,8 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def runserver():
-    dapp = DebuggedApplication(app, True)
-    cherrypy.tree.graft(dapp, '/')
+    #dapp = DebuggedApplication(app, True)
+    cherrypy.tree.graft(app, '/')
     cherrypy.config.update({
         'engine.autoreload_on': True,
         'log.screen': True,

@@ -2,13 +2,10 @@
 from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug import check_password_hash, generate_password_hash
-
 # Pjuu imports
 from pjuu import app, db
 from pjuu.lib.mail import send_mail
 from pjuu.users.models import User
-
-# Package imports
 from .backend import (authenticate, current_user, is_safe_url, login,
                       logout, create_account, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token,

@@ -2,9 +2,8 @@
 from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug import check_password_hash, generate_password_hash
-
 # Pjuu imports
-from pjuu import app, cache, db
+from pjuu import app, db
 from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.users.models import User
@@ -42,7 +41,8 @@ def feed():
     posts = Post.query.filter(Post.author.in_(u.id for u in following))\
             .order_by(Post.created.desc())\
             .paginate(page, app.config['FEED_ITEMS_PER_PAGE'], False)
-    return render_template('users/feed.html', post_form=post_form, posts_list=posts)
+    return render_template('users/feed.html', post_form=post_form,
+                           posts_list=posts)
 
 
 @app.route('/<username>')
@@ -141,69 +141,6 @@ def unfollow(username):
     if unfollow_user(current_user, user):
         flash('You have unfollowed this user', 'success')
     return redirect(redirect_url)
-
-
-@app.route('/<username>/<int:post_id>')
-@login_required
-def view_post(username, post_id):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-
-    if not user or not post or post.user is not user:
-        abort(404)
-
-    post_form = PostForm()
-    return render_template('users/post.html', user=user, post=post,
-                           post_form=post_form)
-
-
-@app.route('/<username>/<int:post_id>/delete')
-@login_required
-def delete_post(username, post_id):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-    
-    if not user or not post or post.user is not user:
-        abort(404)
-
-    if user != current_user:
-        abort(403)
-
-    try:
-        db.session.delete(post)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        abort(500)
-
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url=url_for('profile', username=username)
-
-    return redirect(redirect_url)
-
-
-@app.route('/<username>/<int:post_id>/<int:comment_id>/delete')
-@login_required
-def delete_comment(username, post_id, comment_id):
-    user = User.query.filter_by(username=username).first()
-    post = Post.query.get(post_id)
-    comment = Comment.query.get(comment_id)
-
-    if not user or not post or not comment or post.user is not user or comment.post is not post:
-        abort(404)
-
-    if comment.user != current_user:
-        abort(403)
-
-    try:
-        db.session.delete(comment)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        abort(500)
-
-    return redirect(url_for('view_post', username=username, post_id=post_id))
 
 
 @app.route('/search', methods=['GET'])
