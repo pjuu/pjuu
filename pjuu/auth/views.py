@@ -35,12 +35,10 @@ def signin():
     """
     form = LoginForm(request.form)
     if request.method == 'POST':
-
         # Handles the passing of the next argument to the login view
         redirect_url = request.values.get('next', None)
         if not redirect_url or not is_safe_url(redirect_url):
             redirect_url = url_for('feed')
-
         if form.validate():
             # Calls authenticate from backend.py
             user = authenticate(form.username.data, form.password.data)

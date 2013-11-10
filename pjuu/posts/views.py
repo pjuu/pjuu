@@ -19,16 +19,12 @@ def post():
 
     form = PostForm(request.form)
     if form.validate():
-        try:
-            new_post = Post(current_user, form.body.data)
-            db.session.add(new_post)
-            db.session.commit()
-            flash('Posted', 'success')
-        except:
-            db.session.rollback()
-            abort(500)
+        new_post = Post(current_user, form.body.data)
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Posted', 'success')
     else:
-        flash('Posts must be between 2 and 512 characters long', 'error')
+        flash('Please enter something to post', 'error')
     return redirect(redirect_url)
 
 

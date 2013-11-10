@@ -1,3 +1,4 @@
+from flask import jsonify
 from pjuu import app
 
 
@@ -8,4 +9,4 @@ def error_404(error):
 
 @app.errorhandler(500)
 def error_500(error):
-    return error, 500
+    return "500", 500
