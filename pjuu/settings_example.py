@@ -5,7 +5,7 @@ DEBUG = True
 SECRET_KEY = 'Development Key'
 
 # Flas-SQLAlchemy
-SQLALCHEMY_DATABASE_URI = 'sqlite:///../pjuu.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///pjuu.db'
 
 # Flask-Mail
 MAIL_SERVER = 'localhost'
@@ -23,3 +23,9 @@ CSRF_SESSION_KEY = SECRET_KEY
 # Pagination
 FEED_ITEMS_PER_PAGE = 50
 PROFILE_ITEMS_PER_PAGE = 50
+
+# Signer Keys
+TOKEN_KEY = SECRET_KEY
+SALT_ACTIVATE = ''
+SALT_FORGOT = ''
+SALT_EMAIL = ''
