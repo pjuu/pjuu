@@ -21,7 +21,7 @@
         <a href="{{url_for('following', username=user.username)}}"><li>{{user.following.count()}} following</li></a>
     </ul>
     <div class="details">
-        <div class="username">{{user.username}}</div>
+        <div class="username">{{user.username}}<span class="score">{{user.score}}</span></div>
         <div class="body">{{user.about}}</div>
     </div>
 </div>

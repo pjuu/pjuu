@@ -6,6 +6,7 @@
         <a href="{{ url_for('feed') }}"><li>Feed</li></a>
         <a href="{{ url_for('profile', username=current_user.username) }}"><li>{{current_user.username}}</li></a>
         <a href="{{ url_for('notifications') }}"><li>Notifications</li></a>
+        <a href="{{ url_for('settings_profile') }}"><li>Settings</li></a>
         <a href="{{ url_for('signout') }}"><li>Sign Out</li></a>
     </ul>
     <div class="search">

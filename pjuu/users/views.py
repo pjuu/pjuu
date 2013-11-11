@@ -174,3 +174,9 @@ def notifications():
     notifications = []
     return render_template('users/notifications.html',
                            notifications=notifications)
+
+
+@app.route('/settings/profile', methods=['GET', 'POST'])
+@login_required
+def settings_profile():
+    pass

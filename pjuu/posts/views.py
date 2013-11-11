@@ -39,16 +39,12 @@ def comment(username, post_id):
         abort(404)
 
     if form.validate():
-        try:
-            new_comment = Comment(current_user, post_id, form.body.data)
-            db.session.add(new_comment)
-            db.session.commit()
-            flash('Comment posted', 'success')
-        except:
-            db.session.rollback()
-            abort(500)
+        new_comment = Comment(current_user, post_id, form.body.data)
+        db.session.add(new_comment)
+        db.session.commit()
+        flash('Comment posted', 'success')
     else:
-        flash('Comments must be between 2 and 512 characters long.', 'error')
+        flash('You need to type something to post.', 'error')
     return redirect(url_for('view_post', username=username, post_id=post.id))
 
 
@@ -62,7 +58,7 @@ def view_post(username, post_id):
         abort(404)
 
     post_form = PostForm()
-    return render_template('users/post.html', user=user, post=post,
+    return render_template('posts/post.html', user=user, post=post,
                            post_form=post_form)
 
 
@@ -83,20 +79,28 @@ def downvote(username, post_id, comment_id=None):
 @login_required
 def delete_post(username, post_id, comment_id=None):
     post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-    
-    if not user or not post or post.user is not user:
-        abort(404)
+    user = User.query.filter_by(username=username).first()    
+    if comment_id:
+        # Handle comment deletes
+        comment = Comment.query.get(comment_id)
+    else:
+        comment = None
 
-    if user != current_user:
+    if not comment:
+        if not user or not post or post.user is not user:
+            abort(404)
+        item = post
+    else:
+        if not user or not post or not comment or post.user is not user\
+            or comment.post is not post:
+            abort(404)
+        item = comment
+
+    if item.user != current_user:
         abort(403)
 
-    try:
-        db.session.delete(post)
-        db.session.commit()
-    except:
-        db.session.rollback()
-        abort(500)
+    db.session.delete(item)
+    db.session.commit()
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):

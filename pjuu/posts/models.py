@@ -7,12 +7,15 @@ class Post(db.Model):
     Model for all text Posts made in Pjuu. This will be extended
     in future to support attachment images, video etc...
     '''
+    __tablename__ = 'posts'
     id = db.Column(db.Integer(unsigned=True), primary_key=True)
     author = db.Column(db.Integer(unsigned=True),
-                       db.ForeignKey('user.id'), index=True, nullable=False)
+                       db.ForeignKey('users.id'), index=True, nullable=False)
     created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     body = db.Column(db.String(512), nullable=False)
+    score = db.Column(db.BigInteger(unsigned=True), nullable=False, default=0)
 
+    # Relationships
     user = db.relationship('User', backref=db.backref('posts',
                                                       order_by=created,
                                                       lazy="dynamic",
@@ -31,15 +34,19 @@ class Comment(db.Model):
     Model for all text Comments made in Pjuu. This will be extended
     in future to support attachment images, video etc...
     '''
+    __tablename__ = 'comments'
     id = db.Column(db.Integer(unsigned=True), primary_key=True)
     author = db.Column(db.Integer(unsigned=True),
-                       db.ForeignKey('user.id'), index=True, nullable=False)
-    replyto = db.Column(db.Integer(unsigned=True),
-                        db.ForeignKey('post.id'), index=True, nullable=False)
+                       db.ForeignKey('users.id'), index=True, nullable=False)
     created = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     body = db.Column(db.String(512), nullable=False)
+    score = db.Column(db.BigInteger(unsigned=True), nullable=False, default=0)
 
-    # No backref needed for User to comments
+    replyto = db.Column(db.Integer(unsigned=True),
+                        db.ForeignKey('posts.id'), index=True, nullable=False)
+
+    # Relationships
+    # Overwrite `user` relationship as comments do not need a backref to this
     user = db.relationship('User')
     
     post = db.relationship('Post', backref=db.backref('comments',
