@@ -1,5 +1,8 @@
+Endpoints
+=========
+
 AUTH
-====
+----
 
 /signin                                     GET, POST       NEXT
     signin()
@@ -35,7 +38,7 @@ AUTH
     delete_account()
 
 USERS
-=====
+-----
 
 /                                           GET             PAGINATION
     feed()
@@ -65,7 +68,7 @@ USERS
     search()
 
 POSTS
-=====
+-----
 
 /post                                       POST
     post()
