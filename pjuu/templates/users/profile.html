@@ -16,17 +16,17 @@
     {% else %}
         <div class="action-button you">You</div>
     {% endif %}
-        <a href="{{url_for('profile', username=user.username)}}"><li>{{user.posts.count()}} posts</li></a>
-        <a href="{{url_for('followers', username=user.username)}}"><li>{{user.followers.count()}} followers</li></a>
-        <a href="{{url_for('following', username=user.username)}}"><li>{{user.following.count()}} following</li></a>
+        <a href="{{url_for('profile', username=user.username)}}"><li>{{user.posts.count()|millify}} posts</li></a>
+        <a href="{{url_for('followers', username=user.username)}}"><li>{{user.followers.count()|millify}} followers</li></a>
+        <a href="{{url_for('following', username=user.username)}}"><li>{{user.following.count()|millify}} following</li></a>
     </ul>
     <div class="details">
-        <div class="username">{{user.username}} <span class="score">({{user.score}})</span></div>
+        <div class="username">{{user.username}} <span class="score">({{user.score|millify}})</span></div>
         <div class="body">{{user.about}}</div>
     </div>
 </div>
 {% if user == current_user %}
-    {% include 'users/author_post.html' %}
+    {% include 'posts/author_post.html' %}
 {% endif %}
 <div id="content" class="clearfix">
 	{% block content %}{% endblock %}

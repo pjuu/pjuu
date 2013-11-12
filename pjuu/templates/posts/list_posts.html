@@ -1,6 +1,21 @@
 <ul id="list">
     {% for post in posts_list.items %}
     <li class="{% if loop.last %}last{% else %}item{% endif %} post clearfix">
+        <div class="voter">
+            <div>
+                <a href="{{url_for('upvote', username=post.user.username, post_id=post.id)}}">
+                    <img src="{{url_for('static', filename='img/upvote.png')}}" />
+                </a>
+            </div>
+            <div>
+                {{post.score|millify}}
+            </div>
+            <div>
+                <a href="{{url_for('downvote', username=post.user.username, post_id=post.id)}}">
+                    <img src="{{url_for('static', filename='img/downvote.png')}}" />
+                </a>
+            </div>
+        </div>
         <img class="avatar" src="{{post.user.email|gravatar(48)}}" />
         <div class="action">
             {% if post.user == current_user %}
@@ -10,7 +25,7 @@
         <div class="contents">
             <div class="username"><a href="{{url_for('profile', username=post.user.username)}}">{{post.user.username}}</a><span class="created"> @ {{ post.created }}</span></div>
             <div class="body">{{post.body}}</div>
-            <div class="comment-count"><a href="{{ url_for('view_post', username=post.user.username, post_id=post.id) }}">View post</a> &middot; <a href="">&uarr; upvote</a> / <a href="">&darr; downvote</a> &middot; Score {{post.score}} &middot; {{post.comments.count()}} comments</div>
+            <div class="comment-count"><a href="{{ url_for('view_post', username=post.user.username, post_id=post.id) }}">View post</a> &middot; {{post.comments.count()}} comments</div>
         </div>
     </li>
     {% else %}

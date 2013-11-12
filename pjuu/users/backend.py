@@ -1,5 +1,6 @@
 # Stdlib imports
 from hashlib import md5
+import math
 
 # Pjuu imports
 from pjuu import app, db
@@ -18,6 +19,22 @@ def following_filter(user):
 def gravatar(email, size=24):
     return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
         (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
+
+
+@app.template_filter('millify')
+def millify(n):
+    if n == 0:
+        return n
+    number = n
+    if n < 0:
+        number = abs(n)
+    millnames=['','K','M','B','T','Qa','Qi']
+    millidx=max(0,min(len(millnames)-1,
+                      int(math.floor(math.log10(abs(number))/3.0))))
+    result = '%.0f%s'%(number/10**(3*millidx), millnames[millidx])
+    if n < 0:
+        return '-' + result
+    return result
 
 
 def follow_user(who, whom):

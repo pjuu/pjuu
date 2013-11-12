@@ -65,13 +65,25 @@ def view_post(username, post_id):
 @app.route('/<username>/<int:post_id>/upvote', methods=['GET'])
 @app.route('/<username>/<int:post_id>/<int:comment_id>/upvote', methods=['GET'])
 def upvote(username, post_id, comment_id=None):
-    pass
+    post = Post.query.get(post_id)
+    user = User.query.filter_by(username=username).first()
+    if comment_id:
+        comment = Comment.query.get(comment_id)
+    else:
+        comment = None
+    return "UPVOTED"
 
 
 @app.route('/<username>/<int:post_id>/downvote', methods=['GET'])
 @app.route('/<username>/<int:post_id>/<int:comment_id>/downvote', methods=['GET'])
 def downvote(username, post_id, comment_id=None):
-    pass
+    post = Post.query.get(post_id)
+    user = User.query.filter_by(username=username).first()
+    if comment_id:
+        comment = Comment.query.get(comment_id)
+    else:
+        comment = None
+    return "DOWNVOTED"
 
 
 @app.route('/<username>/<int:post_id>/delete')
@@ -86,15 +98,20 @@ def delete_post(username, post_id, comment_id=None):
     else:
         comment = None
 
-    if not comment:
+    if not comment_id:
+        # If there is no comment_id treat as post
         if not user or not post or post.user is not user:
             abort(404)
         item = post
-    else:
+    elif comment:
+        # If there is a comment_id and a comment
         if not user or not post or not comment or post.user is not user\
             or comment.post is not post:
             abort(404)
         item = comment
+    else:
+        # If we are here someone is being a dick!
+        abort(404)
 
     if item.user != current_user:
         abort(403)
