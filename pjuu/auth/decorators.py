@@ -1,7 +1,6 @@
 # 3rd party imports
 from functools import wraps
 from flask import redirect, request, url_for, flash
-
 # Package imports
 from .backend import current_user
 
@@ -27,7 +26,7 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:
-            flash('You need to be logged in', 'information')
+            flash('You need to be logged in to view that', 'information')
             return redirect(url_for('signin', next=request.path))
         return func(*args, **kwargs)
     return decorated_view

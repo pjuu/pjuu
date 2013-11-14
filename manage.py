@@ -2,15 +2,12 @@
 # 3rd party imports
 from werkzeug.debug import DebuggedApplication
 import cherrypy
-from flask.ext.migrate import Migrate, MigrateCommand
 from flask.ext.script import Manager, Server
 # Pjuu imports
-from pjuu import app, db
+from pjuu import app
 
 
-migrate = Migrate(app, db)
 manager = Manager(app)
-manager.add_command('db', MigrateCommand)
 
 
 @manager.command

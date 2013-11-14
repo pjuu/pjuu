@@ -3,12 +3,10 @@ from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug import check_password_hash, generate_password_hash
 # Pjuu imports
-from pjuu import app, db
-from pjuu.auth.backend import current_user, is_safe_url
+from pjuu import app, r
+from pjuu.auth.backend import current_user, get_uid, is_safe_url
 from pjuu.auth.decorators import login_required
-from pjuu.users.models import User
 from pjuu.posts.forms import PostForm
-from pjuu.posts.models import Post, Comment
 from .backend import follow_user, unfollow_user
 
 
@@ -36,19 +34,14 @@ def feed():
     except:
         page = 1
 
-    following = current_user.following.all()
-    following.append(current_user)
-    posts = Post.query.filter(Post.author.in_(u.id for u in following))\
-            .order_by(Post.created.desc())\
-            .paginate(page, app.config['FEED_ITEMS_PER_PAGE'], False)
-    return render_template('users/feed.html', post_form=post_form,
-                           posts_list=posts)
+    return render_template('users/feed.html', post_form=post_form)
 
 
 @app.route('/<username>')
 @login_required
 def profile(username):    
-    user = User.query.filter_by(username=username).first()
+    uid = get_uid(username)
+    user = r.hgetall('user:%d' % uid)
 
     if user is None:
         abort(404)
@@ -60,11 +53,8 @@ def profile(username):
         page = 1
 
     post_form = PostForm()
-    posts = Post.query.filter_by(author=user.id)\
-            .order_by(Post.created.desc())\
-            .paginate(page, app.config['PROFILE_ITEMS_PER_PAGE'], False)
-    return render_template('users/posts.html', user=user, posts_list=posts,
-                           post_form=post_form)
+
+    return render_template('users/posts.html', user=user, post_form=post_form)
 
 
 @app.route('/<username>/following')

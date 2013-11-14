@@ -1,17 +1,15 @@
 # Stdlib imports
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
+from datetime import datetime
 from urlparse import urlparse, urljoin
-
 # 3rd party imports
 from flask import _app_ctx_stack, request, session, abort
 from itsdangerous import TimedSerializer
 from werkzeug.local import LocalProxy
 from werkzeug.security import generate_password_hash, check_password_hash
-
 # Pjuu imports
-from pjuu import app, db
-from pjuu.users.models import User
+from pjuu import app, r
 
 
 # Reserved names
@@ -43,7 +41,7 @@ reserved_names = ['about','access','account','accounts','add','address','adm',
                   'newsletter','nick','nickname','notes','noticias','ns',
                   'ns1','ns2','ns3','ns4','old','online','operator','order',
                   'orders','page','pager','pages','panel','password','perl',
-                  'pic','pics','photo','photos','photoalbum','php','plugin',
+                  'pic','pics','photo','photos','photoalbum','php','pjuu','plugin',
                   'plugins','pop','pop3','post','postmaster','postfix','posts',
                   'profile','project','projects','promo','pub','public',
                   'random','register','registration','root','rss','sale',
@@ -87,54 +85,76 @@ def _load_user():
     application context.
     """
     user = None
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
+    if 'uid' in session:
+        user = r.hgetall('user:%d' % session['uid'])
     _app_ctx_stack.top.user = user
 
 
-def get_username(username):
+def get_uid(username):
     """
-    Return a user object from a username. Will check if username is an e-mail.
-    Return None if it does not locate a user
+    Returns a user_id from username.
+    This can be an e-mail or username.
     """
     username = username.lower()
-    if '@' in username:
-        user = User.query.filter(db.func.lower(User.email) == username).first()
+    uid = r.get('uid:%s' % username)
+    if uid: uid = int(uid)
+    return uid
+
+
+def get_user(username):
+    """
+    Similar to above but will return the user dict (calls above).
+    """
+    uid = get_uid(username)
+    if uid:
+        return r.hgetall('user:%d' % uid)
     else:
-        user = User.query.filter(db.func.lower(User.username) == username).first()
-    return user
+        return None
 
 
 def check_username(username):
     """
     Used to check for username availablity inside the signup form.
-    Returns true if the name is free false otherwise
+    Returns true if the name is free, false otherwise
     """
     username = username.lower()
-    reserved = username in reserved_names
-    exists = User.query.filter(db.func.lower(User.username) == username)\
-             .first()
-    if reserved or exists:
-        return False
-    else:
-        return True
+    taken = username in reserved_names
+    if not taken:
+        taken = r.exists('uid:%s' % username)
+    return False if taken else True
 
 
-def create_account(username, email, password):
+def create_user(username, email, password):
     """
-    Creates a user account. If this task fails a 500 will be thrown.
-    Returns the user account.
+    Creates a user account.
     """
-    try:
-        new_user = User(username, email, password)
-        db.session.add(new_user)
-        db.session.commit()
-    except Exception as e:
-        print e
-        # The Otter is broken
-        db.session.rollback()
-        abort(500)
-    return new_user
+    # Get next uid
+    uid = r.incr('global:uid')
+    # Create user dictionary ready for HMSET
+    user = {
+        'uid': uid,
+        'username': username,
+        'email': email,
+        'password': generate_password_hash(password),
+        'created': datetime.now(),
+        'last_login': -1,
+        'active': False,
+        'banned': False,
+        'op': False,
+        'about': "",
+        'score': 0
+    }
+    # Only create the user if it does not exist. This step is for safety
+    if not r.exists('user:%d' % uid):
+        # Transactional
+        pipe = r.pipeline()
+        pipe.hmset('user:%d' % uid, user)
+        # Create look up keys for auth system (these are lowercase)
+        pipe.set('uid:%s' % username.lower(), uid)
+        pipe.set('uid:%s' % email.lower(), uid)
+        pipe.execute()
+        return uid
+    return None
 
 
 def authenticate(username, password):
@@ -142,28 +162,20 @@ def authenticate(username, password):
     Will authenticate a username/password combination.
     If successful will return a user object else will return None.
     """
-    user = get_username(username)
-    if user and check_password_hash(user.password, password):
-        return user
+    uid = get_uid(username)
+    if uid and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
+        return uid
     return None
 
 
-def login(user):
+def login(uid):
     """
-    Logs the user in. Will add user id to session.
+    Logs the user in. Will add user_id to session.
     Will also update the users last_login time.
     """
-    session['user_id'] = user.id
-    try:
-        user.last_login = db.func.now()
-        db.session.add(user)
-        db.session.commit()
-    except:
-        # The Otter is broken
-        db.session.rollback()
-        # Lets make sure to log the user out. THIS WILL HAVE HAPPENED
-        logout()
-        abort(500)
+    session['uid'] = uid
+    # update last login
+    r.hset('user:%d' % uid, 'last_login', datetime.now())
 
     
 def logout():
@@ -171,56 +183,39 @@ def logout():
     Removes the user id from the session. If it isn't there then
     nothing bad happens.
     """
-    session.pop('user_id', None)
+    session.pop('uid', None)
 
 
-def activate(user):
+def activate(uid):
     """
-    Sets the user account to active.
+    Activates a user after signup
     """
-    try:
-        user.active = True
-        db.session.add(user)
-        db.session.commit()
-    except:
-        # The Otter is broken
-        db.session.rollback()
-        abort(500)
+    return r.hset('user:%d' % uid, 'active', True)
 
 
-def change_password(user, password):
+def change_password(uid, password):
     """
-    Sets `user`s password to `password`.
+    Changes user with uid's password
     """
-    try:
-        user.password = generate_password_hash(password)
-        db.session.add(user)
-        db.session.commit()
-    except:
-        # The Otter is broken
-        db.session.rollback()
-        abort(500)
+    password = generate_password_hash(password)
+    return r.hset('user:%d' % uid, 'password', password)
 
 
-def change_email(user, email):
+def change_email(uid, email):
     """
-    Set `user`s email to `email`
+    Changes the user with uid's e-mail address.
+    Has to remove old lookup index and add the new one
     """
-    try:
-        user.email = email
-        db.session.add(user)
-        db.session.commit()
-    except:
-        # The Otter is broken
-        db.session.rollback()
-        abort(500)
+    pipe = r.pipeline()
+    old_email = pipe.hget('user:%d' % uid, 'email')
+    pipe.delete('uid:%s' % old_email)
+    pipe.set('uid:%s' % email, uid)
+    result = pipe.hset('user:%d' % uid, 'email', email)
+    pipe.execute()
+    return result
 
 
 def is_safe_url(target):
-    """
-    Not sure what the point of checking a URL is at the moment.
-    I am using this because at some point it will be important.
-    """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \

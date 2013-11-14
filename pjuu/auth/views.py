@@ -3,15 +3,14 @@ from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 from werkzeug import check_password_hash, generate_password_hash
 # Pjuu imports
-from pjuu import app, db
+from pjuu import app, r
 from pjuu.lib.mail import send_mail
-from pjuu.users.models import User
 from .backend import (authenticate, current_user, is_safe_url, login,
-                      logout, create_account, activate_signer, forgot_signer,
+                      logout, create_user, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token,
                       activate as be_activate,
                       change_password as be_change_password,
-                      get_username, check_username)
+                      get_uid, check_username)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
                     PasswordChangeForm, EmailChangeForm, DeleteAccountForm)
@@ -41,22 +40,21 @@ def signin():
             redirect_url = url_for('feed')
         if form.validate():
             # Calls authenticate from backend.py
-            user = authenticate(form.username.data, form.password.data)
-            if user is not None:
-                if not user.active:
+            uid = authenticate(form.username.data, form.password.data)
+            if uid:
+                if r.hget('user:%d' % uid, 'active') == 'False':
                     flash('Please activate your account. Check your e-mails.',
                           'warning')
-                elif user.banned:
+                elif r.hget('user:%d' % uid, 'bannned') == 'True':
                     flash('You have been banned. Naughty boy.',
                           'warning')
                 else:
-                    login(user)
+                    login(uid)
                     return redirect(redirect_url)
             else:
                 flash('Invalid user name or password.', 'error')
         else:
             flash('Invalid user name or password.', 'error')
-
     return render_template('auth/signin.html', form=form)
 
 
@@ -80,12 +78,12 @@ def signup():
     if request.method == 'POST':
         if form.validate():
             # User successfully signed up, create an account
-            new_user = create_account(form.username.data, form.email.data,
-                                      form.password.data)
-            if new_user:
+            uid = create_user(form.username.data, form.email.data,
+                              form.password.data)
+            if uid:
                 token = generate_token(activate_signer,
-                                       {'username': new_user.username})
-                send_mail('Activation', [new_user.email],
+                                       {'uid': uid})
+                send_mail('Activation', [form.email.data],
                           text_body=render_template('emails/activate.txt',
                                                     token=token),
                           html_body=render_template('emails/activate.html',
@@ -103,14 +101,13 @@ def signup():
 def activate(token):
     # Attempt to get the data from the token
     data = check_token(activate_signer, token)
-
     if data is not None:
         # Attempt to activate the users account
-        user = get_username(data['username'])
-        if user:
-            be_activate(user)
+        uid = data['uid']
+        if uid:
+            be_activate(uid)
             # If we have got to this point. Send a welcome e-mail :)
-            send_mail('Welcome', [user.email],
+            send_mail('Welcome', [r.hget('user:%d' % uid, 'email')],
                       text_body=render_template('emails/welcome.txt'),
                       html_body=render_template('emails/welcome.html'))
             flash('Your account has now been activated.', 'success')
@@ -147,7 +144,6 @@ def forgot():
 def reset(token):
     form = ResetForm(request.form)
     data = check_token(forgot_signer, token)
-
     if data is not None:
         if request.method == 'POST':
             if form.validate():
@@ -160,5 +156,4 @@ def reset(token):
     else:
         flash('Invalid token.', 'error')
         return redirect(url_for('signin'))
-
     return render_template('auth/reset.html', form=form)

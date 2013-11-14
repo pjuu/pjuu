@@ -3,26 +3,33 @@ from hashlib import md5
 import math
 
 # Pjuu imports
-from pjuu import app, db
+from pjuu import app, r
 from pjuu.auth import current_user
 
 
 @app.template_filter('following')
-def following_filter(user):
-    '''
+def following_filter(user_id):
+    """
     Checks if current user is following the user with id piped to filter 
-    '''
+    """
     return user in current_user.following.all()
 
 
 @app.template_filter('gravatar')
 def gravatar(email, size=24):
+    """
+    Returns gravatar URL for a given email with the size size.
+    """
     return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
         (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
 
 
 @app.template_filter('millify')
 def millify(n):
+    """
+    Template filter to millify numbers, e.g. 1K, 2M, 1.25B
+    """
+    n = int(n)
     if n == 0:
         return n
     number = n
@@ -37,41 +44,14 @@ def millify(n):
     return result
 
 
-def follow_user(who, whom):
+def follow_user(who_id, whom_id):
     """
-    Set `who` as a follower of `whom`
+    Add whom to who's following set and who to whom's followers set
     """
-    if who is whom:
-        return False
-    try:
-        if whom in who.following.all():
-            return False
-        who.following.append(whom)
-        db.session.add(who)
-        db.session.commit()
-        return True
-    except:
-        # Something went wrong
-        db.session.rollback()
-        abort(500)
-        return False
+    pass
 
-
-def unfollow_user(who, whom):
+def unfollow_user(who_id, whom_id):
     """
-    Remove `whom` from `who`'s following list
+    Remove whom from who's following set and remove who from whos followers set
     """
-    if who is whom:
-        return False
-    try:
-        if whom not in who.following.all():
-            return False
-        who.following.remove(whom)
-        db.session.add(who)
-        db.session.commit()
-        return True
-    except:
-        # Something went wrong
-        db.session.rollback()
-        abort(500)
-        return False
+    pass

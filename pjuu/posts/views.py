@@ -1,13 +1,14 @@
+# Stdlib
+from datetime import datetime
 # 3rd party imports
 from flask import (abort, flash, g, redirect, render_template, request,
                    session, url_for)
 # Pjuu imports
-from pjuu import app, db
+from pjuu import app
 from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
-from pjuu.users.models import User
+from .backend import (create_post, create_comment, get_post_full)
 from .forms import PostForm
-from .models import Comment, Post
 
 
 @app.route('/post', methods=['POST'])
@@ -19,108 +20,47 @@ def post():
 
     form = PostForm(request.form)
     if form.validate():
-        new_post = Post(current_user, form.body.data)
-        db.session.add(new_post)
-        db.session.commit()
-        flash('Posted', 'success')
+        pid = create_post(current_user['uid'], form.body.data)
+        flash('Posted #%d' % pid, 'success')
     else:
         flash('Please enter something to post', 'error')
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:post_id>/comment', methods=['POST'])
+@app.route('/<username>/<int:pid>/comment', methods=['POST'])
 @login_required
-def comment(username, post_id):
+def comment(username, pid):
     form = PostForm(request.form)
-    # Check that the post_id matches up with that of the user
-    user = User.query.filter_by(username=username).first()
-    post = Post.query.get(post_id)
-    if not user or not post or post.user is not user:
-        abort(404)
-
     if form.validate():
-        new_comment = Comment(current_user, post_id, form.body.data)
-        db.session.add(new_comment)
-        db.session.commit()
-        flash('Comment posted', 'success')
+        cid = Comment(current_user['uid'], pid, form.body.data)
+        flash('Commented #%d' % cid, 'success')
     else:
         flash('You need to type something to post.', 'error')
     return redirect(url_for('view_post', username=username, post_id=post.id))
 
 
-@app.route('/<username>/<int:post_id>')
+@app.route('/<username>/<int:pid>')
 @login_required
-def view_post(username, post_id):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-
-    if not user or not post or post.user is not user:
-        abort(404)
-
+def view_post(username, pid):
     post_form = PostForm()
     return render_template('posts/post.html', user=user, post=post,
                            post_form=post_form)
 
 
-@app.route('/<username>/<int:post_id>/upvote', methods=['GET'])
-@app.route('/<username>/<int:post_id>/<int:comment_id>/upvote', methods=['GET'])
-def upvote(username, post_id, comment_id=None):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-    if comment_id:
-        comment = Comment.query.get(comment_id)
-    else:
-        comment = None
+@app.route('/<username>/<int:pid>/upvote', methods=['GET'])
+@app.route('/<username>/<int:pid>/<int:cid>/upvote', methods=['GET'])
+def upvote(username, pid, cid=None):
     return "UPVOTED"
 
 
-@app.route('/<username>/<int:post_id>/downvote', methods=['GET'])
-@app.route('/<username>/<int:post_id>/<int:comment_id>/downvote', methods=['GET'])
-def downvote(username, post_id, comment_id=None):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()
-    if comment_id:
-        comment = Comment.query.get(comment_id)
-    else:
-        comment = None
+@app.route('/<username>/<int:pid>/downvote', methods=['GET'])
+@app.route('/<username>/<int:pid>/<int:cid>/downvote', methods=['GET'])
+def downvote(username, pid, cid=None):
     return "DOWNVOTED"
 
 
-@app.route('/<username>/<int:post_id>/delete')
-@app.route('/<username>/<int:post_id>/<int:comment_id>/delete')
+@app.route('/<username>/<int:pid>/delete')
+@app.route('/<username>/<int:pid>/<int:cid>/delete')
 @login_required
-def delete_post(username, post_id, comment_id=None):
-    post = Post.query.get(post_id)
-    user = User.query.filter_by(username=username).first()    
-    if comment_id:
-        # Handle comment deletes
-        comment = Comment.query.get(comment_id)
-    else:
-        comment = None
-
-    if not comment_id:
-        # If there is no comment_id treat as post
-        if not user or not post or post.user is not user:
-            abort(404)
-        item = post
-    elif comment:
-        # If there is a comment_id and a comment
-        if not user or not post or not comment or post.user is not user\
-            or comment.post is not post:
-            abort(404)
-        item = comment
-    else:
-        # If we are here someone is being a dick!
-        abort(404)
-
-    if item.user != current_user:
-        abort(403)
-
-    db.session.delete(item)
-    db.session.commit()
-
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url=url_for('profile', username=username)
-
-    return redirect(redirect_url)
+def delete_post(username, pid, cid=None):
+    return "DELETED"

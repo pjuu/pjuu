@@ -3,10 +3,6 @@ from flask.ext.wtf import Form
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
-# Pjuu imports
-from pjuu import db
-from pjuu.users.models import User
-
 # Package imports
 from .backend import check_username
 
@@ -71,9 +67,8 @@ class SignupForm(Form):
             raise ValidationError('User name already in use')
 
     def validate_email(form, field):
-        email = field.data.lower()
-        user = User.query.filter(db.func.lower(User.email == email)).first()
-        if user is not None:
+        check = check_username(field.data)
+        if not check:
             raise ValidationError('E-mail address already in use')
 
 
