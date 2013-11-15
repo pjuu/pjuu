@@ -7,7 +7,7 @@ from flask import (abort, flash, g, redirect, render_template, request,
 from pjuu import app
 from pjuu.auth.backend import current_user, is_safe_url
 from pjuu.auth.decorators import login_required
-from .backend import (create_post, create_comment, get_post_full)
+from .backend import (create_post, create_comment)
 from .forms import PostForm
 
 

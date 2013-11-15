@@ -44,6 +44,16 @@ def millify(n):
     return result
 
 
+def get_profile(uid):
+    profile = {
+        'user': r.hgetall('user:%d' % uid),
+        'post_count': r.llen('posts:%d' % uid),
+        'followers_count': r.llen('followers:%d' % uid),
+        'following_count': r.llen('following:%d' % uid)
+    }
+    return profile
+
+
 def follow_user(who_id, whom_id):
     """
     Add whom to who's following set and who to whom's followers set

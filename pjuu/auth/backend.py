@@ -138,9 +138,9 @@ def create_user(username, email, password):
         'password': generate_password_hash(password),
         'created': datetime.now(),
         'last_login': -1,
-        'active': False,
-        'banned': False,
-        'op': False,
+        'active': 0,
+        'banned': 0,
+        'op': 0,
         'about': "",
         'score': 0
     }

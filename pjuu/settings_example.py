@@ -4,9 +4,6 @@ DEBUG = True
 
 SECRET_KEY = 'Development Key'
 
-# Flas-SQLAlchemy
-SQLALCHEMY_DATABASE_URI = 'sqlite:///pjuu.db'
-
 # Flask-Mail
 MAIL_SERVER = 'localhost'
 MAIL_PORT = 25

@@ -7,7 +7,7 @@ from pjuu import app, r
 from pjuu.auth.backend import current_user, get_uid, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.posts.forms import PostForm
-from .backend import follow_user, unfollow_user
+from .backend import follow_user, unfollow_user, get_profile
 
 
 @app.template_filter('following')
@@ -41,20 +41,14 @@ def feed():
 @login_required
 def profile(username):    
     uid = get_uid(username)
-    user = r.hgetall('user:%d' % uid)
-
-    if user is None:
+    if uid is None:
         abort(404)
 
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except:
-        page = 1
+    profile = get_profile(uid)
 
     post_form = PostForm()
-
-    return render_template('users/posts.html', user=user, post_form=post_form)
+    return render_template('users/posts.html', profile=profile,
+                           post_form=post_form)
 
 
 @app.route('/<username>/following')

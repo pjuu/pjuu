@@ -42,17 +42,9 @@ def signin():
             # Calls authenticate from backend.py
             uid = authenticate(form.username.data, form.password.data)
             if uid:
-                if r.hget('user:%d' % uid, 'active') == 'False':
-                    flash('Please activate your account. Check your e-mails.',
-                          'warning')
-                elif r.hget('user:%d' % uid, 'bannned') == 'True':
-                    flash('You have been banned. Naughty boy.',
-                          'warning')
-                else:
-                    login(uid)
-                    return redirect(redirect_url)
-            else:
-                flash('Invalid user name or password.', 'error')
+                login(uid)
+                return redirect(redirect_url)
+            flash('Invalid user name or password.', 'error')
         else:
             flash('Invalid user name or password.', 'error')
     return render_template('auth/signin.html', form=form)
@@ -123,11 +115,10 @@ def forgot():
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
-        user = get_username(form.username.data)
-        if user:
+        uid = get_uid(form.username.data)
+        if uid:
             # Only send e-mails to user which exist.
-            token = generate_token(forgot_signer,
-                                   {'username': user.username})
+            token = generate_token(forgot_signer, {'uid': uid})
             send_mail('Password reset', [user.email],
                       text_body=render_template('emails/forgot.txt',
                                                 token=token),
@@ -147,8 +138,8 @@ def reset(token):
     if data is not None:
         if request.method == 'POST':
             if form.validate():
-                user = get_username(data['username'])
-                be_change_password(user, form.password.data)
+                uid = get_uid(data['username'])
+                be_change_password(uid, form.password.data)
                 flash('Your password has been reset. Please login.', 'success')
                 return redirect(url_for('signin'))
             else:
