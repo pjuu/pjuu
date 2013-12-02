@@ -7,7 +7,7 @@ from pjuu import app, r
 from pjuu.auth.backend import current_user, get_uid, is_safe_url
 from pjuu.auth.decorators import login_required
 from pjuu.posts.forms import PostForm
-from .backend import follow_user, unfollow_user, get_profile
+from .backend import follow_user, unfollow_user, get_profile, get_feed
 
 
 @app.template_filter('following')
@@ -33,7 +33,7 @@ def feed():
         page = int(page)
     except:
         page = 1
-
+    pages = get_feed(int(current_user['uid']), page)
     return render_template('users/feed.html', post_form=post_form)
 
 

@@ -35,16 +35,19 @@ def millify(n):
     number = n
     if n < 0:
         number = abs(n)
-    millnames=['','K','M','B','T','Qa','Qi']
-    millidx=max(0,min(len(millnames)-1,
-                      int(math.floor(math.log10(abs(number))/3.0))))
-    result = '%.0f%s'%(number/10**(3*millidx), millnames[millidx])
+    millnames = ['','K','M','B','T','Q','Qt']
+    millidx = max(0, min(len(millnames) - 1,
+                      int(math.floor(math.log10(abs(number)) / 3.0))))
+    result = '%.0f%s' % (number / 10 ** (3 * millidx), millnames[millidx])
     if n < 0:
         return '-' + result
     return result
 
 
 def get_profile(uid):
+    """
+    Returns a users profile.
+    """
     profile = {
         'user': r.hgetall('user:%d' % uid),
         'post_count': r.llen('posts:%d' % uid),
@@ -54,14 +57,39 @@ def get_profile(uid):
     return profile
 
 
-def follow_user(who_id, whom_id):
+def follow_user(who_uid, whom_uid):
     """
     Add whom to who's following set and who to whom's followers set
     """
+    pipe = r.pipeline()
+    if pipe.zrank('following:%d' % who_uid, whom_uid):
+        return False
+    pipe.zadd('following:%d' % who_uid, whom_uid,
+              pipe.zcard('following:%d' % who_uid))
+    pipe.zadd('followers:%d' % whom_uid, who_uid,
+              pipe.zcard('following:%d' % who_uid))
+    pipe.execute()
+    return True
+
+
+def unfollow_user(who_uid, whom_uid):
+    """
+    Remove whom from whos following set and remove who from whoms followers set
+    """
+    if not r.sismember('following:%d' % who_uid, whom_uid):
+        return False
+    r.srem('following:%d' % who_uid, whom_uid)
+    r.srem('followers:%d' % whom_uid, who_uid)
+    return True
+
+
+def get_feed(uid, page=1):
+    """
+    Returns all posts in a users feed based on page.
+    This will be a list of dicts
+    """
     pass
 
-def unfollow_user(who_id, whom_id):
-    """
-    Remove whom from who's following set and remove who from whos followers set
-    """
+
+def get_posts(uid):
     pass
