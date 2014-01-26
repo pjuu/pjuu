@@ -2,7 +2,7 @@
 # 3rd party imports
 from werkzeug.debug import DebuggedApplication
 import cherrypy
-from flask.ext.script import Manager, Server
+from flask.ext.script import Manager
 # Pjuu imports
 from pjuu import app
 
@@ -12,6 +12,10 @@ manager = Manager(app)
 
 @manager.command
 def runserver():
+    """
+    Overwriting the Flask Script runserver() default.
+    CherryPy is much more stable than the built-in Flask dev server
+    """
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
     cherrypy.config.update({

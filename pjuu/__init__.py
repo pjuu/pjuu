@@ -10,8 +10,8 @@ from lib.sessions import RedisSessionInterface
 # Create application
 app = Flask(__name__)
 # Create Redis objects (session store and data store)
-redis_sessions = Redis(host='redis.server', db=0)
-redis_store = Redis(host='redis.server', db=1)
+redis_sessions = Redis(host='redis', db=0)
+redis_store = Redis(host='redis', db=1)
 # Create the shortcut `r`
 r = redis_store
 # Set session handler to Redis
