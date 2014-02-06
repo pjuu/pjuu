@@ -1,3 +1,5 @@
+# -*- coding: utf8 -*-
+
 # 3rd party imports
 from functools import wraps
 from flask import redirect, request, url_for, flash

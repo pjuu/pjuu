@@ -1,74 +1,62 @@
-# Stdlib imports
-from hashlib import md5
-import math
-
 # Pjuu imports
-from pjuu import app, r
+from pjuu import app, redis as r
 from pjuu.auth import current_user
-
-
-@app.template_filter('following')
-def following_filter(user_id):
-    """
-    Checks if current user is following the user with id piped to filter 
-    """
-    return user in current_user.following.all()
-
-
-@app.template_filter('gravatar')
-def gravatar(email, size=24):
-    """
-    Returns gravatar URL for a given email with the size size.
-    """
-    return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
-        (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
-
-
-@app.template_filter('millify')
-def millify(n):
-    """
-    Template filter to millify numbers, e.g. 1K, 2M, 1.25B
-    """
-    n = int(n)
-    if n == 0:
-        return n
-    number = n
-    if n < 0:
-        number = abs(n)
-    millnames = ['','K','M','B','T','Q','Qt']
-    millidx = max(0, min(len(millnames) - 1,
-                      int(math.floor(math.log10(abs(number)) / 3.0))))
-    result = '%.0f%s' % (number / 10 ** (3 * millidx), millnames[millidx])
-    if n < 0:
-        return '-' + result
-    return result
+from pjuu.lib.pagination import Pagination
 
 
 def get_profile(uid):
     """
-    Returns a users profile.
+    Returns a users profile as Dict.
     """
-    profile = {
-        'user': r.hgetall('user:%d' % uid),
-        'post_count': r.llen('posts:%d' % uid),
-        'followers_count': r.llen('followers:%d' % uid),
-        'following_count': r.llen('following:%d' % uid)
-    }
+    profile = r.hgetall('user:%d' % uid)
+    profile['post_count'] = r.llen('posts:%d' % uid)
+    profile['followers_count'] = r.zcard('followers:%d' % uid)
+    profile['following_count'] = r.zcard('following:%d' % uid)
     return profile
+
+
+def get_feed(uid, page=1):
+    """
+    Returns a users feed as a Pagination.
+    """
+    return {}
+
+
+def get_posts(uid, page=1):
+    """
+    Returns a users posts as a Pagination.
+    """
+    return {}
+
+
+def get_following(uid, page=1):
+    """
+    Returns a list of users uid is following as a Pagination.
+    """
+    return {}
+
+
+def get_followers(uid, page=1):
+    """
+    Returns a list of users whom follow uid as a Pagination.
+    """
+    return {}
 
 
 def follow_user(who_uid, whom_uid):
     """
     Add whom to who's following set and who to whom's followers set
     """
-    pipe = r.pipeline()
-    if pipe.zrank('following:%d' % who_uid, whom_uid):
+    who_uid = int(who_uid)
+    whom_uid = int(whom_uid)
+    if r.zrank('following:%d' % who_uid, whom_uid):
         return False
-    pipe.zadd('following:%d' % who_uid, whom_uid,
-              pipe.zcard('following:%d' % who_uid))
-    pipe.zadd('followers:%d' % whom_uid, who_uid,
-              pipe.zcard('following:%d' % who_uid))
-    pipe.execute()
+    # TODO remove ZCARD call... this is unworkable
+    # Integer based time would be brilliant
+    r.zadd('following:%d' % who_uid, whom_uid,
+           r.zcard('following:%d' % who_uid))
+    r.zadd('followers:%d' % whom_uid, who_uid,
+           r.zcard('following:%d' % who_uid))
     return True
 
 
@@ -76,20 +64,16 @@ def unfollow_user(who_uid, whom_uid):
     """
     Remove whom from whos following set and remove who from whoms followers set
     """
-    if not r.sismember('following:%d' % who_uid, whom_uid):
+    if not r.zrank('following:%d' % who_uid, whom_uid):
         return False
-    r.srem('following:%d' % who_uid, whom_uid)
-    r.srem('followers:%d' % whom_uid, who_uid)
+    # Delete uid from who following and whom followers
+    r.zrem('following:%d' % who_uid, whom_uid)
+    r.zrem('followers:%d' % whom_uid, who_uid)
     return True
 
 
-def get_feed(uid, page=1):
+def is_following(who_uid, whom_uid):
     """
-    Returns all posts in a users feed based on page.
-    This will be a list of dicts
+    Check to see if who is following whom. These need to be uids
     """
-    pass
-
-
-def get_posts(uid):
-    pass
+    return True if r.zrank("following:%s" % who_id, whom_id) else False

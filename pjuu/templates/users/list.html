@@ -1,9 +1,9 @@
 <ul class="list">
     {% if items %}
-        {% for item in items %}
+        {% for item in pagination.items %}
         {% block item %}{% endblock %}
         {% endfor %}
     {% else %}
-        <div class="empty">{% block empty %}{% endblock %}</div>
+        <div class="empty">Empty</div>
     {% endif %}
 </ul>

@@ -1,10 +1,12 @@
+# -*- coding: utf8 -*-
+
 # 3rd party imports
 from flask.ext.wtf import Form
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Package imports
-from .backend import check_username
+from .backend import check_email, check_username
 
 
 class ForgotForm(Form):
@@ -35,15 +37,13 @@ class PasswordChangeForm(Form):
     new_password2 = PasswordField('Confirm new password')
 
 
-class EmailChangeForm(Form):
+class ChangeEmailForm(Form):
     password = PasswordField('Password')
     new_email = TextField('New e-mail address', [Email(),
                           Length(max=254), Required()])
 
     def validate_email(form, field):
-        email = field.data.lower()
-        user = user.query.filter(db.func.lower(email) == email).first()
-        if user is not None:
+        if not check_email(field.data):
             raise ValidationError('E-Mail address already in use')
 
 
@@ -51,7 +51,7 @@ class SignupForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$', message=('Username must be between 3 '
                'and 16 characters and can only contain '
-               'lettrs, numbers and \'_\' characters.')),
+               'letters, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [
@@ -62,13 +62,11 @@ class SignupForm(Form):
     password2 = PasswordField('Confirm password')
 
     def validate_username(form, field):
-        check = check_username(field.data)
-        if not check:
+        if not check_username(field.data):
             raise ValidationError('User name already in use')
 
     def validate_email(form, field):
-        check = check_username(field.data)
-        if not check:
+        if not check_email(field.data):
             raise ValidationError('E-mail address already in use')
 
 

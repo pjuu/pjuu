@@ -1,4 +1,7 @@
+# -*- coding: utf8 -*-
+
 # Stdlib imports
+import re
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
 from datetime import datetime
@@ -9,10 +12,15 @@ from itsdangerous import TimedSerializer
 from werkzeug.local import LocalProxy
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
-from pjuu import app, r
+from pjuu import app, redis as r
+
+
+# E-mail checker
+email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 
 # Reserved names
+# TODO Come up with a better solution for this
 reserved_names = ['about','access','account','accounts','add','address','adm',
                   'admin','administration','adult','advertising','affiliate',
                   'affiliates','ajax','analytics','android','anon','anonymous',
@@ -124,34 +132,48 @@ def check_username(username):
     return False if taken else True
 
 
+def check_email(email):
+    """
+    Used to check an e-mail addresses availability.
+    Return true if free and false otherwise.
+    """
+    email = email.lower()
+    if email_re.match(email):
+        check = r.exists('uid:%s' % email)
+        return True if not check else False
+    return False
+
+
 def create_user(username, email, password):
     """
     Creates a user account.
     """
-    # Get next uid
-    uid = r.incr('global:uid')
-    # Create user dictionary ready for HMSET
-    user = {
-        'uid': uid,
-        'username': username,
-        'email': email,
-        'password': generate_password_hash(password),
-        'created': datetime.now(),
-        'last_login': -1,
-        'active': 0,
-        'banned': 0,
-        'op': 0,
-        'about': "",
-        'score': 0
-    }
-    # Only create the user if it does not exist. This step is for safety
-    if not r.exists('user:%d' % uid):
+    if check_username(username) and check_email(email):
+        # Everything should be lowercase for lookups
+        username = username.lower()
+        email = email.lower()
+        # Get new uid
+        uid = int(r.incr('global:uid'))
+        # Create user dictionary ready for HMSET
+        user = {
+            'uid': uid,
+            'username': username,
+            'email': email,
+            'password': generate_password_hash(password),
+            'created': datetime.utcnow().isoformat(),
+            'last_login': -1,
+            'active': not app.config['NOMAIL'],
+            'banned': 0,
+            'op': 0,
+            'about': "",
+            'score': 0
+        }
         # Transactional
         pipe = r.pipeline()
         pipe.hmset('user:%d' % uid, user)
         # Create look up keys for auth system (these are lowercase)
-        pipe.set('uid:%s' % username.lower(), uid)
-        pipe.set('uid:%s' % email.lower(), uid)
+        pipe.set('uid:%s' % username, uid)
+        pipe.set('uid:%s' % email, uid)
         pipe.execute()
         return uid
     return None
@@ -160,7 +182,7 @@ def create_user(username, email, password):
 def authenticate(username, password):
     """
     Will authenticate a username/password combination.
-    If successful will return a user object else will return None.
+    If successful will return a uid else will return None.
     """
     uid = get_uid(username)
     if uid and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
@@ -175,7 +197,7 @@ def login(uid):
     """
     session['uid'] = uid
     # update last login
-    r.hset('user:%d' % uid, 'last_login', datetime.now())
+    r.hset('user:%d' % uid, 'last_login', datetime.utcnow().isoformat())
 
     
 def logout():
@@ -195,7 +217,8 @@ def activate(uid):
 
 def change_password(uid, password):
     """
-    Changes user with uid's password
+    Changes user with uid's password. Checking of the old password _MUST_
+    be done before this.
     """
     password = generate_password_hash(password)
     return r.hset('user:%d' % uid, 'password', password)
@@ -208,14 +231,17 @@ def change_email(uid, email):
     """
     pipe = r.pipeline()
     old_email = pipe.hget('user:%d' % uid, 'email')
-    pipe.delete('uid:%s' % old_email)
+    pipe.rem('uid:%s' % old_email)
     pipe.set('uid:%s' % email, uid)
-    result = pipe.hset('user:%d' % uid, 'email', email)
+    pipe.hset('user:%d' % uid, 'email', email)
     pipe.execute()
-    return result
+    return True
 
 
 def is_safe_url(target):
+    """
+    Ensure the url is safe to redirect (this is here as auth==security)
+    """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
@@ -228,6 +254,9 @@ def generate_token(signer, data):
     """
     try:
         token = b64encode(signer.dumps(data).encode('ascii'))
+        if app.config['DEBUG']:
+            # Print the token to stderr in DEBUG mode
+            print datetime.utcnow().isoformat(), "Token generated:", token
     except:
         return None
     return token
@@ -241,6 +270,8 @@ def check_token(signer, token):
     """
     try:
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
+        if app.config['DEBUG']:
+            print datetime.utcnow().isoformat(), "Token checked:", token
     except:
         return None
     return data

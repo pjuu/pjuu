@@ -5,27 +5,27 @@
     <ul class="stats">
     {% if profile['uid'] != current_user['uid'] %}
         {% if user|following %}
-        <a href="{{url_for('unfollow', username=user.username)}}">
+        <a href="{{url_for('unfollow', username=profile['username'])}}">
             <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
         </a>
         {% else %}
-        <a href="{{url_for('follow', username=user.username)}}">
+        <a href="{{url_for('follow', username=profile['username'])}}">
             <div class="action-button follow">Follow</div>
         </a>
         {% endif %}
     {% else %}
-        <div class="action-button you">You</div>
+        <a href="{{ url_for('settings_profile') }}"><div class="action-button you">You</div></a>
     {% endif %}
-        <a href="{{url_for('profile', username=user.username)}}"><li>n posts</li></a>
-        <a href="{{url_for('followers', username=user.username)}}"><li>n followers</li></a>
-        <a href="{{url_for('following', username=user.username)}}"><li>n following</li></a>
+        <a href="{{ url_for('profile', username=profile['username']) }}"><li>{{profile['post_count']|millify}} posts</li></a>
+        <a href="{{ url_for('followers', username=profile['username']) }}"><li>{{profile['followers_count']|millify}} followers</li></a>
+        <a href="{{ url_for('following', username=profile['username']) }}"><li>{{profile['following_count']|millify}} following</li></a>
     </ul>
     <div class="details">
-        <div class="username">{{user.username}} <span class="score">({{user.score|millify}})</span></div>
-        <div class="body">{{user.about}}</div>
+        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{profile['username']}}</div>
+        <div class="body">{{profile['about']}}</div>
     </div>
 </div>
-{% if user == current_user %}
+{% if profile['uid'] == current_user['uid'] %}
     {% include 'posts/author_post.html' %}
 {% endif %}
 <div id="content" class="clearfix">

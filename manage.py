@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf8 -*-
+
 # 3rd party imports
 from werkzeug.debug import DebuggedApplication
 import cherrypy
@@ -13,8 +15,7 @@ manager = Manager(app)
 @manager.command
 def runserver():
     """
-    Overwriting the Flask Script runserver() default.
-    CherryPy is much more stable than the built-in Flask dev server
+    Run Pjuu inside a debug enabled CherryPy
     """
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
@@ -29,6 +30,14 @@ def runserver():
         cherrypy.engine.block()
     except KeyboardInterrupt:
         cherrypy.engine.stop()
+
+
+@manager.command
+def test():
+    """
+    Run all tests for Pjuu. These _HAVE_ to pass
+    """
+    return "Not implemented yet"
 
 
 if __name__ == '__main__':

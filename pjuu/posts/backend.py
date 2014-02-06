@@ -1,7 +1,7 @@
 # Stdlib
 from datetime import datetime
 # Pjuu imports
-from pjuu import r
+from pjuu import redis as r
 
 
 def create_post(uid, body):
@@ -10,11 +10,12 @@ def create_post(uid, body):
     post list, etc...
     """
     pid = int(r.incr('global:pid'))
+    # Hash form for all posts
     post = {
         'pid': pid,
         'uid': uid,
         'body': body,
-        'created': datetime.now().isoformat(),
+        'created': datetime.utcnow().isoformat(),
         'score': 0
     }
     # Transactional
@@ -22,16 +23,18 @@ def create_post(uid, body):
     pipe.hmset('post:%d' % pid, post)
     pipe.lpush('posts:%d' % uid, pid)
     pipe.lpush('feed:%d' % uid, pid)
+    pipe.ltrim('feed:%d' % uid, 0, 999)
     pipe.execute()
     # Append to all followers feeds
     # TODO This needs putting in to Celery at some point as this could
-    # take a long long while. If you are a celebrity.
+    # take a long long while.
     followers = r.smembers('followers:%d' % uid)
     # This is not transactional as to not hold Redis up.
     for fid in followers:
         r.lpush('feed:%s' % fid, pid)
         # This stops the feed from growing to large
         r.ltrim('feed:%s' % fid, 0, 999)
+    # End for Celery
     return pid
 
 
@@ -45,7 +48,7 @@ def create_comment(uid, pid, body):
         'uid': uid,
         'pid': pid,
         'body': body,
-        'created': datetime.now().isoformat(),
+        'created': datetime.utcnow().isoformat(),
         'score': 0
     }
     # Transactional

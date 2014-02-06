@@ -1,9 +1,12 @@
-from pjuu import r
+from pjuu import redis as r
 
 
 class Pagination(object):
-
-    def __init__(self, key, ):
+    """
+    
+    """
+    
+    def __init__(self, items):
         pass
 
     def prev_num(self):
