@@ -16,7 +16,7 @@ from .forms import PostForm
 def post():
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url=url_for('profile', username=current_user.username)
+        redirect_url=url_for('profile', username=current_user['username'])
 
     form = PostForm(request.form)
     if form.validate():

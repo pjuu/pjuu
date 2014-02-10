@@ -1,7 +1,8 @@
 <ul class="list">
-    {% if items %}
+    {% if pagination.items %}
         {% for item in pagination.items %}
-        {% block item %}{% endblock %}
+        <li>{{ item.body }}</li>
+        {% block item_content %}{% endblock %}
         {% endfor %}
     {% else %}
         <div class="empty">Empty</div>

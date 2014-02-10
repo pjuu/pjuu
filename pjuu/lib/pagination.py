@@ -1,22 +1,41 @@
-from pjuu import redis as r
+# -*- coding: utf-8 -*-
+
+from math import ceil
 
 
 class Pagination(object):
     """
-    
+    Pagination object. Every page which supports the 'page' should
+    use this to provide a consistant API.
+    Pagination supports lists and sorted sets. An exception will be
+    thrown on anything else.
     """
     
-    def __init__(self, items):
-        pass
+    def __init__(self, items, total, page=1, per_page=50):
+        self.items = items
+        self.total = total
+        self.page = page
+        self.per_page = per_page
+
+    @property
+    def pages(self):
+        """
+        The total number of pages
+        """
+        if self.per_page == 0:
+            pages = 0
+        else:
+            pages = int(ceil(self.total / float(self.per_page)))
+        return pages
 
     def prev_num(self):
-        pass
+        return page - 1
 
     def has_prev(self):
-        pass
+        return page > 1
 
     def next_num(self):
-        pass
+        return page + 1
 
     def has_next(self):
-        pass
+        return self.page < self.pages

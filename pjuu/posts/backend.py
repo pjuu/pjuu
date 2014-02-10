@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 # Stdlib
-from datetime import datetime
+from time import gmtime
+from calendar import timegm
 # Pjuu imports
 from pjuu import redis as r
 
@@ -9,13 +12,15 @@ def create_post(uid, body):
     Creates a new post. Does all the other stuff to like prepend to feeds,
     post list, etc...
     """
+    uid = int(uid)
     pid = int(r.incr('global:pid'))
-    # Hash form for all posts
+    # Hash form for posts
+    # TODO this needs expanding to include some form of image upload hook
     post = {
         'pid': pid,
         'uid': uid,
         'body': body,
-        'created': datetime.utcnow().isoformat(),
+        'created': timegm(gmtime()),
         'score': 0
     }
     # Transactional
@@ -34,7 +39,6 @@ def create_post(uid, body):
         r.lpush('feed:%s' % fid, pid)
         # This stops the feed from growing to large
         r.ltrim('feed:%s' % fid, 0, 999)
-    # End for Celery
     return pid
 
 
@@ -43,12 +47,13 @@ def create_comment(uid, pid, body):
     Create a new comment.
     """
     cid = int(r.incr('global:cid'))
+    # Form for comment hash
     comment = {
         'cid': cid,
         'uid': uid,
         'pid': pid,
         'body': body,
-        'created': datetime.utcnow().isoformat(),
+        'created': timegm(gmtime()),
         'score': 0
     }
     # Transactional
@@ -64,43 +69,25 @@ def get_post(pid):
     Returns a dictionary which has everything to display a Post
     TODO There may be a way to optimise this with less calls to Redis
     """
-    post = r.hgetall('post:%d' % pid)
+    post = r.hgetall('post:%d' % int(pid))
     if post:
         post['user_username'] = r.hget('user:%s' % post['uid'], 'username')
         post['user_email'] = r.hget('user:%s' % post['uid'], 'email')
         post['user_score'] = r.hget('user:%s' % post['uid'], 'score')
-        post['comment_count'] = r.llen('comments:%d' % pid)
-    return post
-
-
-def get_posts(pids):
-    """
-    Takes a list of pid's and returns a list of Post dictionaries
-    """
-    posts = []
-    for pid in pids:
-        posts.append(get_post(pid))
-    return posts
+        post['comment_count'] = r.llen('comments:%d' % int(pid))
+    # Do not return and object if we didn't get one
+    return post if post else None
 
 
 def get_comment(cid):
     """
     Returns a dictionary which has everything to display a Comment
-    TODO There may be a way to optimise this with less calls to Redis
+    TODO There may be a way to optimise this with less calls to Redis???
     """
     comment = r.hgetall('comment:%d' % cid)
     if comment:
         comment['user_username'] = r.hget('user:%s' % comment['uid'], 'username')
         comment['user_email'] = r.hget('user:%s' % comment['uid'], 'email')
         comment['user_score'] = r.hget('user:%s' % comment['uid'], 'score')
-    return comment
-
-
-def get_comments(cids):
-    """
-    Takes a list of cid's and returns a list Comment dictionaries
-    """
-    comments = []
-    for cid in cids:
-        comments.append(get_comment(cid))
-    return comments
+    # Do not return an object if we didn't get one
+    return comment if comment else None

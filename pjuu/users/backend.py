@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+# Stdlib imports
+from time import gmtime
+from calendar import timegm
 # Pjuu imports
 from pjuu import app, redis as r
 from pjuu.auth import current_user
 from pjuu.lib.pagination import Pagination
+from pjuu.posts.backend import get_post
 
 
 def get_profile(uid):
@@ -19,28 +24,40 @@ def get_feed(uid, page=1):
     """
     Returns a users feed as a Pagination.
     """
-    return {}
+    per_page = app.config['FEED_ITEMS_PER_PAGE']
+    total = r.llen('feed:%d' % uid)
+    pids = r.lrange('feed:%d' % uid, 0, 50)
+    posts = []
+    for pid in pids:
+        posts.append(get_post(pid))
+    return Pagination(posts, total, page, per_page)
 
 
 def get_posts(uid, page=1):
     """
     Returns a users posts as a Pagination.
     """
-    return {}
+    per_page = app.config['PROFILE_ITEMS_PER_PAGE']
+    total = r.llen('posts:%d' % uid)
+    pids = r.lrange('posts:%d' % uid, 0, 50)
+    posts = []
+    for pid in pids:
+        posts.append(get_post(pid))
+    return Pagination(posts, total, page, per_page)
 
 
 def get_following(uid, page=1):
     """
     Returns a list of users uid is following as a Pagination.
     """
-    return {}
+    pass
 
 
 def get_followers(uid, page=1):
     """
     Returns a list of users whom follow uid as a Pagination.
     """
-    return {}
+    pass
 
 
 def follow_user(who_uid, whom_uid):
@@ -51,12 +68,11 @@ def follow_user(who_uid, whom_uid):
     whom_uid = int(whom_uid)
     if r.zrank('following:%d' % who_uid, whom_uid):
         return False
-    # TODO remove ZCARD call... this is unworkable
-    # Integer based time would be brilliant
+    # Follow user
     r.zadd('following:%d' % who_uid, whom_uid,
-           r.zcard('following:%d' % who_uid))
+           timegm(gmtime()))
     r.zadd('followers:%d' % whom_uid, who_uid,
-           r.zcard('following:%d' % who_uid))
+           timegm(gmtime()))
     return True
 
 

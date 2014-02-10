@@ -63,10 +63,12 @@ def feed():
         page = int(page)
     except:
         page = 1
-    pages = get_feed(int(current_user['uid']), page)
+    pagination = get_feed(int(current_user['uid']), page)
+
     # Post form
     post_form = PostForm()
-    return render_template('users/feed.html', post_form=post_form)
+    return render_template('users/feed.html', post_form=post_form,
+                           pagination=pagination)
 
 
 @app.route('/<username>')
@@ -88,11 +90,11 @@ def profile(username):
         page = 1
 
     # Get the posts
-    posts = get_posts(uid, page)
+    pagination = get_posts(uid, page)
     # Post form
     post_form = PostForm()
     return render_template('users/posts.html', profile=profile,
-                           items=posts, post_form=post_form)
+                           pagination=pagination, post_form=post_form)
 
 
 @app.route('/<username>/following')
