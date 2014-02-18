@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-
 # 3rd party imports
 from werkzeug.debug import DebuggedApplication
 import cherrypy
-from flask.ext.script import Manager
 # Pjuu imports
 from pjuu import app
 
 
-manager = Manager(app)
-
-
-@manager.command
-def runserver():
+if __name__ == '__main__':
     """
     Run Pjuu inside a debug enabled CherryPy
     """
@@ -30,15 +24,3 @@ def runserver():
         cherrypy.engine.block()
     except KeyboardInterrupt:
         cherrypy.engine.stop()
-
-
-@manager.command
-def test():
-    """
-    Run all tests for Pjuu. These _HAVE_ to pass
-    """
-    return "Not implemented yet"
-
-
-if __name__ == '__main__':
-    manager.run()

@@ -1,6 +1,6 @@
 /*
-** GLOBAL
-*/
+ * GLOBAL
+ */
 
 html, body {
     background-color: #9C0;
@@ -216,6 +216,14 @@ textarea {
 	background-color: #680;
 }
 
+#menu .user-score {
+    background-color: #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    color: #000;
+    margin: 0 0.5em 0 0;
+    padding: 0.25em 0.5em;
+}
+
 #menu .search {
     background-color: #680;
     border-radius: 3px 3px 3px 3px;
@@ -242,7 +250,7 @@ textarea {
 
 #main {
     margin: 0 0 0 214px;
-    width: 746;
+    width: 746px;
 }
 
 /*
@@ -429,12 +437,6 @@ textarea {
     padding: 1em;
 }
 
-#list .last {
-    margin-bottom: 0;
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-
 #list .empty {
     color: #777;
     font-size: 15px;
@@ -443,27 +445,62 @@ textarea {
 }
 
 #list .item {
-    margin: 0 0 1em;
-    padding: 0 0 1em;
-    border-bottom: 1px solid #BBB;
+    margin: 0.5em 0;
+    border-bottom: 1px solid #DEDEDE;
+}
+
+#list .last {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
 }
 
 #list .avatar {
     float: left;
+    height: 3em;
+    width: 3em;
+    margin: 0 1em 0 0;
+}
+
+#list .scoring {
+    float: left;
+    text-align: center;
+    width: 3em;
+    margin: 0 1em 0 0;
+    padding: 0.25em 0;
+}
+
+#list .score {
+    float: left;
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#list .details {
+    margin: 0 4em 0 8em;
+}
+
+#list .details .user-score {
+    background-color: #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0 0.5em 0 0;
+    padding: 0.25em 0.5em;
 }
 
 #list .username {
-    font-size: 15px;
     font-weight: 700;
 }
 
 #list .created {
+    color: #DEDEDE;
     font-size: 11px;
     font-weight: 400;
 }
 
 #list .body {
-    padding: 7px 0;
+    padding: 1em 0;
     word-wrap: break-word;
 }
 
@@ -524,17 +561,17 @@ textarea {
 }
 
 #post-main .username {
-	font-size: 15px;
+    font-size: 15px;
     font-weight: 700;
 }
 
 #post-main .created {
-	font-size: 11px;
+    font-size: 11px;
     font-weight: 400;
 }
 
 #post-main .body {
-	padding: 7px 0;
+    padding: 7px 0;
     word-wrap: break-word;
 }
 
@@ -561,65 +598,38 @@ textarea {
 */
 
 #pagination {
-    color: #999;
-    padding: 0 1em;
+    color: #CCC;
+    font-size: 11px;
+    margin: 2em 0 0;
 }
 
 #pagination a {
-    color: #000;
+    color: #9C0;
     font-weight: 700;
+}
+
+#pagination .count {
+    clear: both;
+    margin: 0 10em;
+}
+
+#pagination .button {
+    padding: 0.25em 0.5em;
+    /* border: 1px solid #999; */
+    border-radius: 3px;
+    background-color: #DEDEDE;
+    text-align: center;
+    width: 8em;
+}
+
+#pagination .active {
+    border: 1px solid #9C0;
 }
 
 #pagination .prev {
     float: left;
-    padding: 0.5em 1em;
-    border: 1px solid #999;
-    border-radius: 4px;
-    background-color: #CCC;
 }
 
 #pagination .next {
     float: right;
-    padding: 0.5em 1em;
-    border: 1px solid #999;
-    border-radius: 4px;
-    background-color: #CCC;
-}
-
-/*
-** Setting blocks
-*/
-
-#setting {
-    margin: 0 auto;
-    padding: 1em;
-    width: 30em;
-}
-
-#setting h2 {
-    border-bottom: 1px solid #680;
-    color: #680;
-    font-family: Georgia, Garamond, serif;
-    font-size: 1.25em;
-    margin: 0 0 0.75em;
-    padding: 0 0 0.25em;
-}
-
-#setting input[type=text],
-#setting input[type=password] {
-    border: 1px solid #BBB;
-    display: block;
-    margin: 0.5em 0 1em;
-    padding: 0.5em;
-    width: 100%;
-}
-
-#setting input[type=submit] {
-    float: right;
-    font-weight: 700;
-    padding: 0.25em 0.5em;
-}
-
-#setting form label {
-    font-weight: 700;
 }

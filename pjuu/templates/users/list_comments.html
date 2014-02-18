@@ -15,9 +15,7 @@
     <div class="details clearfix">
         <div class="username"><span class="user-score">{{ item.user_score }}</span>{{ item.user_username }}</div>
         <div class="body">{{ item.body }}</div>
-        <div class="created">{{ item.created|timeify }} | <a
-                href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">{{ item.comment_count }}
-            comments</a></div>
+        <div class="created">{{ item.created|timeify }}</div>
     </div>
 </li>
 {% endfor %}

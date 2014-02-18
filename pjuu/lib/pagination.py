@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from math import ceil
 
 
@@ -10,7 +9,7 @@ class Pagination(object):
     Pagination supports lists and sorted sets. An exception will be
     thrown on anything else.
     """
-    
+
     def __init__(self, items, total, page=1, per_page=50):
         self.items = items
         self.total = total
@@ -28,14 +27,18 @@ class Pagination(object):
             pages = int(ceil(self.total / float(self.per_page)))
         return pages
 
+    @property
     def prev_num(self):
-        return page - 1
+        return self.page - 1
 
+    @property
     def has_prev(self):
-        return page > 1
+        return self.page > 1
 
+    @property
     def next_num(self):
-        return page + 1
+        return self.page + 1
 
+    @property
     def has_next(self):
         return self.page < self.pages

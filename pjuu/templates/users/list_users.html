@@ -1,1 +1,11 @@
 {% extends 'users/list.html' %}
+
+{% if pagination.items %}
+{% for item in pagination.items %}
+<li class="item{% if loop.last %} last{% endif %} clearfix">
+    {{ item.username }}
+</li>
+{% endfor %}
+{% else %}
+<div class="empty">Empty</div>
+{% endif %}

@@ -1,34 +1,44 @@
 {% extends 'users/base.html' %}
 {% block main %}
 <div id="profile" class="clearfix">
-    <img class="avatar" src="{{profile['email']|gravatar(96)}}" />
+    <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
     <ul class="stats">
-    {% if profile['uid'] != current_user['uid'] %}
+        {% if profile['uid'] != current_user['uid'] %}
         {% if user|following %}
-        <a href="{{url_for('unfollow', username=profile['username'])}}">
-            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
+        <a href="{{ url_for('unfollow', username=profile['username']) }}">
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
+                 class="action-button unfollow">Following
+            </div>
         </a>
         {% else %}
-        <a href="{{url_for('follow', username=profile['username'])}}">
+        <a href="{{ url_for('follow', username=profile['username']) }}">
             <div class="action-button follow">Follow</div>
         </a>
         {% endif %}
-    {% else %}
-        <a href="{{ url_for('settings_profile') }}"><div class="action-button you">You</div></a>
-    {% endif %}
-        <a href="{{ url_for('profile', username=profile['username']) }}"><li>{{profile['post_count']|millify}} posts</li></a>
-        <a href="{{ url_for('followers', username=profile['username']) }}"><li>{{profile['followers_count']|millify}} followers</li></a>
-        <a href="{{ url_for('following', username=profile['username']) }}"><li>{{profile['following_count']|millify}} following</li></a>
+        {% else %}
+        <a href="{{ url_for('settings_profile') }}">
+            <div class="action-button you">You</div>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('profile', username=profile['username']) }}">
+            <li>{{ profile['post_count']|millify }} posts</li>
+        </a>
+        <a href="{{ url_for('followers', username=profile['username']) }}">
+            <li>{{ profile['followers_count']|millify }} followers</li>
+        </a>
+        <a href="{{ url_for('following', username=profile['username']) }}">
+            <li>{{ profile['following_count']|millify }} following</li>
+        </a>
     </ul>
     <div class="details">
-        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{profile['username']}}</div>
+        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{ profile['username'] }}</div>
         <div class="body">{{profile['about']}}</div>
     </div>
 </div>
 {% if profile['uid'] == current_user['uid'] %}
-    {% include 'posts/author_post.html' %}
+{% include 'posts/author_post.html' %}
 {% endif %}
 <div id="content" class="clearfix">
-	{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 </div>
 {% endblock %}

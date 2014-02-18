@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Stdlib
 from time import gmtime
 from calendar import timegm
@@ -25,19 +24,23 @@ def create_post(uid, body):
     }
     # Transactional
     pipe = r.pipeline()
+    # Add post
     pipe.hmset('post:%d' % pid, post)
+    # Add post to users post list
     pipe.lpush('posts:%d' % uid, pid)
+    # Add post to authors feed
     pipe.lpush('feed:%d' % uid, pid)
+    # Ensure the feed does not grow to large
     pipe.ltrim('feed:%d' % uid, 0, 999)
     pipe.execute()
     # Append to all followers feeds
-    # TODO This needs putting in to Celery at some point as this could
-    # take a long long while.
-    followers = r.smembers('followers:%d' % uid)
+    # TODO This needs putting in to Celery->RabbitMQ at some point
+    # as this could take a long long while.
+    followers = r.zrange('followers:%d' % uid, 0, -1)
     # This is not transactional as to not hold Redis up.
     for fid in followers:
         r.lpush('feed:%s' % fid, pid)
-        # This stops the feed from growing to large
+        # Stop followerss feed from growing to large
         r.ltrim('feed:%s' % fid, 0, 999)
     return pid
 
@@ -58,36 +61,70 @@ def create_comment(uid, pid, body):
     }
     # Transactional
     pipe = r.pipeline()
+    # Add comment
     pipe.hmset('comment:%d' % cid, comment)
+    # Add comment to posts comment list
     pipe.rpush('comments:%d' % pid, cid)
     pipe.execute()
     return cid
 
 
+def check_post(username, pid, cid=None):
+    """
+    This function will ensure that cid belong to pid and pid
+    belongs to username. If post is not a comment then pass
+    None should be passed to cid.
+    """
+    try:
+        pid = int(pid)
+        if cid:
+            cid = int(cid)
+            pid_check = int(r.hget('comment:%d' % cid, 'pid'))
+            if int(pid_check) != pid:
+                return False
+        uid = r.get('uid:%s' % username)
+        uid_check = r.hget('post:%d' % pid, 'uid')
+        if uid_check != uid:
+            return False
+        return True
+    except:
+        return False
+
+
 def get_post(pid):
     """
     Returns a dictionary which has everything to display a Post
-    TODO There may be a way to optimise this with less calls to Redis
     """
     post = r.hgetall('post:%d' % int(pid))
     if post:
-        post['user_username'] = r.hget('user:%s' % post['uid'], 'username')
-        post['user_email'] = r.hget('user:%s' % post['uid'], 'email')
-        post['user_score'] = r.hget('user:%s' % post['uid'], 'score')
+        user_dict = r.hgetall('user:%s' % post['uid'])
+        post['user_username'] = user_dict['username']
+        post['user_email'] = user_dict['email']
+        post['user_score'] = user_dict['score']
         post['comment_count'] = r.llen('comments:%d' % int(pid))
-    # Do not return and object if we didn't get one
-    return post if post else None
+    return post
 
 
 def get_comment(cid):
     """
     Returns a dictionary which has everything to display a Comment
-    TODO There may be a way to optimise this with less calls to Redis???
     """
-    comment = r.hgetall('comment:%d' % cid)
+    comment = r.hgetall('comment:%d' % int(cid))
     if comment:
-        comment['user_username'] = r.hget('user:%s' % comment['uid'], 'username')
-        comment['user_email'] = r.hget('user:%s' % comment['uid'], 'email')
-        comment['user_score'] = r.hget('user:%s' % comment['uid'], 'score')
-    # Do not return an object if we didn't get one
-    return comment if comment else None
+        user_dict = r.hgetall('user:%s' % comment['uid'])
+        comment['user_username'] = user_dict['username']
+        comment['user_email'] = user_dict['email']
+        comment['user_score'] = user_dict['score']
+    return comment
+
+
+def upvote(pid, cid=None):
+    pass
+
+
+def downvote(pid, cid=None):
+    pass
+
+
+def delete(pid, cid=None):
+    pass

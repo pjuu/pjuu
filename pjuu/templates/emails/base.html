@@ -2,51 +2,52 @@
 <head>
     <style>
         body {
-            color: #000;
-            font-size: 14px;
-            line-height: 20px;
+        color: #000;
+        font-size: 14px;
+        line-height: 20px;
         }
         a {
-            color: #36F;
-            text-decoration: none;
-            font-weight: 700;
+        color: #36F;
+        text-decoration: none;
+        font-weight: 700;
         }
         a:hover {
-            color: #33F;
+        color: #33F;
         }
         h1 {
-            color: #690;
-            font-size: 1.5em;
-            margin: 0 0 14px;
+        color: #690;
+        font-size: 1.5em;
+        margin: 0 0 14px;
         }
         p {
-            padding: 1em 2em;
+        padding: 1em 2em;
         }
         .content {
-            padding: 14px;
+        padding: 14px;
         }
         .content-footer {
-            color: #888;
-            padding: 14px;
+        color: #888;
+        padding: 14px;
         }
         .footer {
-            color: #000;
-            background-color: #888;
-            margin: 14px 0 0;
-            padding: 14px;
+        color: #000;
+        background-color: #888;
+        margin: 14px 0 0;
+        padding: 14px;
         }
     </style>
 </head>
 <body>
-    <h1>Pjuu</h1>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-    <div class="content-footer">
-        {% block content_footer %}{% endblock %}
-    </div>
-    <div class="footer">
-        Sent by <a href="https://pjuu.com">Pjuu</a>
-    </div>
+<h1>Pjuu</h1>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+<div class="content-footer">
+    {% block content_footer %}{% endblock %}
+</div>
+<div class="footer">
+    Sent by <a href="https://pjuu.com">Pjuu</a>
+</div>
 </body>
 </html>

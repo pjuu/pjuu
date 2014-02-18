@@ -3,7 +3,6 @@
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail
-from itsdangerous import TimedSerializer
 from redis import Redis
 # Pjuu imports
 from lib.sessions import RedisSessionInterface

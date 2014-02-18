@@ -1,9 +1,7 @@
 # -*- coding: utf8 -*-
-
 # 3rd party imports
-from flask import (abort, flash, g, redirect, render_template, request,
-                   session, url_for)
-from werkzeug import check_password_hash, generate_password_hash
+from flask import (flash, redirect, render_template, request,
+                   url_for)
 # Pjuu imports
 from pjuu import app
 from pjuu.lib.mail import send_mail
@@ -13,10 +11,9 @@ from .backend import (authenticate, current_user, is_safe_url, login,
                       activate as be_activate,
                       change_password as be_change_password,
                       change_email as be_change_email,
-                      get_uid, check_username)
+                      get_uid)
 from .decorators import anonymous_required, login_required
-from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
-                    PasswordChangeForm, ChangeEmailForm, DeleteAccountForm)
+from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm)
 
 
 @app.context_processor
@@ -125,7 +122,7 @@ def forgot():
         if uid:
             # Only send e-mails to user which exist.
             token = generate_token(forgot_signer, {'uid': uid})
-            if app.config['NOMAIL'] == False:
+            if not app.config['NOMAIL']:
                 send_mail('Password reset', [user.email],
                           text_body=render_template('emails/forgot.txt',
                                                     token=token),
@@ -172,14 +169,14 @@ def change_email():
         if authenticate(current_user['username'], form.password):
             token = generate_token(email_signer, {'uid': uid,
                                                   'email': form.email.data})
-            
+
             if app.config['NOMAIL'] == False:
                 send_mail('Activation', [form.email.data],
                           text_body=render_template('emails/activate.txt',
                                                     token=token),
                           html_body=render_template('emails/activate.html',
                                                     token=token))
-                
+
             flash('We\'ve sent you an email, please confirm this.',
                   'success')
     else:
@@ -196,7 +193,7 @@ def confirm_email(token):
         # Change the users e-mail
         uid = data['uid']
         email = data['email']
-        
+
         if uid:
             be_change_email(uid, email)
             flash('Your account has now been activated.', 'success')

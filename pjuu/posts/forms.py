@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 # 3rd party imports
 from flask.ext.wtf import Form
 from wtforms import TextAreaField

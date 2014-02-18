@@ -3,6 +3,8 @@
 *.pyo
 env/
 env/*
+venv/
+venv/*
 *~
 dist
 *.egg
@@ -10,4 +12,5 @@ dist
 _mailinglist
 .tox
 settings.py
-pjuu.komodoproject
+.idea/
+.idea/*

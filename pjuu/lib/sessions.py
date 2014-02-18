@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 # This script is taken from flask.pocoo.org snippets
 try:
     import cPickle as pickle
@@ -5,16 +6,17 @@ except ImportError:
     import pickle
 from datetime import timedelta
 from uuid import uuid4
+
 from redis import Redis
 from werkzeug.datastructures import CallbackDict
 from flask.sessions import SessionInterface, SessionMixin
 
 
 class RedisSession(CallbackDict, SessionMixin):
-
     def __init__(self, initial=None, sid=None, new=False):
         def on_update(self):
             self.modified = True
+
         CallbackDict.__init__(self, initial, on_update)
         self.sid = sid
         self.new = new

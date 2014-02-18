@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-
 # 3rd party imports
 from flask.ext.wtf import Form
 from wtforms import PasswordField, TextField, ValidationError
@@ -40,7 +39,7 @@ class PasswordChangeForm(Form):
 class ChangeEmailForm(Form):
     password = PasswordField('Password')
     new_email = TextField('New e-mail address', [Email(),
-                          Length(max=254), Required()])
+                                                 Length(max=254), Required()])
 
     def validate_email(form, field):
         if not check_email(field.data):
@@ -50,8 +49,8 @@ class ChangeEmailForm(Form):
 class SignupForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$', message=('Username must be between 3 '
-               'and 16 characters and can only contain '
-               'letters, numbers and \'_\' characters.')),
+                                                 'and 16 characters and can only contain '
+                                                 'letters, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [

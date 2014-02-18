@@ -1,10 +1,20 @@
-<ul class="list">
-    {% if pagination.items %}
-        {% for item in pagination.items %}
-        <li>{{ item.body }}</li>
-        {% block item_content %}{% endblock %}
-        {% endfor %}
-    {% else %}
-        <div class="empty">Empty</div>
-    {% endif %}
+<ul id="list">
+    {% block list %}{% endblock %}
+    {# Pagination controls #}
+    <div id="pagination" class="clearfix">
+        {% if pagination.has_prev %}
+        <a href="{{ request.path + "?page=%s" % pagination.prev_num }}">
+        <div class="button active prev">
+            << Previous
+        </div>
+        </a>
+        {% endif %}
+        {% if pagination.has_next %}
+        <a href="{{ request.path + "?page=%s" % pagination.next_num }}">
+        <div class="button active next">
+            Next >>
+        </div>
+        </a>
+        {% endif %}
+    </div>
 </ul>

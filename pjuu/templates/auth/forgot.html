@@ -6,11 +6,11 @@
     {{ form.username.label }}
     {{ form.username }}
     {{ form.csrf_token }}
-    <input type="submit" value="Recover Password" />
+    <input type="submit" value="Recover Password"/>
 </form>
 {% endblock %}
 {% block links %}
-    <div class="link">
-        Rememberd it? <a href="{{ url_for('signin') }}">Sign In here</a>
-    </div>
+<div class="link">
+    Rememberd it? <a href="{{ url_for('signin') }}">Sign In here</a>
+</div>
 {% endblock %}

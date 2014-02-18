@@ -1,5 +1,5 @@
+# -*- coding: utf8 -*-
 from flask.ext.mail import Message
-
 from pjuu import mail
 
 
