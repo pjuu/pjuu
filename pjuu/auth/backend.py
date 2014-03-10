@@ -2,11 +2,10 @@
 # Stdlib imports
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
-from datetime import datetime
 from urlparse import urlparse, urljoin
-
+from time import gmtime
+from calendar import timegm
 import re
-
 # 3rd party imports
 from flask import _app_ctx_stack, request, session, abort
 from itsdangerous import TimedSerializer
@@ -66,7 +65,7 @@ reserved_names = ['about', 'access', 'account', 'accounts', 'add', 'address', 'a
                   'usuario', 'usage', 'vendas', 'video', 'videos', 'visitor', 'win',
                   'ww', 'www', 'www1', 'www2', 'www3', 'www4', 'www5', 'www6', 'www7',
                   'wwww', 'wws', 'wwws', 'web', 'webmail', 'website', 'websites',
-                  'webmaster', 'workshop', 'xxx', 'xpg']
+                  'webmaster', 'workshop', 'xpg']
 
 
 # Signers
@@ -121,6 +120,14 @@ def get_user(username):
         return None
 
 
+def get_email(uid):
+    """
+    Gets a users e-mail address from a uid
+    """
+    uid = int(uid)
+    return r.hget('user:%d' % uid, 'email')
+
+
 def check_username(username):
     """
     Used to check for username availablity inside the signup form.
@@ -161,7 +168,7 @@ def create_user(username, email, password):
             'username': username,
             'email': email,
             'password': generate_password_hash(password),
-            'created': datetime.utcnow().isoformat(),
+            'created': timegm(gmtime()),
             'last_login': -1,
             'active': 0,
             'banned': 0,
@@ -178,6 +185,20 @@ def create_user(username, email, password):
         pipe.execute()
         return uid
     return None
+
+
+def is_active(uid):
+    """
+    Checks to see if a user account has been activated
+    """
+    return int(r.hget("user:%s" % uid, "active"))
+
+
+def is_banned(uid):
+    """
+    Checks to see if a user account has been banned
+    """
+    return int(r.hget("user:%s" % uid, "banned"))
 
 
 def authenticate(username, password):
@@ -198,7 +219,7 @@ def login(uid):
     """
     session['uid'] = uid
     # update last login
-    r.hset('user:%d' % uid, 'last_login', datetime.utcnow().isoformat())
+    r.hset('user:%d' % uid, 'last_login', timegm(gmtime()))
 
 
 def logout():
@@ -258,7 +279,7 @@ def generate_token(signer, data):
         if app.config['DEBUG']:
             # Print the token to stderr in DEBUG mode
             print datetime.utcnow().isoformat(), "Token generated:", token
-    except:
+    except (TypeError, ValueError):
         return None
     return token
 
@@ -273,6 +294,6 @@ def check_token(signer, token):
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
         if app.config['DEBUG']:
             print datetime.utcnow().isoformat(), "Token checked:", token
-    except:
+    except (TypeError, ValueError):
         return None
     return data

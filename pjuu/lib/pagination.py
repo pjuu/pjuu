@@ -28,6 +28,10 @@ class Pagination(object):
         return pages
 
     @property
+    def has_pages(self):
+        return (self.page < self.pages) or (self.page > 1)
+
+    @property
     def prev_num(self):
         return self.page - 1
 

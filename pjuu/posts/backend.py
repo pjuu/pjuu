@@ -3,7 +3,7 @@
 from time import gmtime
 from calendar import timegm
 # Pjuu imports
-from pjuu import redis as r
+from pjuu import app, redis as r
 
 
 def create_post(uid, body):
@@ -64,12 +64,12 @@ def create_comment(uid, pid, body):
     # Add comment
     pipe.hmset('comment:%d' % cid, comment)
     # Add comment to posts comment list
-    pipe.rpush('comments:%d' % pid, cid)
+    pipe.lpush('comments:%d' % pid, cid)
     pipe.execute()
     return cid
 
 
-def check_post(username, pid, cid=None):
+def check_post(uid, pid, cid=None):
     """
     This function will ensure that cid belong to pid and pid
     belongs to username. If post is not a comment then pass
@@ -82,12 +82,12 @@ def check_post(username, pid, cid=None):
             pid_check = int(r.hget('comment:%d' % cid, 'pid'))
             if int(pid_check) != pid:
                 return False
-        uid = r.get('uid:%s' % username)
+        uid = int(uid)
         uid_check = r.hget('post:%d' % pid, 'uid')
-        if uid_check != uid:
+        if int(uid_check) != uid:
             return False
         return True
-    except:
+    except ValueError:
         return False
 
 
@@ -118,8 +118,33 @@ def get_comment(cid):
     return comment
 
 
-def upvote(pid, cid=None):
-    pass
+def has_voted(uid, pid, cid=None):
+    """
+    Checks to see if uid has voted on a post. This is pointless after 30 days.
+    """
+    uid = int(uid)
+    pid = int(pid)
+    if cid is not None:
+        cid = int(cid)
+        result = r.zrank('comment:votes:%d' % cid, uid)
+    else:
+        result = r.zrank('post:votes:%d' % pid, uid)
+    return True if result is not None else False
+
+
+def upvote(uid, pid, cid=None):
+    """
+    sdfkgihsdi
+    """
+    if cid is not None:
+        cid = int(cid)
+        r.zadd('comment:votes:%d' % cid, uid)
+        r.hincrby('comment:%d' % cid, 'score')
+        return True
+    else:
+        r.zadd('post:votes:%d' % pid, uid)
+        return True
+    return False
 
 
 def downvote(pid, cid=None):

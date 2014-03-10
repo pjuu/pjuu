@@ -5,16 +5,26 @@ from flask import (abort, flash, redirect, request,
                    url_for)
 # Pjuu imports
 from pjuu import app
-from pjuu.auth.backend import current_user, is_safe_url
+from pjuu.auth.backend import current_user, is_safe_url, get_uid
 from pjuu.auth.decorators import login_required
 from .backend import (create_post, create_comment, check_post,
-                      downvote as be_downvote)
+                      downvote as be_downvote, upvote as be_upvote,
+                      has_voted)
 from .forms import PostForm
+
+
+@app.template_filter('voted')
+def voted_filter(pid, cid=None):
+    """
+    Checks if current user is following the user with id piped to filter
+    """
+    return has_voted(current_user['uid'], pid, cid=cid)
 
 
 @app.route('/post', methods=['POST'])
 @login_required
-def post():
+def post(redirect_endpoint='profile'):
+    # Handle 'next' query string variable
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url = url_for('profile', username=current_user['username'])
@@ -22,9 +32,9 @@ def post():
     form = PostForm(request.form)
     if form.validate():
         pid = create_post(current_user['uid'], form.body.data)
-        flash('Posted #%d' % pid, 'success')
+        flash('Your post has been added', 'success')
     else:
-        flash('Please enter something to post', 'error')
+        flash('That\'s a pointless post', 'error')
     return redirect(redirect_url)
 
 
@@ -34,52 +44,58 @@ def comment(username, pid):
     form = PostForm(request.form)
     if form.validate():
         cid = create_comment(current_user['uid'], pid, form.body.data)
-        flash('Commented #%d' % cid, 'success')
+        flash('Your comment has been added', 'success')
     else:
-        flash('You need to type something to post.', 'error')
+        flash('That\'s a pointless comment', 'error')
     return redirect(url_for('view_post', username=username, pid=pid))
 
 
 @app.route('/<username>/<int:pid>/upvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/upvote', methods=['GET'])
-def upvote(username, pid, cid=None):
+def upvote(username, pid=-1, cid=None):
     """
     Upvotes a post or comment.
     """
-    if not check_post(username, pid, cid):
-        return abort(404);
+    uid = get_uid(username)
+    if not check_post(uid, pid, cid):
+        return abort(404)
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('view_post', username=current_user['username'],
+        redirect_url = url_for('view_post', username=username,
                                pid=pid)
 
-    if cid:
-        upvote_comment(cid)
-    else:
-        upvote_post(pid)
+    # Don't allow a user to vote twice
+    if not has_voted(current_user['uid'], pid, cid):
+        if cid:
+            be_upvote(pid, cid)
+        else:
+            be_upvote(pid)
 
     return redirect(redirect_url)
 
 
 @app.route('/<username>/<int:pid>/downvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/downvote', methods=['GET'])
-def downvote(username, pid, cid=None):
+def downvote(username, pid=-1, cid=None):
     """
     Downvotes a post or comment.
     """
-    if not check_post(username, pid, cid):
-        return abort(404);
+    uid = get_uid(username)
+    if not check_post(uid, pid, cid):
+        return abort(404)
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url = url_for('view_post', username=current_user['username'],
                                pid=pid)
 
-    if cid:
-        be_downvote(pid, cid)
-    else:
-        be_downvote(pid)
+    # Don't allow a user to vote twice
+    if not has_voted(current_user['uid'], pid, cid) and is_voteable(uid, cid):
+        if cid:
+            be_downvote(pid, cid)
+        else:
+            be_downvote(pid)
 
     return redirect(redirect_url)
 
@@ -92,3 +108,13 @@ def delete_post(username, pid, cid=None):
     Deletes posts and comments. Only the owner or an OP user can perform this action
     """
     return "DELETED"
+
+
+@app.route('/<username>/<int:pid>/report')
+@app.route('/<username>/<int:pid>/<int:cid>/report')
+@login_required
+def report_post(username, pid, cid=None):
+    """
+    Deletes posts and comments. Only the owner or an OP user can perform this action
+    """
+    return "REPORTED"

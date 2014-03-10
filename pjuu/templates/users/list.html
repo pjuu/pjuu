@@ -1,6 +1,7 @@
 <ul id="list">
     {% block list %}{% endblock %}
     {# Pagination controls #}
+    {% if pagination.has_pages %}
     <div id="pagination" class="clearfix">
         {% if pagination.has_prev %}
         <a href="{{ request.path + "?page=%s" % pagination.prev_num }}">
@@ -17,4 +18,5 @@
         </a>
         {% endif %}
     </div>
+    {% endif %}
 </ul>

@@ -8,6 +8,9 @@ from redis import Redis
 from lib.sessions import RedisSessionInterface
 
 
+__version__ = '0.1dev'
+
+
 # Create application
 app = Flask(__name__)
 # This is the _MAIN_ redis client. ONLY STORE DATA HERE
@@ -30,9 +33,24 @@ app.config.from_object('pjuu.settings')
 app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
 
+# LOGGING
+# This is what will log errors in Pjuu to a standard logging handler
+# This will not log in Debug mode as Werkzeug and stdout/stderr will
+# TODO may require tweaks during productions
+if not app.debug:
+    import logging
+    logging_handler = logging.FileHandler(app.config['LOG_FILE'])
+    logging_handler.setLevel(logging.WARNING)
+    logging_handler.setFormatter(logging.Formatter(
+        '%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d] %(message)s'
+    ))
+    app.logger.addHandler(logging_handler)
+
+
 # Import all Pjuu stuffs
 # errorhandler functions
 import lib.errors
 # Endpoints and brake out
+import util
 import users
 import posts

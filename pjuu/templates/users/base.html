@@ -2,6 +2,9 @@
 {% block layout %}
 <div id="menu" class="clearfix">
     <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52"/>
+    <div class="version">
+        {{ version }}
+    </div>
     <ul class="account">
         <a href="{{ url_for('feed') }}">
             <li>Feed</li>

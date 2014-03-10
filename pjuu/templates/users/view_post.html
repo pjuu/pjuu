@@ -5,16 +5,17 @@
     <img class="avatar" src="{{post.user_email|gravatar(96)}}"/>
 
     <div class="action">
-        {% if post[uid] == current_user[uid] %}
+        {% if post.uid == current_user.uid %}
         <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid) }}">
             <div class="delete">X</div>
         </a>
         {% endif %}
     </div>
     <div class="contents">
-        <div class="username"><a
-                href="{{url_for('profile', username=post.user_username)}}">{{post.user_username}}</a><span
-                class="created"> @ {{ post.created|timeify }}</span></div>
+        <div class="username">
+            <span class="user-score">{{ post.user_score }}</span>
+            <a href="{{url_for('profile', username=post.user_username)}}">{{post.user_username}}</a>
+        </div>
         <div class="body">{{post.body}}</div>
     </div>
 </div>

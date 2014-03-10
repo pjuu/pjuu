@@ -4,7 +4,7 @@
     <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
     <ul class="stats">
         {% if profile['uid'] != current_user['uid'] %}
-        {% if user|following %}
+        {% if profile|following %}
         <a href="{{ url_for('unfollow', username=profile['username']) }}">
             <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
                  class="action-button unfollow">Following

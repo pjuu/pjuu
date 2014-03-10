@@ -11,9 +11,10 @@ from .backend import (authenticate, current_user, is_safe_url, login,
                       activate as be_activate,
                       change_password as be_change_password,
                       change_email as be_change_email,
-                      get_uid)
+                      get_uid, is_active, is_banned)
 from .decorators import anonymous_required, login_required
-from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm)
+from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
+                    ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
 
 
 @app.context_processor
@@ -42,9 +43,16 @@ def signin():
             # Calls authenticate from backend.py
             uid = authenticate(form.username.data, form.password.data)
             if uid:
-                login(uid)
-                return redirect(redirect_url)
-            flash('Invalid user name or password.', 'error')
+                if not is_active(uid):
+                    flash('Please activate your account<br />'
+                          'Check your e-mail', 'information')
+                elif is_banned(uid):
+                    flash('You\'re a very naughty otter!', 'error')
+                else:
+                    login(uid)
+                    return redirect(redirect_url)
+            else:
+                flash('Invalid user name or password.', 'error')
         else:
             flash('Invalid user name or password.', 'error')
     return render_template('auth/signin.html', form=form)
@@ -76,7 +84,7 @@ def signup():
             if uid:
                 token = generate_token(activate_signer,
                                        {'uid': uid})
-                if app.config['NOMAIL'] == False:
+                if not app.config['NOMAIL']:
                     send_mail('Activation', [form.email.data],
                               text_body=render_template('emails/activate.txt',
                                                         token=token),
@@ -101,8 +109,8 @@ def activate(token):
         if uid:
             be_activate(uid)
             # If we have got to this point. Send a welcome e-mail :)
-            if app.config['NOMAIL'] == False:
-                send_mail('Welcome', [r.hget('user:%d' % uid, 'email')],
+            if not app.config['NOMAIL']:
+                send_mail('Welcome', [get_email(uid)],
                           text_body=render_template('emails/welcome.txt'),
                           html_body=render_template('emails/welcome.html'))
             flash('Your account has now been activated.', 'success')
@@ -164,13 +172,13 @@ def reset(token):
 @app.route('/change_email', methods=['POST'])
 @login_required
 def change_email():
-    form = ChangeEmailFor(request.form)
+    form = ChangeEmailForm(request.form)
     if form.validate():
         if authenticate(current_user['username'], form.password):
             token = generate_token(email_signer, {'uid': uid,
                                                   'email': form.email.data})
 
-            if app.config['NOMAIL'] == False:
+            if not app.config['NOMAIL']:
                 send_mail('Activation', [form.email.data],
                           text_body=render_template('emails/activate.txt',
                                                     token=token),
@@ -193,7 +201,6 @@ def confirm_email(token):
         # Change the users e-mail
         uid = data['uid']
         email = data['email']
-
         if uid:
             be_change_email(uid, email)
             flash('Your account has now been activated.', 'success')
@@ -207,7 +214,13 @@ def confirm_email(token):
 @app.route('/change_password', methods=['POST'])
 @login_required
 def change_password():
-    pass
+    form = PasswordChangeForm(request.form)
+    if form.validate():
+        if authenticate(current_user['username'], form.password.data):
+            pass
+    else:
+        flash('Oh no! There are errors in your change password form.', 'error')
+    return redirect(url_for('settings_account'))
 
 
 @app.route('/delete_account', methods=['POST'])

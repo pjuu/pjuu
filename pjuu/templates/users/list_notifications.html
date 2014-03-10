@@ -8,13 +8,8 @@
     <div class="scoring">
         <div class="score">{{ item.score }}</div>
         <div class="vote">
-            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid) }}">Up</a> /
-            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid) }}">Down</a>
+            Up / Down
         </div>
-    </div>
-    <div class="control">
-        <div class="button red">X</div>
-        <div class="button blue">!</div>
     </div>
     <div class="details clearfix">
         <div class="username">
@@ -22,9 +17,7 @@
             <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username }}</a>
         </div>
         <div class="body">{{ item.body }}</div>
-        <div class="created">{{ item.created|timeify }} | <a
-                href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">{{ item.comment_count }}
-            comments</a></div>
+        <div class="created">{{ item.created|timeify }}</a></div>
     </div>
 </li>
 {% endfor %}

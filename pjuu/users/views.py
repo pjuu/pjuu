@@ -10,23 +10,24 @@ from flask import (abort, flash, redirect, render_template, request,
 from pjuu import app
 from pjuu.auth.backend import current_user, get_uid, is_safe_url
 from pjuu.auth.decorators import login_required
+from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountForm
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments)
+                      get_comments, get_notifications)
 
 
 @app.template_filter('following')
-def following_filter(uid):
-    '''
+def following_filter(profile):
+    """
     Checks if current user is following the user with id piped to filter 
-    '''
-    return is_following(current_user['uid'], uid)
+    """
+    return is_following(current_user['uid'], profile['uid'])
 
 
 @app.template_filter('gravatar')
-def gravatar(email, size=24):
+def gravatar_filter(email, size=24):
     """
     Returns gravatar URL for a given email with the size size.
     """
@@ -35,27 +36,30 @@ def gravatar(email, size=24):
 
 
 @app.template_filter('millify')
-def millify(n):
+def millify_filter(n):
     """
     Template filter to millify numbers, e.g. 1K, 2M, 1.25B
     """
-    n = int(n)
-    if n == 0:
-        return n
-    number = n
-    if n < 0:
-        number = abs(n)
-    millnames = ['', 'K', 'M', 'B', 'T', 'Q', 'Qt']
-    millidx = max(0, min(len(millnames) - 1,
-                         int(math.floor(math.log10(abs(number)) / 3.0))))
-    result = '%.0f%s' % (number / 10 ** (3 * millidx), millnames[millidx])
-    if n < 0:
-        return '-' + result
-    return result
+    try:
+        n = int(n)
+        if n == 0:
+            return n
+        number = n
+        if n < 0:
+            number = abs(n)
+        millnames = ['', 'K', 'M', 'B', 'T', 'Q', 'Qt']
+        millidx = max(0, min(len(millnames) - 1,
+                      int(math.floor(math.log10(abs(number)) / 3.0))))
+        result = '%.0f%s' % (number / 10 ** (3 * millidx), millnames[millidx])
+        if n < 0:
+            return '-' + result
+        return result
+    except ValueError:
+        return "Err"
 
 
 @app.template_filter('timeify')
-def timeify(time):
+def timeify_filter(time):
     """
     Takes integer epoch time and returns a DateTime string for display.
     If this conversion fails this function will return Unknown
@@ -63,9 +67,8 @@ def timeify(time):
     try:
         time = int(time)
         return strftime("%a %d %b %Y %H:%M:%S", gmtime(time))
-    except:
-        # Dirty... catching ALL exceptions
-        return "Unknown"
+    except ValueError:
+        return "Err"
 
 
 @app.route('/', methods=['GET'])
@@ -77,7 +80,7 @@ def feed():
     page = request.values.get('page', None)
     try:
         page = int(page)
-    except:
+    except (TypeError, ValueError):
         page = 1
     # Get feed pagination
     pagination = get_feed(int(current_user['uid']), page)
@@ -106,7 +109,7 @@ def profile(username):
     page = request.values.get('page', None)
     try:
         page = int(page)
-    except:
+    except (TypeError, ValueError):
         page = 1
     # Get the posts pagination
     pagination = get_posts(uid, page)
@@ -119,14 +122,14 @@ def profile(username):
 @app.route('/<username>/<int:pid>', methods=['GET'])
 @login_required
 def view_post(username, pid):
-    if not check_post(username, pid):
+    if not check_post(get_uid(username), pid):
         return abort(404)
 
     # Pagination
     page = request.values.get('page', None)
     try:
         page = int(page)
-    except:
+    except (TypeError, ValueError):
         page = 1
 
     # Get post
@@ -153,7 +156,7 @@ def following(username):
     page = request.values.get('page', None)
     try:
         page = int(page)
-    except:
+    except (TypeError, ValueError):
         page = 1
 
     # Get a list of users you are following
@@ -173,21 +176,21 @@ def followers(username):
         abort(404)
 
     # Data
-    profile = get_profile(uid)
+    _profile = get_profile(uid)
 
     # Pagination
     page = request.values.get('page', None)
     try:
         page = int(page)
-    except:
+    except (TypeError, ValueError):
         page = 1
 
     # Get a list of users you are following
-    followers = get_followers(uid, page)
+    _followers = get_followers(uid, page)
     # Post form
     post_form = PostForm()
-    return render_template('users/followers.html', profile=profile,
-                           pagination=followers, post_form=post_form)
+    return render_template('users/followers.html', profile=_profile,
+                           pagination=_followers, post_form=post_form)
 
 
 @app.route('/<username>/follow', methods=['GET'])
@@ -198,7 +201,7 @@ def follow(username):
     if uid is None:
         abort(404)
 
-    # We redirect so we don't have to user AJAX straigh away
+    # We redirect so we don't have to user AJAX straight away
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url = url_for('profile', username=username)
@@ -217,13 +220,13 @@ def unfollow(username):
     if uid is None:
         abort(404)
 
-    # We redirect so we don't have to user AJAX straigh away
+    # We redirect so we don't have to user AJAX straight away
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
         redirect_url = url_for('profile', username=username)
 
     # Unfollow user
-    if unfollow_user(current_user, user):
+    if unfollow_user(current_user['uid'], uid):
         flash('You are no longer following %s' % username, 'information')
     return redirect(redirect_url)
 
@@ -231,7 +234,17 @@ def unfollow(username):
 @app.route('/notifications', methods=['GET'])
 @login_required
 def notifications():
-    return render_template('users/notifications.html')
+    # Pagination
+    page = request.values.get('page', None)
+    try:
+        page = int(page)
+    except (TypeError, ValueError):
+        page = 1
+
+    _notifications = get_notifications(current_user['uid'], page)
+
+    return render_template('users/notifications.html',
+                           pagination=_notifications)
 
 
 @app.route('/search', methods=['GET'])
@@ -249,10 +262,23 @@ def search():
 @app.route('/settings/profile', methods=['GET', 'POST'])
 @login_required
 def settings_profile():
+    """
+    Allows users to customize their profile direct from this view.
+    """
     return render_template('users/settings_profile.html')
 
 
 @app.route('/settings/account', methods=['GET'])
 @login_required
 def settings_account():
-    return render_template('users/settings_account.html')
+    """
+    Displays the forms necessary for a user to change the following
+    account details: e-mail, password & delete_account.
+    """
+    password_change_form = PasswordChangeForm()
+    change_email_form = ChangeEmailForm()
+    delete_account_form = DeleteAccountForm()
+    return render_template('users/settings_account.html',
+                           password_change_form=password_change_form,
+                           change_email_form=change_email_form,
+                           delete_account_form=delete_account_form)

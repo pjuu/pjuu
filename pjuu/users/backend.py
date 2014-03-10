@@ -24,6 +24,7 @@ def get_user(uid):
     """
     Returns a users mini-profile for lists
     """
+    uid = int(uid)
     user = r.hgetall('user:%d' % uid)
     return user
 
@@ -35,7 +36,7 @@ def get_feed(uid, page=1):
     per_page = app.config['FEED_ITEMS_PER_PAGE']
     total = r.llen('feed:%d' % uid)
     pids = r.lrange('feed:%d' % uid, (page - 1) * per_page,
-                    page * per_page)
+                    (page * per_page) - 1)
     posts = []
     for pid in pids:
         posts.append(get_post(pid))
@@ -63,7 +64,7 @@ def get_comments(pid, page=1):
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
     total = r.llen('comments:%d' % pid)
     cids = r.lrange('comments:%d' % pid, (page - 1) * per_page,
-                    page * per_page)
+                    (page * per_page) - 1)
     comments = []
     for cid in cids:
         comments.append(get_comment(cid))
@@ -77,7 +78,7 @@ def get_following(uid, page=1):
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
     total = r.zcard('following:%d' % uid)
     fids = r.zrange('following:%d' % uid, (page - 1) * per_page,
-                    page * per_page)
+                    (page * per_page) -1)
     users = []
     for fid in fids:
         users.append(get_user(fid))
@@ -91,11 +92,19 @@ def get_followers(uid, page=1):
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
     total = r.zcard('following:%d' % uid)
     fids = r.zrange('following:%d' % uid, (page - 1) * per_page,
-                    page * per_page)
+                    (page * per_page) - 1)
     users = []
     for fid in fids:
         users.append(get_user(fid))
     return Pagination(users, total, page, per_page)
+
+
+def get_notifications(uid, page=1):
+    """
+    Returns a Paginated lost of all the users notifications.
+    """
+    per_page = app.config['PROFILE_ITEMS_PER_PAGE']
+    return Pagination([], 0, page, per_page)
 
 
 def follow_user(who_uid, whom_uid):
@@ -119,7 +128,9 @@ def unfollow_user(who_uid, whom_uid):
     """
     Remove whom from whos following set and remove who from whoms followers set
     """
-    if not r.zrank('following:%d' % who_uid, whom_uid):
+    who_uid = int(who_uid)
+    whom_uid = int(whom_uid)
+    if r.zrank('following:%d' % who_uid, whom_uid) is None:
         return False
     # Delete uid from who following and whom followers
     r.zrem('following:%d' % who_uid, whom_uid)
@@ -131,4 +142,4 @@ def is_following(who_uid, whom_uid):
     """
     Check to see if who is following whom. These need to be uids
     """
-    return True if r.zrank("following:%s" % who_uid, whom_uid) else False
+    return True if r.zrank("following:%s" % who_uid, whom_uid) is not None else False

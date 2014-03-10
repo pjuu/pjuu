@@ -202,7 +202,7 @@ textarea {
 #menu ul {
 	color: #000;color: #FFF;
 	font-weight: 700;
-    margin: 1em 0 0;
+    margin: 0.5em 0 0;
 }
 
 #menu li {
@@ -244,6 +244,14 @@ textarea {
     padding: 0.25em 0.5em;
 }
 
+#menu .version {
+    color: #680;
+    font-size: 0.75em;
+    margin: 0;
+    text-align: center;
+}
+
+
 /*
 ** Main
 */
@@ -267,6 +275,13 @@ textarea {
     color: #680;
     font-size: 1.5em;
     font-weight: 700;
+    padding: 0.5em;
+}
+
+#content h2 {
+    color: #680;
+    font-weight: 700;
+    margin: 0 0 0 3em;
     padding: 0.5em;
 }
 
@@ -446,7 +461,13 @@ textarea {
 
 #list .item {
     margin: 0.5em 0;
+    padding: 0.5em 0;
     border-bottom: 1px solid #DEDEDE;
+}
+
+#list .first {
+    margin-top: 0;
+    padding-top: 0;
 }
 
 #list .last {
@@ -485,7 +506,7 @@ textarea {
 #list .details .user-score {
     background-color: #DEDEDE;
     border-radius: 3px 3px 3px 3px;
-    margin: 0 0.5em 0 0;
+    margin: 0 0.25em 0 0;
     padding: 0.25em 0.5em;
 }
 
@@ -502,6 +523,17 @@ textarea {
 #list .body {
     padding: 1em 0;
     word-wrap: break-word;
+}
+
+#list .control {
+    float: right;
+    width: 4em;
+}
+
+#list .button {
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
 }
 
 /*
@@ -632,4 +664,47 @@ textarea {
 
 #pagination .next {
     float: right;
+}
+
+/*
+** Settings
+*/
+
+#setting {
+    width: 30em;
+    margin: 0 auto 0.25em;
+    padding: 0.5em;
+}
+
+#setting .last {
+    margin: 0 auto 2em;
+}
+
+#setting .form label {
+    font-weight: 700;
+}
+
+#setting input[type=text],
+#setting input[type=password] {
+    border: 1px solid #BBB;
+    display: block;
+    margin: 0.5em 0 1em;
+    padding: 0.5em;
+    width: 100%;
+}
+
+#setting input[type=text]:focus,
+#setting input[type=password]:focus {
+    border: 1px solid #680;
+}
+
+#setting input[type=text].error,
+#setting input[type=password].error {
+    border: 1px solid #F50;
+}
+
+#setting input[type=submit] {
+    float: right;
+    font-weight: 700;
+    padding: 0.25em 0.5em;
 }
