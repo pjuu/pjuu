@@ -6,24 +6,28 @@
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} clearfix">
     <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
     <div class="scoring">
-        <div class="score">{{ item.score }}</div>
+        <div class="score">{{ item.score|millify }}</div>
+        {% if current_user.uid != item.uid %}
         <div class="vote">
-            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid) }}">Up</a> /
-            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid) }}">Down</a>
+            {% if item.pid|voted %}
+            <div class="vote-score">{{ item.pid|voted }}</div>
+            {% else %}
+            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid) }}"><div>Up</div></a>
+            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid) }}"><div>Down</div></a>
+            {% endif %}
         </div>
+        {% endif %}
     </div>
     <div class="control">
-        <div class="button red">X</div>
-        <div class="button blue">!</div>
     </div>
     <div class="details clearfix">
         <div class="username">
-            <span class="user-score">{{ item.user_score }}</span>
-            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username }}</a>
+            <span class="user-score">{{ item.user_score|millify }}</span>
+            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username|capitalize }}</a>
         </div>
-        <div class="body">{{ item.body }}</div>
+        <div class="body">{{ item.body|urlize }}</div>
         <div class="created">{{ item.created|timeify }} | <a
-                href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">{{ item.comment_count }}
+                href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">{{ item.comment_count|millify }}
             comments</a></div>
     </div>
 </li>

@@ -180,7 +180,7 @@ textarea {
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
     margin: 1em auto;
-    padding: 0.5em;
+    padding: 0.75em;
     text-align: center;
 }
 
@@ -194,15 +194,22 @@ textarea {
 	width: 200px;
 }
 
-#menu img {
+#menu ul {
+	color: #000;color: #FFF;
+	font-weight: 700;
+    margin: 1em 0 0;
+}
+
+#menu .logo {
     display: block;
 	margin: 0 auto;
 }
 
-#menu ul {
-	color: #000;color: #FFF;
-	font-weight: 700;
-    margin: 0.5em 0 0;
+#menu .version {
+    color: #680;
+    font-size: 0.75em;
+    margin: 0;
+    text-align: center;
 }
 
 #menu li {
@@ -244,13 +251,12 @@ textarea {
     padding: 0.25em 0.5em;
 }
 
-#menu .version {
+#menu .open-source {
+    margin: 2em 0 0;
+    text-align: center;
     color: #680;
     font-size: 0.75em;
-    margin: 0;
-    text-align: center;
 }
-
 
 /*
 ** Main
@@ -323,20 +329,20 @@ textarea {
     margin: 1em 0 0;
 }
 
-#profile .stats {
+#profile ul {
     float: right;
     text-align: right;
     width: 100px;
 }
 
-#profile .stats li {
+#profile li {
     border-radius: 3px 3px 3px 3px;
     color: #FFF;
     font-weight: 700;
     padding: 0.5em 0.5em;
 }
 
-#profile .stats li:hover {
+#profile li:hover {
     color: #000;
     background-color: #9C0;
 }
@@ -347,7 +353,7 @@ textarea {
     margin: 0 0.5em 0 0;
     font-size: 0.75em;
     font-weight: 700;
-    background-color: #FFF;
+    background-color: #DEDEDE;
     padding: 0.25em 0.5em;
 }
 
@@ -410,7 +416,7 @@ textarea {
     font-weight: 700;
     padding: 0.5em 0;
     text-align: center;
-    margin: 0.5em 0 0.5em;
+    margin: 0.5em 0 0;
 }
 
 #author {
@@ -418,7 +424,6 @@ textarea {
     border-style: solid;
     border-width: 0 1px 1px;
     border-radius: 0 0 3px 3px;
-    display: none;
     padding: 0.5em;
     margin: 0 0 0.5em;
 }
@@ -449,7 +454,7 @@ textarea {
 */
 
 #list {
-    padding: 1em;
+    padding: 0em 1em 1em;
 }
 
 #list .empty {
@@ -492,15 +497,19 @@ textarea {
 }
 
 #list .score {
-    float: left;
-    font-size: 2em;
+    font-size: 1.5em;
     font-weight: 700;
     margin: 0 auto;
     text-align: center;
 }
 
+#list .vote-score {
+    color: #CC0;
+    font-weight: 700;
+}
+
 #list .details {
-    margin: 0 4em 0 8em;
+    margin: 0 4em 0 9em;
 }
 
 #list .details .user-score {
@@ -515,7 +524,7 @@ textarea {
 }
 
 #list .created {
-    color: #DEDEDE;
+    color: #BBB;
     font-size: 11px;
     font-weight: 400;
 }
@@ -527,7 +536,6 @@ textarea {
 
 #list .control {
     float: right;
-    width: 4em;
 }
 
 #list .button {
@@ -537,90 +545,148 @@ textarea {
 }
 
 /*
-** List types
-*/
+ * List types
+ */
 
-.post .contents {
+#list .post .contents {
     margin: 0 64px 0 64px;
 }
 
-.post .comment-count {
+#list .post .comment-count {
     background-color: #DFDFDF;
 	border-radius: 3px 3px 3px 3px;
 	padding: 0.25em 0.5em;
 }
 
-.post .action {
+#list .post .action {
     float: right;
     height: 24px;
     width: 24px;
 }
 
-.post .action .delete {
+#list .control .delete {
     color: #F00;
     border-radius: 5px;
     font-weight: 700;
     text-align: center;
+    padding: 0.25em 0.5em;
 }
 
-.post .action .delete:hover {
+#list .control .delete:hover {
     background-color: #F00;
     color: #FFF;
 }
 
-.user .contents {
+#list .user .contents {
     margin: 0 128px 0 64px;
 }
 
-.user .action {
+#list .user .action {
     float: right;
+}
+
+#list .details {
+    margin: 0 4em 0 9em;
 }
 
 /*
 ** Main Post page
 */
 
-#post-main {
+#post {
     background-color: #FFF;
+    border: 1px solid #680;
     border-radius: 5px;
     color: #000;
     margin: 0 0 0.5em;
     padding: 1em;
 }
 
-#post-main .contents {
+#post .avatar {
+    float: left;
+    height: 3em;
+    width: 3em;
+    margin: 0 1em 0 0;
+}
+
+#post .contents {
     margin: 0 112px 0 112px;
 }
 
-#post-main .username {
-    font-size: 15px;
+#post .details {
+    margin: 0 4em 0 9em;
+}
+
+#post .username {
     font-weight: 700;
 }
 
-#post-main .created {
+#post .created {
+    color: #BBB;
     font-size: 11px;
     font-weight: 400;
 }
 
-#post-main .body {
+#post .body {
     padding: 7px 0;
     word-wrap: break-word;
 }
 
-#post-main .action {
+#post .control {
     float: right;
-    height: 24px;
-    width: 24px;
 }
 
-#post-main .action .delete {
+#post .scoring {
+    float: left;
+    text-align: center;
+    width: 3em;
+    margin: 0 1em 0 0;
+    padding: 0.25em 0;
+}
+
+#post .score {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#post .vote-score {
+    color: #CC0;
+    font-weight: 700;
+}
+
+#post .user-score {
+    background-color: #DEDEDE;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0 0.25em 0 0;
+    padding: 0.25em 0.5em;
+}
+
+#post .username {
+    font-weight: 700;
+}
+
+#post .created {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+#post .body {
+    padding: 1em 0;
+    word-wrap: break-word;
+}
+
+#post .control .delete {
     color: #F00;
     border-radius: 5px;
     font-weight: 700;
     text-align: center;
+    padding: 0.25em 0.5em;
 }
 
-#post-main .action .delete:hover {
+#post .control .delete:hover {
     background-color: #F00;
     color: #FFF;
 }
@@ -646,8 +712,8 @@ textarea {
 }
 
 #pagination .button {
+    color: #680;
     padding: 0.25em 0.5em;
-    /* border: 1px solid #999; */
     border-radius: 3px;
     background-color: #DEDEDE;
     text-align: center;
@@ -655,7 +721,7 @@ textarea {
 }
 
 #pagination .active {
-    border: 1px solid #9C0;
+    border: 1px solid #680;
 }
 
 #pagination .prev {

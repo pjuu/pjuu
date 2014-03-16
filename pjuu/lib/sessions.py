@@ -1,5 +1,5 @@
 # -*- coding: utf8 -*-
-# This script is taken from flask.pocoo.org snippets
+# This code is taken from flask.pocoo.org snippets
 try:
     import cPickle as pickle
 except ImportError:

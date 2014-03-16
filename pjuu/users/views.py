@@ -8,14 +8,15 @@ from flask import (abort, flash, redirect, render_template, request,
                    url_for)
 # Pjuu imports
 from pjuu import app
-from pjuu.auth.backend import current_user, get_uid, is_safe_url
+from pjuu.auth.backend import (current_user, get_uid, is_safe_url,
+                               get_uid_email, get_uid_username)
 from pjuu.auth.decorators import login_required
 from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountForm
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments, get_notifications)
+                      get_comments)
 
 
 @app.template_filter('following')
@@ -33,6 +34,13 @@ def gravatar_filter(email, size=24):
     """
     return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
            (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
+
+
+@app.template_filter('nameify')
+def nameify_filter(body):
+    """
+    """
+    return body
 
 
 @app.template_filter('millify')
@@ -94,10 +102,10 @@ def feed():
 @login_required
 def profile(username):
     """
-    This is reffered to as Posts on the site. It will show the
+    This is refered to as Posts on the site. It will show the
     users posts.
     """
-    uid = get_uid(username)
+    uid = get_uid_username(username)
 
     if uid is None:
         abort(404)
@@ -229,22 +237,6 @@ def unfollow(username):
     if unfollow_user(current_user['uid'], uid):
         flash('You are no longer following %s' % username, 'information')
     return redirect(redirect_url)
-
-
-@app.route('/notifications', methods=['GET'])
-@login_required
-def notifications():
-    # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
-
-    _notifications = get_notifications(current_user['uid'], page)
-
-    return render_template('users/notifications.html',
-                           pagination=_notifications)
 
 
 @app.route('/search', methods=['GET'])

@@ -1,19 +1,16 @@
 {% extends 'base.html' %}
 {% block layout %}
 <div id="menu" class="clearfix">
-    <img src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52"/>
+    <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52"/>
     <div class="version">
         {{ version }}
     </div>
-    <ul class="account">
+    <ul>
         <a href="{{ url_for('feed') }}">
             <li>Feed</li>
         </a>
         <a href="{{ url_for('profile', username=current_user.username) }}">
-            <li><span class="user-score">{{current_user.score}}</span>{{current_user.username}}</li>
-        </a>
-        <a href="{{ url_for('notifications') }}">
-            <li>Notifications</li>
+            <li><span class="user-score">{{ current_user.score|millify }}</span>{{ current_user.username|capitalize }}</li>
         </a>
         <a href="{{ url_for('settings_account') }}">
             <li>Settings</li>
@@ -28,6 +25,12 @@
             <input type="text" name="query"/>
             <input type="submit" value="Search"/>
         </form>
+    </div>
+    <div class="open-source">
+        Pjuu is open source software<br /> Fork us or just contribute<br />
+        <a href="https://github.com/pjuu/pjuu" target="_blank">
+            <img src="{{ url_for('static', filename='img/github.png') }}" />
+        </a>
     </div>
 </div>
 <div id="main">

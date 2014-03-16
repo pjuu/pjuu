@@ -5,9 +5,7 @@ from math import ceil
 class Pagination(object):
     """
     Pagination object. Every page which supports the 'page' should
-    use this to provide a consistant API.
-    Pagination supports lists and sorted sets. An exception will be
-    thrown on anything else.
+    use this to provide a consistency.
     """
 
     def __init__(self, items, total, page=1, per_page=50):

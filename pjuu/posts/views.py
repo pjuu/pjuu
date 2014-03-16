@@ -18,12 +18,17 @@ def voted_filter(pid, cid=None):
     """
     Checks if current user is following the user with id piped to filter
     """
-    return has_voted(current_user['uid'], pid, cid=cid)
+    vote = has_voted(current_user['uid'], pid, cid=cid)
+    if vote is not None:
+        vote = int(vote)
+        if vote == 1:
+            vote = "+1"
+    return vote
 
 
 @app.route('/post', methods=['POST'])
 @login_required
-def post(redirect_endpoint='profile'):
+def post():
     # Handle 'next' query string variable
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
@@ -62,15 +67,16 @@ def upvote(username, pid=-1, cid=None):
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('view_post', username=username,
-                               pid=pid)
+        redirect_url = url_for('view_post', username=username, pid=pid)
 
-    # Don't allow a user to vote twice
+    # Don't allow a user to vote twice or vote on own post
     if not has_voted(current_user['uid'], pid, cid):
         if cid:
-            be_upvote(pid, cid)
+            be_upvote(current_user['uid'], pid, cid)
         else:
-            be_upvote(pid)
+            be_upvote(current_user['uid'], pid)
+    else:
+        flash('You have already voted on this item', 'information')
 
     return redirect(redirect_url)
 
@@ -87,15 +93,16 @@ def downvote(username, pid=-1, cid=None):
 
     redirect_url = request.values.get('next', None)
     if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('view_post', username=current_user['username'],
-                               pid=pid)
+        redirect_url = url_for('view_post', username=username, pid=pid)
 
     # Don't allow a user to vote twice
-    if not has_voted(current_user['uid'], pid, cid) and is_voteable(uid, cid):
+    if not has_voted(current_user['uid'], pid, cid):
         if cid:
-            be_downvote(pid, cid)
+            be_downvote(current_user['uid'], pid, cid)
         else:
-            be_downvote(pid)
+            be_downvote(current_user['uid'], pid)
+    else:
+        flash('You have already voted on this item', 'information')
 
     return redirect(redirect_url)
 
@@ -105,16 +112,6 @@ def downvote(username, pid=-1, cid=None):
 @login_required
 def delete_post(username, pid, cid=None):
     """
-    Deletes posts and comments. Only the owner or an OP user can perform this action
+    Deletes posts and comments.
     """
-    return "DELETED"
-
-
-@app.route('/<username>/<int:pid>/report')
-@app.route('/<username>/<int:pid>/<int:cid>/report')
-@login_required
-def report_post(username, pid, cid=None):
-    """
-    Deletes posts and comments. Only the owner or an OP user can perform this action
-    """
-    return "REPORTED"
+    pass

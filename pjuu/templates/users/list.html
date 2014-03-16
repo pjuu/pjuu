@@ -6,14 +6,14 @@
         {% if pagination.has_prev %}
         <a href="{{ request.path + "?page=%s" % pagination.prev_num }}">
         <div class="button active prev">
-            << Previous
+            << Newer
         </div>
         </a>
         {% endif %}
         {% if pagination.has_next %}
         <a href="{{ request.path + "?page=%s" % pagination.next_num }}">
         <div class="button active next">
-            Next >>
+            Older >>
         </div>
         </a>
         {% endif %}

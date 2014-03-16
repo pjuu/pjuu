@@ -21,51 +21,7 @@ email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 # Reserved names
 # TODO Come up with a better solution for this
-reserved_names = ['about', 'access', 'account', 'accounts', 'add', 'address', 'adm',
-                  'admin', 'administration', 'adult', 'advertising', 'affiliate',
-                  'affiliates', 'ajax', 'analytics', 'android', 'anon', 'anonymous',
-                  'api', 'app', 'apps', 'archive', 'atom', 'auth', 'authentication',
-                  'avatar', 'backup', 'banner', 'banners', 'bin', 'billing', 'blog',
-                  'blogs', 'board', 'bot', 'bots', 'business', 'chat', 'cache',
-                  'cadastro', 'calendar', 'campaign', 'careers', 'cgi', 'client',
-                  'cliente', 'code', 'comercial', 'compare', 'config', 'connect',
-                  'contact', 'contest', 'create', 'code', 'compras', 'css',
-                  'dashboard', 'data', 'db', 'design', 'delete', 'demo', 'design',
-                  'designer', 'dev', 'devel', 'dir', 'directory', 'doc', 'docs',
-                  'domain', 'download', 'downloads', 'edit', 'editor', 'email',
-                  'ecommerce', 'forum', 'forums', 'faq', 'favorite', 'feed',
-                  'feedback', 'flog', 'follow', 'followers', 'following', 'file',
-                  'files', 'free', 'ftp', 'gadget', 'gadgets', 'games', 'guest',
-                  'group', 'groups', 'help', 'home', 'homepage', 'host', 'hosting',
-                  'hostname', 'html', 'http', 'httpd', 'https', 'hpg', 'info',
-                  'information', 'image', 'img', 'images', 'imap', 'index', 'invite',
-                  'intranet', 'indice', 'java', 'javascript', 'job', 'jobs', 'js',
-                  'knowledgebase', 'log', 'login', 'logs', 'logout', 'list', 'lists',
-                  'mail', 'mail1', 'mail2', 'mail3', 'mail4', 'mail5', 'mailer',
-                  'mailing', 'mx', 'manager', 'marketing', 'master', 'me', 'media',
-                  'message', 'microblog', 'microblogs', 'mine', 'mp3', 'msg', 'msn',
-                  'mysql', 'messenger', 'mob', 'mobile', 'movie', 'movies', 'music',
-                  'musicas', 'my', 'name', 'named', 'net', 'network', 'new', 'news',
-                  'newsletter', 'nick', 'nickname', 'notes', 'noticias', 'ns',
-                  'ns1', 'ns2', 'ns3', 'ns4', 'old', 'online', 'operator', 'order',
-                  'orders', 'page', 'pager', 'pages', 'panel', 'password', 'perl',
-                  'pic', 'pics', 'photo', 'photos', 'photoalbum', 'php', 'pjuu', 'plugin',
-                  'plugins', 'pop', 'pop3', 'post', 'postmaster', 'postfix', 'posts',
-                  'profile', 'project', 'projects', 'promo', 'pub', 'public',
-                  'random', 'register', 'registration', 'root', 'rss', 'sale',
-                  'sales', 'sample', 'samples', 'script', 'scripts', 'secure',
-                  'send', 'service', 'shop', 'sql', 'signup', 'signin', 'search',
-                  'security', 'settings', 'setting', 'setup', 'site', 'sites',
-                  'sitemap', 'smtp', 'soporte', 'ssh', 'stage', 'staging', 'start',
-                  'subscribe', 'subdomain', 'suporte', 'support', 'stat', 'static',
-                  'stats', 'status', 'store', 'stores', 'system', 'tablet',
-                  'tablets', 'tech', 'telnet', 'test', 'test1', 'test2', 'test3',
-                  'teste', 'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks',
-                  'tools', 'tv', 'talk', 'update', 'upload', 'url', 'user', 'username',
-                  'usuario', 'usage', 'vendas', 'video', 'videos', 'visitor', 'win',
-                  'ww', 'www', 'www1', 'www2', 'www3', 'www4', 'www5', 'www6', 'www7',
-                  'wwww', 'wws', 'wwws', 'web', 'webmail', 'website', 'websites',
-                  'webmaster', 'workshop', 'xpg']
+reserved_names = []
 
 
 # Signers
@@ -76,14 +32,7 @@ email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_EM
 
 # Can be used anywhere to get the current logged in user.
 # This will return None if the user is not logged in.
-current_user = LocalProxy(lambda: _get_user())
-
-
-def _get_user():
-    """
-    Used to create the current_user local proxy.
-    """
-    return getattr(_app_ctx_stack.top, 'user', None)
+current_user = LocalProxy(lambda: getattr(_app_ctx_stack.top, 'user', None))
 
 
 @app.before_request
@@ -98,22 +47,43 @@ def _load_user():
     _app_ctx_stack.top.user = user
 
 
-def get_uid(username):
+def get_uid_username(username):
     """
     Returns a user_id from username.
-    This can be an e-mail or username.
     """
     username = username.lower()
-    uid = r.get('uid:%s' % username)
-    if uid: uid = int(uid)
+    uid = r.get('uid:username:%s' % username)
+    if uid is not None:
+        uid = int(uid)
     return uid
 
 
-def get_user(username):
+def get_uid_email(email):
+    """
+    Returns a user_id from email.
+    """
+    email = email.lower()
+    uid = r.get('uid:email:%s' % email)
+    if uid is not None:
+        uid = int(uid)
+    return uid
+
+
+def get_uid(username):
+    """
+    Although the argument is called 'username' this will check for an e-mail
+    and call the correct get_uid_* function.
+    """
+    if '@' in username:
+        return get_uid_email(username)
+    else:
+        return get_uid_username(username)
+
+def get_user(uid):
     """
     Similar to above but will return the user dict (calls above).
     """
-    uid = get_uid(username)
+    uid = int(uid)
     if uid:
         return r.hgetall('user:%d' % uid)
     else:
@@ -130,13 +100,13 @@ def get_email(uid):
 
 def check_username(username):
     """
-    Used to check for username availablity inside the signup form.
+    Used to check for username availability inside the signup form.
     Returns true if the name is free, false otherwise
     """
     username = username.lower()
     taken = username in reserved_names
     if not taken:
-        taken = r.exists('uid:%s' % username)
+        taken = r.exists('uid:username:%s' % username)
     return False if taken else True
 
 
@@ -147,7 +117,7 @@ def check_email(email):
     """
     email = email.lower()
     if email_re.match(email):
-        check = r.exists('uid:%s' % email)
+        check = r.exists('uid:email:%s' % email)
         return True if not check else False
     return False
 
@@ -180,8 +150,8 @@ def create_user(username, email, password):
         pipe = r.pipeline()
         pipe.hmset('user:%d' % uid, user)
         # Create look up keys for auth system (these are lowercase)
-        pipe.set('uid:%s' % username, uid)
-        pipe.set('uid:%s' % email, uid)
+        pipe.set('uid:username:%s' % username, uid)
+        pipe.set('uid:email:%s' % email, uid)
         pipe.execute()
         return uid
     return None
@@ -191,6 +161,7 @@ def is_active(uid):
     """
     Checks to see if a user account has been activated
     """
+    uid = int(uid)
     return int(r.hget("user:%s" % uid, "active"))
 
 
@@ -198,7 +169,8 @@ def is_banned(uid):
     """
     Checks to see if a user account has been banned
     """
-    return int(r.hget("user:%s" % uid, "banned"))
+    uid = int(uid)
+    return int(r.hget("user:%d" % uid, "banned"))
 
 
 def authenticate(username, password):
@@ -234,13 +206,12 @@ def activate(uid):
     """
     Activates a user after signup
     """
-    return r.hset('user:%d' % uid, 'active', True)
+    return r.hset('user:%d' % uid, 'active', 1)
 
 
 def change_password(uid, password):
     """
-    Changes user with uid's password. Checking of the old password _MUST_
-    be done before this.
+    Changes uid's password. Checking of the old password _MUST_ be done before this.
     """
     password = generate_password_hash(password)
     return r.hset('user:%d' % uid, 'password', password)
@@ -253,8 +224,8 @@ def change_email(uid, email):
     """
     pipe = r.pipeline()
     old_email = pipe.hget('user:%d' % uid, 'email')
-    pipe.rem('uid:%s' % old_email)
-    pipe.set('uid:%s' % email, uid)
+    pipe.rem('uid:email:%s' % old_email)
+    pipe.set('uid:email:%s' % email, uid)
     pipe.hset('user:%d' % uid, 'email', email)
     pipe.execute()
     return True
@@ -278,7 +249,7 @@ def generate_token(signer, data):
         token = b64encode(signer.dumps(data).encode('ascii'))
         if app.config['DEBUG']:
             # Print the token to stderr in DEBUG mode
-            print datetime.utcnow().isoformat(), "Token generated:", token
+            print timegm(gmtime()), "Token generated:", token
     except (TypeError, ValueError):
         return None
     return token
@@ -286,14 +257,14 @@ def generate_token(signer, data):
 
 def check_token(signer, token):
     """
-    Checks a token againt the passed in signer.
+    Checks a token against the passed in signer.
     If it fails returns None if it works the data from the
     original token will me passed back.
     """
     try:
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
         if app.config['DEBUG']:
-            print datetime.utcnow().isoformat(), "Token checked:", token
+            print timegm(gmtime()), "Token checked:", token
     except (TypeError, ValueError):
         return None
     return data

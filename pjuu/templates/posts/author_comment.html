@@ -3,7 +3,7 @@
 </div>
 <div id="author" class="clearfix comment-form">
     <form action="{{ url_for('comment', username=post.user_username, pid=post.pid)  }}" method="post">
-        {{ post_form.body }}
+        {{ post_form.body(rows=3) }}
         {{ post_form.csrf_token }}
         <input type="submit" value="Post"/>
     </form>

@@ -2,7 +2,7 @@
 {% block main %}
 <div id="profile" class="clearfix">
     <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
-    <ul class="stats">
+    <ul>
         {% if profile['uid'] != current_user['uid'] %}
         {% if profile|following %}
         <a href="{{ url_for('unfollow', username=profile['username']) }}">

@@ -1,25 +1,41 @@
 {% extends 'users/base.html' %}
 
 {% block main %}
-<div id="post-main" class="clearfix">
-    <img class="avatar" src="{{post.user_email|gravatar(96)}}"/>
+<div id="post" class="clearfix">
+    <img class="avatar" src="{{ post.user_email|gravatar(96) }}" />
 
-    <div class="action">
-        {% if post.uid == current_user.uid %}
-        <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid) }}">
-            <div class="delete">X</div>
-        </a>
+    <div class="scoring">
+        <div class="score">{{ post.score|millify }}</div>
+        {% if current_user.uid != post.uid %}
+        <div class="vote">
+            {% if post.pid|voted %}
+            <div class="vote-score">{{ post.pid|voted }}</div>
+            {% else %}
+            <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid) }}"><div>Up</div></a>
+            <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid) }}"><div>Down</div></a>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
-    <div class="contents">
+
+    <div class="control">
+        {% if post.user_username == current_user.username %}
+        <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid) }}"><div class="delete">X</div></a>
+        {% endif %}
+    </div>
+
+    <div class="details clearfix">
         <div class="username">
-            <span class="user-score">{{ post.user_score }}</span>
-            <a href="{{url_for('profile', username=post.user_username)}}">{{post.user_username}}</a>
+            <span class="user-score">{{ post.user_score|millify }}</span>
+            <a href="{{url_for('profile', username=post.user_username)}}">{{ post.user_username }}</a>
         </div>
-        <div class="body">{{post.body}}</div>
+        <div class="body">{{ post.body|urlize }}</div>
+        <div class="created">{{ post.created|timeify }}</div>
     </div>
 </div>
+
 {% include 'posts/author_comment.html' %}
+
 <div id="content" class="clearfix">
     <h1>Comments</h1>
     {% include 'users/list_comments.html' %}

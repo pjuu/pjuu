@@ -27,21 +27,22 @@ def create_post(uid, body):
     # Add post
     pipe.hmset('post:%d' % pid, post)
     # Add post to users post list
-    pipe.lpush('posts:%d' % uid, pid)
+    pipe.lpush('user:%d:posts' % uid, pid)
     # Add post to authors feed
-    pipe.lpush('feed:%d' % uid, pid)
+    pipe.lpush('user:%d:feed' % uid, pid)
     # Ensure the feed does not grow to large
-    pipe.ltrim('feed:%d' % uid, 0, 999)
+    pipe.ltrim('user:%d:feed' % uid, 0, 999)
     pipe.execute()
     # Append to all followers feeds
     # TODO This needs putting in to Celery->RabbitMQ at some point
     # as this could take a long long while.
-    followers = r.zrange('followers:%d' % uid, 0, -1)
+    followers = r.zrange('user:%d:followers' % uid, 0, -1)
     # This is not transactional as to not hold Redis up.
     for fid in followers:
-        r.lpush('feed:%s' % fid, pid)
-        # Stop followerss feed from growing to large
-        r.ltrim('feed:%s' % fid, 0, 999)
+        fid = int(fid)
+        r.lpush('user:%d:feed' % fid, pid)
+        # Stop followers feeds from growing to large
+        r.ltrim('user:%d:feed' % fid, 0, 999)
     return pid
 
 
@@ -50,6 +51,7 @@ def create_comment(uid, pid, body):
     Create a new comment.
     """
     cid = int(r.incr('global:cid'))
+    pid = int(pid)
     # Form for comment hash
     comment = {
         'cid': cid,
@@ -64,16 +66,14 @@ def create_comment(uid, pid, body):
     # Add comment
     pipe.hmset('comment:%d' % cid, comment)
     # Add comment to posts comment list
-    pipe.lpush('comments:%d' % pid, cid)
+    pipe.lpush('post:%d:comments' % pid, cid)
     pipe.execute()
     return cid
 
 
 def check_post(uid, pid, cid=None):
     """
-    This function will ensure that cid belong to pid and pid
-    belongs to username. If post is not a comment then pass
-    None should be passed to cid.
+    This function will ensure that cid belongs to pid and pid belongs to uid
     """
     try:
         pid = int(pid)
@@ -101,13 +101,13 @@ def get_post(pid):
         post['user_username'] = user_dict['username']
         post['user_email'] = user_dict['email']
         post['user_score'] = user_dict['score']
-        post['comment_count'] = r.llen('comments:%d' % int(pid))
+        post['comment_count'] = r.llen('post:%d:comments' % int(pid))
     return post
 
 
 def get_comment(cid):
     """
-    Returns a dictionary which has everything to display a Comment
+    This is the in-app representation of a comment.
     """
     comment = r.hgetall('comment:%d' % int(cid))
     if comment:
@@ -115,41 +115,86 @@ def get_comment(cid):
         comment['user_username'] = user_dict['username']
         comment['user_email'] = user_dict['email']
         comment['user_score'] = user_dict['score']
+        # We need the username from the parent pid to construct a URL
+        post_author_uid = r.hget('post:%s' % comment['pid'], 'uid')
+        comment['post_author'] = r.hget('user:%s' % post_author_uid, 'username')
     return comment
+
+
+def get_post_author(pid):
+    """
+    Returns UID of posts author
+    """
+    return int(r.hget('post:%d' % int(pid), 'uid'))
+
+
+def get_comment_author(cid):
+    """
+    Returns UID of comments author
+    """
+    return int(r.hget('comment:%d' % int(cid), 'uid'))
 
 
 def has_voted(uid, pid, cid=None):
     """
-    Checks to see if uid has voted on a post. This is pointless after 30 days.
+    Checks to see if uid has voted on a post.
+    With return -1 if user downvoted, 1 if user upvoted and None if not voted
     """
     uid = int(uid)
     pid = int(pid)
     if cid is not None:
         cid = int(cid)
-        result = r.zrank('comment:votes:%d' % cid, uid)
+        result = r.zscore('comment:%d:votes' % cid, uid)
     else:
-        result = r.zrank('post:votes:%d' % pid, uid)
-    return True if result is not None else False
+        result = r.zscore('post:%d:votes' % pid, uid)
+    return result
 
 
 def upvote(uid, pid, cid=None):
-    """
-    sdfkgihsdi
-    """
+    """ Upvotes a post """
+    uid = int(uid)
+    pid = int(pid)
     if cid is not None:
         cid = int(cid)
-        r.zadd('comment:votes:%d' % cid, uid)
+        author_uid = int(r.hget('comment:%d' % cid, 'uid'))
+        r.zadd('comment:%d:votes' % cid, 1, uid)
         r.hincrby('comment:%d' % cid, 'score')
+        r.hincrby('user:%d' % author_uid, 'score')
         return True
     else:
-        r.zadd('post:votes:%d' % pid, uid)
+        author_uid = int(r.hget('post:%d' % pid, 'uid'))
+        r.zadd('post:%d:votes' % pid, 1, uid)
+        r.hincrby('post:%d' % pid, 'score')
+        r.hincrby('user:%d' % author_uid, 'score')
         return True
     return False
 
 
-def downvote(pid, cid=None):
-    pass
+def downvote(uid, pid, cid=None):
+    """ Downvotes a post """
+    uid = int(uid)
+    pid = int(pid)
+    if cid is not None:
+        cid = int(cid)
+        author_uid = int(r.hget('comment:%d' % cid, 'uid'))
+        r.zadd('comment:%d:votes' % cid, -1, uid)
+        r.hincrby('comment:%d' % cid, 'score', amount=-1)
+        r.hincrby('user:%d' % author_uid, 'score', amount=-1)
+        return True
+    else:
+        author_uid = int(r.hget('post:%d' % pid, 'uid'))
+        r.zadd('post:%d:votes' % pid, -1, uid)
+        r.hincrby('post:%d' % pid, 'score', amount=-1)
+        r.hincrby('user:%d' % author_uid, 'score', amount=-1)
+        return True
+    return False
 
 
-def delete(pid, cid=None):
+def delete(uid, pid, cid=None):
+    """
+    Deletes a post/comment
+    If this is a post it will delete all comments, all votes, etc...
+    If this is a comment it will delete just this comment and its votes.
+    None of this should call users to lose or gain points!
+    """
     pass

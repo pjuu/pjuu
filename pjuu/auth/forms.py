@@ -21,7 +21,7 @@ class ResetForm(Form):
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
         Length(min=6,
-               message='Password must be atleast 6 characters long'),
+               message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
 
@@ -31,7 +31,7 @@ class PasswordChangeForm(Form):
     new_password = PasswordField('New password', [
         EqualTo('new_password2', message='Passwords must match'),
         Length(min=6,
-               message='Password must be atleast 6 characters long'),
+               message='Password must be at least 6 characters long'),
         Required()])
     new_password2 = PasswordField('Confirm new password')
 
@@ -48,15 +48,15 @@ class ChangeEmailForm(Form):
 
 class SignupForm(Form):
     username = TextField('User name', [
-        Regexp(r'^[a-zA-Z0-9_]{3,16}$', message=('Username must be between 3 '
-                                                 'and 16 characters and can only contain '
-                                                 'letters, numbers and \'_\' characters.')),
+        Regexp(r'^[a-zA-Z0-9_]{3,16}$',
+               message=('Username must be between 3 and 16 characters and can'
+                        ' only contain letters, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
         Length(min=6,
-               message='Password must be atleast 6 characters long'),
+               message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
 
