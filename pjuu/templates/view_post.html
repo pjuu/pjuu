@@ -1,4 +1,4 @@
-{% extends 'users/base.html' %}
+{% extends 'base_main.html' %}
 
 {% block main %}
 <div id="post" class="clearfix">
@@ -11,8 +11,8 @@
             {% if post.pid|voted %}
             <div class="vote-score">{{ post.pid|voted }}</div>
             {% else %}
-            <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid) }}"><div>Up</div></a>
-            <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid) }}"><div>Down</div></a>
+            <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid, next=request.path) }}"><div>Up</div></a>
+            <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid, next=request.path) }}"><div>Down</div></a>
             {% endif %}
         </div>
         {% endif %}
@@ -27,17 +27,17 @@
     <div class="details clearfix">
         <div class="username">
             <span class="user-score">{{ post.user_score|millify }}</span>
-            <a href="{{url_for('profile', username=post.user_username)}}">{{ post.user_username }}</a>
+            <a href="{{url_for('profile', username=post.user_username)}}">{{ post.user_username|capitalize }}</a>
         </div>
         <div class="body">{{ post.body|urlize }}</div>
         <div class="created">{{ post.created|timeify }}</div>
     </div>
 </div>
 
-{% include 'posts/author_comment.html' %}
+{% include 'author_comment.html' %}
 
 <div id="content" class="clearfix">
     <h1>Comments</h1>
-    {% include 'users/list_comments.html' %}
+    {% include 'list_comments.html' %}
 </div>
 {% endblock %}

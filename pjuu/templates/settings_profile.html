@@ -1,0 +1,11 @@
+{% extends 'base_main.html' %}
+
+{% block main %}
+<div id="content" class="clearfix">
+    <h1>Profile Settings</h1>
+    User Name: {{ current_user.username|capitalize }}
+    <form action="" id="setting" method="post">
+
+    </form>
+</div>
+{% endblock %}

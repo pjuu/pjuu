@@ -5,11 +5,11 @@ from flask import (abort, flash, redirect, request,
                    url_for)
 # Pjuu imports
 from pjuu import app
-from pjuu.auth.backend import current_user, is_safe_url, get_uid
+from pjuu.auth.backend import current_user, get_uid
 from pjuu.auth.decorators import login_required
+from pjuu.lib import handle_next
 from .backend import (create_post, create_comment, check_post,
-                      downvote as be_downvote, upvote as be_upvote,
-                      has_voted)
+                      vote as be_vote, has_voted)
 from .forms import PostForm
 
 
@@ -21,38 +21,42 @@ def voted_filter(pid, cid=None):
     vote = has_voted(current_user['uid'], pid, cid=cid)
     if vote is not None:
         vote = int(vote)
-        if vote == 1:
-            vote = "+1"
+        if vote > 0:
+            vote = "+" + str(vote)
     return vote
 
 
 @app.route('/post', methods=['POST'])
 @login_required
-def post():
-    # Handle 'next' query string variable
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('profile', username=current_user['username'])
+def post(redirect_url=None):
+    redirect_url = handle_next(request,
+        url_for('profile', username=current_user['username']))
 
     form = PostForm(request.form)
     if form.validate():
         pid = create_post(current_user['uid'], form.body.data)
         flash('Your post has been added', 'success')
     else:
-        flash('That\'s a pointless post', 'error')
+        # This alert can handle only 1 form error
+        flash(form.body.errors[0], 'error')
     return redirect(redirect_url)
 
 
 @app.route('/<username>/<int:pid>/comment', methods=['POST'])
 @login_required
 def comment(username, pid):
+    redirect_url = handle_next(request,
+        url_for('view_post', username=username, pid=pid))
+
     form = PostForm(request.form)
     if form.validate():
         cid = create_comment(current_user['uid'], pid, form.body.data)
         flash('Your comment has been added', 'success')
     else:
-        flash('That\'s a pointless comment', 'error')
-    return redirect(url_for('view_post', username=username, pid=pid))
+        # This alert can handle only 1 form error
+        flash(form.body.errors[0], 'error')
+
+    return redirect(redirect_url)
 
 
 @app.route('/<username>/<int:pid>/upvote', methods=['GET'])
@@ -61,20 +65,21 @@ def upvote(username, pid=-1, cid=None):
     """
     Upvotes a post or comment.
     """
+    redirect_url = handle_next(request,
+        url_for('view_post', username=username, pid=pid))
+
     uid = get_uid(username)
     if not check_post(uid, pid, cid):
         return abort(404)
 
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('view_post', username=username, pid=pid)
-
     # Don't allow a user to vote twice or vote on own post
     if not has_voted(current_user['uid'], pid, cid):
         if cid:
-            be_upvote(current_user['uid'], pid, cid)
+            result = be_vote(current_user['uid'], pid, cid, amount=1)
         else:
-            be_upvote(current_user['uid'], pid)
+            result = be_vote(current_user['uid'], pid, amount=1)
+        if not result:
+            flash('You can not vote on your own posts', 'information')
     else:
         flash('You have already voted on this item', 'information')
 
@@ -87,20 +92,21 @@ def downvote(username, pid=-1, cid=None):
     """
     Downvotes a post or comment.
     """
+    redirect_url = handle_next(request,
+        url_for('view_post', username=username, pid=pid))
+
     uid = get_uid(username)
     if not check_post(uid, pid, cid):
         return abort(404)
 
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('view_post', username=username, pid=pid)
-
-    # Don't allow a user to vote twice
+    # Don't allow a user to vote twice or vote on own post
     if not has_voted(current_user['uid'], pid, cid):
         if cid:
-            be_downvote(current_user['uid'], pid, cid)
+            result = be_vote(current_user['uid'], pid, cid, amount=-1)
         else:
-            be_downvote(current_user['uid'], pid)
+            result = be_vote(current_user['uid'], pid, amount=-1)
+        if not result:
+            flash('You can not vote on your own posts', 'information')
     else:
         flash('You have already voted on this item', 'information')
 

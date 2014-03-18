@@ -2,7 +2,6 @@
 # Stdlib imports
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
-from urlparse import urlparse, urljoin
 from time import gmtime
 from calendar import timegm
 import re
@@ -229,16 +228,6 @@ def change_email(uid, email):
     pipe.hset('user:%d' % uid, 'email', email)
     pipe.execute()
     return True
-
-
-def is_safe_url(target):
-    """
-    Ensure the url is safe to redirect (this is here as auth==security)
-    """
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
 
 
 def generate_token(signer, data):

@@ -2,7 +2,7 @@
     Create a new post
 </div>
 <div id="author" class="clearfix post-form">
-    <form action="/post" method="post">
+    <form action="{{ url_for('post', next=request.path) }}" method="post">
         {{ post_form.body(rows=3) }}
         {{ post_form.csrf_token }}
         <input type="submit" value="Post"/>

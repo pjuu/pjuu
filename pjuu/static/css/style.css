@@ -412,9 +412,8 @@ textarea {
 
 #author-hider {
     border-radius: 3px 3px 0 0;
-    cursor: pointer;
     font-weight: 700;
-    padding: 0.5em 0;
+    padding: 0.1em 0;
     text-align: center;
     margin: 0.5em 0 0;
 }
@@ -565,7 +564,7 @@ textarea {
 }
 
 #list .control .delete {
-    color: #F00;
+    color: #CCC;
     border-radius: 5px;
     font-weight: 700;
     text-align: center;
@@ -573,8 +572,7 @@ textarea {
 }
 
 #list .control .delete:hover {
-    background-color: #F00;
-    color: #FFF;
+    color: #F00;
 }
 
 #list .user .contents {
@@ -679,7 +677,7 @@ textarea {
 }
 
 #post .control .delete {
-    color: #F00;
+    color: #CCC;
     border-radius: 5px;
     font-weight: 700;
     text-align: center;
@@ -687,8 +685,7 @@ textarea {
 }
 
 #post .control .delete:hover {
-    background-color: #F00;
-    color: #FFF;
+    color: #F00;
 }
 
 /*

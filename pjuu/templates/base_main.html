@@ -21,16 +21,14 @@
     </ul>
     <div class="search">
         <form action="{{ url_for('search') }}" method="GET">
-            <label for="query">Search</label>
+            <label for="query">Search users</label>
             <input type="text" name="query"/>
             <input type="submit" value="Search"/>
         </form>
     </div>
     <div class="open-source">
-        Pjuu is open source software<br /> Fork us or just contribute<br />
-        <a href="https://github.com/pjuu/pjuu" target="_blank">
-            <img src="{{ url_for('static', filename='img/github.png') }}" />
-        </a>
+        Pjuu will be open source software in the future.<br>
+        Once we are happy there is no security flaws we will release on Github.
     </div>
 </div>
 <div id="main">

@@ -1,17 +1,17 @@
-{% extends 'users/base.html' %}
+{% extends 'base_main.html' %}
 {% block main %}
 <div id="profile" class="clearfix">
     <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
     <ul>
         {% if profile['uid'] != current_user['uid'] %}
         {% if profile|following %}
-        <a href="{{ url_for('unfollow', username=profile['username']) }}">
+        <a href="{{ url_for('unfollow', username=profile['username'], next=request.path) }}">
             <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
                  class="action-button unfollow">Following
             </div>
         </a>
         {% else %}
-        <a href="{{ url_for('follow', username=profile['username']) }}">
+        <a href="{{ url_for('follow', username=profile['username'], next=request.path) }}">
             <div class="action-button follow">Follow</div>
         </a>
         {% endif %}
@@ -31,12 +31,12 @@
         </a>
     </ul>
     <div class="details">
-        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{ profile['username'] }}</div>
+        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{ profile['username']|capitalize }}</div>
         <div class="body">{{profile['about']}}</div>
     </div>
 </div>
 {% if profile['uid'] == current_user['uid'] %}
-{% include 'posts/author_post.html' %}
+{% include 'author_post.html' %}
 {% endif %}
 <div id="content" class="clearfix">
     {% block content %}{% endblock %}

@@ -150,43 +150,27 @@ def has_voted(uid, pid, cid=None):
     return result
 
 
-def upvote(uid, pid, cid=None):
-    """ Upvotes a post """
+def vote(uid, pid, cid=None, amount=1):
+    """
+    Handles all voting in Pjuu
+    """
     uid = int(uid)
     pid = int(pid)
     if cid is not None:
         cid = int(cid)
         author_uid = int(r.hget('comment:%d' % cid, 'uid'))
-        r.zadd('comment:%d:votes' % cid, 1, uid)
-        r.hincrby('comment:%d' % cid, 'score')
-        r.hincrby('user:%d' % author_uid, 'score')
-        return True
+        if author_uid != uid:
+            r.zadd('comment:%d:votes' % cid, amount, uid)
+            r.hincrby('comment:%d' % cid, 'score', amount=amount)
+            r.hincrby('user:%d' % author_uid, 'score', amount=amount)
+            return True
     else:
         author_uid = int(r.hget('post:%d' % pid, 'uid'))
-        r.zadd('post:%d:votes' % pid, 1, uid)
-        r.hincrby('post:%d' % pid, 'score')
-        r.hincrby('user:%d' % author_uid, 'score')
-        return True
-    return False
-
-
-def downvote(uid, pid, cid=None):
-    """ Downvotes a post """
-    uid = int(uid)
-    pid = int(pid)
-    if cid is not None:
-        cid = int(cid)
-        author_uid = int(r.hget('comment:%d' % cid, 'uid'))
-        r.zadd('comment:%d:votes' % cid, -1, uid)
-        r.hincrby('comment:%d' % cid, 'score', amount=-1)
-        r.hincrby('user:%d' % author_uid, 'score', amount=-1)
-        return True
-    else:
-        author_uid = int(r.hget('post:%d' % pid, 'uid'))
-        r.zadd('post:%d:votes' % pid, -1, uid)
-        r.hincrby('post:%d' % pid, 'score', amount=-1)
-        r.hincrby('user:%d' % author_uid, 'score', amount=-1)
-        return True
+        if author_uid != uid:
+            r.zadd('post:%d:votes' % pid, amount, uid)
+            r.hincrby('post:%d' % pid, 'score', amount=amount)
+            r.hincrby('user:%d' % author_uid, 'score', amount=amount)
+            return True
     return False
 
 

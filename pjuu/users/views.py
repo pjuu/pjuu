@@ -6,17 +6,22 @@ from time import gmtime, strftime
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request,
                    url_for)
+import re
 # Pjuu imports
 from pjuu import app
-from pjuu.auth.backend import (current_user, get_uid, is_safe_url,
+from pjuu.auth.backend import (current_user, get_uid,
                                get_uid_email, get_uid_username)
 from pjuu.auth.decorators import login_required
 from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountForm
+from pjuu.lib import handle_next
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
                       get_comments)
+
+
+username_re = re.compile(r' @([A-Za-z_]{3, 16}) ')
 
 
 @app.template_filter('following')
@@ -39,6 +44,7 @@ def gravatar_filter(email, size=24):
 @app.template_filter('nameify')
 def nameify_filter(body):
     """
+    Will highlight user names inside a post. This is done after urlize
     """
     return body
 
@@ -94,7 +100,7 @@ def feed():
     pagination = get_feed(int(current_user['uid']), page)
     # Post form
     post_form = PostForm()
-    return render_template('users/feed.html', pagination=pagination,
+    return render_template('feed.html', pagination=pagination,
                            post_form=post_form)
 
 
@@ -123,7 +129,7 @@ def profile(username):
     pagination = get_posts(uid, page)
     # Post form
     post_form = PostForm()
-    return render_template('users/posts.html', profile=profile,
+    return render_template('posts.html', profile=profile,
                            pagination=pagination, post_form=post_form)
 
 
@@ -145,7 +151,7 @@ def view_post(username, pid):
     # Get comments
     pagination = get_comments(pid, page)
     post_form = PostForm()
-    return render_template('users/view_post.html', post=post,
+    return render_template('view_post.html', post=post,
                            pagination=pagination, post_form=post_form)
 
 
@@ -171,7 +177,7 @@ def following(username):
     following = get_following(uid, page)
     # Post form
     post_form = PostForm()
-    return render_template('users/following.html', profile=profile,
+    return render_template('following.html', profile=profile,
                            pagination=following, post_form=post_form)
 
 
@@ -197,22 +203,20 @@ def followers(username):
     _followers = get_followers(uid, page)
     # Post form
     post_form = PostForm()
-    return render_template('users/followers.html', profile=_profile,
+    return render_template('followers.html', profile=_profile,
                            pagination=_followers, post_form=post_form)
 
 
 @app.route('/<username>/follow', methods=['GET'])
 @login_required
 def follow(username):
+    redirect_url = handle_next(request,
+        url_for('following', username=current_user['username']))
+
     uid = get_uid(username)
 
     if uid is None:
         abort(404)
-
-    # We redirect so we don't have to user AJAX straight away
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('profile', username=username)
 
     # Follow user
     if follow_user(current_user['uid'], uid):
@@ -223,15 +227,13 @@ def follow(username):
 @app.route('/<username>/unfollow', methods=['GET'])
 @login_required
 def unfollow(username):
+    redirect_url = handle_next(request,
+        url_for('following', username=current_user['username']))
+
     uid = get_uid(username)
 
     if uid is None:
         abort(404)
-
-    # We redirect so we don't have to user AJAX straight away
-    redirect_url = request.values.get('next', None)
-    if not redirect_url or not is_safe_url(redirect_url):
-        redirect_url = url_for('profile', username=username)
 
     # Unfollow user
     if unfollow_user(current_user['uid'], uid):
@@ -247,7 +249,7 @@ def search():
     """
     query = request.args['query'] or None
     users = {}
-    return render_template('users/search.html', query=query,
+    return render_template('search.html', query=query,
                            users=users)
 
 
@@ -257,7 +259,7 @@ def settings_profile():
     """
     Allows users to customize their profile direct from this view.
     """
-    return render_template('users/settings_profile.html')
+    return render_template('settings_profile.html')
 
 
 @app.route('/settings/account', methods=['GET'])
@@ -270,7 +272,7 @@ def settings_account():
     password_change_form = PasswordChangeForm()
     change_email_form = ChangeEmailForm()
     delete_account_form = DeleteAccountForm()
-    return render_template('users/settings_account.html',
+    return render_template('settings_account.html',
                            password_change_form=password_change_form,
                            change_email_form=change_email_form,
                            delete_account_form=delete_account_form)

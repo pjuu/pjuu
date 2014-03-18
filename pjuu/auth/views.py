@@ -4,14 +4,15 @@ from flask import (flash, redirect, render_template, request,
                    url_for)
 # Pjuu imports
 from pjuu import app
+from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
-from .backend import (authenticate, current_user, is_safe_url, login,
+from .backend import (authenticate, current_user, login,
                       logout, create_user, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token,
                       activate as be_activate,
                       change_password as be_change_password,
                       change_email as be_change_email,
-                      get_uid, is_active, is_banned)
+                      get_uid, is_active, is_banned, get_email)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
                     ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
@@ -36,9 +37,8 @@ def signin():
     form = LoginForm(request.form)
     if request.method == 'POST':
         # Handles the passing of the next argument to the login view
-        redirect_url = request.values.get('next', None)
-        if not redirect_url or not is_safe_url(redirect_url):
-            redirect_url = url_for('feed')
+        redirect_url = handle_next(request, url_for('feed'))
+
         if form.validate():
             # Calls authenticate from backend.py
             uid = authenticate(form.username.data, form.password.data)
@@ -47,15 +47,15 @@ def signin():
                     flash('Please activate your account<br />'
                           'Check your e-mail', 'information')
                 elif is_banned(uid):
-                    flash('You\'re a very naughty otter!', 'error')
+                    flash('You\'re a very naughty boy!', 'error')
                 else:
                     login(uid)
                     return redirect(redirect_url)
             else:
-                flash('Invalid user name or password.', 'error')
+                flash('Invalid user name or password', 'error')
         else:
-            flash('Invalid user name or password.', 'error')
-    return render_template('auth/signin.html', form=form)
+            flash('Invalid user name or password', 'error')
+    return render_template('signin.html', form=form)
 
 
 @app.route('/signout', methods=['GET'])
@@ -67,7 +67,7 @@ def signout():
     """
     if current_user:
         logout()
-        flash('Successfully logged out.', 'success')
+        flash('Successfully logged out', 'success')
     return redirect(url_for('signin'))
 
 
@@ -84,6 +84,7 @@ def signup():
             if uid:
                 token = generate_token(activate_signer,
                                        {'uid': uid})
+                # Do not send e-mail if NOMAIL
                 if not app.config['NOMAIL']:
                     send_mail('Activation', [form.email.data],
                               text_body=render_template('emails/activate.txt',
@@ -95,7 +96,7 @@ def signup():
                 return redirect(url_for('signin'))
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your signup form.', 'error')
-    return render_template('auth/signup.html', form=form)
+    return render_template('signup.html', form=form)
 
 
 @app.route('/activate/<token>', methods=['GET'])
@@ -131,7 +132,7 @@ def forgot():
             # Only send e-mails to user which exist.
             token = generate_token(forgot_signer, {'uid': uid})
             if not app.config['NOMAIL']:
-                send_mail('Password reset', [user.email],
+                send_mail('Password reset', get_email(uid),
                           text_body=render_template('emails/forgot.txt',
                                                     token=token),
                           html_body=render_template('emails/forgot.html',
@@ -139,7 +140,7 @@ def forgot():
         flash('If we\'ve found you we\'ve e-mailed you a reset link too you.',
               'information')
         return redirect(url_for('signin'))
-    return render_template('auth/forgot.html', form=form)
+    return render_template('forgot.html', form=form)
 
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
@@ -158,14 +159,13 @@ def reset(token):
     else:
         flash('Invalid token.', 'error')
         return redirect(url_for('signin'))
-    return render_template('auth/reset.html', form=form)
+    return render_template('reset.html', form=form)
 
 
-# The following commands should be used when user is logged in.
+# The following commands should be used when the user is logged in.
 # These have nothing to do with templates. All of these have to redirect
 # to users.settings_account view so that the template naming and layout make
-# sense. These are the only functions inside pjuu.auth that require an outside
-# function.
+# sense.
 # TODO: ALL OF THE BELOW
 
 

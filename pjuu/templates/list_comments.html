@@ -1,4 +1,4 @@
-{% extends 'users/list.html' %}
+{% extends 'list.html' %}
 
 {% block list %}
 {% if pagination.items %}
@@ -12,8 +12,8 @@
             {% if item.pid|voted(cid=item.cid) %}
             <div class="vote-score">{{ item.pid|voted(cid=item.cid) }}</div>
             {% else %}
-            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid) }}"><div>Up</div></a>
-            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid) }}"><div>Down</div></a>
+            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}"><div>Up</div></a>
+            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}"><div>Down</div></a>
             {% endif %}
         </div>
         {% endif %}
@@ -26,7 +26,7 @@
     <div class="details clearfix">
         <div class="username">
             <span class="user-score">{{ item.user_score|millify }}</span>
-            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username }}</a>
+            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username|capitalize }}</a>
         </div>
         <div class="body">{{ item.body }}</div>
         <div class="created">{{ item.created|timeify }}</a></div>

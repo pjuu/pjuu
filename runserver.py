@@ -9,15 +9,15 @@ from pjuu import app
 
 if __name__ == '__main__':
     """
-    Run Pjuu inside a debug enabled CherryPy
+    Run Pjuu inside a debug enabled CherryPy.
+    This is our test server. It is much more stable than Flasks,
     """
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
     cherrypy.config.update({
         'engine.autoreload_on': True,
-        'log.screen': True,
         'server.socket_port': 5000,
-        'server.socket_host': '0.0.0.0'
+        'server.socket_host': '127.0.0.1'
     })
     try:
         cherrypy.engine.start()
