@@ -36,6 +36,10 @@ a:hover {
     color: #33F;
 }
 
+.mention {
+    font-weight: 700;
+}
+
 input[type=text],
 input[type=password],
 textarea {

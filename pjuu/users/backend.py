@@ -14,7 +14,7 @@ def get_profile(uid):
     """
     profile = r.hgetall('user:%d' % uid)
     if profile:
-        profile['post_count'] = r.llen('posts:%d' % uid)
+        profile['post_count'] = r.llen('user:%d:posts' % uid)
         profile['followers_count'] = r.zcard('user:%d:followers' % uid)
         profile['following_count'] = r.zcard('user:%d:following' % uid)
     return profile
