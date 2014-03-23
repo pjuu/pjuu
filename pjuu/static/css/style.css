@@ -108,7 +108,7 @@ textarea {
 
 #auth {
 	margin: 0 auto;
-	width: 30em;
+	width: 40em;
 }
 
 #auth .form {
@@ -159,6 +159,10 @@ textarea {
     float: right;
     font-weight: 700;
     padding: 0.25em 0.5em;
+}
+
+#recaptcha_widget_div {
+    margin: 0.5em auto 1em;
 }
 
 #auth .form .forgot {
@@ -468,14 +472,12 @@ textarea {
 }
 
 #list .item {
-    margin: 0.5em 0;
     padding: 0.5em 0;
     border-bottom: 1px solid #DEDEDE;
 }
 
-#list .first {
-    margin-top: 0;
-    padding-top: 0;
+#list .item:hover {
+    background-color: #F9F9F9;
 }
 
 #list .last {
@@ -737,6 +739,15 @@ textarea {
 ** Settings
 */
 
+#settings-menu {
+    padding: 0 0.5em;
+}
+
+#settings-menu li {
+    float: left;
+    padding: 0.25em 0.5em;
+}
+
 #setting {
     width: 30em;
     margin: 0 auto 0.25em;
@@ -774,4 +785,12 @@ textarea {
     float: right;
     font-weight: 700;
     padding: 0.25em 0.5em;
+}
+
+#settings-empty {
+    margin: 2em auto;
+    color: #777;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
 }

@@ -169,7 +169,7 @@ def reset(token):
 # TODO: ALL OF THE BELOW
 
 
-@app.route('/change_email', methods=['POST'])
+@app.route('/settings/email', methods=['POST'])
 @login_required
 def change_email():
     form = ChangeEmailForm(request.form)
@@ -192,7 +192,7 @@ def change_email():
     return redirect(url_for('settings_account'))
 
 
-@app.route('/confirm_email/<token>', methods=['GET'])
+@app.route('/settings/email/<token>', methods=['GET'])
 @login_required
 def confirm_email(token):
     # Attempt to get the data from the token
@@ -211,19 +211,22 @@ def confirm_email(token):
     return redirect(url_for('signup'))
 
 
-@app.route('/change_password', methods=['POST'])
+@app.route('/settings/password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     form = PasswordChangeForm(request.form)
     if form.validate():
         if authenticate(current_user['username'], form.password.data):
-            pass
+            # Update the users password!
+            be_change_password(current_user['uid'], form.new_password.data)
+            flash('Your password has successfully been update!', 'success')
     else:
         flash('Oh no! There are errors in your change password form.', 'error')
     return redirect(url_for('settings_account'))
 
 
-@app.route('/delete_account', methods=['POST'])
+@app.route('/settings/delete', methods=['GET', 'POST'])
 @login_required
 def delete_account():
-    pass
+    form = DeleteAccountForm(request.form)
+    return redirect(url_for('signin'))

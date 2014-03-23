@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 # 3rd party imports
-from flask.ext.wtf import Form
+from flask.ext.wtf import Form, RecaptchaField
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
@@ -59,6 +59,7 @@ class SignupForm(Form):
                message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
+    recaptcha = RecaptchaField()
 
     def validate_username(form, field):
         if not check_username(field.data):

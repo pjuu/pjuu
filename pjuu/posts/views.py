@@ -9,7 +9,8 @@ from pjuu.auth.backend import current_user, get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from .backend import (create_post, create_comment, check_post,
-                      vote as be_vote, has_voted)
+                      vote as be_vote, has_voted, get_comment_author,
+                      delete as be_delete)
 from .forms import PostForm
 
 
@@ -120,4 +121,21 @@ def delete_post(username, pid, cid=None):
     """
     Deletes posts and comments.
     """
-    pass
+    redirect_url = handle_next(request, url_for('feed'))
+
+    uid = get_uid(username)
+    if not check_post(uid, pid, cid):
+        return abort(404)
+
+    if cid is not None:
+        author_uid = get_comment_author(cid)
+        if author_uid != int(current_user['uid']):
+            return abort(403)
+    else:
+        print "POST", username, uid, pid, cid, current_user['uid']
+        if uid != int(current_user['uid']):
+            return abort(403)
+
+    # If you have made it here you can delete the post/comment
+    be_delete(uid, pid, cid)
+    return redirect(redirect_url)

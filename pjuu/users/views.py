@@ -253,6 +253,7 @@ def search():
                            users=users)
 
 
+@app.route('/settings', methods=['GET', 'POST'])
 @app.route('/settings/profile', methods=['GET', 'POST'])
 @login_required
 def settings_profile():
@@ -260,19 +261,3 @@ def settings_profile():
     Allows users to customize their profile direct from this view.
     """
     return render_template('settings_profile.html')
-
-
-@app.route('/settings/account', methods=['GET'])
-@login_required
-def settings_account():
-    """
-    Displays the forms necessary for a user to change the following
-    account details: e-mail, password & delete_account.
-    """
-    password_change_form = PasswordChangeForm()
-    change_email_form = ChangeEmailForm()
-    delete_account_form = DeleteAccountForm()
-    return render_template('settings_account.html',
-                           password_change_form=password_change_form,
-                           change_email_form=change_email_form,
-                           delete_account_form=delete_account_form)

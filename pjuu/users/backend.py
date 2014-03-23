@@ -39,7 +39,9 @@ def get_feed(uid, page=1):
                     (page * per_page) - 1)
     posts = []
     for pid in pids:
-        posts.append(get_post(pid))
+        post = get_post(pid)
+        if post:
+            posts.append(post)
     return Pagination(posts, total, page, per_page)
 
 
@@ -53,7 +55,9 @@ def get_posts(uid, page=1):
                     page * per_page)
     posts = []
     for pid in pids:
-        posts.append(get_post(pid))
+        post = get_post(pid)
+        if post:
+            posts.append(post)
     return Pagination(posts, total, page, per_page)
 
 
@@ -67,7 +71,9 @@ def get_comments(pid, page=1):
                     (page * per_page) - 1)
     comments = []
     for cid in cids:
-        comments.append(get_comment(cid))
+        comment = get_comment(cid)
+        if comment:
+            comments.append(comment)
     return Pagination(comments, total, page, per_page)
 
 

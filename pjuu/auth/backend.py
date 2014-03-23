@@ -210,8 +210,10 @@ def activate(uid):
 
 def change_password(uid, password):
     """
-    Changes uid's password. Checking of the old password _MUST_ be done before this.
+    Changes uid's password. Checking of the old password _MUST_ be done
+    before this.
     """
+    uid = int(uid)
     password = generate_password_hash(password)
     return r.hset('user:%d' % uid, 'password', password)
 

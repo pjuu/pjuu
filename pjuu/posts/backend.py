@@ -179,6 +179,25 @@ def delete(uid, pid, cid=None):
     Deletes a post/comment
     If this is a post it will delete all comments, all votes, etc...
     If this is a comment it will delete just this comment and its votes.
-    None of this should call users to lose or gain points!
+    None of this should not cause users to lose or gain points!
     """
     pass
+    pid = int(pid)
+    if cid:
+        # Delete comment and votes
+        cid = int(cid)
+        r.delete('comment:%d' % cid)
+        r.delete('comment:%d:votes' % cid)
+        r.lrem('post:%d:comments' % pid, 0, cid)
+    else:
+        # Delete post, comments and votes
+        r.delete('post:%d' % pid)
+        r.delete('post:%d:votes' % pid)
+        # This bit may need to go in celery
+        cids = r.lrange('post:%d:comments' % pid, 0, -1)
+        for cid in cids:
+            r.delete('comment:%d' % int(cid))
+            r.delete('comment:%d:votes' % int(cid))
+        r.delete('post:%d:comments' % pid)
+        r.lrem('user:%d:posts' % uid, 0, pid)
+    return True

@@ -12,7 +12,7 @@
         <a href="{{ url_for('profile', username=current_user.username) }}">
             <li><span class="user-score">{{ current_user.score|millify }}</span>{{ current_user.username|capitalize }}</li>
         </a>
-        <a href="{{ url_for('settings_account') }}">
+        <a href="{{ url_for('settings_profile') }}">
             <li>Settings</li>
         </a>
         <a href="{{ url_for('signout') }}">
