@@ -169,27 +169,29 @@ def reset(token):
 # TODO: ALL OF THE BELOW
 
 
-@app.route('/settings/email', methods=['POST'])
+@app.route('/settings/email', methods=['GET', 'POST'])
 @login_required
 def change_email():
     form = ChangeEmailForm(request.form)
-    if form.validate():
-        if authenticate(current_user['username'], form.password):
-            token = generate_token(email_signer, {'uid': uid,
-                                                  'email': form.email.data})
+    if request.method == 'POST':
+        if form.validate():
+            if authenticate(current_user['username'], form.password.data):
+                token = generate_token(email_signer,
+                            {'uid': current_user['uid'],
+                             'email': form.new_email.data})
 
-            if not app.config['NOMAIL']:
-                send_mail('Activation', [form.email.data],
-                          text_body=render_template('emails/activate.txt',
-                                                    token=token),
-                          html_body=render_template('emails/activate.html',
-                                                    token=token))
+                if not app.config['NOMAIL']:
+                    send_mail('Confirm e-mail change', [form.new_email.data],
+                              text_body=render_template('emails/activate.txt',
+                                                        token=token),
+                              html_body=render_template('emails/activate.html',
+                                                        token=token))
 
-            flash('We\'ve sent you an email, please confirm this.',
-                  'success')
-    else:
-        flash('Oh no! There are errors in your change email form.', 'error')
-    return redirect(url_for('settings_account'))
+                flash('We\'ve sent you an email, please confirm this.',
+                      'success')
+        else:
+            flash('Oh no! There are errors in your change email form.', 'error')
+    return render_template('change_email.html', form=form)
 
 
 @app.route('/settings/email/<token>', methods=['GET'])
@@ -203,30 +205,36 @@ def confirm_email(token):
         email = data['email']
         if uid:
             be_change_email(uid, email)
-            flash('Your account has now been activated.', 'success')
+            flash('Your e-mail has now been changed', 'success')
             return redirect(url_for('signin'))
 
     # The token is either out of date or has been tampered with
-    flash('Invalid token.', 'error')
-    return redirect(url_for('signup'))
+    flash('Invalid token. Stop mucking around', 'error')
+    return redirect(url_for('change_email'))
 
 
 @app.route('/settings/password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     form = PasswordChangeForm(request.form)
-    if form.validate():
-        if authenticate(current_user['username'], form.password.data):
-            # Update the users password!
-            be_change_password(current_user['uid'], form.new_password.data)
-            flash('Your password has successfully been update!', 'success')
-    else:
-        flash('Oh no! There are errors in your change password form.', 'error')
-    return redirect(url_for('settings_account'))
+    if request.method == 'POST':
+        if form.validate():
+            if authenticate(current_user['username'], form.password.data):
+                # Update the users password!
+                be_change_password(current_user['uid'], form.new_password.data)
+                flash('Your password has successfully been update!', 'success')
+        else:
+            flash('Oh no! There are errors in your change password form.', 'error')
+    return render_template('change_password.html', form=form)
 
 
 @app.route('/settings/delete', methods=['GET', 'POST'])
 @login_required
 def delete_account():
     form = DeleteAccountForm(request.form)
-    return redirect(url_for('signin'))
+    if request.method == 'POST':
+        if authenticate(current_user['username'], form.password.data):
+            flash('Account would have been deleted!<br>Your on a beta stop crying', 'information')
+        else:
+            flash('Invalid password', 'error')
+    return render_template('delete_account.html', form=form)

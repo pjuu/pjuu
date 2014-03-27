@@ -5,7 +5,7 @@ from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Package imports
-from .backend import check_email, check_username
+from .backend import check_email, check_username, authenticate, current_user
 
 
 class ForgotForm(Form):
@@ -27,7 +27,7 @@ class ResetForm(Form):
 
 
 class PasswordChangeForm(Form):
-    password = PasswordField('Password')
+    password = PasswordField('Current password')
     new_password = PasswordField('New password', [
         EqualTo('new_password2', message='Passwords must match'),
         Length(min=6,
@@ -35,15 +35,23 @@ class PasswordChangeForm(Form):
         Required()])
     new_password2 = PasswordField('Confirm new password')
 
+    def validate_password(form, field):
+        if not authenticate(current_user['username'], field.data):
+            raise ValidationError('Invalid password')
+
 
 class ChangeEmailForm(Form):
-    password = PasswordField('Password')
     new_email = TextField('New e-mail address', [Email(),
                                                  Length(max=254), Required()])
+    password = PasswordField('Current password')
 
-    def validate_email(form, field):
+    def validate_new_email(form, field):
         if not check_email(field.data):
-            raise ValidationError('E-Mail address already in use')
+            raise ValidationError('E-mail address already in use')
+
+    def validate_password(form, field):
+        if not authenticate(current_user['username'], field.data):
+            raise ValidationError('Invalid password')
 
 
 class SignupForm(Form):
@@ -71,4 +79,4 @@ class SignupForm(Form):
 
 
 class DeleteAccountForm(Form):
-    password = PasswordField('Password')
+    password = PasswordField('Current password')

@@ -8,7 +8,7 @@ from flask import (abort, flash, redirect, render_template, request,
                    url_for)
 import re
 # Pjuu imports
-from pjuu import app
+from pjuu import app, redis as r
 from pjuu.auth.backend import (current_user, get_uid,
                                get_uid_email, get_uid_username)
 from pjuu.auth.decorators import login_required
@@ -16,6 +16,7 @@ from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountFo
 from pjuu.lib import handle_next
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
+from .forms import ChangeProfile
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
                       get_comments)
@@ -260,4 +261,14 @@ def settings_profile():
     """
     Allows users to customize their profile direct from this view.
     """
-    return render_template('settings_profile.html')
+    form = ChangeProfile(request.form)
+    if request.method == 'POST':
+        print form.about.data
+        print form.validate()
+        if form.validate():
+            r.hset('user:%s' % current_user['uid'], 'about', form.about.data)
+            flash('Your profile has been updated', 'success')
+        else:
+            print form.errors
+            flash('error in your form', 'error')
+    return render_template('settings_profile.html', form=form)

@@ -3,6 +3,13 @@
 {% block main %}
 <div id="content" class="clearfix">
     <h1>Settings</h1>
-    <div id="settings-empty">Coming soon. The ability to change your own password. WOW!</div>
+    <ul id="settings-menu" class="clearfix">
+        <a href="{{ url_for('settings_profile') }}"><li>Profile</li></a>
+        <a href="{{ url_for('change_email') }}"><li>E-Mail Address</li></a>
+        <a href="{{ url_for('change_password') }}"><li>Password</li></a>
+        <a href="{{ url_for('delete_account') }}"><li>Delete Account</li></a>
+    </ul>
+    {% block settings_main %}
+    {% endblock %}
 </div>
 {% endblock %}

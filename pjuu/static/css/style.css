@@ -108,7 +108,7 @@ textarea {
 
 #auth {
 	margin: 0 auto;
-	width: 40em;
+	width: 30em;
 }
 
 #auth .form {
@@ -165,6 +165,10 @@ textarea {
     margin: 0.5em auto 1em;
 }
 
+#recaptcha_area {
+    margin: 0 auto;
+}
+
 #auth .form .forgot {
     font-size: 0.8em;
     font-weight: 400;
@@ -175,7 +179,7 @@ textarea {
     text-align: center;
 }
 
-#auth ul.errorlist {
+ul.errorlist {
     color: #F55;
     font-weight: 700;
     text-align: center;
@@ -203,7 +207,7 @@ textarea {
 }
 
 #menu ul {
-	color: #000;color: #FFF;
+	color: #FFF;
 	font-weight: 700;
     margin: 1em 0 0;
 }
@@ -295,8 +299,7 @@ textarea {
 #content h2 {
     color: #680;
     font-weight: 700;
-    margin: 0 0 0 3em;
-    padding: 0.5em;
+    padding: 0.5em 0;
 }
 
 /*
@@ -464,7 +467,7 @@ textarea {
     padding: 0em 1em 1em;
 }
 
-#list .empty {
+.empty {
     color: #777;
     font-size: 15px;
     font-weight: 700;
@@ -481,9 +484,7 @@ textarea {
 }
 
 #list .last {
-    margin-bottom: 0;
     border-bottom: 0;
-    padding-bottom: 0;
 }
 
 #list .avatar {
@@ -532,10 +533,11 @@ textarea {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
+    margin: 1em 0 0;
 }
 
 #list .body {
-    padding: 1em 0;
+    padding: 1em 0 0;
     word-wrap: break-word;
 }
 
@@ -741,16 +743,24 @@ textarea {
 
 #settings-menu {
     padding: 0 0.5em;
+	font-weight: 700;
 }
 
 #settings-menu li {
     float: left;
-    padding: 0.25em 0.5em;
+    color: #3D4526;
+    border-radius: 3px 3px 3px 3px;
+	padding: 0.5em 0.5em;
+}
+
+#settings-menu li:hover {
+    color: #FFF;
+	background-color: #680;
 }
 
 #setting {
     width: 30em;
-    margin: 0 auto 0.25em;
+    margin: 0 auto 1em;
     padding: 0.5em;
 }
 
@@ -771,13 +781,31 @@ textarea {
     width: 100%;
 }
 
+#setting textarea {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    border: 1px solid #666;
+    border-radius: 3px;
+    /* Support 100% width */
+    box-sizing: border-box; /* Opera/IE 8+ */
+    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
+    -moz-box-sizing: border-box; /* Firefox */
+    width: 100%;
+    resize: none;
+    padding: 0.5em;
+    margin: 0.5em 0 1em;
+}
+
 #setting input[type=text]:focus,
-#setting input[type=password]:focus {
+#setting input[type=password]:focus,
+#setting textarea:focus {
     border: 1px solid #680;
 }
 
 #setting input[type=text].error,
-#setting input[type=password].error {
+#setting input[type=password].error,
+#setting textarea.error {
     border: 1px solid #F50;
 }
 
@@ -785,6 +813,14 @@ textarea {
     float: right;
     font-weight: 700;
     padding: 0.25em 0.5em;
+}
+
+#setting .information {
+    margin: 1em 0 2em;
+}
+
+#setting .bold {
+    font-weight: 700;
 }
 
 #settings-empty {

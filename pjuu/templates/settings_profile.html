@@ -2,5 +2,21 @@
 
 
 {% block settings_main %}
-<div class="settings-empty">Coming soon. The ability to change your own password. WOW!</div>
+<div id="setting" class="clearfix">
+    <h2>Profile settings</h2>
+    <div class="information">User Name: <span class="bold">{{ current_user['username'] }}</span></div>
+    <form action="" method="post">
+        {{ form.about.label }}
+        <textarea id="about" name="about" rows="5">{{ current_user['about'] }}</textarea>
+        {% if form.about.errors %}
+        <ul class="errorlist">
+            {% for error in form.about.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {{ form.csrf_token }}
+        <input type="submit" value="Update Profile" tabindex="4"/>
+    </form>
+</div>
 {% endblock %}

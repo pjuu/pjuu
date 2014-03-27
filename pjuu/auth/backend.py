@@ -115,10 +115,8 @@ def check_email(email):
     Return true if free and false otherwise.
     """
     email = email.lower()
-    if email_re.match(email):
-        check = r.exists('uid:email:%s' % email)
-        return True if not check else False
-    return False
+    check = r.exists('uid:email:%s' % email)
+    return True if not check else False
 
 
 def create_user(username, email, password):
@@ -223,9 +221,12 @@ def change_email(uid, email):
     Changes the user with uid's e-mail address.
     Has to remove old lookup index and add the new one
     """
+    uid = int(uid)
+    # Get the previous e-mail address for the user
+    old_email = r.hget('user:%d' % uid, 'email')
     pipe = r.pipeline()
-    old_email = pipe.hget('user:%d' % uid, 'email')
-    pipe.rem('uid:email:%s' % old_email)
+    pipe.set('uid:email:%s' % old_email, -1)
+    pipe.pexpire('uid:email:%s' % old_email, 604800000)
     pipe.set('uid:email:%s' % email, uid)
     pipe.hset('user:%d' % uid, 'email', email)
     pipe.execute()

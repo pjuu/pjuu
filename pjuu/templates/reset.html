@@ -2,9 +2,16 @@
 
 {% block header %}Reset Password{% endblock%}
 {% block form %}
-<form action="" method="post">
+<form action="" method="post" autocomplete="off">
     {{ form.password.label }}
     {{ form.password }}
+    {% if form.password.errors %}
+    <ul class="errorlist">
+        {% for error in form.password.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     {{ form.password2.label }}
     {{ form.password2 }}
     {{ form.csrf_token }}

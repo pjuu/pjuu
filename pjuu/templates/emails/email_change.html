@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<p>Hi,<br>
+    You've asked to change your email.<br>
+    If you can press the link below we will update your data.</p>
+<p><a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a></p>
+{% endblock %}
+
+{% block content_footer %}
+<p>If you have received this e-mail but have no signed up for the Pjuu then you can ignore this e-mail.</p>
+{% endblock %}
