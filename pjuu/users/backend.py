@@ -146,7 +146,8 @@ def is_following(who_uid, whom_uid):
 def search(query, page=1):
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
     # Clean up query string
-    username_re = re.compile('[^a-zA-Z0-9_]+')
+    query = query.lower()
+    username_re = re.compile('[^a-z0-9_]+')
     query = username_re.sub('', query)
     # Lets find and get the users
     if len(query) > 0:
