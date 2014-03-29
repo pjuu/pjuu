@@ -20,7 +20,35 @@ email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 # Reserved names
 # TODO Come up with a better solution for this
-reserved_names = []
+reserved_names = [
+    'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
+    'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
+    'recover', 'forgot', 'api', 'app', 'apps', 'archive', 'auth',
+    'authentication', 'avatar', 'bin', 'billing', 'blog', 'blogs', 'chat',
+    'cache', 'calendar', 'careers', 'cgi', 'client', 'code', 'config',
+    'connect', 'contact', 'contest', 'create', 'code', 'css', 'dashboard',
+    'data', 'db', 'design', 'delete', 'dev', 'devel', 'dir', 'directory',
+    'doc', 'docs', 'domain', 'download', 'downloads', 'downvote', 'edit',
+    'editor', 'email', 'ecommerce', 'forum', 'forums', 'faq', 'favorite',
+    'feed', 'feedback', 'flog', 'follow', 'followers', 'following', 'forgot',
+    'file', 'files', 'find', 'group', 'groups', 'help', 'home', 'homepage',
+    'host', 'hosting', 'hostname', 'html', 'http', 'httpd', 'https', 'hpg',
+    'info', 'information', 'image', 'img', 'images', 'imap', 'index', 'invite',
+    'java', 'javascript', 'job', 'jobs', 'js', 'log', 'login', 'logs',
+    'logout', 'list', 'lists', 'mail', 'master', 'media', 'message',
+    'messages', 'name', 'net', 'network', 'new', 'news', 'newsletter', 'nick',
+    'nickname', 'notes', 'order', 'orders', 'page', 'pager', 'pages',
+    'password', 'pic', 'pics', 'photo', 'photos', 'php', 'pjuu', 'plugin',
+    'plugins', 'post', 'posts', 'profile', 'project', 'projects', 'pub',
+    'public', 'random', 'register', 'registration', 'reset', 'root', 'rss',
+    'script', 'scripts', 'search', 'secure', 'send', 'service', 'signup',
+    'signin', 'singout', 'search', 'security', 'setting', 'settings', 'setup',
+    'site', 'sites', 'sitemap', 'ssh', 'stage', 'staging', 'start',
+    'subscribe', 'subdomain', 'support', 'stat', 'static', 'stats', 'status',
+    'store', 'stores', 'system', 'tablet', 'template', 'templates' 'test',
+    'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
+    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user', 'username',
+    'usage', 'video', 'videos', 'web', 'webmail']
 
 
 # Signers
