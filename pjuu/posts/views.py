@@ -132,7 +132,6 @@ def delete_post(username, pid, cid=None):
         if author_uid != int(current_user['uid']):
             return abort(403)
     else:
-        print "POST", username, uid, pid, cid, current_user['uid']
         if uid != int(current_user['uid']):
             return abort(403)
 

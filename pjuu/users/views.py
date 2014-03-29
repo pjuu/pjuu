@@ -19,7 +19,7 @@ from pjuu.posts.forms import PostForm
 from .forms import ChangeProfile
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments)
+                      get_comments, search as be_search)
 
 
 username_re = re.compile(r' @([A-Za-z_]{3, 16}) ')
@@ -248,10 +248,13 @@ def search():
     """
     Handles searching of users. This is all done via a GET query.
     """
-    query = request.args['query'] or None
-    users = {}
+    if 'query' not in request.args:
+        query = ''
+    else:
+        query = request.args['query']
+    _results = be_search(query)
     return render_template('search.html', query=query,
-                           users=users)
+                           pagination=_results)
 
 
 @app.route('/settings', methods=['GET', 'POST'])

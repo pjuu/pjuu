@@ -2,6 +2,8 @@
 # Stdlib imports
 from time import gmtime
 from calendar import timegm
+import re
+import string
 # Pjuu imports
 from pjuu import app, redis as r
 from pjuu.lib.pagination import Pagination
@@ -139,3 +141,21 @@ def is_following(who_uid, whom_uid):
     Check to see if who is following whom. These need to be uids
     """
     return True if r.zrank("user:%s:following" % who_uid, whom_uid) is not None else False
+
+
+def search(query, page=1):
+    per_page = app.config['PROFILE_ITEMS_PER_PAGE']
+    # Clean up query string
+    username_re = re.compile('[^a-zA-Z0-9_]+')
+    query = username_re.sub('', query)
+    # Lets find and get the users
+    if len(query) > 0:
+        keys = r.keys('uid:username:%s*' % query)
+    else:
+        keys = []
+    results = []
+    for key in keys:
+        uid = r.get(key)
+        results.append(get_user(uid))
+    total = len(results)
+    return Pagination(results, total, page, per_page)
