@@ -103,6 +103,23 @@ textarea {
 }
 
 /*
+ * Motto
+ */
+
+#motto {
+    color: #D9E6AE;
+    font-size: 1.25em;
+    font-weight: 700;
+    margin: 0 auto 1em;
+    text-align: center;
+}
+
+#motto .sub {
+    font-size: 0.75em;
+    font-weight: 400;
+}
+
+/*
 ** AUTH
 */
 
