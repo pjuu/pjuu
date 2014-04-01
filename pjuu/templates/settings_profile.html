@@ -7,7 +7,8 @@
     <div class="information">User Name: <span class="bold">{{ current_user['username'] }}</span></div>
     <form action="" method="post">
         {{ form.about.label }}
-        <textarea id="about" name="about" rows="5">{{ current_user['about'] }}</textarea>
+        <textarea id="about" name="about" rows="5" maxlength="255">{{ current_user['about'] }}</textarea>
+        <div id="character-count"></div>
         {% if form.about.errors %}
         <ul class="errorlist">
             {% for error in form.about.errors %}

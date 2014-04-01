@@ -5,6 +5,7 @@
     <form action="{{ url_for('comment', username=post.user_username, pid=post.pid, next=request.path)  }}" method="post">
         {{ post_form.body(rows=3, maxlength=255) }}
         {{ post_form.csrf_token }}
+        <div id="character-count"></div>
         <input type="submit" value="Post"/>
     </form>
 </div>

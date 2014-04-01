@@ -476,7 +476,7 @@ ul.errorlist {
     padding: 0.25em 0.5em
 }
 
-.character-count {
+#character-count {
     float: left;
 }
 
