@@ -266,7 +266,6 @@ def settings_profile():
     """
     form = ChangeProfile(request.form)
     if request.method == 'POST':
-        print form.about.data
         print form.validate()
         if form.validate():
             r.hset('user:%s' % current_user['uid'], 'about', form.about.data)
