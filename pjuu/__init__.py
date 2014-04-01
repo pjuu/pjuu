@@ -25,7 +25,8 @@ app.config.from_object('pjuu.settings')
 app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
 # This is the _MAIN_ redis client. ONLY STORE DATA HERE
-redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'])
+redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
+                    decode_responses=True)
 # Create Flask-Mail
 mail = Mail(app)
 

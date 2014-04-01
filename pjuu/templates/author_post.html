@@ -3,8 +3,9 @@
 </div>
 <div id="author" class="clearfix post-form">
     <form action="{{ url_for('post', next=request.path) }}" method="post">
-        {{ post_form.body(rows=3) }}
+        {{ post_form.body(rows=3, maxlength=255) }}
         {{ post_form.csrf_token }}
+        <div class="character-count">0/255</div>
         <input type="submit" value="Post"/>
     </form>
 </div>

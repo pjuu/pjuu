@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf8"/>
     <title>Pjuu</title>
+    <meta charset="utf8"/>
+    <meta name="description" content="Open source social networking thing!"/>
     <link href="{{ url_for('static', filename='css/reset.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css"/>
 </head>
@@ -10,5 +11,17 @@
 <div id="wrapper" class="clearfix">
     {% block layout %}{% endblock %}
 </div>
+<script type="text/javascript">
+    function maxLength(el) {
+        if (!('maxLength' in el)) {
+          var max = el.attributes.maxLength.value;
+          el.onkeypress = function () {
+              if (this.value.length >= max) return false;
+            };
+        }
+    }
+
+    maxLength(document.getElementByTagName("textarea"));
+</script>
 </body>
 </html>
