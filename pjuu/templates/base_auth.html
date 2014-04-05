@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 {% block layout %}
-<div id="logo"><img alt="Pjuu" src="{{ url_for('static', filename='img/logo_white.png') }}"/></div>
+<div id="logo">PJUU</div>
 <div id="motto">
-    An open source social thing<br>
-    <span class="sub">Be in control of your data this time</span>
+    An open source social thing
 </div>
 <div id="auth">
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -17,7 +16,7 @@
     {% endwith %}
     <div class="form">
         <div class="header">{% block header %}{% endblock %}</div>
-        <div class="container clearfix">
+        <div class="elements clearfix">
             {% block form %}{% endblock %}
         </div>
     </div>

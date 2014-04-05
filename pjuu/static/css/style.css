@@ -47,17 +47,23 @@ textarea {
     font-weight: 400;
     font-size: 14px;
     border-radius: 3px 3px 3px 3px;
-    /* Support 100% width */
-    box-sizing: border-box; /* Opera/IE 8+ */
-    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
-	-moz-box-sizing: border-box; /* Firefox */
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     width: 100%;
 }
 
 #wrapper {
-    margin: 14px auto;
-    min-height: 100%;
+    margin: 1em auto;
+    width: 100%;
+}
+
+#wrapper .container {
     width: 960px;
+    margin: 0 auto;
 }
 
 /*
@@ -97,9 +103,13 @@ textarea {
 */
 
 #logo {
-    margin: 1em auto;
-    width: 210px;
-    height: 105px;
+    color: #FFF;
+    line-height: 1em;
+    margin: 0.5em 0 0 0;
+    padding: 0;
+    font-family: 'Englebert', sans-serif;
+    font-size: 5em;
+    text-align: center;
 }
 
 /*
@@ -107,11 +117,11 @@ textarea {
  */
 
 #motto {
-    color: #D9E6AE;
+    color: #FFF;
     font-size: 1.25em;
-    font-weight: 700;
     margin: 0 auto 1em;
     text-align: center;
+    font-family: Georgia, Garamond, serif;
 }
 
 #motto .sub {
@@ -125,7 +135,7 @@ textarea {
 
 #auth {
 	margin: 0 auto;
-	width: 30em;
+	width: 400px;
 }
 
 #auth .form {
@@ -145,7 +155,7 @@ textarea {
     padding: 0 0 0.25em;
 }
 
-#auth .form .container {
+#auth .elements {
     margin-top: 0.5em;
 }
 
@@ -850,4 +860,15 @@ ul.errorlist {
     font-size: 15px;
     font-weight: 700;
     text-align: center;
+}
+
+/* MEDIA QUERIES =========================================================== */
+
+@media only screen and (max-device-width: 480px) {
+
+    #auth {
+	    margin: 0 0.5em;
+	    width: 100%;
+    }
+
 }

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block layout %}
+<div class="container">
 <div id="menu" class="clearfix">
     <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52"/>
     <div class="version">
@@ -42,5 +43,6 @@
     {% endif %}
     {% endwith %}
     {% block main %}{% endblock %}
+</div>
 </div>
 {% endblock %}
