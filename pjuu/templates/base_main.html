@@ -1,48 +1,46 @@
 {% extends 'base.html' %}
 {% block layout %}
-<div class="container">
-<div id="menu" class="clearfix">
-    <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}" width="105" height="52"/>
-    <div class="version">
-        {{ version }}
-    </div>
-    <ul>
-        <a href="{{ url_for('feed') }}">
-            <li>Feed</li>
-        </a>
-        <a href="{{ url_for('profile', username=current_user.username) }}">
-            <li><span class="user-score">{{ current_user.score|millify }}</span>{{ current_user.username|capitalize }}</li>
-        </a>
-        <a href="{{ url_for('settings_profile') }}">
-            <li>Settings</li>
-        </a>
-        <a href="{{ url_for('signout') }}">
-            <li>Sign Out</li>
-        </a>
-    </ul>
-    <div class="search">
-        <form action="{{ url_for('search') }}" method="GET">
-            <label for="query">Search users</label>
-            <input type="text" name="query"/>
-            <input type="submit" value="Search"/>
-        </form>
-    </div>
-    <div class="open-source">
-        Pjuu will be open source software in the future.<br>
-        Once we are happy there is no security flaws we will release on Github.
+<div id="header" class="clearfix">
+    <div class="container">
+        <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}">
+        <ul class="menu">
+            <a href="{{ url_for('feed') }}">
+                <li>
+                    <img src="{{ url_for('static', filename='img/glyphicons/feed.png') }}">
+                    <span class="no-mobile">Feed</span>
+                </li>
+            </a>
+            <a href="{{ url_for('profile', username=current_user.username) }}">
+                <li>
+                    <img src="{{ url_for('static', filename='img/glyphicons/profile.png') }}">
+                    <span class="no-mobile">{{ current_user.username|capitalize }}</span>
+                </li>
+            </a>
+            <a href="{{ url_for('search') }}">
+                <li>
+                    <img src="{{ url_for('static', filename='img/glyphicons/search.png') }}">
+                    <span class="no-mobile">Search</span>
+                </li>
+            </a>
+            <a href="{{ url_for('settings_profile') }}">
+                <li>
+                    <img src="{{ url_for('static', filename='img/glyphicons/settings.png') }}">
+                    <span class="no-mobile">Settings</span>
+                </li>
+            </a>
+            <a href="{{ url_for('signout') }}">
+                <li>
+                    <img src="{{ url_for('static', filename='img/glyphicons/signout.png') }}">
+                    <span class="no-mobile">Sign Out</span>
+                </li>
+            </a>
+        </ul>
     </div>
 </div>
 <div id="main">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="messages">
-        {% for category, message in messages %}
-        <div class="message {{ category|safe }}">{{ message|safe }}</div>
-        {% endfor %}
+    <div class="container">
+        {% include 'messages.html' %}
+        {% block main %}{% endblock %}
     </div>
-    {% endif %}
-    {% endwith %}
-    {% block main %}{% endblock %}
-</div>
 </div>
 {% endblock %}

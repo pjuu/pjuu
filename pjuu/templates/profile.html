@@ -1,8 +1,27 @@
 {% extends 'base_main.html' %}
+
+{% block title %}{{ profile['username']|capitalize }}{% endblock %}
+
 {% block main %}
 <div id="profile" class="clearfix">
-    <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
-    <ul>
+    <img class="avatar" src="{{ profile['email']|gravatar(48) }}"/>
+    <div class="details clearfix">
+        <div class="username">{{ profile['username']|capitalize }}</div>
+        <div class="body">{{profile['about']}}</div>
+    </div>
+    <div class="information clearfix">
+        <ul class="clearfix">
+            <li>{{ profile['score']|millify }}</li>
+            <a href="{{ url_for('profile', username=profile['username']) }}">
+                <li class="link">{{ profile['post_count']|millify }} posts</li>
+            </a>
+            <a href="{{ url_for('followers', username=profile['username']) }}">
+                <li class="link">{{ profile['followers_count']|millify }} followers</li>
+            </a>
+            <a href="{{ url_for('following', username=profile['username']) }}">
+                <li class="link">{{ profile['following_count']|millify }} following</li>
+            </a>
+        </ul>
         {% if profile['uid'] != current_user['uid'] %}
         {% if profile|following %}
         <a href="{{ url_for('unfollow', username=profile['username'], next=request.path) }}">
@@ -22,19 +41,6 @@
             </div>
         </a>
         {% endif %}
-        <a href="{{ url_for('profile', username=profile['username']) }}">
-            <li>{{ profile['post_count']|millify }} posts</li>
-        </a>
-        <a href="{{ url_for('followers', username=profile['username']) }}">
-            <li>{{ profile['followers_count']|millify }} followers</li>
-        </a>
-        <a href="{{ url_for('following', username=profile['username']) }}">
-            <li>{{ profile['following_count']|millify }} following</li>
-        </a>
-    </ul>
-    <div class="details">
-        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{ profile['username']|capitalize }}</div>
-        <div class="body">{{profile['about']}}</div>
     </div>
 </div>
 {% if profile['uid'] == current_user['uid'] %}

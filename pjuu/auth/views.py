@@ -224,7 +224,8 @@ def change_password():
                 be_change_password(current_user['uid'], form.new_password.data)
                 flash('Your password has successfully been update!', 'success')
         else:
-            flash('Oh no! There are errors in your change password form.', 'error')
+            flash('Oh no! There are errors in your change password form.',
+                  'error')
     return render_template('change_password.html', form=form)
 
 
@@ -234,7 +235,7 @@ def delete_account():
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
-            flash('Account would have been deleted!<br>Your on a beta stop crying', 'information')
+            flash('Account would have been deleted!', 'information')
         else:
             flash('Invalid password', 'error')
     return render_template('delete_account.html', form=form)

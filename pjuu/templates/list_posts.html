@@ -5,19 +5,6 @@
 {% for item in pagination.items %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} clearfix">
     <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
-    <div class="scoring">
-        <div class="score">{{ item.score|millify }}</div>
-        {% if current_user.uid != item.uid %}
-        <div class="vote">
-            {% if item.pid|voted %}
-            <div class="vote-score">{{ item.pid|voted }}</div>
-            {% else %}
-            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path) }}"><div>Up</div></a>
-            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path) }}"><div>Down</div></a>
-            {% endif %}
-        </div>
-        {% endif %}
-    </div>
     <div class="control">
         {% if item.user_username == current_user.username %}
         <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid) }}"><div class="delete">X</div></a>

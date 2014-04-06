@@ -17,7 +17,7 @@ if __name__ == '__main__':
     cherrypy.config.update({
         'engine.autoreload_on': True,
         'server.socket_port': 5000,
-        'server.socket_host': '127.0.0.1'
+        'server.socket_host': '0.0.0.0'
     })
     try:
         cherrypy.engine.start()

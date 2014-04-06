@@ -1,9 +1,11 @@
 {% extends 'base_main.html' %}
 
+{% block title %}Search{% endblock %}
+
 {% block main %}
 <div id="content" class="clearfix">
     {% if query %}
-    <h1>Search Results: {{ query }}</h1>
+    <h1>Results: {{ query }}</h1>
     {% else %}
     <h1>Search</h1>
     {% endif %}
