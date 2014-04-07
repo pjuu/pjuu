@@ -12,3 +12,5 @@ _mailinglist
 settings.py
 .idea/
 .idea/*
+pjuu.settings-*
+static/img/glyphicons/*.png
