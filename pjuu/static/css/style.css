@@ -43,6 +43,10 @@ html[xmlns] .clearfix {
 	display: inline;
 }
 
+.glyphicon {
+    vertical-align: middle;
+}
+
 /* forms */
 input[type=text],
 input[type=password],
@@ -248,7 +252,7 @@ input[type=submit] {
 
 /* PROFILE ================================================================ */
 #profile {
-    background-color: #DDD;
+    background-color: #EEE;
     border: 1px solid #999;
     border-radius: 3px;
     color: #000;
@@ -293,20 +297,26 @@ input[type=submit] {
 }
 
 #profile li {
-    color: #EEE;
+    color: #000;
     float: left;
     font-weight: 700;
     list-style: none;
+    margin: 0 1em 0 0;
+    padding: 0.5em;
+}
+
+#profile .top-section {
     padding: 0.5em;
 }
 
 #profile .link:hover {
     color: #FFF;
     background-color: #999;
+    border-radius: 3px;
 }
 
 #profile .information {
-    background-color: #680;
+    background-color: #CCC;
     margin: 0;
     padding: 0;
 }
@@ -328,7 +338,7 @@ input[type=submit] {
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
     float: right;
-    margin: 0;
+    margin: 0.5em;
     padding: 0.25em 0;
     text-align: center;
     width: 100px
@@ -400,6 +410,11 @@ input[type=submit] {
 
 #character-count {
     float: left;
+}
+
+/* SEARCH ================================================================== */
+.search {
+    background-color: #EEE;
 }
 
 /* CONTENT ================================================================= */
@@ -528,6 +543,45 @@ input[type=submit] {
     float: right;
 }
 
+/* PAGINATION ============================================================== */
+
+#pagination {
+    color: #CCC;
+    font-size: 11px;
+    margin: 2em 0 0;
+}
+
+#pagination a {
+    color: #9C0;
+    font-weight: 700;
+}
+
+#pagination .count {
+    clear: both;
+    margin: 0 10em;
+}
+
+#pagination .button {
+    color: #680;
+    padding: 0.25em 0.5em;
+    border-radius: 3px;
+    background-color: #DEDEDE;
+    text-align: center;
+    width: 8em;
+}
+
+#pagination .active {
+    border: 1px solid #680;
+}
+
+#pagination .prev {
+    float: left;
+}
+
+#pagination .next {
+    float: right;
+}
+
 /* MEDIA QUERIES =========================================================== */
 
 @media only screen and (max-width: 540px) {
@@ -556,8 +610,4 @@ input[type=submit] {
 		padding: 0;
 		width: 98%;
 	}
-
-    #profile ul {
-        width: 100%;
-    }
 }

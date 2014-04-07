@@ -3,6 +3,14 @@
 {% block title %}Search{% endblock %}
 
 {% block main %}
+<div class="search author clearfix">
+	<h1>Search for users</h1>
+    <form action="{{ url_for('search') }}" method="GET">
+        {{ form.query }}
+        {{ form.csrf_token }}
+        <input type="submit" value="Search"/>
+    </form>
+</div>
 <div id="content" class="clearfix">
     {% if query %}
     <h1>Results: {{ query }}</h1>

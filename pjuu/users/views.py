@@ -16,7 +16,7 @@ from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountFo
 from pjuu.lib import handle_next
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
-from .forms import ChangeProfile
+from .forms import ChangeProfile, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
                       get_comments, search as be_search)
@@ -248,12 +248,13 @@ def search():
     """
     Handles searching of users. This is all done via a GET query.
     """
+    form = SearchForm(request.form)
     if 'query' not in request.args:
         query = ''
     else:
         query = request.args['query']
     _results = be_search(query)
-    return render_template('search.html', query=query,
+    return render_template('search.html', form=form, query=query,
                            pagination=_results)
 
 
