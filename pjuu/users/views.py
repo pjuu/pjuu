@@ -266,11 +266,10 @@ def settings_profile():
     """
     form = ChangeProfile(request.form)
     if request.method == 'POST':
-        print form.validate()
         if form.validate():
             r.hset('user:%s' % current_user['uid'], 'about', form.about.data)
+            current_user['about'] = form.about.data
             flash('Your profile has been updated', 'success')
         else:
-            print form.errors
             flash('error in your form', 'error')
     return render_template('settings_profile.html', form=form)
