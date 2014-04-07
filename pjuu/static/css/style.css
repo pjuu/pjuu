@@ -81,6 +81,7 @@ input[type=password].error {
 }
 
 input[type=submit] {
+    border: 1px solid #680;
     float: right;
     font-weight: 700;
     padding: 0.25em 0.5em;
@@ -241,12 +242,12 @@ input[type=submit] {
 
 /* MAIN ==================================================================== */
 #main {
-	margin: 3.5em 0 0 0;
+	margin: 4em 0 0 0;
 	width: 100%;
 }
 
 #main .container {
-	margin: 0.25em auto;
+	margin: 0 auto;
 	max-width: 700px;
 }
 
@@ -286,6 +287,7 @@ input[type=submit] {
 
 #profile .body {
     margin: 0.5em 0 0;
+    word-wrap: break-word;
 }
 
 #profile ul {
@@ -339,7 +341,7 @@ input[type=submit] {
     font-weight: 700;
     float: right;
     margin: 0.5em;
-    padding: 0.25em 0;
+    padding: 0.5em 0;
     text-align: center;
     width: 100px
 }
@@ -422,6 +424,7 @@ input[type=submit] {
 	background-color: #FFF;
 	border: 1px solid #680;
 	border-radius: 3px;
+	margin: 1em 0 0 0;
 }
 
 #content h1 {
@@ -475,7 +478,7 @@ input[type=submit] {
 }
 
 #list .details {
-    margin: 0 4em;
+    margin: 0 9em 0 4em;
 }
 
 #list .details .user-score {
