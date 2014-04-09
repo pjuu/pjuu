@@ -16,30 +16,30 @@
         <div class="details-post clearfix">
             <div class="username">
                 <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username|capitalize }}</a>
-                <span class="user-score">({{ item.user_score|millify }})</span>
             </div>
             <div class="body">{{ item.body|urlize }}</div>
             <div class="created">{{ item.created|timeify }}</div>
         </div>
     </div>
     <div class="panel clearfix">
-        <ul class="info clearfix">
-            <li class="info-item">
+        <ul class="voting clearfix">
+            <li class="voting-item">
                 <img src="{{ url_for('static', filename='img/glyphicons/star.png') }}" width="16" height="16"/>
                 {{ item['score']|millify }}
             </li>
-            <li class="info-item">
+            <li class="voting-item link">
                 <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
             </li>
-            <li class="info-item">
+            <li class="voting-item link">
                 <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
             </li>
         </ul>
-        <div class="comment-count">
-            <a href="{{ url_for('view_post', pid=item.pid) }}">
-                {{ item.comment_count|millify }} comments
-            </a>
-        </div>
+        <a href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">
+            <div class="comment-count link">
+                <img src="{{ url_for('static', filename='img/glyphicons/comments.png') }}" width="16" height="16"/>
+                {{ item.comment_count|millify }}
+            </div>
+        </a>
     </div>
 </li>
 {% endfor %}

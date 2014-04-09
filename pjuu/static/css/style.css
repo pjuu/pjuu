@@ -253,6 +253,10 @@ input[type=submit] {
 	max-width: 700px;
 }
 
+#main h1 {
+    font-size: 1.5em;
+}
+
 /* PROFILE ================================================================ */
 #profile {
     background-color: #666;
@@ -486,23 +490,29 @@ input[type=submit] {
 }
 
 #list .user-score {
-    color: #333;
+    background-color: #CCC;
+    border-radius: 2px;
+    color: #000;
+    font-weight: 400;
     margin: 0 0 0 0.25em;
+    padding: 0.25em;
 }
 
 #list .username {
+    color: #000;
     font-weight: 700;
+    vertical-align: middle;
 }
 
 #list .created {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
-    margin: 1em 0 0;
+    margin: 0;
 }
 
 #list .body {
-    padding: 1em 0 0;
+    padding: 0.75em 0;
     word-wrap: break-word;
 }
 
@@ -517,7 +527,11 @@ input[type=submit] {
 }
 
 #list .comment-count {
+    border-left: 1px solid #999;
+    color: #333;
     float: right;
+    margin: 0;
+    padding: 0.5em 1em;
 }
 
 #list .post .action {
@@ -548,24 +562,31 @@ input[type=submit] {
     border-radius: 0 0 3px 3px;
     color: #333;
     font-weight: 700;
-    padding: 0.5em;
+    padding: 0;
 }
 
-#list .info {
+#list .panel img {
+    vertical-align: middle;
+}
+
+#list .voting {
     float: left;
-    line-height: 1em;
     text-align: center;
     margin: 0;
     padding: 0;
 }
 
-#list .info-item {
+#list .voting-item {
     border-right: 1px solid #999;
     color: #333;
     float: left;
     list-style: none;
     margin: 0;
-    padding: 0 1em;
+    padding: 0.5em 1em;
+}
+
+#list .link:hover {
+    background-color: #999;
 }
 
 #list .link:hover {
@@ -584,11 +605,11 @@ input[type=submit] {
 }
 
 #pagination .button {
-    color: #333;
+    color: #999;
     padding: 0.25em 0.5em;
-    border: 1px solid #333;
+    border: 1px solid #999;
     border-radius: 3px;
-    background-color: #999;
+    background-color: #CCC;
     text-align: center;
     width: 8em;
 }
@@ -603,7 +624,7 @@ input[type=submit] {
 
 /* MEDIA QUERIES =========================================================== */
 
-@media only screen and (max-width: 540px) {
+@media only screen and (max-width: 600px) {
 	.no-mobile {
 		display: none;
 	}

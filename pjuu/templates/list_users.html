@@ -29,7 +29,6 @@
         </div>
         <div class="details-user clearfix">
             <div class="username">
-                <span class="user-score">{{ item.score|millify }}</span>
                 <a href="{{url_for('profile', username=item.username)}}">{{ item.username|capitalize }}</a>
             </div>
             <div class="body">{{ item.about|urlize|nameify }}</div>
