@@ -137,4 +137,5 @@ def delete_post(username, pid, cid=None):
 
     # If you have made it here you can delete the post/comment
     be_delete(uid, pid, cid)
+    flash('Post has been deleted along with all comments', 'success')
     return redirect(redirect_url)

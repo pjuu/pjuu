@@ -12,7 +12,7 @@
             </a>
             <a href="{{ url_for('profile', username=current_user.username) }}">
                 <li>
-                    <img src="{{ url_for('static', filename='img/glyphicons/profile.png') }}">
+                    <img src="{{ current_user.email|gravatar(16) }}">
                     <span class="no-mobile">{{ current_user.username|capitalize }}</span>
                 </li>
             </a>

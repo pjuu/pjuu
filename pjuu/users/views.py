@@ -16,7 +16,7 @@ from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountFo
 from pjuu.lib import handle_next
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
-from .forms import ChangeProfile, SearchForm
+from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
                       get_comments, search as be_search)
@@ -265,7 +265,7 @@ def settings_profile():
     """
     Allows users to customize their profile direct from this view.
     """
-    form = ChangeProfile(request.form)
+    form = ChangeProfileForm(request.form)
     if request.method == 'POST':
         print form.validate()
         if form.validate():
