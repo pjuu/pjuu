@@ -14,6 +14,7 @@ from pjuu.auth.backend import (current_user, get_uid,
 from pjuu.auth.decorators import login_required
 from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountForm
 from pjuu.lib import handle_next
+from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import check_post, get_post
 from pjuu.posts.forms import PostForm
 from .forms import ChangeProfileForm, SearchForm
@@ -22,6 +23,7 @@ from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_comments, search as be_search)
 
 
+# Username regular expressions
 username_re = re.compile(r' @([A-Za-z_]{3, 16}) ')
 
 
@@ -89,16 +91,17 @@ def timeify_filter(time):
 @app.route('/', methods=['GET'])
 # Do not place login_required on this method handled by view for prettiness
 def feed():
+    """
+    Returns the users feed
+    """
     if not current_user:
         return redirect(url_for('signin'))
+
     # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
+    page = handle_page(request)
     # Get feed pagination
     pagination = get_feed(int(current_user['uid']), page)
+
     # Post form
     post_form = PostForm()
     return render_template('feed.html', pagination=pagination,
@@ -121,13 +124,10 @@ def profile(username):
     profile = get_profile(uid)
 
     # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
+    page = handle_page(request)
     # Get the posts pagination
     pagination = get_posts(uid, page)
+
     # Post form
     post_form = PostForm()
     return render_template('posts.html', profile=profile,
@@ -137,15 +137,15 @@ def profile(username):
 @app.route('/<username>/<int:pid>', methods=['GET'])
 @login_required
 def view_post(username, pid):
+    """
+    Displays a post along with its comments paginated. I am not sure if this
+    should be here or in the 'posts' app.
+    """
     if not check_post(get_uid(username), pid):
         return abort(404)
 
     # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
+    page = handle_page(request)
 
     # Get post
     post = get_post(pid)
@@ -168,11 +168,7 @@ def following(username):
     profile = get_profile(uid)
 
     # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
+    page = handle_page(request)
 
     # Get a list of users you are following
     following = get_following(uid, page)
@@ -194,11 +190,7 @@ def followers(username):
     _profile = get_profile(uid)
 
     # Pagination
-    page = request.values.get('page', None)
-    try:
-        page = int(page)
-    except (TypeError, ValueError):
-        page = 1
+    page = handle_page(request)
 
     # Get a list of users you are following
     _followers = get_followers(uid, page)
@@ -211,6 +203,9 @@ def followers(username):
 @app.route('/<username>/follow', methods=['GET'])
 @login_required
 def follow(username):
+    """
+    Used to follow a user
+    """
     redirect_url = handle_next(request,
         url_for('following', username=current_user['username']))
 
@@ -228,6 +223,9 @@ def follow(username):
 @app.route('/<username>/unfollow', methods=['GET'])
 @login_required
 def unfollow(username):
+    """
+    Used to unfollow a user
+    """
     redirect_url = handle_next(request,
         url_for('following', username=current_user['username']))
 
@@ -247,6 +245,7 @@ def unfollow(username):
 def search():
     """
     Handles searching of users. This is all done via a GET query.
+    There should be _NO_ CSRF as this will appear in the query string
     """
     form = SearchForm(request.form)
     if 'query' not in request.args:
@@ -267,11 +266,12 @@ def settings_profile():
     """
     form = ChangeProfileForm(request.form)
     if request.method == 'POST':
-        print form.validate()
         if form.validate():
+            # Update current_user, this was highlighted by Ant is issue 1
+            current_user['about'] = form.about.data
+            # Set the users new about in Redis
             r.hset('user:%s' % current_user['uid'], 'about', form.about.data)
             flash('Your profile has been updated', 'success')
         else:
-            print form.errors
             flash('error in your form', 'error')
     return render_template('settings_profile.html', form=form)

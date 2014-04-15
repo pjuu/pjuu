@@ -3,33 +3,57 @@
 {% block list %}
 {% if pagination.items %}
 {% for item in pagination.items %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} clearfix">
-    <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
-    <div class="scoring">
-        <div class="score">{{ item.score|millify }}</div>
-        {% if current_user.uid != item.uid %}
-        <div class="vote">
-            {% if item.pid|voted(cid=item.cid) %}
-            <div class="vote-score">{{ item.pid|voted(cid=item.cid) }}</div>
-            {% else %}
-            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}"><div>Up</div></a>
-            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}"><div>Down</div></a>
+<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
+    <div class="top-section">
+        <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
+        <div class="control">
+            {% if item.user_username == current_user.username %}
+            <a href="{{ url_for('delete_post', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
+                <div class="delete">X</div>
+            </a>
             {% endif %}
         </div>
-        {% endif %}
-    </div>
-    <div class="control">
-        {% if item.user_username == current_user.username %}
-        <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid, cid=item.cid) }}"><div class="delete">X</div></a>
-        {% endif %}
-    </div>
-    <div class="details clearfix">
-        <div class="username">
-            <span class="user-score">{{ item.user_score|millify }}</span>
-            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username|capitalize }}</a>
+        <div class="details-post clearfix">
+            <div class="clearfix">
+                <div class="username">
+                    <a href="{{ url_for('profile', username=item.user_username) }}">
+                        {{ item.user_username|capitalize }}
+                    </a>
+                </div>
+                <div class="user-score">{{ item.user_score|millify }}</div>
+            </div>
+            <div class="body">{{ item.body|urlize }}</div>
+            <div class="created">{{ item.created|timeify }}</div>
         </div>
-        <div class="body">{{ item.body }}</div>
-        <div class="created">{{ item.created|timeify }}</a></div>
+    </div>
+    <div class="panel clearfix">
+        <ul class="voting clearfix">
+            <li class="voting-item first">
+                {{ item['score']|millify }}
+            </li>
+            {% if item.user_username != current_user.username %}
+            {% if item.pid|voted(item.cid) %}
+            <li class="voting-item last">
+                {% if item.pid|voted(item.cid) > 1 %}
+                <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                {% else %}
+                <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
+                {% endif %}
+            </li>
+            {% else %}
+            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
+               <li class="voting-item link">
+                    <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                </li>
+            </a>
+            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
+                <li class="voting-item link">
+                    <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
+                </li>
+            </a>
+            {% endif %}
+            {% endif %}
+        </ul>
     </div>
 </li>
 {% endfor %}

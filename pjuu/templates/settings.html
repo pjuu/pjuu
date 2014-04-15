@@ -3,15 +3,15 @@
 {% block title %}Settings{% endblock %}
 
 {% block main %}
-<div id="content" class="clearfix">
-    <h1>Settings</h1>
-    <ul id="settings-menu" class="clearfix">
-        <a href="{{ url_for('settings_profile') }}"><li>Profile</li></a>
-        <a href="{{ url_for('change_email') }}"><li>E-Mail Address</li></a>
-        <a href="{{ url_for('change_password') }}"><li>Password</li></a>
-        <a href="{{ url_for('delete_account') }}"><li>Delete Account</li></a>
-    </ul>
-    {% block settings_main %}
+<ul id="settings-menu" class="block clearfix">
+    <a href="{{ url_for('settings_profile') }}"><li>Profile</li></a>
+    <a href="{{ url_for('change_email') }}"><li>E-Mail Address</li></a>
+    <a href="{{ url_for('change_password') }}"><li>Password</li></a>
+    <a href="{{ url_for('delete_account') }}"><li class="last">Delete Account</li></a>
+</ul>
+
+<div id="content" class="block clearfix">
+    {% block settings %}
     {% endblock %}
 </div>
 {% endblock %}

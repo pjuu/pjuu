@@ -2,13 +2,7 @@
 
 {% block content %}
 
-{% if profile['uid'] == current_user['uid'] %}
-    {% include 'author_post.html' %}
-{% endif %}
-
 <h1>Posts</h1>
 
-<div id="content" class="clearfix">
 {% include 'list_posts.html' %}
-</div>
 {% endblock %}

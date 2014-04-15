@@ -44,3 +44,16 @@ class Pagination(object):
     @property
     def has_next(self):
         return self.page < self.pages
+
+
+def handle_page(request, default_url='/'):
+    """
+    Will handle passing 'page' to an view and ensure it is safe
+    """
+    page = request.values.get('page', None)
+    # Ensure the page is a valid integer
+    try:
+        page = int(page)
+    except (TypeError, ValueError):
+        page = 1
+    return page

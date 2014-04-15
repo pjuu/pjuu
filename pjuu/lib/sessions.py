@@ -27,9 +27,9 @@ class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis=None, prefix='session:'):
+    def __init__(self, redis=None, prefix=''):
         if redis is None:
-            redis = Redis()
+            redis = StrictRedis()
         self.redis = redis
         self.prefix = prefix
 
@@ -57,8 +57,7 @@ class RedisSessionInterface(SessionInterface):
         if not session:
             self.redis.delete(self.prefix + session.sid)
             if session.modified:
-                response.delete_cookie(app.session_cookie_name,
-                                       domain=domain)
+                response.delete_cookie(app.session_cookie_name, domain=domain)
             return
         redis_exp = self.get_redis_expiration_time(app, session)
         cookie_exp = self.get_expiration_time(app, session)
@@ -66,5 +65,6 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(self.prefix + session.sid, val,
                          int(redis_exp.total_seconds()))
         response.set_cookie(app.session_cookie_name, session.sid,
-                            expires=cookie_exp, httponly=True,
-                            domain=domain)
+                            expires=cookie_exp, domain=domain,
+                            httponly=app.config['SESSION_COOKIE_HTTPONLY'],
+                            secure=app.config['SESSION_COOKIE_SECURE'])

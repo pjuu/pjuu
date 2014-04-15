@@ -179,9 +179,8 @@ def delete(uid, pid, cid=None):
     Deletes a post/comment
     If this is a post it will delete all comments, all votes, etc...
     If this is a comment it will delete just this comment and its votes.
-    None of this should not cause users to lose or gain points!
+    This should not cause users to lose or gain points!
     """
-    pass
     pid = int(pid)
     if cid:
         # Delete comment and votes

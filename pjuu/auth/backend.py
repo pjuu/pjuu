@@ -19,7 +19,8 @@ email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 
 # Reserved names
-# TODO Come up with a better solution for this
+# TODO Come up with a better solution for this. Before adding a name here
+# ensure that no one is using it.
 reserved_names = [
     'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
     'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
@@ -52,9 +53,12 @@ reserved_names = [
 
 
 # Signers
-activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_ACTIVATE'])
-forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_FORGOT'])
-email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_EMAIL'])
+activate_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                                  salt=app.config['SALT_ACTIVATE'])
+forgot_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                                salt=app.config['SALT_FORGOT'])
+email_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                               salt=app.config['SALT_EMAIL'])
 
 
 # Can be used anywhere to get the current logged in user.
@@ -106,9 +110,10 @@ def get_uid(username):
     else:
         return get_uid_username(username)
 
+
 def get_user(uid):
     """
-    Similar to above but will return the user dict (calls above).
+    Similar to above but will return the user dict.
     """
     uid = int(uid)
     if uid:
@@ -259,6 +264,14 @@ def change_email(uid, email):
     pipe.hset('user:%d' % uid, 'email', email)
     pipe.execute()
     return True
+
+
+def delete_account(uid):
+    """
+    Will delete a users account. This should remove _ALL_ details,
+    comments, posts.
+    """
+    pass
 
 
 def generate_token(signer, data):

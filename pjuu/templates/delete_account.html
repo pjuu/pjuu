@@ -1,9 +1,17 @@
 {% extends 'settings.html' %}
 
-
-{% block settings_main %}
+{% block settings %}
+<h1>Delete account</h1>
 <div id="setting" class="clearfix">
-    <h2>Delete account</h2>
+	<div class="details warning">
+		<div class="detail">
+			<p><b>This action is irreversable</b></p>
+			<p>Once your account is deleted all your details, posts and comments will be removed from Pjuu.</p>
+			<p>These will remain in back ups for <i>disaster recovery</i> for upto 7 days. We can not restore individual accounts.</p>
+			<p>Once this time has expired there will be no details held on you.</p>
+			<p>Your user name will also be available for use after this period.</p>
+		</div>
+	</div>
     <form action="" method="post" autocomplete="off">
         {{ form.password.label }}
         {{ form.password }}

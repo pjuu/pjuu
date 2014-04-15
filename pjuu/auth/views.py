@@ -190,7 +190,8 @@ def change_email():
                 flash('We\'ve sent you an email, please confirm this.',
                       'success')
         else:
-            flash('Oh no! There are errors in your change email form.', 'error')
+            flash('Oh no! There are errors in your change email form.',
+                  'error')
     return render_template('change_email.html', form=form)
 
 
@@ -235,6 +236,8 @@ def delete_account():
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
+            # DELETE ACCOUNT
+            # LOGOUT, JUST SO THAT THE UID IS REMOVED FROM SESSION
             flash('Account would have been deleted!', 'information')
         else:
             flash('Invalid password', 'error')

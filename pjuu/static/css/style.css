@@ -47,32 +47,44 @@ html[xmlns] .clearfix {
     vertical-align: middle;
 }
 
+.external-link {
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 0 0 0.5em;
+    text-align: center;
+}
+
 /* forms */
 input[type=text],
 input[type=password],
 textarea {
+    border: 1px solid #BBB;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 400;
     font-size: 14px;
     border-radius: 3px 3px 3px 3px;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
+    margin: 0.5em 0 1em;
+    padding: 0.5em;
+    resize: none;
     width: 100%;
+}
+
+textarea {
+    border-color: #666;
+    margin: 0.5em 0;
 }
 
 input[type=text],
 input[type=password] {
-    border: 1px solid #BBB;
     display: block;
-    margin: 0.5em 0 1em;
-    padding: 0.5em;
-    width: 100%;
 }
 
 input[type=text]:focus,
 input[type=password]:focus {
-    border: 1px solid #680;
+    border: 1px solid #666;
 }
 
 input[type=text].error,
@@ -81,10 +93,11 @@ input[type=password].error {
 }
 
 input[type=submit] {
-    border: 1px solid #680;
+    border: 1px solid #666;
+    border-radius: 3px;
     float: right;
     font-weight: 700;
-    padding: 0.25em 0.5em;
+    padding: 0.5em 1em;
 }
 
 /* recaptcha */
@@ -97,10 +110,10 @@ input[type=submit] {
 }
 
 /* FLASH MESSAGES ========================================================== */
-.messages .message {
+.message {
     border-radius: 3px;
     font-weight: 700;
-    margin: 0.5em 0;
+    margin: 0 0 1em;
     padding: 0.5em;
     text-align: center;
 }
@@ -154,7 +167,7 @@ input[type=submit] {
     font-family: 'Englebert', sans-serif;
     font-size: 5em;
     line-height: 1em;
-    margin: 0.5em 0 0 0;
+    margin: 0;
     padding: 0;
     text-align: center;
 }
@@ -211,6 +224,7 @@ input[type=submit] {
 #header .menu {
 	color: #FFF;
 	float: right;
+    font-size: 1em;
 	font-weight: 700;
 	margin: 0;
 	padding: 0;
@@ -223,13 +237,6 @@ input[type=submit] {
 
 #header .menu a:hover {
 	color: #FFF;
-}
-
-#header .menu img {
-    height: 16px;
-	margin: 0 0.5em 0 0;
-	vertical-align: middle;
-	width: 16px;
 }
 
 #header .menu li {
@@ -253,111 +260,16 @@ input[type=submit] {
 	max-width: 700px;
 }
 
-#main h1 {
-    font-size: 1.5em;
-}
-
-/* PROFILE ================================================================ */
-#profile {
-    background-color: #666;
-    border: 1px solid #333;
-    border-radius: 3px;
-    color: #000;
+#main .block {
     margin: 0 0 1em;
-    padding: 0;
-}
-
-#profile .avatar {
-    border: 1px solid #333;
+    border: 1px solid #666;
     border-radius: 3px;
-    display: block;
-    float: left;
-    margin: 0;
 }
 
-#profile .actions {
-    width: 100px;
-    float: right;
-    text-align: center;
-}
-
-#profile .details {
-    font-size: 0.75em;
-    margin: 0 0 0 60px;
-    padding: 0 0 0.5em 0;
-}
-
-#profile .username {
-    font-size: 2em;
-    line-height: 1em;
-}
-
-#profile .body {
-    margin: 0.5em 0 0;
-    word-wrap: break-word;
-}
-
-#profile ul {
-    color: #000;
-    float: left;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-
-#profile li {
-    border-right: 1px solid #333;
-    color: #333;
-    float: left;
-    font-weight: 700;
-    list-style: none;
-    margin: 0;
-    padding: 0.5em 1em;
-}
-
-#profile .top-section {
-    color: #FFF;
-    padding: 0.5em;
-}
-
-#profile .link:hover {
-    color: #FFF;
-}
-
-#profile .first {
-    padding-left: 0.5em;
-}
-
-#profile .last {
-    border-right: 0;
-}
-
-#profile .panel {
-    background-color: #999;
-    border-top: 1px solid #333;
-    border-radius: 0 0 3px 3px;
-    margin: 0;
-    padding: 0.5em;
-}
-
-#profile .score {
-    color: #000;
-    border-radius: 3px 3px 3px 3px;
-    margin: 0 0.5em 0 0;
-    font-size: 0.75em;
-    font-weight: 700;
-    background-color: #DEDEDE;
-    padding: 0.25em 0.5em;
-}
-
-#profile .panel img {
-    vertical-align: middle;
-}
-
+/* ACTION BUTTON ========================================================== */
 .action-button {
     color: #680;
     background-color: #EEE;
-    border: 1px solid #FFF;
     border-radius: 3px 3px 3px 3px;
     font-weight: 700;
     float: right;
@@ -385,51 +297,228 @@ input[type=submit] {
     background-color: #C00;
 }
 
+/* PROFILE ================================================================ */
+#profile {
+    background-color: #FFF;
+    color: #333;
+    padding: 0;
+}
+
+#profile .top-section {
+    padding: 0.5em;
+}
+
+#profile .avatar {
+    border: 1px solid #333;
+    border-radius: 3px;
+    display: block;
+    float: left;
+    margin: 0;
+}
+
+#profile .details {
+    margin: 0 0 0 60px;
+    padding: 0;
+}
+
+#profile .username {
+    float: left;
+    font-size: 1.5em;
+    line-height: 1em;
+}
+
+#profile .user-score {
+    background-color: #EEE;
+    border: 1px solid #BBB;
+    border-radius: 3px;
+    float: left;
+    padding: 0 0.25em;
+    margin: 0 0 0 0.75em;
+}
+
+#profile .body {
+    margin: 0.5em 0 0;
+    word-wrap: break-word;
+}
+
+#profile .panel {
+    color: #666;
+    background-color: #EEE;
+    border-top: 1px solid #BBB;
+    border-radius: 0 0 3px 3px;
+    margin: 0;
+    padding: 0.5em;
+}
+
+#profile .panel img {
+    vertical-align: middle;
+}
+
+#profile ul {
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
+#profile ul .last {
+    border: 0;
+}
+
+#profile ul .link {
+    color: #666;
+}
+
+#profile ul .link:hover {
+    color: #333;
+}
+
+#profile li {
+    border-right: 1px solid #BBB;
+    color: #333;
+    float: left;
+    font-weight: 700;
+    list-style: none;
+    margin: 0;
+    padding: 0.5em 1em;
+}
+
+/* POST ==================================================================== */
+#post {
+    background-color: #FFF;
+    color: #333;
+    padding: 0;
+}
+
+#post .top-section {
+    padding: 0.5em;
+}
+
+#post .avatar {
+    border: 1px solid #333;
+    border-radius: 3px;
+    display: block;
+    float: left;
+    margin: 0;
+}
+
+#post .details {
+    margin: 0 0 0 60px;
+    padding: 0;
+}
+
+#post .username {
+    float: left;
+    font-size: 1.5em;
+    line-height: 1em;
+}
+
+#post .user-score {
+    background-color: #EEE;
+    border: 1px solid #BBB;
+    border-radius: 3px;
+    float: left;
+    padding: 0 0.25em;
+    margin: 0 0 0 0.75em;
+}
+
+#post .body {
+    margin: 0.5em 2em 0 0;
+    word-wrap: break-word;
+}
+
+#post .created {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 0.5em 0 0;
+}
+
+#post .control {
+    float: right;
+}
+
+#post .control .delete {
+    color: #CCC;
+    border-radius: 5px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.25em 0.5em;
+}
+
+#post .control .delete:hover {
+    color: #F00;
+}
+
+#post .panel {
+    background-color: #EEE;
+    border-top: 1px solid #BBB;
+    border-radius: 0 0 3px 3px;
+    margin: 0;
+    padding: 0.5em;
+}
+
+#post .panel img {
+    vertical-align: middle;
+}
+
+#post ul {
+    color: #000;
+    float: left;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+#post li {
+    border-right: 1px solid #BBB;
+    color: #333;
+    float: left;
+    font-weight: 700;
+    list-style: none;
+    margin: 0;
+    padding: 0.5em 1em;
+}
+
+#post .link:hover {
+    color: #FFF;
+}
+
+#post .first {
+    padding-left: 0.5em;
+}
+
+#post .last {
+    border: 0;
+}
+
 /* AUTHOR ================================================================== */
 #author {
     border: 1px solid #333;
     border-radius: 3px;
     padding: 0.5em;
-    margin: 0 0 0.5em;
 }
 
 .author-comment {
-	background-color: #CCF;
+    background-color: #0DF;
 }
 
 .author-post {
-	background-color: #FFC;
+    background-color: #FD0;
 }
 
 #author h1 {
     color: #000;
     font-size: 1em;
     margin: 0;
-    padding: 0 0.25em 0.25em 0.25em;	
-	text-align: center;
-}
-
-#author textarea {
-    font-family: Helvetica, Arial, sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    border: 1px solid #666;
-    border-radius: 3px;
-    /* Support 100% width */
-    box-sizing: border-box; /* Opera/IE 8+ */
-    -webkit-box-sizing: border-box; /* Safari, Chrome et al  */
-    -moz-box-sizing: border-box; /* Firefox */
-    width: 100%;
-    resize: none;
-    padding: 0.5em;
-}
-
-#author input[type=submit] {
-    border: 1px solid #666;
-    float: right;
+    padding: 0 0.25em 0.25em 0.25em;    
+    text-align: center;
 }
 
 #author .character-count {
+    float: left;
+}
+
+#character-count {
     float: left;
 }
 
@@ -440,7 +529,24 @@ input[type=submit] {
 
 /* CONTENT ================================================================= */
 #content {
-	margin: 1em 0;
+    background-color: #FFF;
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 0.5em;
+}
+
+#content h1 {
+    color: #666;
+    font-size: 1.25em;
+    margin: 0 0 1em 0;
+    padding: 0;
+}
+
+#content h2 {
+    color: #999;
+    font-size: 1em;
+    margin: 0;
+    padding: 0.5em 0;
 }
 
 /* LISTS =================================================================== */
@@ -450,31 +556,33 @@ input[type=submit] {
 }
 
 #list .empty {
-    color: #777;
-    font-size: 15px;
-    font-weight: 700;
+    color: #BBB;
+    margin: 1em 0;
     text-align: center;
 }
 
 #list .item {
     background-color: #FFF;
-    border: 1px solid #999;
-    border-radius: 3px;
+    border-bottom: 1px solid #999;
     list-style: none;
     margin: 0 0 1em 0;
-}
-
-#list .last {
-    margin: 0;
-}
-
-#list .top-section {
     padding: 0.5em;
 }
 
+#list .post {
+    border: 0;
+}
+
+#list .last {
+    border: 0;
+}
+
+/* stub, used in profile, not formatting
+#list .top-section {
+}
+*/
+
 #list .avatar {
-    border: 1px solid #999;
-    border-radius: 3px;
     float: left;
     height: 3em;
     margin: 0 1em 0 0;
@@ -489,31 +597,31 @@ input[type=submit] {
     margin: 0 9em 0 4em;
 }
 
-#list .user-score {
-    background-color: #CCC;
-    border-radius: 2px;
-    color: #000;
-    font-weight: 400;
-    margin: 0 0 0 0.25em;
-    padding: 0.25em;
+#list .username {
+    float: left;
+    font-size: 1em;
 }
 
-#list .username {
-    color: #000;
-    font-weight: 700;
-    vertical-align: middle;
+#list .user-score {
+    background-color: #EEE;
+    border: 1px solid #BBB;
+    border-radius: 3px;
+    float: left;
+    font-size: 0.75em;
+    padding: 0 0.25em;
+    margin: 0 0 0 0.75em;
+}
+
+#list .body {
+    margin: 0.5em 0 0;
+    word-wrap: break-word;
 }
 
 #list .created {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
-    margin: 0;
-}
-
-#list .body {
-    padding: 0.75em 0;
-    word-wrap: break-word;
+    margin: 0.5em 0 0;
 }
 
 #list .control {
@@ -527,11 +635,11 @@ input[type=submit] {
 }
 
 #list .comment-count {
-    border-left: 1px solid #999;
+    border-left: 1px solid #BBB;
     color: #333;
     float: right;
     margin: 0;
-    padding: 0.5em 1em;
+    padding: 0.25em 1em;
 }
 
 #list .post .action {
@@ -557,12 +665,11 @@ input[type=submit] {
 }
 
 #list .panel {
-    background-color: #CCC;
-    border-top: 1px solid #999;
-    border-radius: 0 0 3px 3px;
+    background-color: #EEE;
+    border: 1px solid #BBB;
+    border-radius: 3px;
     color: #333;
     font-weight: 700;
-    padding: 0;
 }
 
 #list .panel img {
@@ -577,27 +684,23 @@ input[type=submit] {
 }
 
 #list .voting-item {
-    border-right: 1px solid #999;
+    border-right: 1px solid #BBB;
     color: #333;
     float: left;
     list-style: none;
     margin: 0;
-    padding: 0.5em 1em;
+    padding: 0.25em 1em;
 }
 
 #list .link:hover {
-    background-color: #999;
-}
-
-#list .link:hover {
-    color: #FFF;
+    background-color: #BBB;
 }
 
 /* PAGINATION ============================================================== */
 
 #pagination {
-    font-size: 11px;
-    margin: 1em 0 0;
+    font-size: 13px;
+    padding: 0 0.5em 0.5em;
 }
 
 #pagination a {
@@ -605,13 +708,13 @@ input[type=submit] {
 }
 
 #pagination .button {
-    color: #999;
-    padding: 0.25em 0.5em;
-    border: 1px solid #999;
+    background-color: #EEE;
+    border: 1px solid #BBB;
     border-radius: 3px;
-    background-color: #CCC;
+    color: #BBB;
+    padding: 0.25em 0;
     text-align: center;
-    width: 8em;
+    width: 6em;
 }
 
 #pagination .prev {
@@ -622,13 +725,59 @@ input[type=submit] {
     float: right;
 }
 
+/* SETTINGS ================================================================ */
+
+#settings-menu {
+    background-color: #EEE;
+    border: 1px solid #666;
+    border-radius: 3px;
+    font-weight: 700;
+    margin: 0;
+    padding: 0.5em;
+}
+
+#settings-menu .last {
+    border: 0;
+}
+
+#settings-menu li {
+    border-right: 1px solid #BBB;
+    color: #666;
+    float: left;
+    font-weight: 700;
+    list-style: none;
+    margin: 0;
+    padding: 0.5em 1em;
+}
+
+#settings-menu li:hover {
+    color: #333;ß
+}
+
+#setting {
+    margin: 1em auto;
+    padding: 0;
+    min-width: 300px;
+    max-width: 380px;
+}
+
+#setting .details {
+    padding: 0;
+}
+
+#setting .detail {
+    border-bottom: 1px solid #BBB;
+    margin: 0 0 0.5em;
+    padding: 0 0 0.5em;
+}
+
+#setting .warning {
+    color: #F00;
+}
+
 /* MEDIA QUERIES =========================================================== */
 
 @media only screen and (max-width: 600px) {
-	.no-mobile {
-		display: none;
-	}
-
     #auth .container {
         width: 98%;
     }
@@ -638,11 +787,9 @@ input[type=submit] {
 		width: 100%;
 	}
 
-	#header .menu img {
-	    height: 24px;
-		margin: 0;
-		width: 24px;
-	}
+    #header .menu {
+        font-size: 0.75em;
+    }
 
 	#header .menu li {
 		padding: 0 0.5em;
@@ -652,4 +799,31 @@ input[type=submit] {
 		padding: 0;
 		width: 98%;
 	}
+
+    #profile .body {
+        display: none;
+    }
+
+    #profile ul {
+        float: none;
+    }
+
+    #profile li {
+        border: 0;
+        border-bottom: 1px solid #BBB;
+        float: none;
+        padding: 0.5em 0;
+    }
+
+    #settings-menu .last {
+        border: 0;
+    }
+
+    #settings-menu li {
+        border-right: 0;
+        border-bottom: 1px solid #333;
+        float: none;
+        padding: 0.5em 1em;
+        text-align: center;
+    }
 }

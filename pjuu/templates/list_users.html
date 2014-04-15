@@ -3,7 +3,7 @@
 {% block list %}
 {% if pagination.items %}
 {% for item in pagination.items %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} clearfix">
+<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
     <div class="top-section">
         <img class="avatar" src="{{ item.email|gravatar(24) }}"/>
         <div class="control">
