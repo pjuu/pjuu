@@ -821,7 +821,7 @@ input[type=submit] {
 
     #settings-menu li {
         border-right: 0;
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid #BBB;
         float: none;
         padding: 0.5em 1em;
         text-align: center;

@@ -270,7 +270,17 @@ def delete_account(uid):
     """
     Will delete a users account. This should remove _ALL_ details,
     comments, posts.
+
+    Ensure the user has authenticated this request. Backends don't care!
+
+    This is going to be the most _expensive_ task in Pjuu. Be warned.
     """
+    # Lets get started removing this person
+    # Delete user account
+    # Delete posts
+    # Delete comments
+    # Clear followers sets
+    # Clear following sets
     pass
 
 

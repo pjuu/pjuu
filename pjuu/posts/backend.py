@@ -4,6 +4,7 @@ from time import gmtime
 from calendar import timegm
 # Pjuu imports
 from pjuu import app, redis as r
+from .tasks import populate_feeds, delete_comments
 
 
 def create_post(uid, body):
@@ -34,15 +35,8 @@ def create_post(uid, body):
     pipe.ltrim('user:%d:feed' % uid, 0, 999)
     pipe.execute()
     # Append to all followers feeds
-    # TODO This needs putting in to Celery->RabbitMQ at some point
-    # as this could take a long long while.
-    followers = r.zrange('user:%d:followers' % uid, 0, -1)
-    # This is not transactional as to not hold Redis up.
-    for fid in followers:
-        fid = int(fid)
-        r.lpush('user:%d:feed' % fid, pid)
-        # Stop followers feeds from growing to large
-        r.ltrim('user:%d:feed' % fid, 0, 999)
+    populate_feeds(uid, pid)
+
     return pid
 
 
@@ -50,6 +44,7 @@ def create_comment(uid, pid, body):
     """
     Create a new comment.
     """
+    uid = int(uid)
     cid = int(r.incr('global:cid'))
     pid = int(pid)
     # Form for comment hash
@@ -67,6 +62,10 @@ def create_comment(uid, pid, body):
     pipe.hmset('comment:%d' % cid, comment)
     # Add comment to posts comment list
     pipe.lpush('post:%d:comments' % pid, cid)
+    # Add comment to users comment list
+    # This may seem redundant but it allows for perfect account deletion
+    # Please see Issue #3 on Github
+    pipe.lpush('user:%d:comments' % uid, cid)
     pipe.execute()
     return cid
 
@@ -180,7 +179,10 @@ def delete(uid, pid, cid=None):
     If this is a post it will delete all comments, all votes, etc...
     If this is a comment it will delete just this comment and its votes.
     This should not cause users to lose or gain points!
+
+    Please ensure the user can delete the item before passing to this
     """
+    uid = int(uid)
     pid = int(pid)
     if cid:
         # Delete comment and votes
@@ -192,11 +194,8 @@ def delete(uid, pid, cid=None):
         # Delete post, comments and votes
         r.delete('post:%d' % pid)
         r.delete('post:%d:votes' % pid)
-        # This bit may need to go in celery
-        cids = r.lrange('post:%d:comments' % pid, 0, -1)
-        for cid in cids:
-            r.delete('comment:%d' % int(cid))
-            r.delete('comment:%d:votes' % int(cid))
-        r.delete('post:%d:comments' % pid)
+        # Delete the post from the users post list
         r.lrem('user:%d:posts' % uid, 0, pid)
+        # Get the task to delete all comments on the post
+        delete_comments(uid, pid=pid)
     return True
