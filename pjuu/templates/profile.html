@@ -7,10 +7,10 @@
     <div class="top-section">
         <img class="avatar" src="{{ profile['email']|gravatar(48) }}"/>
         <div class="details clearfix">
-            <div class="clearfix">
-                <div class="username">{{ profile['username']|capitalize }}</div>
-                <div class="user-score">{{ profile['score']|millify }}</div>
-            </div>
+                <div class="username">
+                    {{ profile['username']|capitalize }}
+                    <span class="user-score">{{ profile['score']|millify }}</span>
+                </div>
             <div class="body">{{profile['about']}}</div>
         </div>
     </div>

@@ -46,13 +46,21 @@ def delete_comments(uid, pid=None):
         cids = r.lrange('user:%d:comments' % uid, 0, -1)
 
     for cid in cids:
+        # We need to get the comment authors uid so that we can remove the
+        # comment from there user:$uid:comments list
+        author_id = r.hget('comment:%d' % cid, uid)
         # Delete the comment hash
         r.delete('comment:%d' % int(cid))
         # Delete all votes on the comment
         r.delete('comment:%d:votes' % int(cid))
+        # Delete the comment from the users comment list
+        r.lrem('user:%s:comments' % author_id, cid)
 
-    # Delete the comment list after we have cleaned it
-    r.delete('post:%d:comments' % pid)
+    # Delete the correct list after this operation
+    if pid is not None:
+        r.delete('post:%d:comments' % pid)
+    else:
+        r.delete('user:%d:comments' % pid)
 
     return True
 
@@ -65,11 +73,12 @@ def delete_posts(uid):
     It will iterate over "user:$uid:posts" and remove each one. It will
     also call the delete_comments() function for each post.
 
-    Please be aware this function could take an incredibly long time!
+    Please be aware this function could take an incredibly long time
     """
     pids = r.lrange('user:%d:posts' % uid, 0, -1)
 
     for pid in pids:
+        pid = int(pid)
         # Delete post
         r.delete('post:%d' % pid)
         r.delete('post:%d:votes' % pid)
@@ -77,5 +86,8 @@ def delete_posts(uid):
         r.lrem('user:%d:posts' % uid, 0, pid)
         # Get the task to delete all comments on the post
         delete_comments(uid, pid=pid)
+
+    # Delete the users post list after this operation
+    r.delete('user:%d:posts' % uid)
 
     return True

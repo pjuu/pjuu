@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-s
+# -*- coding: utf8 -*-
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail

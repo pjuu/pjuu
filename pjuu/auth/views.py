@@ -6,6 +6,7 @@ from flask import (flash, redirect, render_template, request,
 from pjuu import app
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
+from pjuu.auth.backend import delete_account as be_delete_account
 from .backend import (authenticate, current_user, login,
                       logout, create_user, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token,
@@ -236,9 +237,12 @@ def delete_account():
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
-            # DELETE ACCOUNT
-            # LOGOUT, JUST SO THAT THE UID IS REMOVED FROM SESSION
-            flash('Account would have been deleted!', 'information')
+            uid = int(current_user['uid'])
+            logout()
+            # This is still rather buggy!
+            be_delete_account(uid)
+            flash('Your account has been deleted!<br/>'
+                  'We hope you have enjoyed Pjuu', 'information')
         else:
             flash('Invalid password', 'error')
     return render_template('delete_account.html', form=form)

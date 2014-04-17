@@ -1,10 +1,8 @@
 # -*- coding: utf8 -*-
 # 3rd party imports
 from functools import wraps
-
 from flask import redirect, request, url_for, flash
-
-# Package imports
+# Pjuu imports
 from .backend import current_user
 
 
@@ -13,7 +11,6 @@ def anonymous_required(func):
     Will stop a user going to a page which requires a user to be
     logged out (login, signup, etc...)
     """
-
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if current_user:
@@ -28,7 +25,6 @@ def login_required(func):
     Will stop a user going to a page which requires a user to be
     logged in (feed, profile, etc...)
     """
-
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:

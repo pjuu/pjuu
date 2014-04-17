@@ -3,7 +3,6 @@
 from time import gmtime
 from calendar import timegm
 import re
-import string
 # Pjuu imports
 from pjuu import app, redis as r
 from pjuu.lib.pagination import Pagination
@@ -85,7 +84,7 @@ def get_comments(pid, page=1):
     comments = []
     for cid in cids:
         comment = get_comment(cid)
-        if comment:
+        if comment is not None:
             comments.append(comment)
         else:
             # Self cleaning lists

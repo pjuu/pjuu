@@ -6,12 +6,13 @@ from time import gmtime
 from calendar import timegm
 import re
 # 3rd party imports
-from flask import _app_ctx_stack, request, session, abort
+from flask import _app_ctx_stack, session
 from itsdangerous import TimedSerializer
 from werkzeug.local import LocalProxy
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
 from pjuu import app, redis as r
+from pjuu.lib.tasks import delete_comments, delete_posts
 
 
 # E-mail checker
@@ -80,22 +81,22 @@ def _load_user():
 
 def get_uid_username(username):
     """
-    Returns a user_id from username.
+    Returns a uid from username.
     """
     username = username.lower()
     uid = r.get('uid:username:%s' % username)
-    if uid is not None:
+    if uid is not None and uid > 0:
         uid = int(uid)
     return uid
 
 
 def get_uid_email(email):
     """
-    Returns a user_id from email.
+    Returns a uid from email.
     """
     email = email.lower()
     uid = r.get('uid:email:%s' % email)
-    if uid is not None:
+    if uid is not None and uid > 0:
         uid = int(uid)
     return uid
 
@@ -138,7 +139,9 @@ def check_username(username):
     username = username.lower()
     taken = username in reserved_names
     if not taken:
-        taken = r.exists('uid:username:%s' % username)
+        uid = r.get('uid:username:%s' % username)
+        if uid is not None:
+            taken = True
     return False if taken else True
 
 
@@ -148,8 +151,10 @@ def check_email(email):
     Return true if free and false otherwise.
     """
     email = email.lower()
-    check = r.exists('uid:email:%s' % email)
-    return True if not check else False
+    uid = r.get('uid:email:%s' % email)
+    if uid is not None:
+        return False
+    return True
 
 
 def create_user(username, email, password):
@@ -209,7 +214,8 @@ def authenticate(username, password):
     If successful will return a uid else will return None.
     """
     uid = get_uid(username)
-    if uid and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
+    if uid is not None and uid > 0 \
+       and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
         return uid
     return None
 
@@ -275,13 +281,37 @@ def delete_account(uid):
 
     This is going to be the most _expensive_ task in Pjuu. Be warned.
     """
+    uid = int(uid)
+    # Get some information from the hashes to delete lookup keys
+    username = r.hget('user:%d' % uid, 'username')
+    email = r.hget('user:%d' % uid, 'email')
     # Lets get started removing this person
     # Delete user account
+    r.delete("user:%d" % uid)
+    # Delete feed
+    r.delete("user:%d:feed" % uid)
     # Delete posts
+    # This will remove all the users posts and the list used to store this.
+    # The feeds these posts belong to are left to self clean
+    delete_posts(uid)
     # Delete comments
+    # This will remove all the users comments and the list used to store them.
+    # The posts the comments are attached too are left to self clean
+    delete_comments(uid)
     # Clear followers sets
+    # At the moment these lists are left to self clean
+    # The number will be out of sync if the followers list are not accessed
+    r.delete("user:%d:followers" % uid)
     # Clear following sets
-    pass
+    # At the moment these lists are left to self clean
+    # The number will be out of sync if the following list is not accessed
+    r.delete("user:%d:following" % uid)
+    # Set uid lookup keys to -1 and set an expire time on them
+    r.set('uid:username:%s' % username, -1)
+    r.expire('uid:username:%s' % username, app.config['EXPIRE_SECONDS'])
+    r.set('uid:email:%s' % email, -1)
+    r.expire('uid:email:%s' % username, app.config['EXPIRE_SECONDS'])
+    return True
 
 
 def generate_token(signer, data):

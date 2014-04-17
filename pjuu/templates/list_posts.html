@@ -14,13 +14,11 @@
             {% endif %}
         </div>
         <div class="details-post clearfix">
-            <div class="clearfix">
-                <div class="username">
-                    <a href="{{ url_for('profile', username=item.user_username) }}">
-                        {{ item.user_username|capitalize }}
-                    </a>
-                </div>
-                <div class="user-score">{{ item.user_score|millify }}</div>
+            <div class="username">
+                <a href="{{ url_for('profile', username=item.user_username) }}">
+                    {{ item.user_username|capitalize }}
+                </a>
+                <span class="user-score">{{ item.user_score|millify }}</span>
             </div>
             <div class="body">{{ item.body|urlize }}</div>
             <div class="created">{{ item.created|timeify }}</div>

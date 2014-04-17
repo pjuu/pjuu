@@ -1,4 +1,4 @@
-/* GLOBAL ================================================================== */
+/* GLOBAL ================================================================= */
 
 html, body {
 	background-color: #EFB;
@@ -32,19 +32,11 @@ html[xmlns] .clearfix {
     visibility: hidden;
     line-height: 0;
     height: 0;
+    margin: 0;
 }
 
 #wrapper {
 	width: 100%;
-}
-
-/* if you add this class to an element it will not appear on scaled down screens */
-.no-mobile {
-	display: inline;
-}
-
-.glyphicon {
-    vertical-align: middle;
 }
 
 .external-link {
@@ -109,7 +101,7 @@ input[type=submit] {
     margin: 0 auto;
 }
 
-/* FLASH MESSAGES ========================================================== */
+/* FLASH MESSAGES ========================================================= */
 .message {
     border-radius: 3px;
     font-weight: 700;
@@ -138,7 +130,7 @@ input[type=submit] {
     color: #880;
 }
 
-/* AUTHENTICATION ========================================================== */
+/* AUTHENTICATION ========================================================= */
 #auth {
 	width: 100%;
 }
@@ -197,7 +189,7 @@ input[type=submit] {
     text-align: center;
 }
 
-/* HEADER ================================================================== */
+/* HEADER ================================================================= */
 #header {
 	background-color: #9C0;
 	border-bottom: 1px solid #680;
@@ -249,7 +241,7 @@ input[type=submit] {
 	background-color: #680;
 }
 
-/* MAIN ==================================================================== */
+/* MAIN =================================================================== */
 #main {
 	margin: 4em 0 0 0;
 	width: 100%;
@@ -270,10 +262,11 @@ input[type=submit] {
 .action-button {
     color: #680;
     background-color: #EEE;
-    border-radius: 3px 3px 3px 3px;
+    border-radius: 3px;
     font-weight: 700;
     float: right;
-    padding: 0.5em 0;
+    margin: 0.25em;
+    padding: 0.25em 0;
     text-align: center;
     width: 100px
 }
@@ -297,7 +290,7 @@ input[type=submit] {
     background-color: #C00;
 }
 
-/* PROFILE ================================================================ */
+/* PROFILE =============================================================== */
 #profile {
     background-color: #FFF;
     color: #333;
@@ -309,8 +302,6 @@ input[type=submit] {
 }
 
 #profile .avatar {
-    border: 1px solid #333;
-    border-radius: 3px;
     display: block;
     float: left;
     margin: 0;
@@ -322,7 +313,6 @@ input[type=submit] {
 }
 
 #profile .username {
-    float: left;
     font-size: 1.5em;
     line-height: 1em;
 }
@@ -331,13 +321,12 @@ input[type=submit] {
     background-color: #EEE;
     border: 1px solid #BBB;
     border-radius: 3px;
-    float: left;
-    padding: 0 0.25em;
-    margin: 0 0 0 0.75em;
+    padding: 0.1em 0.25em 0;
+    margin: 0 0 0 0.25em;
 }
 
 #profile .body {
-    margin: 0.5em 0 0;
+    margin: 1em 0 0;
     word-wrap: break-word;
 }
 
@@ -346,8 +335,7 @@ input[type=submit] {
     background-color: #EEE;
     border-top: 1px solid #BBB;
     border-radius: 0 0 3px 3px;
-    margin: 0;
-    padding: 0.5em;
+    margin: 1em 0 0;
 }
 
 #profile .panel img {
@@ -358,10 +346,6 @@ input[type=submit] {
     float: left;
     margin: 0;
     padding: 0;
-}
-
-#profile ul .last {
-    border: 0;
 }
 
 #profile ul .link {
@@ -382,7 +366,7 @@ input[type=submit] {
     padding: 0.5em 1em;
 }
 
-/* POST ==================================================================== */
+/* POST =================================================================== */
 #post {
     background-color: #FFF;
     color: #333;
@@ -394,8 +378,6 @@ input[type=submit] {
 }
 
 #post .avatar {
-    border: 1px solid #333;
-    border-radius: 3px;
     display: block;
     float: left;
     margin: 0;
@@ -407,7 +389,6 @@ input[type=submit] {
 }
 
 #post .username {
-    float: left;
     font-size: 1.5em;
     line-height: 1em;
 }
@@ -416,13 +397,12 @@ input[type=submit] {
     background-color: #EEE;
     border: 1px solid #BBB;
     border-radius: 3px;
-    float: left;
     padding: 0 0.25em;
     margin: 0 0 0 0.75em;
 }
 
 #post .body {
-    margin: 0.5em 2em 0 0;
+    margin: 1em 2em 0 0;
     word-wrap: break-word;
 }
 
@@ -430,7 +410,7 @@ input[type=submit] {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
-    margin: 0.5em 0 0;
+    margin: 1em 0 0;
 }
 
 #post .control {
@@ -453,8 +433,6 @@ input[type=submit] {
     background-color: #EEE;
     border-top: 1px solid #BBB;
     border-radius: 0 0 3px 3px;
-    margin: 0;
-    padding: 0.5em;
 }
 
 #post .panel img {
@@ -483,15 +461,11 @@ input[type=submit] {
     color: #FFF;
 }
 
-#post .first {
-    padding-left: 0.5em;
-}
-
 #post .last {
     border: 0;
 }
 
-/* AUTHOR ================================================================== */
+/* AUTHOR ================================================================= */
 #author {
     border: 1px solid #333;
     border-radius: 3px;
@@ -522,12 +496,12 @@ input[type=submit] {
     float: left;
 }
 
-/* SEARCH ================================================================== */
+/* SEARCH ================================================================= */
 .search {
     background-color: #EEE;
 }
 
-/* CONTENT ================================================================= */
+/* CONTENT ================================================================ */
 #content {
     background-color: #FFF;
     border: 1px solid #333;
@@ -549,7 +523,7 @@ input[type=submit] {
     padding: 0.5em 0;
 }
 
-/* LISTS =================================================================== */
+/* LISTS ================================================================== */
 #list {
     margin: 0;
     padding: 0;
@@ -598,7 +572,6 @@ input[type=submit] {
 }
 
 #list .username {
-    float: left;
     font-size: 1em;
 }
 
@@ -606,14 +579,12 @@ input[type=submit] {
     background-color: #EEE;
     border: 1px solid #BBB;
     border-radius: 3px;
-    float: left;
-    font-size: 0.75em;
-    padding: 0 0.25em;
-    margin: 0 0 0 0.75em;
+    padding: 0.1em 0.25em;
+    margin: 0 0 0 0.5em;
 }
 
 #list .body {
-    margin: 0.5em 0 0;
+    margin: 1em 0 0;
     word-wrap: break-word;
 }
 
@@ -621,7 +592,7 @@ input[type=submit] {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
-    margin: 0.5em 0 0;
+    margin: 1em 0 0;
 }
 
 #list .control {
@@ -696,8 +667,7 @@ input[type=submit] {
     background-color: #BBB;
 }
 
-/* PAGINATION ============================================================== */
-
+/* PAGINATION ============================================================= */
 #pagination {
     font-size: 13px;
     padding: 0 0.5em 0.5em;
@@ -733,7 +703,7 @@ input[type=submit] {
     border-radius: 3px;
     font-weight: 700;
     margin: 0;
-    padding: 0.5em;
+    padding: 0;
 }
 
 #settings-menu .last {
@@ -775,8 +745,24 @@ input[type=submit] {
     color: #F00;
 }
 
-/* MEDIA QUERIES =========================================================== */
+/* FOOTER ================================================================= */
+#footer {
+    color: #680;
+    font-size: 0.75em;
+    margin: 0 0 0.5em 0;
+    text-align: center;
+}
 
+#footer a {
+    color: #000;
+    text-decoration: underline;
+}
+
+#footer a:hover {
+    color: #36F;
+}
+
+/* MEDIA QUERIES ========================================================== */
 @media only screen and (max-width: 600px) {
     #auth .container {
         width: 98%;
@@ -812,18 +798,13 @@ input[type=submit] {
         border: 0;
         border-bottom: 1px solid #BBB;
         float: none;
-        padding: 0.5em 0;
-    }
-
-    #settings-menu .last {
-        border: 0;
+        padding: 0.5em 1em;
     }
 
     #settings-menu li {
-        border-right: 0;
+        border: 0;
         border-bottom: 1px solid #BBB;
         float: none;
         padding: 0.5em 1em;
-        text-align: center;
     }
 }

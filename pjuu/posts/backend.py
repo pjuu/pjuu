@@ -4,7 +4,7 @@ from time import gmtime
 from calendar import timegm
 # Pjuu imports
 from pjuu import app, redis as r
-from .tasks import populate_feeds, delete_comments
+from pjuu.lib.tasks import populate_feeds, delete_comments
 
 
 def create_post(uid, body):
@@ -96,11 +96,14 @@ def get_post(pid):
     """
     post = r.hgetall('post:%d' % int(pid))
     if post:
-        user_dict = r.hgetall('user:%s' % post['uid'])
-        post['user_username'] = user_dict['username']
-        post['user_email'] = user_dict['email']
-        post['user_score'] = user_dict['score']
-        post['comment_count'] = r.llen('post:%d:comments' % int(pid))
+        try:
+            user_dict = r.hgetall('user:%s' % post['uid'])
+            post['user_username'] = user_dict['username']
+            post['user_email'] = user_dict['email']
+            post['user_score'] = user_dict['score']
+            post['comment_count'] = r.llen('post:%d:comments' % int(pid))
+        except KeyError:
+            return None
     return post
 
 
@@ -111,12 +114,16 @@ def get_comment(cid):
     comment = r.hgetall('comment:%d' % int(cid))
     if comment:
         user_dict = r.hgetall('user:%s' % comment['uid'])
-        comment['user_username'] = user_dict['username']
-        comment['user_email'] = user_dict['email']
-        comment['user_score'] = user_dict['score']
-        # We need the username from the parent pid to construct a URL
-        post_author_uid = r.hget('post:%s' % comment['pid'], 'uid')
-        comment['post_author'] = r.hget('user:%s' % post_author_uid, 'username')
+        try:
+            comment['user_username'] = user_dict['username']
+            comment['user_email'] = user_dict['email']
+            comment['user_score'] = user_dict['score']
+            # We need the username from the parent pid to construct a URL
+            post_author_uid = r.hget('post:%s' % comment['pid'], 'uid')
+            comment['post_author'] = r.hget('user:%s' % post_author_uid,
+                                            'username')
+        except KeyError:
+            return None
     return comment
 
 
@@ -187,9 +194,15 @@ def delete(uid, pid, cid=None):
     if cid:
         # Delete comment and votes
         cid = int(cid)
+        # We need to get the comment authors uid so that we can remove the
+        # comment from there user:$uid:comments list
+        author_id = r.hget('comment:%d' % cid, 'uid')
+        # Delete the comment and remove from the posts list
         r.delete('comment:%d' % cid)
         r.delete('comment:%d:votes' % cid)
         r.lrem('post:%d:comments' % pid, 0, cid)
+        # Delete the comment from the users comment list
+        r.lrem('user:%s:comments' % author_id, 0, cid)
     else:
         # Delete post, comments and votes
         r.delete('post:%d' % pid)

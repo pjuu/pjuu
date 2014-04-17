@@ -245,7 +245,7 @@ def unfollow(username):
 def search():
     """
     Handles searching of users. This is all done via a GET query.
-    There should be _NO_ CSRF as this will appear in the query string
+    There should be _NO_ CSRF as this will appear in the URL and look shit
     """
     form = SearchForm(request.form)
     if 'query' not in request.args:

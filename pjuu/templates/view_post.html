@@ -14,13 +14,11 @@
         </div>
 
         <div class="details clearfix">
-            <div class="clearfix">
-                <div class="username">
-                    <a href="{{ url_for('profile', username=post.user_username) }}">
-                        {{ post.user_username|capitalize }}
-                    </a>
-                </div>
-                <div class="user-score">{{ post.user_score|millify }}</div>
+            <div class="username">
+                <a href="{{ url_for('profile', username=post.user_username) }}">
+                    {{ post.user_username|capitalize }}
+                </a>
+                <span class="user-score">{{ post.user_score|millify }}</span>
             </div>
             <div class="body">{{ post.body|urlize }}</div>
             <div class="created">{{ post.created|timeify }}</div>
