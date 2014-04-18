@@ -7,7 +7,7 @@
 {% block layout %}
 <div id="auth">
     <div class="container">
-        <div class="logo">PJUU</div>
+        <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}"/>
         <div class="motto">An open source social thing</div>
         {% include 'messages.html' %}
         <div class="form clearfix">

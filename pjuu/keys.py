@@ -1,6 +1,5 @@
 # -*- coding: utf8 -*-
 
-# This file is not used at the moment inside the code.
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
 # around the code base

@@ -13,3 +13,4 @@ settings.py
 pjuu/static/img/glyphicons/*.png
 .idea/
 .idea/*
+error.log

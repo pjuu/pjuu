@@ -59,7 +59,9 @@ def inject_version():
 
 
 # Import all Pjuu stuffs
-# Endpoints and present
+# Error handlers
+from lib.errors import *
+# Endpoints
 import auth
 import users
 import posts

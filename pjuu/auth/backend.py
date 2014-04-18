@@ -7,12 +7,13 @@ from calendar import timegm
 import re
 # 3rd party imports
 from flask import _app_ctx_stack, session
-from itsdangerous import TimedSerializer
+from itsdangerous import TimedSerializer, SignatureExpired
 from werkzeug.local import LocalProxy
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
 from pjuu import app, redis as r
-from pjuu.lib.tasks import delete_comments, delete_posts
+from pjuu.lib.tasks import (delete_comments, delete_posts, delete_followers,
+                            delete_following)
 
 
 # E-mail checker
@@ -49,8 +50,8 @@ reserved_names = [
     'subscribe', 'subdomain', 'support', 'stat', 'static', 'stats', 'status',
     'store', 'stores', 'system', 'tablet', 'template', 'templates' 'test',
     'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
-    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user', 'username',
-    'usage', 'video', 'videos', 'web', 'webmail']
+    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
+    'username', 'usage', 'video', 'videos', 'web', 'webmail']
 
 
 # Signers
@@ -301,11 +302,11 @@ def delete_account(uid):
     # Clear followers sets
     # At the moment these lists are left to self clean
     # The number will be out of sync if the followers list are not accessed
-    r.delete("user:%d:followers" % uid)
+    delete_followers(uid)
     # Clear following sets
     # At the moment these lists are left to self clean
     # The number will be out of sync if the following list is not accessed
-    r.delete("user:%d:following" % uid)
+    delete_following(uid)
     # Set uid lookup keys to -1 and set an expire time on them
     r.set('uid:username:%s' % username, -1)
     r.expire('uid:username:%s' % username, app.config['EXPIRE_SECONDS'])
@@ -338,6 +339,6 @@ def check_token(signer, token):
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
         if app.config['DEBUG']:
             print timegm(gmtime()), "Token checked:", token
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, SignatureExpired):
         return None
     return data

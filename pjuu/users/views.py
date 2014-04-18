@@ -215,8 +215,12 @@ def follow(username):
         abort(404)
 
     # Follow user
-    if follow_user(current_user['uid'], uid):
-        flash('You have started following %s' % username, 'information')
+    if uid != current_user['uid']:
+        if follow_user(current_user['uid'], uid):
+            flash('You have started following %s' % username, 'information')
+    else:
+        flash('You can\'t follow yourself')
+
     return redirect(redirect_url)
 
 
@@ -235,8 +239,12 @@ def unfollow(username):
         abort(404)
 
     # Unfollow user
-    if unfollow_user(current_user['uid'], uid):
-        flash('You are no longer following %s' % username, 'information')
+    if uid != current_user['uid']:
+        if unfollow_user(current_user['uid'], uid):
+            flash('You are no longer following %s' % username, 'information')
+    else:
+        flash('You can\'t unfollow yourself')
+
     return redirect(redirect_url)
 
 
