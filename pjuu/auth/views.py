@@ -199,9 +199,9 @@ def change_email():
 
                 if not app.config['NOMAIL']:
                     send_mail('Confirm e-mail change', [form.new_email.data],
-                        text_body=render_template('emails/change_email.txt',
+                        text_body=render_template('emails/email_change.txt',
                                                   token=token),
-                        html_body=render_template('emails/change_email.html',
+                        html_body=render_template('emails/email_change.html',
                                                   token=token))
 
                 flash('We\'ve sent you an email, please confirm this.',
