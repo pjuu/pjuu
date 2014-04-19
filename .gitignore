@@ -10,7 +10,7 @@ dist
 _mailinglist
 .tox
 settings.py
+pjuu/static/img/glyphicons/*.png
 .idea/
 .idea/*
-pjuu.settings-*
-static/img/glyphicons/*.png
+error.log
