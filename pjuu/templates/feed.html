@@ -1,9 +1,11 @@
 {% extends 'base_main.html' %}
 
+{% block title %}Feed{% endblock %}
+
 {% block main %}
 {% include 'author_post.html' %}
-<div id="content" class="clearfix">
-    <h1>Feed</h1>
+<div id="content" class="block clearfix">
+	<h1>Feed</h1>
     {% include 'list_posts.html' %}
 </div>
 {% endblock %}

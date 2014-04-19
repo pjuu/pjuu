@@ -1,4 +1,20 @@
 # -*- coding: utf8 -*-
+
+# Copyright 2014 Joe Doherty <joe@pjuu.com>
+#
+# Pjuu is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Pjuu is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 # 3rd party imports
 from flask import (flash, redirect, render_template, request,
                    url_for)
@@ -6,6 +22,7 @@ from flask import (flash, redirect, render_template, request,
 from pjuu import app
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
+from pjuu.auth.backend import delete_account as be_delete_account
 from .backend import (authenticate, current_user, login,
                       logout, create_user, activate_signer, forgot_signer,
                       email_signer, generate_token, check_token,
@@ -190,7 +207,8 @@ def change_email():
                 flash('We\'ve sent you an email, please confirm this.',
                       'success')
         else:
-            flash('Oh no! There are errors in your change email form.', 'error')
+            flash('Oh no! There are errors in your change email form.',
+                  'error')
     return render_template('change_email.html', form=form)
 
 
@@ -224,7 +242,8 @@ def change_password():
                 be_change_password(current_user['uid'], form.new_password.data)
                 flash('Your password has successfully been update!', 'success')
         else:
-            flash('Oh no! There are errors in your change password form.', 'error')
+            flash('Oh no! There are errors in your change password form.',
+                  'error')
     return render_template('change_password.html', form=form)
 
 
@@ -234,7 +253,12 @@ def delete_account():
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
-            flash('Account would have been deleted!<br>Your on a beta stop crying', 'information')
+            uid = int(current_user['uid'])
+            logout()
+            # This is still rather buggy!
+            be_delete_account(uid)
+            flash('Your account has been deleted!<br/>'
+                  'We hope you have enjoyed Pjuu', 'information')
         else:
             flash('Invalid password', 'error')
     return render_template('delete_account.html', form=form)

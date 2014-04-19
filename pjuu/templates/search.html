@@ -1,12 +1,20 @@
 {% extends 'base_main.html' %}
 
+{% block title %}Search{% endblock %}
+
 {% block main %}
+<div id="author" class="block search clearfix">
+	<h1>Search for users</h1>
+    <form action="{{ url_for('search') }}" method="GET">
+        {{ form.query }}
+        <input type="submit" value="Search"/>
+    </form>
+</div>
+
+{% if query %}
 <div id="content" class="clearfix">
-    {% if query %}
-    <h1>Search Results: {{ query }}</h1>
-    {% else %}
-    <h1>Search</h1>
-    {% endif %}
+    <h1>Results: {{ query }}</h1>
     {% include 'list_users.html' %}
 </div>
+{% endif %}
 {% endblock %}

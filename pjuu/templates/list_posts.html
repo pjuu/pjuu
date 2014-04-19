@@ -3,35 +3,61 @@
 {% block list %}
 {% if pagination.items %}
 {% for item in pagination.items %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} clearfix">
-    <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
-    <div class="scoring">
-        <div class="score">{{ item.score|millify }}</div>
-        {% if current_user.uid != item.uid %}
-        <div class="vote">
-            {% if item.pid|voted %}
-            <div class="vote-score">{{ item.pid|voted }}</div>
-            {% else %}
-            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path) }}"><div>Up</div></a>
-            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path) }}"><div>Down</div></a>
+<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
+    <div class="top-section">
+        <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
+        <div class="control">
+            {% if item.user_username == current_user.username %}
+            <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid) }}">
+                <div class="delete">X</div>
+            </a>
             {% endif %}
         </div>
-        {% endif %}
-    </div>
-    <div class="control">
-        {% if item.user_username == current_user.username %}
-        <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid) }}"><div class="delete">X</div></a>
-        {% endif %}
-    </div>
-    <div class="details clearfix">
-        <div class="username">
-            <span class="user-score">{{ item.user_score|millify }}</span>
-            <a href="{{url_for('profile', username=item.user_username)}}">{{ item.user_username|capitalize }}</a>
+        <div class="details-post clearfix">
+            <div class="username">
+                <a href="{{ url_for('profile', username=item.user_username) }}">
+                    {{ item.user_username|capitalize }}
+                </a>
+                <span class="user-score">{{ item.user_score|millify }}</span>
+            </div>
+            <div class="body">{{ item.body|urlize }}</div>
+            <div class="created">{{ item.created|timeify }}</div>
         </div>
-        <div class="body">{{ item.body|urlize }}</div>
-        <div class="created">{{ item.created|timeify }} | <a
-                href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">{{ item.comment_count|millify }}
-            comments</a></div>
+    </div>
+    <div class="panel clearfix">
+        <ul class="voting clearfix">
+            <li class="voting-item first">
+                {{ item['score']|millify }}
+            </li>
+            {% if item.user_username != current_user.username %}
+            {% if item.pid|voted %}
+            <li class="voting-item">
+                {% if item.pid|voted > 0 %}
+                <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                {% else %}
+                <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
+                {% endif %}
+            </li>
+            {% else %}
+            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path) }}">
+               <li class="voting-item link">
+                    <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                </li>
+            </a>
+            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path) }}">
+                <li class="voting-item link">
+                    <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
+                </li>
+            </a>
+            {% endif %}
+            {% endif %}
+        </ul>
+        <a href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">
+            <div class="comment-count link">
+                <img src="{{ url_for('static', filename='img/glyphicons/comments.png') }}" width="16" height="16"/>
+                {{ item.comment_count|millify }}
+            </div>
+        </a>
     </div>
 </li>
 {% endfor %}

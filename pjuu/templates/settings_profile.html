@@ -1,10 +1,20 @@
 {% extends 'settings.html' %}
 
 
-{% block settings_main %}
+{% block settings %}
+<h1>Profile settings</h1>
 <div id="setting" class="clearfix">
-    <h2>Profile settings</h2>
-    <div class="information">User Name: <span class="bold">{{ current_user['username'] }}</span></div>
+    <div class="details">
+        <div class="detail">User Name: <b>{{ current_user['username'] }}</b></div>
+        <div class="detail">E-mail address: <b>{{ current_user['email'] }}</b></div>
+        <div class="detail">
+            Avatar<br/>
+            <img src="{{ current_user['email']|gravatar(48) }}"/>
+            <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>
+            <p>This may make you account less secure that is why we plan on changing this in the <i>very</i> near future.</p>
+            <div class="external-link"><a href="http://gravatar.com" target="_blank">Gravatar</a></div>
+        </div>
+    </div>
     <form action="" method="post">
         {{ form.about.label }}
         <textarea id="about" name="about" rows="5" maxlength="255">{{ current_user['about'] }}</textarea>

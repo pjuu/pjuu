@@ -1,8 +1,31 @@
 {% extends 'base_main.html' %}
+
+{% block title %}{{ profile['username']|capitalize }}{% endblock %}
+
 {% block main %}
-<div id="profile" class="clearfix">
-    <img class="avatar" src="{{ profile['email']|gravatar(96) }}"/>
-    <ul>
+<div id="profile" class="block clearfix">
+    <div class="top-section">
+        <img class="avatar" src="{{ profile['email']|gravatar(48) }}"/>
+        <div class="details clearfix">
+                <div class="username">
+                    {{ profile['username']|capitalize }}
+                    <span class="user-score">{{ profile['score']|millify }}</span>
+                </div>
+            <div class="body">{{profile['about']}}</div>
+        </div>
+    </div>
+    <div class="panel clearfix">
+        <ul class="clearfix">
+            <a class="first" href="{{ url_for('profile', username=profile['username']) }}">
+                <li class="link">Posts: {{ profile['post_count']|millify }}</li>
+            </a>
+            <a href="{{ url_for('followers', username=profile['username']) }}">
+                <li class="link">Followers: {{ profile['followers_count']|millify }}</li>
+            </a>
+            <a href="{{ url_for('following', username=profile['username']) }}">
+                <li class="link last">Following: {{ profile['following_count']|millify }}</li>
+            </a>
+        </ul>
         {% if profile['uid'] != current_user['uid'] %}
         {% if profile|following %}
         <a href="{{ url_for('unfollow', username=profile['username'], next=request.path) }}">
@@ -22,25 +45,16 @@
             </div>
         </a>
         {% endif %}
-        <a href="{{ url_for('profile', username=profile['username']) }}">
-            <li>{{ profile['post_count']|millify }} posts</li>
-        </a>
-        <a href="{{ url_for('followers', username=profile['username']) }}">
-            <li>{{ profile['followers_count']|millify }} followers</li>
-        </a>
-        <a href="{{ url_for('following', username=profile['username']) }}">
-            <li>{{ profile['following_count']|millify }} following</li>
-        </a>
-    </ul>
-    <div class="details">
-        <div class="username"><span class="score">{{ profile['score']|millify }}</span>{{ profile['username']|capitalize }}</div>
-        <div class="body">{{profile['about']}}</div>
     </div>
 </div>
-{% if profile['uid'] == current_user['uid'] %}
-{% include 'author_post.html' %}
+
+{% if profile['uid'] == current_user['uid'] and request.endpoint == 'profile' %}
+    {% include 'author_post.html' %}
 {% endif %}
-<div id="content" class="clearfix">
-    {% block content %}{% endblock %}
+
+<div id="content" class="block clearfix">
+{% block content %}
+{% endblock %}
 </div>
+
 {% endblock %}

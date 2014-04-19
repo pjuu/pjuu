@@ -1,4 +1,20 @@
 # -*- coding: utf8 -*-
+
+# Copyright 2014 Joe Doherty <joe@pjuu.com>
+#
+# Pjuu is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Pjuu is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 # Stdlib imports
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
@@ -6,12 +22,14 @@ from time import gmtime
 from calendar import timegm
 import re
 # 3rd party imports
-from flask import _app_ctx_stack, request, session, abort
-from itsdangerous import TimedSerializer
+from flask import _app_ctx_stack, session
+from itsdangerous import TimedSerializer, SignatureExpired
 from werkzeug.local import LocalProxy
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
 from pjuu import app, redis as r
+from pjuu.lib.tasks import (delete_comments, delete_posts, delete_followers,
+                            delete_following)
 
 
 # E-mail checker
@@ -19,7 +37,8 @@ email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 
 # Reserved names
-# TODO Come up with a better solution for this
+# TODO Come up with a better solution for this. Before adding a name here
+# ensure that no one is using it.
 reserved_names = [
     'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
     'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
@@ -47,14 +66,17 @@ reserved_names = [
     'subscribe', 'subdomain', 'support', 'stat', 'static', 'stats', 'status',
     'store', 'stores', 'system', 'tablet', 'template', 'templates' 'test',
     'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
-    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user', 'username',
-    'usage', 'video', 'videos', 'web', 'webmail']
+    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
+    'username', 'usage', 'video', 'videos', 'web', 'webmail']
 
 
 # Signers
-activate_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_ACTIVATE'])
-forgot_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_FORGOT'])
-email_signer = TimedSerializer(app.config['TOKEN_KEY'], salt=app.config['SALT_EMAIL'])
+activate_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                                  salt=app.config['SALT_ACTIVATE'])
+forgot_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                                salt=app.config['SALT_FORGOT'])
+email_signer = TimedSerializer(app.config['TOKEN_KEY'],
+                               salt=app.config['SALT_EMAIL'])
 
 
 # Can be used anywhere to get the current logged in user.
@@ -76,22 +98,22 @@ def _load_user():
 
 def get_uid_username(username):
     """
-    Returns a user_id from username.
+    Returns a uid from username.
     """
     username = username.lower()
     uid = r.get('uid:username:%s' % username)
-    if uid is not None:
+    if uid is not None and uid > 0:
         uid = int(uid)
     return uid
 
 
 def get_uid_email(email):
     """
-    Returns a user_id from email.
+    Returns a uid from email.
     """
     email = email.lower()
     uid = r.get('uid:email:%s' % email)
-    if uid is not None:
+    if uid is not None and uid > 0:
         uid = int(uid)
     return uid
 
@@ -106,9 +128,10 @@ def get_uid(username):
     else:
         return get_uid_username(username)
 
+
 def get_user(uid):
     """
-    Similar to above but will return the user dict (calls above).
+    Similar to above but will return the user dict.
     """
     uid = int(uid)
     if uid:
@@ -133,7 +156,9 @@ def check_username(username):
     username = username.lower()
     taken = username in reserved_names
     if not taken:
-        taken = r.exists('uid:username:%s' % username)
+        uid = r.get('uid:username:%s' % username)
+        if uid is not None:
+            taken = True
     return False if taken else True
 
 
@@ -143,8 +168,10 @@ def check_email(email):
     Return true if free and false otherwise.
     """
     email = email.lower()
-    check = r.exists('uid:email:%s' % email)
-    return True if not check else False
+    uid = r.get('uid:email:%s' % email)
+    if uid is not None:
+        return False
+    return True
 
 
 def create_user(username, email, password):
@@ -204,7 +231,8 @@ def authenticate(username, password):
     If successful will return a uid else will return None.
     """
     uid = get_uid(username)
-    if uid and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
+    if uid is not None and uid > 0 \
+       and check_password_hash(r.hget('user:%d' % uid, 'password'), password):
         return uid
     return None
 
@@ -261,6 +289,48 @@ def change_email(uid, email):
     return True
 
 
+def delete_account(uid):
+    """
+    Will delete a users account. This should remove _ALL_ details,
+    comments, posts.
+
+    Ensure the user has authenticated this request. Backends don't care!
+
+    This is going to be the most _expensive_ task in Pjuu. Be warned.
+    """
+    uid = int(uid)
+    # Get some information from the hashes to delete lookup keys
+    username = r.hget('user:%d' % uid, 'username')
+    email = r.hget('user:%d' % uid, 'email')
+    # Lets get started removing this person
+    # Delete user account
+    r.delete("user:%d" % uid)
+    # Delete feed
+    r.delete("user:%d:feed" % uid)
+    # Delete posts
+    # This will remove all the users posts and the list used to store this.
+    # The feeds these posts belong to are left to self clean
+    delete_posts(uid)
+    # Delete comments
+    # This will remove all the users comments and the list used to store them.
+    # The posts the comments are attached too are left to self clean
+    delete_comments(uid)
+    # Clear followers sets
+    # At the moment these lists are left to self clean
+    # The number will be out of sync if the followers list are not accessed
+    delete_followers(uid)
+    # Clear following sets
+    # At the moment these lists are left to self clean
+    # The number will be out of sync if the following list is not accessed
+    delete_following(uid)
+    # Set uid lookup keys to -1 and set an expire time on them
+    r.set('uid:username:%s' % username, -1)
+    r.expire('uid:username:%s' % username, app.config['EXPIRE_SECONDS'])
+    r.set('uid:email:%s' % email, -1)
+    r.expire('uid:email:%s' % username, app.config['EXPIRE_SECONDS'])
+    return True
+
+
 def generate_token(signer, data):
     """
     Generates a token using the signer passed in.
@@ -285,6 +355,6 @@ def check_token(signer, token):
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
         if app.config['DEBUG']:
             print timegm(gmtime()), "Token checked:", token
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, SignatureExpired):
         return None
     return data

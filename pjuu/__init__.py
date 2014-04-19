@@ -1,5 +1,20 @@
 # -*- coding: utf8 -*-
 
+# Copyright 2014 Joe Doherty <joe@pjuu.com>
+#
+# Pjuu is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Pjuu is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail
@@ -8,6 +23,7 @@ from redis import Redis, StrictRedis
 from lib.sessions import RedisSessionInterface
 
 
+# Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
 __version__ = '0.1dev'
 
@@ -31,9 +47,10 @@ redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
 mail = Mail(app)
 
 # Create Redis objects (session store and data store)
-redis_sessions = Redis(host='redis', db=1)
+redis_sessions = Redis(host=app.config['SESSION_REDIS_HOST'],
+							 db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
-app.session_interface = RedisSessionInterface(redis=redis_sessions, prefix='')
+app.session_interface = RedisSessionInterface(redis=redis_sessions)
 
 
 # LOGGING
@@ -45,7 +62,7 @@ if not app.debug:
     logging_handler = logging.FileHandler(app.config['LOG_FILE'])
     logging_handler.setLevel(logging.WARNING)
     logging_handler.setFormatter(logging.Formatter(
-        '%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d] %(message)s'
+        "%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d] %(message)s"
     ))
     app.logger.addHandler(logging_handler)
 
@@ -58,7 +75,9 @@ def inject_version():
 
 
 # Import all Pjuu stuffs
-# Endpoints and present
+# Error handlers
+from lib.errors import *
+# Endpoints
 import auth
 import users
 import posts

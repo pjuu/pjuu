@@ -1,4 +1,20 @@
 # -*- coding: utf8 -*-
+
+# Copyright 2014 Joe Doherty <joe@pjuu.com>
+#
+# Pjuu is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Pjuu is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 # This code is taken from flask.pocoo.org snippets
 try:
     import cPickle as pickle
@@ -27,9 +43,9 @@ class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis=None, prefix='session:'):
+    def __init__(self, redis=None, prefix=''):
         if redis is None:
-            redis = Redis()
+            redis = StrictRedis()
         self.redis = redis
         self.prefix = prefix
 
@@ -57,8 +73,7 @@ class RedisSessionInterface(SessionInterface):
         if not session:
             self.redis.delete(self.prefix + session.sid)
             if session.modified:
-                response.delete_cookie(app.session_cookie_name,
-                                       domain=domain)
+                response.delete_cookie(app.session_cookie_name, domain=domain)
             return
         redis_exp = self.get_redis_expiration_time(app, session)
         cookie_exp = self.get_expiration_time(app, session)
@@ -66,5 +81,6 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(self.prefix + session.sid, val,
                          int(redis_exp.total_seconds()))
         response.set_cookie(app.session_cookie_name, session.sid,
-                            expires=cookie_exp, httponly=True,
-                            domain=domain)
+                            expires=cookie_exp, domain=domain,
+                            httponly=app.config['SESSION_COOKIE_HTTPONLY'],
+                            secure=app.config['SESSION_COOKIE_SECURE'])

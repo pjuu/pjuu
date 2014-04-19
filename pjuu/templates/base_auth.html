@@ -1,26 +1,21 @@
 {% extends 'base.html' %}
+
+{% block additional_css %}
+<link href="{{ url_for('static', filename='css/auth.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
 {% block layout %}
-<div id="logo">PJUU</div>
-<div id="motto">
-    An open source social thing
-</div>
 <div id="auth">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="messages">
-        {% for category, message in messages %}
-        <div class="message {{ category|safe }}">{{ message|safe }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-    <div class="form">
-        <div class="header">{% block header %}{% endblock %}</div>
-        <div class="elements clearfix">
+    <div class="container">
+        <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}"/>
+        <div class="motto">An open source social thing</div>
+        {% include 'messages.html' %}
+        <div class="form clearfix">
+            <h1>{% block header %}{% endblock %}</h1>
             {% block form %}{% endblock %}
         </div>
+        {% block links %}
+        {% endblock %}
     </div>
-    {% block links %}
-    {% endblock %}
 </div>
 {% endblock %}

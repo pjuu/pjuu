@@ -1,7 +1,5 @@
-<div id="author-hider" class="post-hider">
-    Create a new post
-</div>
-<div id="author" class="clearfix post-form">
+<div id="author" class="block author-post clearfix">
+	<h1>Create new post</h1>
     <form action="{{ url_for('post', next=request.path) }}" method="post">
         {{ post_form.body(rows=3, maxlength=255) }}
         {{ post_form.csrf_token }}
