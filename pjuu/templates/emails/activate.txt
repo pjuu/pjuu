@@ -5,19 +5,19 @@ Hi,
 
 Thank you for singing up for Pjuu.
 
-You will be doing socially stuff in just a moment. We just need you to activate your account.
+You will be doing social type stuff in just a moment. But before you can do that we just need you to activate your account.
 
-If you can press the link below you will be able to sign in.
+If you can click the link below you will be able to sign in.
 
 <a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a>
 
-If you can not press the above link please copy and paste the below in to your web browser of choice.
+If you can not access the above link please copy and paste the below in to your web browser of choice.
 
 {{ url_for('activate', token=token, _external=True) }}
 {% endblock %}
 
 {% block content_footer %}
-If you have received this e-mail but have no signed up for the Pjuu then you can ignore this e-mail.
+If you have received this e-mail but have not signed up for the Pjuu then you can simply ignore this e-mail.
 
 We will not e-mail you again if you decide not to activate this account.
 {% endblock %}
