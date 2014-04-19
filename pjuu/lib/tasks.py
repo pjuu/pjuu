@@ -68,6 +68,7 @@ def delete_comments(uid, pid=None):
         cids = r.lrange(USER_COMMENTS % uid, 0, -1)
 
     for cid in cids:
+        cid = int(cid)
         # We need to get the comment authors uid so that we can remove the
         # comment from there user:$uid:comments list
         author_id = r.hget(COMMENT % cid, uid)

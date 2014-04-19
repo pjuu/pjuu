@@ -254,11 +254,8 @@ def delete_account():
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             uid = int(current_user['uid'])
-            logout()
-            # This is still rather buggy!
-            be_delete_account(uid)
-            flash('Your account has been deleted!<br/>'
-                  'We hope you have enjoyed Pjuu', 'information')
+            flash('Account deletion has a bug in it! We will '
+                  'activate is again shortly', 'information')
         else:
             flash('Invalid password', 'error')
     return render_template('delete_account.html', form=form)
