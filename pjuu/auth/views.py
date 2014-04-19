@@ -169,7 +169,7 @@ def reset(token):
         if request.method == 'POST':
             if form.validate():
                 be_change_password(data['uid'], form.password.data)
-                flash('Your password has been set. Please login.', 'success')
+                flash('Your password has now been reset. Please login.', 'success')
                 return redirect(url_for('signin'))
             else:
                 flash('Oh no! There are errors in your re-set form.', 'error')
@@ -240,7 +240,7 @@ def change_password():
             if authenticate(current_user['username'], form.password.data):
                 # Update the users password!
                 be_change_password(current_user['uid'], form.new_password.data)
-                flash('Your password has successfully been update!', 'success')
+                flash('Your password has been successfully updated!', 'success')
         else:
             flash('Oh no! There are errors in your change password form.',
                   'error')
