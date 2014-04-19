@@ -7,11 +7,11 @@ You've asked to change your email.
 
 If you can press the link below we will update your data.
 
-<a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Change E-Mail Address</a>
+<a href="{{ url_for('confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a>
 
 If you can not press the above link please copy and paste the below in to your web browser of choice.
 
-{{ url_for('activate', token=token, _external=True) }}
+{{ url_for('confirm_email', token=token, _external=True) }}
 {% endblock %}
 
 {% block content_footer %}

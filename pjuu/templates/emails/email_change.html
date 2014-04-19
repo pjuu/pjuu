@@ -4,7 +4,7 @@
 <p>Hi,<br>
     You've asked to change your email.<br>
     If you can press the link below we will update your data.</p>
-<p><a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a></p>
+<p><a href="{{ url_for('confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a></p>
 {% endblock %}
 
 {% block content_footer %}
