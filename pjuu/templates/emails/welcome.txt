@@ -3,7 +3,7 @@ ls/base.html' %}
 {% block content %}
 Hi,
 
-Welcome to Pjuu. You can now do socially things.
+Welcome to Pjuu. You can now do social type things. :)
 {% endblock %}
 
 {% block content_footer %}
