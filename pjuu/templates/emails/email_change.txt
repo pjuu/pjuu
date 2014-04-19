@@ -5,15 +5,15 @@ Hi,
 
 You've asked to change your email.
 
-If you can press the link below we will update your data.
+If you click the link below we will update your data.
 
 <a href="{{ url_for('confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a>
 
-If you can not press the above link please copy and paste the below in to your web browser of choice.
+If you can not click the above link please copy and paste the below in to your web browser of choice.
 
 {{ url_for('confirm_email', token=token, _external=True) }}
 {% endblock %}
 
 {% block content_footer %}
-If you have received this e-mail but have no signed up for the Pjuu then you can ignore this e-mail.
+If you have received this e-mail but have not signed up for the Pjuu then you can simply ignore this e-mail.
 {% endblock %}
