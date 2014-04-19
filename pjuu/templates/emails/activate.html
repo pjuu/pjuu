@@ -3,12 +3,12 @@
 {% block content %}
 <p>Hi,<br>
     Thank you for singing up for Pjuu.<br>
-    You will be doing socially stuff in just a moment. We just need you to activate your account.</p>
+    You will be doing social type stuff in just a moment. But before you can do that we just need you to activate your account.</p>
 <p>If you can press the link below you will be able to sign in.</p>
 <p><a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a></p>
 {% endblock %}
 
 {% block content_footer %}
-<p>If you have received this e-mail but have no signed up for the Pjuu then you can ignore this e-mail.<br>
+<p>If you have received this e-mail but have not signed up for the Pjuu then you can simply ignore this e-mail.<br>
     We will not e-mail you again if you decide not to activate this account.</p>
 {% endblock %}
