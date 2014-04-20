@@ -102,7 +102,7 @@ def check_post(uid, pid, cid=None):
         if int(uid_check) != uid:
             return False
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         return False
 
 

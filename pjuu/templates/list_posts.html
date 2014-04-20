@@ -8,7 +8,7 @@
         <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
         <div class="control">
             {% if item.user_username == current_user.username %}
-            <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid) }}">
+            <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid, next=request.path) }}">
                 <div class="delete">X</div>
             </a>
             {% endif %}

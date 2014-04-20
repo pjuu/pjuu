@@ -59,10 +59,12 @@ def delete_comments(uid, pid=None):
     If you provide a pid this action will delete all comments on a post.
     If you do not it will delete all posts created by the user
     """
-    # This bit may need to go in Celery->RabbitMQ
+    uid = int(uid)
+    pid = int(pid)
+
     if pid is not None:
         # Delete all comments on a post
-        cids = r.lrange(USER_COMMENTS % pid, 0, -1)
+        cids = r.lrange(POST_COMMENTS % pid, 0, -1)
     else:
         # Delete all comments made by a user
         cids = r.lrange(USER_COMMENTS % uid, 0, -1)
@@ -71,19 +73,20 @@ def delete_comments(uid, pid=None):
         cid = int(cid)
         # We need to get the comment authors uid so that we can remove the
         # comment from there user:$uid:comments list
-        author_id = r.hget(COMMENT % cid, uid)
+        # We need to keep these lists as clean as possible
+        author_id = int(r.hget(COMMENT % cid, 'uid'))
         # Delete the comment hash
-        r.delete(COMMENT % int(cid))
+        r.delete(COMMENT % cid)
         # Delete all votes on the comment
-        r.delete(COMMENT_VOTES % int(cid))
+        r.delete(COMMENT_VOTES % cid)
         # Delete the comment from the users comment list
-        r.lrem(USER_COMMENTS % author_id, cid)
+        r.lrem(USER_COMMENTS % author_id, 0, cid)
 
     # Delete the correct list after this operation
     if pid is not None:
         r.delete(POST_COMMENTS % pid)
     else:
-        r.delete(USER_COMMENTS % pid)
+        r.delete(USER_COMMENTS % uid)
 
     return True
 
@@ -98,6 +101,8 @@ def delete_posts(uid):
 
     Please be aware this function could take an incredibly long time
     """
+    uid = int(uid)
+
     pids = r.lrange(USER_POSTS % uid, 0, -1)
 
     for pid in pids:
@@ -121,6 +126,8 @@ def delete_followers(uid):
     This will delete all a users followers and iterate through the list to
     clean the following list of each user
     """
+    uid = int(uid)
+
     fids = r.zrange(USER_FOLLOWERS % uid, 0, -1)
 
     for fid in fids:
@@ -139,6 +146,8 @@ def delete_following(uid):
     This will delete all a users following list. It will iterate through
     the list and clean the followers list of each user
     """
+    uid = int(uid)
+
     fids = r.zrange(USER_FOLLOWING % uid, 0, -1)
 
     for fid in fids:
