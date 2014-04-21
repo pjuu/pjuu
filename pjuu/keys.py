@@ -1,5 +1,7 @@
 # -*- coding: utf8 -*-
 
+
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -15,14 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
 # around the code base
+##############################################################################
 
-# Key to get all user information
-# Usage: <VARIABLE> % uid(int)
 
-# Returns: sortedset
+# Keys to get all user information
+# Usage: <VARIABLE> % int
+
+# Returns: hash
 USER = "user:%d"
 
 # Returns: list
@@ -34,10 +39,10 @@ USER_POSTS = "user:%d:posts"
 # Returns: list
 USER_COMMENTS = "user:%d:comments"
 
-# Returns: sortedset
+# Returns: zset
 USER_FOLLOWERS = "user:%d:followers"
 
-# Returns: sortedset
+# Returns: zset
 USER_FOLLOWING = "user:%d:following"
 
 # Look-up keys
@@ -47,7 +52,7 @@ USER_FOLLOWING = "user:%d:following"
 UID_EMAIL = "uid:email:%s"
 
 # Returns: int
-UID_USERNAME = "uid:email:%s"
+UID_USERNAME = "uid:username:%s"
 
 # Post related keys
 # Usage: <VARIABLE> % pid(int)
@@ -55,7 +60,7 @@ UID_USERNAME = "uid:email:%s"
 # Returns: hash
 POST = "post:%d"
 
-# Returns: sortedset
+# Returns: zset
 POST_VOTES = "post:%d:votes"
 
 # Returns: list
@@ -67,5 +72,5 @@ POST_COMMENTS = "post:%d:comments"
 # Returns: hash
 COMMENT = "comment:%d"
 
-# Returns: sortedset
+# Returns: zset
 COMMENT_VOTES = "comment:%d:votes"
