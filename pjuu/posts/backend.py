@@ -18,9 +18,48 @@
 # Stdlib
 from time import gmtime
 from calendar import timegm
+import re
 # Pjuu imports
 from pjuu import app, redis as r
+from pjuu.auth.backend import get_uid_username
 from pjuu.lib.tasks import populate_feeds, delete_comments
+
+
+# Regular expressions
+tag_re = re.compile('(?:^|(?<=[^\w]))@'
+                    '(\w{3,16})(?:$|(?=[\.\;\,\:\ \t]))')
+
+
+def parse_tags(body, send_all=False):
+    """
+    This function looks for '@' tags in side a post that match the regex.
+
+    This is used by create_post and create_comment to alert users
+    that they have been tagged in a post.
+
+    The 'nameify' template_filter also uses this to identify tags before it
+    inserts the links. See nameify_filter() in posts/views.py
+
+    This returns a list of tuples (uid, username, tag, span)
+
+    'send_all' allows the tag highlighting in nameify() to highlight
+    all tags. This is not needed for alerts as someone can only subscribe
+    once
+    """
+    tags = tag_re.finditer(body)
+
+    results = []
+    seen = []
+    for tag in tags:
+        uid = get_uid_username(tag.group(1))
+        if uid is not None and uid > 0:
+            if send_all:
+                results.append((uid, tag.group(1), tag.group(0), tag.span()))
+            elif uid not in seen:
+                results.append((uid, tag.group(1), tag.group(0), tag.span()))
+                seen.append(uid)
+
+    return results
 
 
 def create_post(uid, body):

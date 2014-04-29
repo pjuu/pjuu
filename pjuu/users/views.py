@@ -28,10 +28,9 @@ from pjuu import app, redis as r
 from pjuu.auth.backend import (current_user, get_uid,
                                get_uid_email, get_uid_username)
 from pjuu.auth.decorators import login_required
-from pjuu.auth.forms import ChangeEmailForm, PasswordChangeForm, DeleteAccountForm
 from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page
-from pjuu.posts.backend import check_post, get_post
+from pjuu.posts.backend import check_post, get_post, parse_tags
 from pjuu.posts.forms import PostForm
 from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
@@ -63,8 +62,36 @@ def gravatar_filter(email, size=24):
 @app.template_filter('nameify')
 def nameify_filter(body):
     """
-    Will highlight user names inside a post. This is done after urlize
+    Will highlight user names inside a post. This is done after urlize.
+
+    These uses the same parse_tags() function as to identify tags for
+    alerts
+
+    TODO This may be overkill.
+    This requires manual escaping of the post|comment|about messages. In
+    Jinja2 you have to do to the following to get the posts to show as we
+    want:
+
+    {% autoescape false %}
+    post.body|e|urlize|nameify
+    {% endautoescape %}
+
+    The 'e' filter is needed as we have had to turn auto escape off.
     """
+    tags = parse_tags(body, send_all=True)
+    offset = 0
+    for tag in tags:
+        # Calculate the left and right hand sides of the tag
+        # These add offset as we go, we are changing the length of the string
+        # each time!
+        left = tag[3][0] + offset
+        right = tag[3][1] + offset
+        # Build the link
+        link = "<a href=\"/%s\">%s</a>" % (tag[1], tag[2])
+        # Calculate the offset to adjust rest of tag boundries
+        offset += len(link) - len(tag[2])
+        # Add the link in place of the '@' tag
+        body = (body[:left] + link + body[right:])
     return body
 
 

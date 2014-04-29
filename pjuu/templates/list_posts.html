@@ -20,7 +20,11 @@
                 </a>
                 <span class="user-score">{{ item.user_score|millify }}</span>
             </div>
-            <div class="body">{{ item.body|urlize }}</div>
+            <div class="body">
+                {% autoescape false %}
+                {{ item.body|e|urlize|nameify }}
+                {% endautoescape %}
+            </div>
             <div class="created">{{ item.created|timeify }}</div>
         </div>
     </div>
