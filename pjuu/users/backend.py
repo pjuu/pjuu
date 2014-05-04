@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,6 +15,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # Stdlib imports
 from time import gmtime

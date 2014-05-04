@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,6 +15,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # Stdlib imports
 from hashlib import md5
@@ -25,8 +27,8 @@ from flask import (abort, flash, redirect, render_template, request,
 import re
 # Pjuu imports
 from pjuu import app, redis as r
-from pjuu.auth.backend import (current_user, get_uid,
-                               get_uid_email, get_uid_username)
+from pjuu.auth import current_user
+from pjuu.auth.backend import get_uid, get_uid_email, get_uid_username
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page

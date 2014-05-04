@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,6 +15,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 from flask.ext.mail import Message
 from pjuu import app, mail
@@ -21,13 +23,14 @@ from pjuu import app, mail
 
 def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
               text_body='', html_body=''):
-    '''
+    """
     Sends e-mail via flask-mail
-    '''
-    msg = Message()
-    msg.subject = subject
-    msg.recipients = recipients
-    msg.sender = sender
-    msg.body = text_body
-    msg.html = html_body
-    mail.send(msg)
+    """
+    if not app.config['NO_MAIL']:
+        msg = Message()
+        msg.subject = subject
+        msg.recipients = recipients
+        msg.sender = sender
+        msg.body = text_body
+        msg.html = html_body
+        mail.send(msg)

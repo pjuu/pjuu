@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,21 +15,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # 3rd party imports
 from flask.ext.wtf import Form, RecaptchaField
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
-# Package imports
-from .backend import check_email, check_username, authenticate, current_user
+# Pjuu imports
+from . import current_user
+from .backend import check_email, check_username, authenticate
 
 
 class ForgotForm(Form):
     username = TextField('User name or E-Mail')
 
 
-class LoginForm(Form):
+class SignInForm(Form):
     username = TextField('User name or E-Mail')
     password = PasswordField('Password')
 
@@ -70,7 +73,7 @@ class ChangeEmailForm(Form):
             raise ValidationError('Invalid password')
 
 
-class SignupForm(Form):
+class SignUpForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$',
                message=('Username must be between 3 and 16 characters and can'

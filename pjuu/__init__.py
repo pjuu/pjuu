@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,11 +15,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail
-from redis import Redis, StrictRedis
+from redis import StrictRedis
 # Pjuu imports
 from lib.sessions import RedisSessionInterface
 
@@ -47,7 +49,7 @@ redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
 mail = Mail(app)
 
 # Create Redis objects (session store and data store)
-redis_sessions = Redis(host=app.config['SESSION_REDIS_HOST'],
+redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
 							 db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
 app.session_interface = RedisSessionInterface(redis=redis_sessions)

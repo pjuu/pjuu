@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -15,28 +16,15 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
-# 3rd party imports
-from werkzeug.debug import DebuggedApplication
-import cherrypy
-# Pjuu imports
-from pjuu import app
+# Stdlib imports
+import unittest
 
+# Load Pjuu tests
+from pjuu.auth.tests import *
+from pjuu.lib.tests import *
+from pjuu.posts.tests import *
+from pjuu.users.tests import *
 
-if __name__ == '__main__':
-    """
-    Run Pjuu inside a debug enabled CherryPy.
-    This is our test server. It is much more stable than Flasks,
-    """
-    debug_app = DebuggedApplication(app, True)
-    cherrypy.tree.graft(debug_app, '/')
-    cherrypy.config.update({
-        'engine.autoreload_on': True,
-        'server.socket_port': 5000,
-        'server.socket_host': '0.0.0.0'
-    })
-    try:
-        cherrypy.engine.start()
-        cherrypy.engine.block()
-    except KeyboardInterrupt:
-        cherrypy.engine.stop()
+unittest.main()

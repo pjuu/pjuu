@@ -7,14 +7,27 @@
         </a>
         <ul class="menu">
             {% if current_user %}
-            <a href="{{ url_for('feed') }}"><li>Feed</li></a>
-            <a href="{{ url_for('profile', username=current_user.username) }}">
-                <li>{{ current_user.username|capitalize }}</li>
-            </a>
+            <a href="{{ url_for('feed') }}"><li>
+                <img src="{{ url_for('static', filename='img/glyphicons/feed.png') }}"/>
+                <span class="no-mobile">Feed</span>
+            </li></a>
+            <a href="{{ url_for('profile', username=current_user.username) }}"><li>
+                <img src="{{ url_for('static', filename='img/glyphicons/user.png') }}"/>
+                <span class="no-mobile">{{ current_user.username|capitalize }}</span>
+            </li></a>
             {# <a href="{{ url_for('alerts') }}"><li>Alerts</li></a> #}
-            <a href="{{ url_for('search') }}"><li>Search</li></a>
-            <a href="{{ url_for('settings_profile') }}"><li>Settings</li></a>
-            <a href="{{ url_for('signout') }}"><li>Sign Out</li></a>
+            <a href="{{ url_for('search') }}"><li>
+                <img src="{{ url_for('static', filename='img/glyphicons/search.png') }}"/>
+                <span class="no-mobile">Search</span>
+            </li></a>
+            <a href="{{ url_for('settings_profile') }}"><li>
+                <img src="{{ url_for('static', filename='img/glyphicons/settings.png') }}"/>
+                <span class="no-mobile">Settings</span>
+            </li></a>
+            <a href="{{ url_for('signout') }}"><li></span>
+                <img src="{{ url_for('static', filename='img/glyphicons/signout.png') }}"/>
+                <span class="no-mobile">Sign Out</span>
+            </li></a>
             {% else %}
             <a href="{{ url_for('signin') }}"><li>Sign In</li></a>
             <a href="{{ url_for('signup') }}"><li>Sign Up</li></a>

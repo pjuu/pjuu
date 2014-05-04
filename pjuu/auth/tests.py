@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,5 +15,150 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
-# These are to remind me to write tests
+# Stdlib imports
+import unittest
+# Pjuu imports
+from pjuu import keys as K, redis as r
+from pjuu.auth.backend import *
+
+
+class BackendTests(unittest.TestCase):
+	"""
+	This function will test ALL auth backend functions. It will use the
+	standard pjuu.redis connection to do this so ensure you are not using
+	a production database.
+	"""
+
+	def setUp(self):
+		"""
+		Simply flush the database, we do not want any data already in redis
+		changing the outcome of the tests
+		"""
+		r.flushdb()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_create_user(self):
+		"""
+		We are going to insert multiple users in to the database and ensure
+		they are all there. We will also try and signup with invalid
+		credentials and with details we have already inserted.
+
+		This also in turn tests check_username() and check_email()
+		"""
+		# Account creation
+		assert create_user('test', 'test@example.com', 'Password') == 1
+		# Duplicate username
+		assert create_user('test', 'testx@example.com', 'Password') is None
+		# Duplicate email
+		assert create_user('testx', 'test@example.com', 'Password') is None
+		# Invalid username
+		assert create_user('t', 'testx@example.com', 'Password') is None
+		# Invalid email
+		assert create_user('testx', 'test', 'Password') is None
+		# Reserved username
+		assert create_user('help', 'testx@example.com', 'Password') is None
+		# Check lookup keys exist
+		assert get_uid('test') == 1
+		assert get_uid('test@example.com') == 1
+		# Make sure getting the user returns a dict
+		assert get_user(1) is not None
+		# Make sure no dict is returned for no user
+		assert get_user(2) is None
+		# Check other user functions
+		assert get_email(1) == 'test@example.com'
+		assert get_email(2) is None
+
+	def test_userflags(self):
+		"""
+		Checks the user flags. Such as active, banned, op
+		"""
+		# Create a test account
+		assert create_user('test', 'test@example.com', 'Password') == 1
+		# Account should be not active
+		assert is_active(1) is False
+		# Activate
+		assert activate(1) is True
+		assert is_active(1) is True
+		# Deactivate
+		assert activate(1, False) is True
+		assert is_active(1) is False
+		# Test invalid is active
+		assert is_active(2) is False
+		assert is_active("test") is False
+
+		# Account should not be banned
+		assert is_banned(1) is False
+		# Ban
+		assert ban(1) is True
+		assert is_banned(1) is True
+		# Unban
+		assert ban(1, False) is True
+		assert is_banned(1) is False
+
+		# Account should not be op
+		assert is_op(1) is False
+		# Bite
+		assert bite(1) is True
+		assert is_op(1) is True
+		# Unbite (makes no sense)
+		assert bite(1, False) is True
+		assert is_op(1) is False
+
+	def test_authenticate(self):
+		"""
+		Check a user can authenticate
+		"""
+		assert create_user('test', 'test@example.com', 'Password') == 1
+		# Check authenticate
+		assert authenticate('test', 'Password') == 1
+		# Check incorrect password
+		assert authenticate('test', 'Pass') is None
+		# Check non existant user
+		assert authenticate('testx', 'Password') is None
+		# Check no glob username
+		assert authenticate('tes*', 'Password') is None
+		# There is no way a glob password would work its a hash
+		# lets be thourough though
+		assert authenticate('test', 'Passw*') is None
+
+	def test_change_password(self):
+		"""
+		This will test change_password(). Obviously
+		"""
+		# Create user
+		assert create_user('test', 'test@example.com', 'Password') == 1
+		# Take current password (is hash don't string compare)
+		current_password = r.hget(K.USER % 1, 'password')
+		# Change password
+		assert change_password(1, 'Password1') is not None
+		new_password = r.hget(K.USER % 1, 'password')
+		# Just check the hashed are different
+		assert current_password != new_password
+		# Make sure the old password does not authenticate
+		assert authenticate('test', 'Password') is None
+		# Check new password lets us log in
+		assert authenticate('test', 'Password1') == 1
+
+	def test_change_email(self):
+		"""
+		Test change_email().
+		"""
+		# Create user
+		assert create_user('test', 'test@example.com', 'Password') == 1
+		# Test email lookup key
+		assert get_uid_email('test@example.com') == 1
+		# Check correct email
+		assert get_email(1) == 'test@example.com'
+		# Change e-mail
+		assert change_email(1, 'testn@example.com') is not None
+		# Check new lookup key
+		assert get_uid_email('testn@example.com') == 1
+		# Check old lookup key has been nulled
+		assert get_uid_email('test@example.com') is None

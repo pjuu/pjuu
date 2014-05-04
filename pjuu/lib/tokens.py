@@ -17,15 +17,37 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
+# Stdlib imports
+from base64 import (urlsafe_b64encode as b64encode,
+                    urlsafe_b64decode as b64decode)
 # 3rd party imports
-from flask.ext.wtf import Form
-from wtforms import TextAreaField
-from wtforms.validators import Required, Length
+from itsdangerous import SignatureExpired
+# Pjuu imports
+from . import timestamp
 
 
-class PostForm(Form):
+def generate_token(signer, data):
     """
-    This is the form used for Posts and Comments at the momment.
+    Generates a token using the signer passed in.
     """
-    body = TextAreaField('Post', [Required(), Length(max=255,
-               message='Posts can not be larger than 255 characters')])
+    try:
+        token = b64encode(signer.dumps(data).encode('ascii'))
+    except (TypeError, ValueError):
+        return None
+
+    return token
+
+
+def check_token(signer, token):
+    """
+    Checks a token against the passed in signer.
+    If it fails returns None if it works the data from the
+    original token will me passed back.
+    """
+    try:
+        data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
+        if app.config['DEBUG']:
+            print timestamp(), "Token checked:", token
+    except (TypeError, ValueError, SignatureExpired):
+        return None
+    return data

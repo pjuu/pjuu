@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,15 +15,17 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+##############################################################################
 # This code is taken from flask.pocoo.org snippets
+
+# Stdlib imports
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 from datetime import timedelta
 from uuid import uuid4
-
+# 3rd party imports
 from redis import Redis
 from werkzeug.datastructures import CallbackDict
 from flask.sessions import SessionInterface, SessionMixin
@@ -78,8 +81,8 @@ class RedisSessionInterface(SessionInterface):
         redis_exp = self.get_redis_expiration_time(app, session)
         cookie_exp = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.setex(self.prefix + session.sid, val,
-                         int(redis_exp.total_seconds()))
+        self.redis.setex(self.prefix + session.sid,
+                            int(redis_exp.total_seconds()), val)
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=cookie_exp, domain=domain,
                             httponly=app.config['SESSION_COOKIE_HTTPONLY'],

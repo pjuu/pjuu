@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,6 +15,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # 3rd party imports
 from flask import (flash, redirect, render_template, request,
@@ -22,16 +24,17 @@ from flask import (flash, redirect, render_template, request,
 from pjuu import app
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
+from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth.backend import delete_account as be_delete_account
-from .backend import (authenticate, current_user, login,
-                      logout, create_user, activate_signer, forgot_signer,
-                      email_signer, generate_token, check_token,
+from . import current_user
+from .backend import (authenticate, login, logout, create_user,
                       activate as be_activate,
                       change_password as be_change_password,
                       change_email as be_change_email,
-                      get_uid, is_active, is_banned, get_email)
+                      get_uid, is_active, is_banned, get_email,
+                      signer_activate, signer_forgot, signer_email)
 from .decorators import anonymous_required, login_required
-from .forms import (ForgotForm, LoginForm, ResetForm, SignupForm,
+from .forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                     ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
 
 
@@ -51,7 +54,7 @@ def signin():
     Will authenticate username/password, check account activation and
     if the user is banned or not before setting user_id in session.
     """
-    form = LoginForm(request.form)
+    form = SignInForm(request.form)
     if request.method == 'POST':
         # Handles the passing of the next argument to the login view
         redirect_url = handle_next(request, url_for('feed'))
@@ -91,7 +94,7 @@ def signout():
 @app.route('/signup', methods=['GET', 'POST'])
 @anonymous_required
 def signup():
-    form = SignupForm(request.form)
+    form = SignUpForm(request.form)
     if request.method == 'POST':
         if form.validate():
             # User successfully signed up, create an account
@@ -99,20 +102,19 @@ def signup():
                               form.password.data)
             # Lets check the account was created
             if uid:
-                token = generate_token(activate_signer,
-                                       {'uid': uid})
+                token = generate_token(signer_activate, {'uid': uid})
                 # Do not send e-mail if NOMAIL
-                if not app.config['NOMAIL']:
-                    send_mail('Activation', [form.email.data],
-                              text_body=render_template('emails/activate.txt',
-                                                        token=token),
-                              html_body=render_template('emails/activate.html',
-                                                        token=token))
-                flash('Yay! You\'ve signed up.<br>Please check your e-mails '
+                send_mail('Activation', [form.email.data],
+                          text_body=render_template('emails/activate.txt',
+                                                    token=token),
+                          html_body=render_template('emails/activate.html',
+                                                    token=token))
+
+                flash('Yay! You\'ve signed up<br/>Please check your e-mails '
                       'to activate your account.', 'success')
                 return redirect(url_for('signin'))
         # This will fire if the form is invalid
-        flash('Oh no! There are errors in your signup form.', 'error')
+        flash('Oh no! There are errors in your form', 'error')
     return render_template('signup.html', form=form)
 
 
@@ -120,17 +122,16 @@ def signup():
 @anonymous_required
 def activate(token):
     # Attempt to get the data from the token
-    data = check_token(activate_signer, token)
+    data = check_token(signer_activate, token)
     if data is not None:
         # Attempt to activate the users account
         uid = data['uid']
         if uid:
             be_activate(uid)
             # If we have got to this point. Send a welcome e-mail :)
-            if not app.config['NOMAIL']:
-                send_mail('Welcome', [get_email(uid)],
-                          text_body=render_template('emails/welcome.txt'),
-                          html_body=render_template('emails/welcome.html'))
+            send_mail('Welcome', [get_email(uid)],
+                      text_body=render_template('emails/welcome.txt'),
+                      html_body=render_template('emails/welcome.html'))
             flash('Your account has now been activated.', 'success')
             return redirect(url_for('signin'))
     # The token is either out of date or has been tampered with
@@ -147,14 +148,13 @@ def forgot():
         uid = get_uid(form.username.data)
         if uid:
             # Only send e-mails to user which exist.
-            token = generate_token(forgot_signer, {'uid': uid})
-            if not app.config['NOMAIL']:
-                send_mail('Password reset', get_email(uid),
-                          text_body=render_template('emails/forgot.txt',
-                                                    token=token),
-                          html_body=render_template('emails/forgot.html',
-                                                    token=token))
-        flash('If we\'ve found you we\'ve e-mailed you a reset link too you.',
+            token = generate_token(signer_forgot, {'uid': uid})
+            send_mail('Password reset', get_email(uid),
+                      text_body=render_template('emails/forgot.txt',
+                                                token=token),
+                      html_body=render_template('emails/forgot.html',
+                                                token=token))
+        flash('If we\'ve found your account we\'ve e-mailed you',
               'information')
         return redirect(url_for('signin'))
     return render_template('forgot.html', form=form)
@@ -164,27 +164,25 @@ def forgot():
 @anonymous_required
 def reset(token):
     form = ResetForm(request.form)
-    data = check_token(forgot_signer, token)
+    data = check_token(signer_forgot, token)
     if data is not None:
         if request.method == 'POST':
             if form.validate():
                 be_change_password(data['uid'], form.password.data)
-                flash('Your password has now been reset. Please login.', 'success')
+                flash('Your password has now been reset', 'success')
                 return redirect(url_for('signin'))
             else:
-                flash('Oh no! There are errors in your re-set form.', 'error')
+                flash('Oh no! There are errors in your form.', 'error')
     else:
         flash('Invalid token.', 'error')
         return redirect(url_for('signin'))
     return render_template('reset.html', form=form)
-
 
 # The following commands should be used when the user is logged in.
 # These have nothing to do with templates. All of these have to redirect
 # to users.settings_account view so that the template naming and layout make
 # sense.
 # TODO: ALL OF THE BELOW
-
 
 @app.route('/settings/email', methods=['GET', 'POST'])
 @login_required
@@ -193,22 +191,21 @@ def change_email():
     if request.method == 'POST':
         if form.validate():
             if authenticate(current_user['username'], form.password.data):
-                token = generate_token(email_signer,
+                token = generate_token(signer_email,
                             {'uid': current_user['uid'],
                              'email': form.new_email.data})
 
-                if not app.config['NOMAIL']:
-                    send_mail('Confirm e-mail change', [form.new_email.data],
-                        text_body=render_template('emails/email_change.txt',
-                                                  token=token),
-                        html_body=render_template('emails/email_change.html',
-                                                  token=token))
+                send_mail('Confirm e-mail change', [form.new_email.data],
+                    text_body=render_template('emails/email_change.txt',
+                                              token=token),
+                    html_body=render_template('emails/email_change.html',
+                                              token=token))
 
-                flash('We\'ve sent you an email, please confirm this.',
+                flash('We\'ve sent you an email, please confirm this',
                       'success')
         else:
-            flash('Oh no! There are errors in your change email form.',
-                  'error')
+            flash('Oh no! There are errors in your form.', 'error')
+
     return render_template('change_email.html', form=form)
 
 
@@ -216,18 +213,18 @@ def change_email():
 @login_required
 def confirm_email(token):
     # Attempt to get the data from the token
-    data = check_token(email_signer, token)
+    data = check_token(signer_email, token)
     if data is not None:
         # Change the users e-mail
         uid = data['uid']
         email = data['email']
         if uid:
             be_change_email(uid, email)
-            flash('Your e-mail has now been changed', 'success')
+            flash('We\'ve updated your e-mail address', 'success')
             return redirect(url_for('signin'))
 
     # The token is either out of date or has been tampered with
-    flash('Invalid token. Stop mucking around', 'error')
+    flash('Invalid token', 'error')
     return redirect(url_for('change_email'))
 
 
@@ -240,10 +237,10 @@ def change_password():
             if authenticate(current_user['username'], form.password.data):
                 # Update the users password!
                 be_change_password(current_user['uid'], form.new_password.data)
-                flash('Your password has been successfully updated!', 'success')
+                flash('We\'ve updated your password', 'success')
         else:
-            flash('Oh no! There are errors in your change password form.',
-                  'error')
+            flash('Oh no! There are errors in your form', 'error')
+
     return render_template('change_password.html', form=form)
 
 
@@ -254,8 +251,12 @@ def delete_account():
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             uid = int(current_user['uid'])
-            flash('Account deletion has a bug in it! We will '
-                  'activate is again shortly', 'information')
+            # Log the current user out
+            logout()
+            # Delete the account
+            be_delete_account(uid)
+            # Inform the user that the account has/is being deleted
+            flash('You account has been deleted')
         else:
-            flash('Invalid password', 'error')
+            flash('Oops! wrong password', 'error')
     return render_template('delete_account.html', form=form)

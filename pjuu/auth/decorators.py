@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,13 +15,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+##############################################################################
 
 # 3rd party imports
 from functools import wraps
 from flask import redirect, request, url_for, flash
 # Pjuu imports
-from .backend import current_user
+from . import current_user
 
 
 def anonymous_required(func):
