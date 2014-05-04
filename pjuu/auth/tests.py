@@ -21,14 +21,16 @@
 import unittest
 # Pjuu imports
 from pjuu import keys as K, redis as r
-from pjuu.auth.backend import *
+from .backend import *
 
 
 class BackendTests(unittest.TestCase):
 	"""
-	This function will test ALL auth backend functions. It will use the
-	standard pjuu.redis connection to do this so ensure you are not using
-	a production database.
+	This case will test ALL auth backend functions.
+
+	It will use the standard pjuu.redis connection to do this so ensure you
+	are not using a production database. This will change in the near future
+	when application factories are implemented.
 	"""
 
 	def setUp(self):
@@ -53,26 +55,26 @@ class BackendTests(unittest.TestCase):
 		This also in turn tests check_username() and check_email()
 		"""
 		# Account creation
-		assert create_user('test', 'test@example.com', 'Password') == 1
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
 		# Duplicate username
-		assert create_user('test', 'testx@example.com', 'Password') is None
+		assert create_user('test', 'testx@pjuu.com', 'Password') is None
 		# Duplicate email
-		assert create_user('testx', 'test@example.com', 'Password') is None
+		assert create_user('testx', 'test@pjuu.com', 'Password') is None
 		# Invalid username
-		assert create_user('t', 'testx@example.com', 'Password') is None
+		assert create_user('t', 'testx@pjuu.com', 'Password') is None
 		# Invalid email
 		assert create_user('testx', 'test', 'Password') is None
 		# Reserved username
-		assert create_user('help', 'testx@example.com', 'Password') is None
+		assert create_user('help', 'testx@pjuu.com', 'Password') is None
 		# Check lookup keys exist
 		assert get_uid('test') == 1
-		assert get_uid('test@example.com') == 1
+		assert get_uid('test@pjuu.com') == 1
 		# Make sure getting the user returns a dict
 		assert get_user(1) is not None
 		# Make sure no dict is returned for no user
 		assert get_user(2) is None
 		# Check other user functions
-		assert get_email(1) == 'test@example.com'
+		assert get_email(1) == 'test@pjuu.com'
 		assert get_email(2) is None
 
 	def test_userflags(self):
@@ -80,7 +82,7 @@ class BackendTests(unittest.TestCase):
 		Checks the user flags. Such as active, banned, op
 		"""
 		# Create a test account
-		assert create_user('test', 'test@example.com', 'Password') == 1
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
 		# Account should be not active
 		assert is_active(1) is False
 		# Activate
@@ -115,7 +117,7 @@ class BackendTests(unittest.TestCase):
 		"""
 		Check a user can authenticate
 		"""
-		assert create_user('test', 'test@example.com', 'Password') == 1
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
 		# Check authenticate
 		assert authenticate('test', 'Password') == 1
 		# Check incorrect password
@@ -133,7 +135,7 @@ class BackendTests(unittest.TestCase):
 		This will test change_password(). Obviously
 		"""
 		# Create user
-		assert create_user('test', 'test@example.com', 'Password') == 1
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
 		# Take current password (is hash don't string compare)
 		current_password = r.hget(K.USER % 1, 'password')
 		# Change password
@@ -151,14 +153,17 @@ class BackendTests(unittest.TestCase):
 		Test change_email().
 		"""
 		# Create user
-		assert create_user('test', 'test@example.com', 'Password') == 1
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
 		# Test email lookup key
-		assert get_uid_email('test@example.com') == 1
+		assert get_uid_email('test@pjuu.com') == 1
 		# Check correct email
-		assert get_email(1) == 'test@example.com'
+		assert get_email(1) == 'test@pjuu.com'
 		# Change e-mail
-		assert change_email(1, 'testn@example.com') is not None
+		assert change_email(1, 'testn@pjuu.com') is not None
 		# Check new lookup key
-		assert get_uid_email('testn@example.com') == 1
+		assert get_uid_email('testn@pjuu.com') == 1
 		# Check old lookup key has been nulled
-		assert get_uid_email('test@example.com') is None
+		assert get_uid_email('test@pjuu.com') is None
+		# Check the old key is set to -1 and the expiration has been set
+		assert int(r.get('uid:email:test@pjuu.com')) == -1
+		assert int(r.ttl('uid:email:test@pjuu.com')) != -1

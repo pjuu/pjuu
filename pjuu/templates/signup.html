@@ -34,12 +34,14 @@
     {% endif %}
     {{ form.password2.label }}
     {{ form.password2 }}
-    <label>Are you human?</label>
-    {{ form.recaptcha }}
-    {% if form.recaptcha.errors %}
-    <ul class="errorlist">
-        <li>Be you robot?</li>
-    </ul>
+    {% if form.recaptcha %}
+        <label>Are you human?</label>
+        {{ form.recaptcha }}
+        {% if form.recaptcha.errors %}
+        <ul class="errorlist">
+            <li>Be you robot?</li>
+        </ul>
+        {% endif %}
     {% endif %}
     {{ form.csrf_token }}
     <input type="submit" value="Create Account"/>

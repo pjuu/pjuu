@@ -21,10 +21,5 @@
 # Stdlib imports
 import unittest
 
-# Load Pjuu tests
-from pjuu.auth.tests import *
-from pjuu.lib.tests import *
-from pjuu.posts.tests import *
-from pjuu.users.tests import *
-
-unittest.main()
+suite = unittest.TestLoader().discover('pjuu', pattern='tests.py')
+unittest.TextTestRunner().run(suite)

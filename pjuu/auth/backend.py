@@ -356,6 +356,7 @@ def bite(uid, action=True):
     except (TypeError, ValueError):
         return 
 
+
 def change_password(uid, password):
     """
     Changes uid's password. Checking of the old password _MUST_ be done

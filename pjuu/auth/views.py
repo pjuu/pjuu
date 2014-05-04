@@ -87,7 +87,7 @@ def signout():
     """
     if current_user:
         logout()
-        flash('Successfully logged out', 'success')
+        flash('Successfully signed out', 'success')
     return redirect(url_for('signin'))
 
 
@@ -174,7 +174,7 @@ def reset(token):
             else:
                 flash('Oh no! There are errors in your form.', 'error')
     else:
-        flash('Invalid token.', 'error')
+        flash('Invalid token', 'error')
         return redirect(url_for('signin'))
     return render_template('reset.html', form=form)
 

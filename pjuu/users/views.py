@@ -293,6 +293,12 @@ def unfollow(username):
     return redirect(redirect_url)
 
 
+@app.route('/alerts', methods=['GET'])
+@login_required
+def alerts():
+    return "Alerts"
+
+
 @app.route('/search', methods=['GET'])
 @login_required
 def search():

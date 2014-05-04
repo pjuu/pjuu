@@ -17,4 +17,40 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
-# These are to remind me to write tests
+# Stdlib imports
+import unittest
+# Pjuu imports
+from pjuu import keys as K, redis as r
+from pjuu.auth.backend import create_user
+from .backend import *
+# Used to test the delete_account() function.
+
+
+class BackendTests(unittest.TestCase):
+	"""
+	This case will test ALL post backend functions.
+	"""
+
+	def setUp(self):
+		"""
+		Simply flush the database, we do not want any data already in redis
+		changing the outcome of the tests
+		"""
+		r.flushdb()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_create_post(self):
+		"""
+		Tests creating a post
+		"""
+		# Create a user to test creating post
+		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		# Create post
+		assert create_post(1, 'Test post') == 1
+		# Check the post was created by looking at the pid
+		assert int(get_post(1)['pid']) == 1

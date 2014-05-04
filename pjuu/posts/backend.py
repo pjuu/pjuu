@@ -129,6 +129,7 @@ def create_comment(uid, pid, body):
     Create a new comment.
     """
     uid = int(uid)
+    # Reserve the ID now. If the transaction fails we lost this ID
     cid = int(r.incr('global:cid'))
     pid = int(pid)
     # Form for comment hash
@@ -149,7 +150,7 @@ def create_comment(uid, pid, body):
     # Add comment to users comment list
     # This may seem redundant but it allows for perfect account deletion
     # Please see Issue #3 on Github
-    pipe.lpush(P.USER_COMMENTS % uid, cid)
+    pipe.lpush(K.USER_COMMENTS % uid, cid)
     pipe.execute()
 
     return cid

@@ -23,6 +23,7 @@ from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Pjuu imports
+from pjuu import app
 from . import current_user
 from .backend import check_email, check_username, authenticate
 
@@ -76,8 +77,8 @@ class ChangeEmailForm(Form):
 class SignUpForm(Form):
     username = TextField('User name', [
         Regexp(r'^[a-zA-Z0-9_]{3,16}$',
-               message=('Username must be between 3 and 16 characters and can'
-                        ' only contain letters, numbers and \'_\' characters.')),
+               message=('Must be between 3 and 16 characters and can only '
+                        'contain letters, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [
@@ -86,7 +87,9 @@ class SignUpForm(Form):
                message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
-    recaptcha = RecaptchaField()
+    # We can not use recaptcha in Debug as I work on the train
+    if not app.debug:
+        recaptcha = RecaptchaField()
 
     def validate_username(form, field):
         if not check_username(field.data):

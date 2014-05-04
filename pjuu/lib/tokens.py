@@ -23,6 +23,7 @@ from base64 import (urlsafe_b64encode as b64encode,
 # 3rd party imports
 from itsdangerous import SignatureExpired
 # Pjuu imports
+from pjuu import app
 from . import timestamp
 
 
@@ -32,6 +33,8 @@ def generate_token(signer, data):
     """
     try:
         token = b64encode(signer.dumps(data).encode('ascii'))
+        if app.debug:
+            print timestamp(), "Generate token:", token
     except (TypeError, ValueError):
         return None
 
@@ -46,8 +49,8 @@ def check_token(signer, token):
     """
     try:
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
-        if app.config['DEBUG']:
-            print timestamp(), "Token checked:", token
+        if app.debug:
+            print timestamp(), "Check token:", token
     except (TypeError, ValueError, SignatureExpired):
         return None
     return data
