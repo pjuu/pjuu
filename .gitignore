@@ -9,7 +9,6 @@ dist
 *.egg-info
 _mailinglist
 .tox
-settings.py
 pjuu/static/img/glyphicons/*.png
 .idea/
 .idea/*
