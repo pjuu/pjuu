@@ -7,7 +7,7 @@ services:
   - redis-server
 
 install:
-  - pip install -r requirements
+  - pip install -r .travis-requirements.txt
 
 script:
   - "./run_tests.py"
