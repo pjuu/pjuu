@@ -78,6 +78,6 @@ def inject_version():
 
 # Import all Pjuu stuffs
 # Endpoints
-import auth
-import users
-import posts
+import auth.views
+import users.views
+import posts.views

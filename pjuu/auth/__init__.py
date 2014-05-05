@@ -25,7 +25,3 @@ from werkzeug.local import LocalProxy
 # Can be used anywhere to get the current logged in user.
 # This will return None if the user is not logged in.
 current_user = LocalProxy(lambda: getattr(_app_ctx_stack.top, 'user', None))
-
-
-# Pjuu imports (for app to find the routes)
-import views

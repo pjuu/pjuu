@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "2.7"
+
+services:
+  - redis-server
+
+install:
+  - pip install -r requirements
+
+script:
+  - "./run_tests.py"
+
+notifications:
+  email:
+    recipients:
+      - joe@pjuu.com
