@@ -1,4 +1,5 @@
 # Pjuu
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=0.3dev)](https://travis-ci.org/pjuu/pjuu)
 
 An open-source social networking application which runs https://pjuu.com.
 
