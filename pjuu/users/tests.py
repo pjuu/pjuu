@@ -17,4 +17,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
-# These are to remind me to write tests
+# Stdlib imports
+import unittest
+# Pjuu imports
+from pjuu import keys as K, redis as r
+from pjuu.auth.backend import create_user
+from .backend import *
+
+
+class BackendTests(unittest.TestCase):
+	"""
+	This case will test ALL post backend functions.
+	"""
+
+	def setUp(self):
+		"""
+		Simply flush the database, we do not want any data already in redis
+		changing the outcome of the tests
+		"""
+		r.flushdb()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_follow_user(self):
+		"""
+		Tests that a user can follow another user
+		"""
+		assert 1 == 1

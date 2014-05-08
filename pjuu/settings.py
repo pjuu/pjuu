@@ -39,6 +39,7 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Flask-WTF (Cross site request forgery)
 # Change this for extra security.
+CSRF_ENABLED = True
 CSRF_SESSION_KEY = SECRET_KEY
 
 # Recaptcha

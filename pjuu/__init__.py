@@ -27,15 +27,11 @@ from lib.sessions import RedisSessionInterface
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.2dev'
+__version__ = '0.3dev'
 
 
 # Create application
 app = Flask(__name__)
-
-# Default config settings. Have to be changed here
-# CSRF protection on by default
-app.config['CSRF_ENABLE'] = True
 
 # Load configuration from 'settings.py' and attempt to overwrite
 # with file stored in PJUU_SETTINGS environment variable
@@ -48,7 +44,7 @@ redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
 # Create Flask-Mail
 mail = Mail(app)
 
-# Create Redis objects (session store and data store)
+# Create Redis object for sessions)
 redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
 							 db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
@@ -69,14 +65,9 @@ if not app.debug:
     app.logger.addHandler(logging_handler)
 
 
-# Inject some Pjuu information in to Jinja
-# All non-homed context-processors should live here
-@app.context_processor
-def inject_version():
-    return dict(version=__version__)
-
-
 # Import all Pjuu stuffs
+# Load Redis LUA scripts, this will also load the scripts into Redis
+import lua
 # Endpoints
 import auth.views
 import users.views

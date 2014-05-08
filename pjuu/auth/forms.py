@@ -76,7 +76,7 @@ class ChangeEmailForm(Form):
 
 class SignUpForm(Form):
     username = TextField('User name', [
-        Regexp(r'^[a-zA-Z0-9_]{3,16}$',
+        Regexp(r'^\w{3,16}$',
                message=('Must be between 3 and 16 characters and can only '
                         'contain letters, numbers and \'_\' characters.')),
         Required()])

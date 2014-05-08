@@ -20,7 +20,7 @@
 # Stdlib
 import re
 # Pjuu imports
-from pjuu import app, keys as K, redis as r
+from pjuu import app, keys as K, lua as L, redis as r
 from pjuu.lib import timestamp
 from pjuu.auth.backend import get_uid_username
 
@@ -33,7 +33,7 @@ tag_re = re.compile('(?:^|(?<=[^\w]))@'
 
 def parse_tags(body, send_all=False):
     """
-    This function looks for '@' tags in side a post that match the regex.
+    This function looks for '@' tags inside a post that match the regex.
 
     This is used by create_post and create_comment to alert users
     that they have been tagged in a post.
@@ -83,12 +83,11 @@ def populate_feeds(uid, pid):
     # This is not transactional as to not hold Redis up.
     for fid in followers:
         fid = int(fid)
+        # >> LUA
         r.lpush(K.USER_FEED % fid, pid)
-        # Stop followers feeds from growing to large
+        # Stop followers feeds from growing to large, doesn't matter if it
+        # doesn't exist
         r.ltrim(K.USER_FEED % fid, 0, 999)
-
-    # I like return values
-    return True
 
 
 def create_post(uid, body):
@@ -97,7 +96,7 @@ def create_post(uid, body):
     post list, etc...
     """
     uid = int(uid)
-    pid = int(r.incr('global:pid'))
+    pid = int(r.incr(K.GLOBAL_PID))
     # Hash form for posts
     # TODO this needs expanding to include some form of image upload hook
     post = {
@@ -130,7 +129,7 @@ def create_comment(uid, pid, body):
     """
     uid = int(uid)
     # Reserve the ID now. If the transaction fails we lost this ID
-    cid = int(r.incr('global:cid'))
+    cid = int(r.incr(K.GLOBAL_CID))
     pid = int(pid)
     # Form for comment hash
     comment = {
@@ -159,6 +158,9 @@ def create_comment(uid, pid, body):
 def check_post(uid, pid, cid=None):
     """
     This function will ensure that cid belongs to pid and pid belongs to uid.
+
+    This function would not really be needed if we used a RDBMS but we have
+    to manually check this
     """
     try:
         uid = int(uid)
@@ -203,11 +205,11 @@ def get_post(pid):
             post['user_email'] = user_dict['email']
             post['user_score'] = user_dict['score']
             post['comment_count'] = r.llen(K.POST_COMMENTS % pid)
-
         except (KeyError, ValueError):
             return None
-
-    return post
+        return post
+    # We never got a post
+    return None
 
 
 def get_comment(cid):
@@ -231,11 +233,11 @@ def get_comment(cid):
             pid = int(comment['pid'])
             author_uid = int(r.hget(K.POST % pid, 'uid'))
             comment['post_author'] = r.hget(K.USER % author_uid, 'username')
-
         except (KeyError, ValueError):
             return None
-
-    return comment
+        return comment
+    # We never got a comment
+    return None
 
 
 def get_post_author(pid):
@@ -332,7 +334,8 @@ def delete(uid, pid, cid=None):
     If this is a comment it will delete just this comment and its votes.
     This should not cause users to lose or gain points!
 
-    Please ensure the user can delete the item before passing to this
+    Please ensure the user has permission to delete the item before
+    passing to this, it will not check!
     """
     uid = int(uid)
     pid = int(pid)

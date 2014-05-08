@@ -46,7 +46,7 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:
-            flash('You need to be logged in to view this', 'information')
+            flash('You need to be logged in to view that', 'information')
             return redirect(url_for('signin', next=request.path))
         return func(*args, **kwargs)
 

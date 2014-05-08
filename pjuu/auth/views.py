@@ -18,8 +18,7 @@
 ##############################################################################
 
 # 3rd party imports
-from flask import (flash, redirect, render_template, request,
-                   url_for)
+from flask import flash, redirect, render_template, request, url_for
 # Pjuu imports
 from pjuu import app
 from pjuu.lib import handle_next
@@ -63,11 +62,14 @@ def signin():
             # Calls authenticate from backend.py
             uid = authenticate(form.username.data, form.password.data)
             if uid:
+                # Ensure the user is active
                 if not is_active(uid):
                     flash('Please activate your account<br />'
                           'Check your e-mail', 'information')
+                # Ensure the user is not banned
                 elif is_banned(uid):
                     flash('You\'re a very naughty boy!', 'error')
+                # All OK log the user in
                 else:
                     login(uid)
                     return redirect(redirect_url)
@@ -178,11 +180,6 @@ def reset(token):
         return redirect(url_for('signin'))
     return render_template('reset.html', form=form)
 
-# The following commands should be used when the user is logged in.
-# These have nothing to do with templates. All of these have to redirect
-# to users.settings_account view so that the template naming and layout make
-# sense.
-# TODO: ALL OF THE BELOW
 
 @app.route('/settings/email', methods=['GET', 'POST'])
 @login_required
@@ -256,7 +253,7 @@ def delete_account():
             # Delete the account
             be_delete_account(uid)
             # Inform the user that the account has/is being deleted
-            flash('You account has been deleted')
+            flash('You account is being deleted, this may take a few momments')
         else:
             flash('Oops! wrong password', 'error')
     return render_template('delete_account.html', form=form)

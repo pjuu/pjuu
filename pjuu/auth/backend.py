@@ -24,7 +24,7 @@ from flask import _app_ctx_stack, session
 from itsdangerous import TimedSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
-from pjuu import app, keys as K, redis as r
+from pjuu import app, keys as K, lua as L, redis as r
 from pjuu.lib import timestamp
 
 
@@ -78,7 +78,7 @@ reserved_names = [
 
 @app.before_request
 def _load_user():
-    """
+    """ READ
     If the user is logged in, will place the user object on the
     application context.
 
@@ -91,7 +91,7 @@ def _load_user():
 
 
 def get_uid_username(username):
-    """
+    """ READ
     Returns a uid from username.
 
     Returns None if lookup key does not exist or is '-1'
@@ -108,7 +108,7 @@ def get_uid_username(username):
 
 
 def get_uid_email(email):
-    """
+    """ READ
     Returns a uid from email.
 
     Returns None if lookup key does not exist or is '-1'
@@ -125,7 +125,7 @@ def get_uid_email(email):
 
 
 def get_uid(username):
-    """
+    """ N/A
     Although the argument is called 'username' this will check for an e-mail
     and call the correct get_uid_* function.
     """
@@ -136,7 +136,7 @@ def get_uid(username):
 
 
 def get_user(uid):
-    """
+    """ READ
     Similar to above but will return the user dict.
     """
     uid = int(uid)
@@ -147,15 +147,16 @@ def get_user(uid):
 
 
 def get_email(uid):
-    """
+    """ READ
     Gets a users e-mail address from a uid
     """
     uid = int(uid)
+    # Will return None if does not exist
     return r.hget(K.USER % uid, 'email')
 
 
 def check_username(username):
-    """
+    """ READ
     Used to check for username availability inside the signup form.
     Returns true if the name is free, false otherwise
     """
@@ -178,7 +179,7 @@ def check_username(username):
 
 
 def check_email(email):
-    """
+    """ READ
     Used to check an e-mail addresses availability.
     Return true if free and false otherwise.
     """
@@ -200,42 +201,40 @@ def check_email(email):
 
 
 def create_user(username, email, password):
-    """
+    """ READ/WRITE
     Creates a user account
     """
+    username = username.lower()
+    email = email.lower()
     if check_username(username) and check_email(email):
-        # Everything should be lowercase for lookups
-        username = username.lower()
-        email = email.lower()
-        # Get new uid
-        uid = int(r.incr(K.GLOBAL_UID))
-        # Create user dictionary ready for HMSET
-        user = {
-            'uid': uid,
-            'username': username,
-            'email': email,
-            'password': generate_password_hash(password),
-            'created': timestamp(),
-            'last_login': -1,
-            'active': 0,
-            'banned': 0,
-            'op': 0,
-            'about': "",
-            'score': 0
-        }
-        # Transactional
-        pipe = r.pipeline()
-        pipe.hmset(K.USER % uid, user)
-        # Create look up keys for auth system (these are lowercase)
-        pipe.set(K.UID_USERNAME % username, uid)
-        pipe.set(K.UID_EMAIL % email, uid)
-        pipe.execute()
-        return uid
+        # Create the user lookup keys and get the uid. This LUA script ensures
+        # that the name can not be taken at the same time causing a race
+        # condition
+        uid = L.create_user(keys=[K.UID_USERNAME % username,
+                                  K.UID_EMAIL % email])
+        # Create user dictionary ready for HMSET only if uid is not None
+        if uid is not None:
+            user = {
+                'uid': uid,
+                'username': username,
+                'email': email,
+                'password': generate_password_hash(password),
+                'created': timestamp(),
+                'last_login': -1,
+                'active': 0,
+                'banned': 0,
+                'op': 0,
+                'about': "",
+                'score': 0
+            }
+            r.hmset(K.USER % uid, user)
+            # Create look up keys for auth system (these are lowercase)
+            return uid
     return None
 
 
 def is_active(uid):
-    """
+    """ READ
     Checks to see if a user account has been activated
     """
     try:
@@ -247,7 +246,7 @@ def is_active(uid):
 
 
 def is_banned(uid):
-    """
+    """ READ
     Checks to see if a user account has been banned
     """
     try:
@@ -259,7 +258,7 @@ def is_banned(uid):
 
 
 def is_op(uid):
-    """
+    """ READ
     Checks to see if a user account is over powered
     """
     try:
@@ -271,7 +270,7 @@ def is_op(uid):
 
 
 def authenticate(username, password):
-    """
+    """ READ
     Will authenticate a username/password combination.
     If successful will return a uid else will return None.
     """
@@ -285,7 +284,7 @@ def authenticate(username, password):
 
 
 def login(uid):
-    """
+    """ WRITE
     Logs the user in. Will add user_id to session.
     Will also update the users last_login time.
     """
@@ -295,7 +294,7 @@ def login(uid):
 
 
 def logout():
-    """
+    """ N/A
     Removes the user id from the session. If it isn't there then
     nothing bad happens.
     """
@@ -303,7 +302,7 @@ def logout():
 
 
 def activate(uid, action=True):
-    """
+    """ WRITE
     Activates a user after signup.
 
     We will check if the user exists otherwise this consumes the ID and
@@ -322,7 +321,7 @@ def activate(uid, action=True):
 
 
 def ban(uid, action=True):
-    """
+    """ WRITE
     Ban a user.
 
     By passing False as action this will unban the user
@@ -340,7 +339,7 @@ def ban(uid, action=True):
 
 
 def bite(uid, action=True):
-    """
+    """ WRITE
     Bite a user (think spideman), makes them op
 
     By passing False as action this will unban the user
@@ -358,7 +357,7 @@ def bite(uid, action=True):
 
 
 def change_password(uid, password):
-    """
+    """ WRITE
     Changes uid's password. Checking of the old password _MUST_ be done
     before this.
 
@@ -370,7 +369,7 @@ def change_password(uid, password):
 
 
 def change_email(uid, email):
-    """
+    """ WRITE
     Changes the user with uid's e-mail address.
     Has to remove old lookup index and add the new one
     """
@@ -387,7 +386,7 @@ def change_email(uid, email):
 
 
 def delete_account(uid):
-    """
+    """ WRITE
     Will delete a users account. This should remove _ALL_ details,
     comments, posts.
 
@@ -400,16 +399,17 @@ def delete_account(uid):
     username = r.hget(K.USER % uid, 'username')
     email = r.hget(K.USER % uid, 'email')
 
+    # Clear the users lookup keys and user account. These are not needed
+    pipe = r.pipeline()
     # Delete lookup keys. This will stop the user being found or logging in
-    r.set(K.UID_USERNAME % username, -1)
-    r.expire(K.UID_USERNAME % username, K.EXPIRE_SECONDS)
-    r.set(K.UID_EMAIL % email, -1)
-    r.expire(K.UID_EMAIL % username, K.EXPIRE_SECONDS)
+    pipe.set(K.UID_USERNAME % username, -1)
+    pipe.expire(K.UID_USERNAME % username, K.EXPIRE_SECONDS)
+    pipe.set(K.UID_EMAIL % email, -1)
+    pipe.expire(K.UID_EMAIL % email, K.EXPIRE_SECONDS)
 
     # Delete user account
-    r.delete(K.USER % uid)
-    # Delete feed
-    r.delete(K.USER_FEED % uid)
+    pipe.delete(K.USER % uid)
+    pipe.execute()
 
     # Remove all posts a user has ever made. This includes all votes
     # on that post and all comments.
@@ -420,7 +420,6 @@ def delete_account(uid):
         r.delete(K.POST % pid) # WRITE
         # Delete all the votes made on the post
         r.delete(K.POST_VOTES % pid) # WRITE
-        r.delete(K.POST_SUBSCRIBERS % pid) # WRITE
 
         cids = r.lrange(K.POST_COMMENTS % pid, 0, -1)
         for cid in cids:
@@ -458,7 +457,7 @@ def delete_account(uid):
         # Delete comment votes
         r.delete(K.COMMENT_VOTES % cid)
     # Delete the comments list
-    r.delete(K.USER_COMMENTS % pid)
+    r.delete(K.USER_COMMENTS % uid)
 
     # Delete all references to followers of the the user.
     # This will remove the user from the other users following list
@@ -483,6 +482,10 @@ def delete_account(uid):
         r.zrem(K.USER_FOLLOWERS % fid, uid)
     # Delete the following list
     r.delete(K.USER_FOLLOWING % uid)
+
+    # Finally delete the users feed, this may have been added too during this
+    # process. Probably not but let's be on the safe side
+    r.delete(K.USER_FEED % uid)
 
     # All done. This code may need making safer in case there are issues
     # elsewhere in the code base

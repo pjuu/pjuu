@@ -18,17 +18,15 @@
 ##############################################################################
 
 # 3rd party imports
-from flask import (abort, flash, redirect, request,
-                   url_for)
+from flask import abort, flash, redirect, request, url_for
 # Pjuu imports
 from pjuu import app
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
-from .backend import (create_post, create_comment, check_post,
-                      vote as be_vote, has_voted, get_comment_author,
-                      delete as be_delete)
+from .backend import (create_post, create_comment, check_post, vote as be_vote,
+                      has_voted, get_comment_author, delete as be_delete)
 from .forms import PostForm
 
 

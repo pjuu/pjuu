@@ -19,8 +19,14 @@
 
 # Stdlib imports
 import unittest
+# 3rd party imports
+from flask import _app_ctx_stack, request, session
+from redis import StrictRedis
 # Pjuu imports
-from pjuu import keys as K, redis as r
+from pjuu import app, keys as K, redis as r
+from pjuu.users.backend import follow_user
+from pjuu.posts.backend import create_post, create_comment
+from . import current_user
 from .backend import *
 
 
@@ -55,115 +61,244 @@ class BackendTests(unittest.TestCase):
 		This also in turn tests check_username() and check_email()
 		"""
 		# Account creation
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Duplicate username
-		assert create_user('test', 'testx@pjuu.com', 'Password') is None
+		self.assertIsNone(create_user('test', 'testx@pjuu.com', 'Password'))
 		# Duplicate email
-		assert create_user('testx', 'test@pjuu.com', 'Password') is None
+		self.assertIsNone(create_user('testx', 'test@pjuu.com', 'Password'))
 		# Invalid username
-		assert create_user('t', 'testx@pjuu.com', 'Password') is None
+		self.assertIsNone(create_user('t', 'testx@pjuu.com', 'Password'))
 		# Invalid email
-		assert create_user('testx', 'test', 'Password') is None
+		self.assertIsNone(create_user('testx', 'test', 'Password'))
 		# Reserved username
-		assert create_user('help', 'testx@pjuu.com', 'Password') is None
+		self.assertIsNone(create_user('help', 'testx@pjuu.com', 'Password'))
 		# Check lookup keys exist
-		assert get_uid('test') == 1
-		assert get_uid('test@pjuu.com') == 1
+		self.assertEqual(get_uid('test'), 1)
+		self.assertEqual(get_uid('test@pjuu.com'), 1)
 		# Make sure getting the user returns a dict
-		assert get_user(1) is not None
+		self.assertIsNotNone(get_user(1))
 		# Make sure no dict is returned for no user
-		assert get_user(2) is None
+		self.assertIsNone(get_user(2))
 		# Check other user functions
-		assert get_email(1) == 'test@pjuu.com'
-		assert get_email(2) is None
+		self.assertEqual(get_email(1), 'test@pjuu.com')
+		self.assertIsNone(get_email(2))
 
 	def test_userflags(self):
 		"""
 		Checks the user flags. Such as active, banned, op
 		"""
 		# Create a test account
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Account should be not active
-		assert is_active(1) is False
+		self.assertFalse(is_active(1))
 		# Activate
-		assert activate(1) is True
-		assert is_active(1) is True
+		self.assertTrue(activate(1))
+		self.assertTrue(is_active(1))
 		# Deactivate
-		assert activate(1, False) is True
-		assert is_active(1) is False
+		self.assertTrue(activate(1, False))
+		self.assertFalse(is_active(1), False)
 		# Test invalid is active
-		assert is_active(2) is False
-		assert is_active("test") is False
+		self.assertFalse(is_active(2))
+		self.assertFalse(is_active("test"))
 
 		# Account should not be banned
-		assert is_banned(1) is False
+		self.assertFalse(is_banned(1))
 		# Ban
-		assert ban(1) is True
-		assert is_banned(1) is True
+		self.assertTrue(ban(1))
+		self.assertTrue(is_banned(1))
 		# Unban
-		assert ban(1, False) is True
-		assert is_banned(1) is False
+		self.assertTrue(ban(1, False))
+		self.assertFalse(is_banned(1))
 
 		# Account should not be op
-		assert is_op(1) is False
+		self.assertFalse(is_op(1))
 		# Bite
-		assert bite(1) is True
-		assert is_op(1) is True
+		self.assertTrue(bite(1))
+		self.assertTrue(is_op(1))
 		# Unbite (makes no sense)
-		assert bite(1, False) is True
-		assert is_op(1) is False
+		self.assertTrue(bite(1, False))
+		self.assertFalse(is_op(1))
 
 	def test_authenticate(self):
 		"""
 		Check a user can authenticate
 		"""
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Check authenticate
-		assert authenticate('test', 'Password') == 1
+		self.assertEqual(authenticate('test', 'Password'), 1)
 		# Check incorrect password
-		assert authenticate('test', 'Pass') is None
+		self.assertIsNone(authenticate('test', 'Pass'))
 		# Check non existant user
-		assert authenticate('testx', 'Password') is None
+		self.assertIsNone(authenticate('testx', 'Password'))
 		# Check no glob username
-		assert authenticate('tes*', 'Password') is None
+		self.assertIsNone(authenticate('tes*', 'Password'))
 		# There is no way a glob password would work its a hash
 		# lets be thourough though
-		assert authenticate('test', 'Passw*') is None
+		self.assertIsNone(authenticate('test', 'Passw*'))
+
+	def test_login_logout(self):
+		"""
+		Ensure that a uid is added to the session during login
+		Ensure that the uid is missing from the session during logout
+
+		Note that this is only backend relevant. login() does not check if a
+		user is banned, active or anything else
+		"""
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		# We need a request context to use the session
+		with app.test_request_context('/signin'):
+			# Log the new user in
+			login(1)
+			# Check the uid is now in the session
+			self.assertEqual(session.get('uid', None), 1)
+			# Log the user out
+			logout()
+			# Ensure a KeyError is thrown (This will not happen in Pjuu)
+			self.assertIsNone(session.get('uid', None))
 
 	def test_change_password(self):
 		"""
 		This will test change_password(). Obviously
 		"""
 		# Create user
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Take current password (is hash don't string compare)
 		current_password = r.hget(K.USER % 1, 'password')
 		# Change password
-		assert change_password(1, 'Password1') is not None
+		self.assertIsNotNone(change_password(1, 'Password1'))
 		new_password = r.hget(K.USER % 1, 'password')
 		# Just check the hashed are different
-		assert current_password != new_password
+		self.assertNotEqual(current_password, new_password)
 		# Make sure the old password does not authenticate
-		assert authenticate('test', 'Password') is None
+		self.assertIsNone(authenticate('test', 'Password'))
 		# Check new password lets us log in
-		assert authenticate('test', 'Password1') == 1
+		self.assertEqual(authenticate('test', 'Password1'), 1)
 
 	def test_change_email(self):
 		"""
 		Test change_email().
 		"""
 		# Create user
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Test email lookup key
-		assert get_uid_email('test@pjuu.com') == 1
+		self.assertEqual(get_uid_email('test@pjuu.com'), 1)
 		# Check correct email
-		assert get_email(1) == 'test@pjuu.com'
+		self.assertEqual(get_email(1), 'test@pjuu.com')
 		# Change e-mail
-		assert change_email(1, 'testn@pjuu.com') is not None
+		self.assertIsNotNone(change_email(1, 'testn@pjuu.com'))
 		# Check new lookup key
-		assert get_uid_email('testn@pjuu.com') == 1
+		self.assertEqual(get_uid_email('testn@pjuu.com'), 1)
 		# Check old lookup key has been nulled
-		assert get_uid_email('test@pjuu.com') is None
+		self.assertIsNone(get_uid_email('test@pjuu.com'))
 		# Check the old key is set to -1 and the expiration has been set
-		assert int(r.get('uid:email:test@pjuu.com')) == -1
-		assert int(r.ttl('uid:email:test@pjuu.com')) != -1
+		self.assertEqual(int(r.get(K.UID_EMAIL % 'test@pjuu.com')), -1)
+		self.assertNotEqual(int(r.ttl(K.UID_EMAIL % 'test@pjuu.com')), -1)
+
+	def test_delete_account_basic(self):
+		"""
+		Test delete_account()
+
+		Posts and comments: Ensures that all data related to posting and
+		commenting is removed
+		"""
+		# Create test user
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		# Lets just delete a fresh account
+		delete_account(1)
+		# Lets check that has got rid of everything
+		self.assertIsNone(get_user(1))
+		# Ensure the user can not be looked up
+		self.assertIsNone(get_uid_username('test'))
+		self.assertIsNone(get_uid_email('test@pjuu.com'))
+		# Ensure the underlying Redis is correct
+		# Ensure the user account has gone
+		self.assertIsNone(r.get(K.USER % 1))
+		# Ensure the username maps to -1
+		self.assertEqual(int(r.get(K.UID_USERNAME % 'test')), -1)
+		# Ensure the usernames TTL has been set
+		self.assertNotEqual(int(r.ttl(K.UID_USERNAME % 'test')), -1)
+		# Ensure the email maps to -1
+		self.assertEqual(int(r.get(K.UID_EMAIL % 'test@pjuu.com')), -1)
+		# Ensure the email TTL has been set
+		self.assertNotEqual(int(r.ttl(K.UID_EMAIL % 'test@pjuu.com')), -1)
+
+	def test_delete_account_posts_comments(self):
+		"""
+		Test delete_account()
+
+		Posts and comments: Ensure all posts and comments are gone.
+
+		Note: This is not a full test of the posts system. See posts/test.py
+		"""
+		# Create test user
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		# Create a post
+		self.assertEqual(create_post(1, "Test post"), 1)
+		# Create a comment
+		self.assertEqual(create_comment(1, 1, "Test comment"), 1)
+
+		# Ensure all the keys have been set
+		self.assertTrue(r.hgetall(K.POST % 1))
+		self.assertTrue(r.lrange(K.POST_COMMENTS % 1, 0, -1))
+		# Ensure the Comment and its votes are gone
+		self.assertTrue(r.hgetall(K.COMMENT % 1))
+		# Assert feed has 1 item on it
+		self.assertIn(u'1', r.lrange(K.USER_FEED % 1, 0, -1))
+		# Assert posts is empty
+		self.assertIn(u'1', r.lrange(K.USER_POSTS % 1, 0, -1))
+		# Asset comments is empty
+		self.assertIn(u'1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+
+		# Delete the account
+		delete_account(1)
+
+		# Ensure the Post, its comment list and votes has gone
+		self.assertFalse(r.hgetall(K.POST % 1))
+		self.assertFalse(r.lrange(K.POST_COMMENTS % 1, 0, -1))
+		# Ensure the Comment is gone
+		self.assertFalse(r.hgetall(K.COMMENT % 1))
+		# Assert feed is empty
+		self.assertFalse(r.lrange(K.USER_FEED % 1, 0, -1))
+		# Assert posts is empty
+		self.assertFalse(r.lrange(K.USER_POSTS % 1, 0, -1))
+		# Asset comments is empty
+		self.assertFalse(r.lrange(K.USER_COMMENTS % 1, 0, -1))
+
+	def test_delete_account_followers_following(self):
+		"""
+		Test delete_account()
+
+		Followers & Following: Ensures that all data related to followers is
+		removed during account deletion
+
+		Note: This is not a full test of the users system. See users/test.py
+		"""
+		# Create test user 1
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		# Create test user 2
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Make users follow each other
+		self.assertTrue(follow_user(1, 2))
+		self.assertTrue(follow_user(2, 1))
+		# Ensure the uid's are in the relevant sorted sets
+		self.assertIn(u'2', r.zrange(K.USER_FOLLOWERS % 1, 0, -1))
+		self.assertIn(u'2', r.zrange(K.USER_FOLLOWING % 1, 0, -1))
+		self.assertIn(u'1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
+		self.assertIn(u'1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
+
+		# Delete test account 1
+		delete_account(1)
+
+		# Ensure the lists are empty
+		self.assertNotIn(u'2', r.zrange(K.USER_FOLLOWERS % 1, 0, -1))
+		self.assertNotIn(u'2', r.zrange(K.USER_FOLLOWING % 1, 0, -1))
+		self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
+		self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
+
+
+class FrontendTests(unittest.TestCase):
+	"""
+	This test case will test all the auth subpackages views, decorators
+	and forms
+	"""
+	pass

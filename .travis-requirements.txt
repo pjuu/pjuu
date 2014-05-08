@@ -1,6 +1,6 @@
-# This is the same as requirements but with Gunicorn removed.
+# This is the same as requirements but with Gunicorn & Cherrypy removed.
 # This allows the builds to happen a lot quicker and we are not testing
-# The WSGI server(s) with our unittests
+# The WSGI servers with our unittests
 Flask==0.10.1
 Flask-Mail==0.9.0
 Flask-WTF==0.9.4

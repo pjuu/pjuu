@@ -23,7 +23,6 @@ import unittest
 from pjuu import keys as K, redis as r
 from pjuu.auth.backend import create_user
 from .backend import *
-# Used to test the delete_account() function.
 
 
 class BackendTests(unittest.TestCase):
@@ -49,8 +48,31 @@ class BackendTests(unittest.TestCase):
 		Tests creating a post
 		"""
 		# Create a user to test creating post
-		assert create_user('test', 'test@pjuu.com', 'Password') == 1
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
 		# Create post
-		assert create_post(1, 'Test post') == 1
+		self.assertEqual(create_post(1, 'Test post'), 1)
 		# Check the post was created by looking at the pid
-		assert int(get_post(1)['pid']) == 1
+		self.assertEqual(int(get_post(1).get('pid', None)), 1)
+		# Ensure the post gets added to the users 'posts' list
+		# Remember redis returns everything as a string
+		self.assertIn(u'1', r.lrange(K.USER_POSTS % 1, 0, -1))
+		# Ensure this post is the users feed (populate_feed)
+		self.assertIn(u'1', r.lrange(K.USER_FEED % 1, 0, -1))
+
+	def test_create_comment(self):
+		"""
+		Tests that a comment can be created on a post
+		"""
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		# Create post
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		# Create comment
+		self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+		# Check the comment was created
+		self.assertEqual(int(get_comment(1).get('cid', None)), 1)
+		# Ensure the comment is the posts 'comment' list
+		# Remember redis returns everything as a string
+		# This will fail if decode response is not enabled
+		self.assertIn(u'1', r.lrange(K.POST_COMMENTS % 1, 0 , -1))
+		# Ensure the comment is also in the users 'comments' list
+		self.assertIn(u'1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
