@@ -98,8 +98,8 @@ def get_comments(pid, page=1):
     Returns a pagination of a posts comments
     """
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
-    total = r.llen(K.USER_COMMENTS % pid)
-    cids = r.lrange(K.USER_COMMENTS % pid, (page - 1) * per_page,
+    total = r.llen(K.POST_COMMENTS % pid)
+    cids = r.lrange(K.POST_COMMENTS % pid, (page - 1) * per_page,
                     (page * per_page) - 1)
     comments = []
     for cid in cids:

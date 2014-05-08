@@ -235,6 +235,12 @@ def change_password():
                 # Update the users password!
                 be_change_password(current_user['uid'], form.new_password.data)
                 flash('We\'ve updated your password', 'success')
+                send_mail('Your password has been reset',
+                    curret_user['email'],
+                    text_body=render_template('emails/password_change.txt',
+                                              token=token),
+                    html_body=render_template('emails/password_change.html',
+                                              token=token))
         else:
             flash('Oh no! There are errors in your form', 'error')
 

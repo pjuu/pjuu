@@ -207,7 +207,8 @@ def get_post(pid):
             post['comment_count'] = r.llen(K.POST_COMMENTS % pid)
         except (KeyError, ValueError):
             return None
-        return post
+        else:
+            return post
     # We never got a post
     return None
 
@@ -235,7 +236,8 @@ def get_comment(cid):
             comment['post_author'] = r.hget(K.USER % author_uid, 'username')
         except (KeyError, ValueError):
             return None
-        return comment
+        else:
+            return comment
     # We never got a comment
     return None
 
