@@ -1,6 +1,5 @@
 # -*- coding: utf8 -*-
 
-
 ##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
@@ -16,13 +15,20 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
+# Although not strictly Redis, these expiration constants are useful
+EXPIRE_SECONDS = 604800
+EXPIRE_MILLISECONDS = 604800000
 
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
 # around the code base
-##############################################################################
 
+# Counter keys for IDs
+GLOBAL_UID = "global:uid"
+GLOBAL_PID = "global:pid"
+GLOBAL_CID = "global:cid"
 
 # Keys to get all user information
 # Usage: <VARIABLE> % int

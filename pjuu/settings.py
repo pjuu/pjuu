@@ -1,29 +1,14 @@
 # -*- coding: utf8 -*-
 
-# Copyright 2014 Joe Doherty <joe@pjuu.com>
-#
-# Pjuu is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Pjuu is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 # Pjuu example settings file
-# Please create a 'settings.py' from the template below
+# Please change the below for production
 # Please make sure all settings have been updated for your
 # development environment
 
 # Will show debug information when running in 'manage.py runserver'
 DEBUG = True
 # Pjuu will not send e-mails
-NOMAIL = False
+NO_MAIL = DEBUG
 
 # Keep it secret, keep it safe
 # Ensure you change this!
@@ -54,6 +39,7 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Flask-WTF (Cross site request forgery)
 # Change this for extra security.
+CSRF_ENABLED = True
 CSRF_SESSION_KEY = SECRET_KEY
 
 # Recaptcha
@@ -72,9 +58,9 @@ PROFILE_ITEMS_PER_PAGE = 25
 # Signer Keys
 # Please see pjuu.auth.backend for details
 TOKEN_KEY = SECRET_KEY
-SALT_ACTIVATE = 'ACTIVATE'
-SALT_FORGOT = 'FORGOT'
-SALT_EMAIL = 'EMAIL'
+TOKEN_SALT_ACTIVATE = 'ACTIVATE'
+TOKEN_SALT_FORGOT = 'FORGOT'
+TOKEN_SALT_EMAIL = 'EMAIL'
 
 # Logger file (this is for Warnings+)
 # TODO allow changing this so you can use syslog, etc...

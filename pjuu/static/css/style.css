@@ -46,6 +46,9 @@ html[xmlns] .clearfix {
     text-align: center;
 }
 
+.no-mobile {
+}
+
 /* forms */
 input[type=text],
 input[type=password],
@@ -140,12 +143,10 @@ input[type=submit] {
 }
 
 #auth h1 {
-	border-bottom: 1px solid #680;
-    color: #680;
-    font-family: Georgia, Garamond, serif;
-    font-size: 1.5em;
-    margin: 0 0 0.75em;
-    padding: 0 0 0.25em;
+    color: #666;
+    font-size: 1.25em;
+    margin: 0 0 1em 0;
+    padding: 0;
 }
 
 #auth .container {
@@ -206,7 +207,6 @@ input[type=submit] {
 #header .container {
 	margin: 0 auto;
 	max-width: 800px;
-	min-width: 320px;
 }
 
 #header .logo {
@@ -223,6 +223,13 @@ input[type=submit] {
 	font-weight: 700;
 	margin: 0;
 	padding: 0 0.5em;
+}
+
+#header .menu img {
+    height: 16px;
+    margin: 0 0.5em 0 0;
+    width: 16px;
+    vertical-align: middle;
 }
 
 #header .menu a {
@@ -739,7 +746,6 @@ input[type=submit] {
 }
 
 #setting .detail {
-    border-bottom: 1px solid #BBB;
     margin: 0 0 0.5em;
     padding: 0 0 0.5em;
 }
@@ -795,6 +801,10 @@ input[type=submit] {
 
 /* MEDIA QUERIES ========================================================== */
 @media only screen and (max-width: 600px) {
+    .no-mobile {
+        display: none;
+    }
+
     #auth .container {
         width: 98%;
     }

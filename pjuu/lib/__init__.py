@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,9 +15,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
+# Stdlib imports
 from urlparse import urlparse, urljoin
-
+from time import gmtime
+from calendar import timegm
 
 def is_safe_url(host_url, target):
     """
@@ -36,3 +40,12 @@ def handle_next(request, default_url='/'):
     if not redirect_url or not is_safe_url(request.host_url, redirect_url):
         redirect_url = default_url
     return redirect_url
+
+
+def timestamp():
+    """
+    This function will generate a UNIX UTC timestamp integer.
+
+    This is too be placed at all timestamped occurances.
+    """
+    return timegm(gmtime())

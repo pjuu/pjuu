@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,7 +15,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
-import views
+# 3rd party imports
+from flask import _app_ctx_stack
+from werkzeug.local import LocalProxy
 
-__author__ = 'Joe Doherty <joe@pjuu.com>'
+
+# Can be used anywhere to get the current logged in user.
+# This will return None if the user is not logged in.
+current_user = LocalProxy(lambda: getattr(_app_ctx_stack.top, 'user', None))

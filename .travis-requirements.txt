@@ -1,0 +1,15 @@
+# This is the same as requirements but with Gunicorn & Cherrypy removed.
+# This allows the builds to happen a lot quicker and we are not testing
+# The WSGI servers with our unittests
+Flask==0.10.1
+Flask-Mail==0.9.0
+Flask-WTF==0.9.4
+Jinja2==2.7.2
+MarkupSafe==0.18
+WTForms==1.0.5
+Werkzeug==0.9.4
+blinker==1.3
+hiredis==0.1.2
+itsdangerous==0.23
+redis==2.9.1
+wsgiref==0.1.2

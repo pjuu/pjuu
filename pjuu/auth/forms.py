@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,21 +15,24 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
 # 3rd party imports
 from flask.ext.wtf import Form, RecaptchaField
 from wtforms import PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
-# Package imports
-from .backend import check_email, check_username, authenticate, current_user
+# Pjuu imports
+from pjuu import app
+from . import current_user
+from .backend import check_email, check_username, authenticate
 
 
 class ForgotForm(Form):
     username = TextField('User name or E-Mail')
 
 
-class LoginForm(Form):
+class SignInForm(Form):
     username = TextField('User name or E-Mail')
     password = PasswordField('Password')
 
@@ -70,11 +74,11 @@ class ChangeEmailForm(Form):
             raise ValidationError('Invalid password')
 
 
-class SignupForm(Form):
+class SignUpForm(Form):
     username = TextField('User name', [
-        Regexp(r'^[a-zA-Z0-9_]{3,16}$',
-               message=('Username must be between 3 and 16 characters and can'
-                        ' only contain letters, numbers and \'_\' characters.')),
+        Regexp(r'^\w{3,16}$',
+               message=('Must be between 3 and 16 characters and can only '
+                        'contain letters, numbers and \'_\' characters.')),
         Required()])
     email = TextField('E-mail address', [Email(), Length(max=254), Required()])
     password = PasswordField('Password', [
@@ -83,7 +87,9 @@ class SignupForm(Form):
                message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
-    recaptcha = RecaptchaField()
+    # We can not use recaptcha in Debug as I work on the train
+    if not app.debug:
+        recaptcha = RecaptchaField()
 
     def validate_username(form, field):
         if not check_username(field.data):

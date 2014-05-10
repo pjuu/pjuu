@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 # -*- coding: utf8 -*-
 
+##############################################################################
 # Copyright 2014 Joe Doherty <joe@pjuu.com>
 #
 # Pjuu is free software: you can redistribute it and/or modify
@@ -14,26 +16,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##############################################################################
 
-# 3rd party imports
-from flask import render_template
-# Pjuu imports
-from pjuu import app
-
-
-__all__ = ['page_not_found', 'forbidden', 'internal_server_error']
+# Stdlib imports
+import sys
+import unittest
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
+if __name__ == '__main__':
+	# Prepare for testing
+	test_loader = unittest.defaultTestLoader
+	test_runner =  unittest.TextTestRunner()
+	test_suite = test_loader.discover('pjuu', pattern='tests.py')
 
+	# Run all located tests and save the returns
+	test_results = test_runner.run(test_suite)
 
-@app.errorhandler(403)
-def forbidden(e):
-    return render_template('403.html'), 403
-
-
-@app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('500.html'), 500
+	# If we have any test failures set the return code from script to 1
+	# This will allow Travis-CI to inform us that the build failed
+	if test_results.failures:
+		sys.exit(1)
