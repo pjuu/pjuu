@@ -1,9 +1,9 @@
 # Pjuu
-[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=0.3dev)](https://travis-ci.org/pjuu/pjuu)
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu)
 
 An open-source social networking application which runs https://pjuu.com.
 
-This is an open source project released under the GNU AGPL v3. See LICENSE for more details.
+This is an open source project released under the GNU AGPLv3 license. See LICENSE for more details.
 
 ## About
 

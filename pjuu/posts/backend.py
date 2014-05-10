@@ -160,7 +160,11 @@ def check_post(uid, pid, cid=None):
     This function will ensure that cid belongs to pid and pid belongs to uid.
 
     This function would not really be needed if we used a RDBMS but we have
-    to manually check this
+    to manually check this.
+
+    Warning: Think before testing. UID is the person wrote PID, CID if assigned
+             has to be a comment of PID. This for checking the urls not for
+             checking who wrote CID
     """
     try:
         uid = int(uid)
@@ -304,7 +308,7 @@ def vote(uid, pid, cid=None, amount=1):
 def delete_comments(uid, pid):
     """
     This will cycle through a posts comments and remove each comment
-    in turn.
+    in turn. It will also remove the comment from the users comment list.
 
     It will then delete the list at the end.
     """
@@ -326,7 +330,6 @@ def delete_comments(uid, pid):
         r.lrem(K.USER_COMMENTS % author_id, 0, cid)
     # Finally delete the comment list
     r.delet(K.POST_COMMENTS % pid)
-
 
 
 def delete(uid, pid, cid=None):

@@ -302,7 +302,7 @@ def logout():
 
 
 def activate(uid, action=True):
-    """ WRITE
+    """ READ/WRITE
     Activates a user after signup.
 
     We will check if the user exists otherwise this consumes the ID and
@@ -321,7 +321,7 @@ def activate(uid, action=True):
 
 
 def ban(uid, action=True):
-    """ WRITE
+    """ READ/WRITE
     Ban a user.
 
     By passing False as action this will unban the user
@@ -339,7 +339,7 @@ def ban(uid, action=True):
 
 
 def bite(uid, action=True):
-    """ WRITE
+    """ READ/WRITE
     Bite a user (think spideman), makes them op
 
     By passing False as action this will unban the user
@@ -386,7 +386,7 @@ def change_email(uid, email):
 
 
 def delete_account(uid):
-    """ WRITE
+    """ READ/WRITE
     Will delete a users account. This should remove _ALL_ details,
     comments, posts.
 

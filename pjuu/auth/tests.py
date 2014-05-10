@@ -21,7 +21,6 @@
 import unittest
 # 3rd party imports
 from flask import _app_ctx_stack, request, session
-from redis import StrictRedis
 # Pjuu imports
 from pjuu import app, keys as K, redis as r
 from pjuu.users.backend import follow_user

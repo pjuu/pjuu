@@ -48,7 +48,7 @@ def get_user(uid):
     """
     uid = int(uid)
     user = r.hgetall(K.USER % uid)
-    return user
+    return user if user else None
 
 
 def get_feed(uid, page=1):
@@ -61,6 +61,7 @@ def get_feed(uid, page=1):
                     (page * per_page) - 1)
     posts = []
     for pid in pids:
+        # Get the post
         post = get_post(pid)
         if post:
             posts.append(post)
@@ -82,6 +83,7 @@ def get_posts(uid, page=1):
                     page * per_page)
     posts = []
     for pid in pids:
+        # Get the post
         post = get_post(pid)
         if post:
             posts.append(post)
@@ -103,13 +105,16 @@ def get_comments(pid, page=1):
                     (page * per_page) - 1)
     comments = []
     for cid in cids:
+        # Change unicode number to int
+        cid = int(cid)
+        # Get the comment
         comment = get_comment(cid)
         if comment is not None:
             comments.append(comment)
         else:
             # Self cleaning lists
-            r.lrem(K.USER_COMMENTS % pid, 1, cid)
-            total = r.llen(K.USER_COMMENTS % cid)
+            r.lrem(K.POST_COMMENTS % pid, 1, cid)
+            total = r.llen(K.POST_COMMENTS % cid)
 
     return Pagination(comments, total, page, per_page)
 
@@ -124,6 +129,7 @@ def get_following(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
+        # Get user
         user = get_user(fid)
         if user:
             users.append(user)
@@ -145,6 +151,7 @@ def get_followers(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
+        # Get user
         user = get_user(fid)
         if user:
             users.append(user)
@@ -192,10 +199,9 @@ def is_following(who_uid, whom_uid):
     """
     who_uid = int(who_uid)
     whom_uid = int(whom_uid)
-    if r.zrank(K.USER_FOLLOWING% who_uid, whom_uid) is not None:
+    if r.zrank(K.USER_FOLLOWING % who_uid, whom_uid) is not None:
         return True
-    else:
-        return False
+    return False
 
 
 # TODO Fix this!

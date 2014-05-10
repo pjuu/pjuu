@@ -3,15 +3,9 @@
 {% block content %}
 Hi,
 
-You've asked to change your email.
+Your account is now being deleted.
 
-If you click the link below we will update your data.
-
-<a href="{{ url_for('confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a>
-
-If you can not click the above link please copy and paste the below in to your web browser of choice.
-
-{{ url_for('confirm_email', token=token, _external=True) }}
+Thank you for using Pjuu. We hope you enjoyed using it.
 {% endblock %}
 
 {% block content_footer %}

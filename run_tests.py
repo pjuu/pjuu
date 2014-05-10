@@ -22,15 +22,17 @@
 import sys
 import unittest
 
-# Prepare for testing
-test_loader = unittest.defaultTestLoader
-test_runner =  unittest.TextTestRunner()
-test_suite = test_loader.discover('pjuu', pattern='tests.py')
 
-# Run all located tests and save the returns
-test_results = test_runner.run(test_suite)
+if __name__ == '__main__':
+	# Prepare for testing
+	test_loader = unittest.defaultTestLoader
+	test_runner =  unittest.TextTestRunner()
+	test_suite = test_loader.discover('pjuu', pattern='tests.py')
 
-# If we have any test failures set the return code from script to 1
-# This will allow Travis-CI to inform us that the build failed
-if test_results.failures:
-	sys.exit(1)
+	# Run all located tests and save the returns
+	test_results = test_runner.run(test_suite)
+
+	# If we have any test failures set the return code from script to 1
+	# This will allow Travis-CI to inform us that the build failed
+	if test_results.failures:
+		sys.exit(1)

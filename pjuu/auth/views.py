@@ -96,6 +96,12 @@ def signout():
 @app.route('/signup', methods=['GET', 'POST'])
 @anonymous_required
 def signup():
+    """
+    The view a user uses to sign up for Pjuu.
+
+    This will generate the activation email and send it to the new user so
+    long as the form is correct.
+    """
     form = SignUpForm(request.form)
     if request.method == 'POST':
         if form.validate():
@@ -123,6 +129,9 @@ def signup():
 @app.route('/activate/<token>', methods=['GET'])
 @anonymous_required
 def activate(token):
+    """
+    Activates the user account so long as the token is valid.
+    """
     # Attempt to get the data from the token
     data = check_token(signer_activate, token)
     if data is not None:
@@ -144,6 +153,12 @@ def activate(token):
 @app.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required
 def forgot():
+    """
+    View to allow the user to recover their password.
+
+    This will send an email to the users email address so long as the account
+    is found. It will not tell the user if the account was located or not.
+    """
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
@@ -165,6 +180,10 @@ def forgot():
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 @anonymous_required
 def reset(token):
+    """
+    This view allows the user to create a new password so long as the token
+    is valid.
+    """
     form = ResetForm(request.form)
     data = check_token(signer_forgot, token)
     if data is not None:
@@ -184,6 +203,12 @@ def reset(token):
 @app.route('/settings/email', methods=['GET', 'POST'])
 @login_required
 def change_email():
+    """
+    This view allows the user to change their their email address.
+
+    It will send a token to the new address for the user to confirm they own
+    it. The email will contain a link to confirm_email()
+    """
     form = ChangeEmailForm(request.form)
     if request.method == 'POST':
         if form.validate():
@@ -191,13 +216,12 @@ def change_email():
                 token = generate_token(signer_email,
                             {'uid': current_user['uid'],
                              'email': form.new_email.data})
-
+                # Send a confirmation to the new email address
                 send_mail('Confirm e-mail change', [form.new_email.data],
                     text_body=render_template('emails/email_change.txt',
                                               token=token),
                     html_body=render_template('emails/email_change.html',
                                               token=token))
-
                 flash('We\'ve sent you an email, please confirm this',
                       'success')
         else:
@@ -209,6 +233,13 @@ def change_email():
 @app.route('/settings/email/<token>', methods=['GET'])
 @login_required
 def confirm_email(token):
+    """
+    View to actually change the users password.
+
+    This is the link they will sent during the email change procedure. If the
+    token is valid the users password will be changed and a confirmation will
+    be sent to the new email address.
+    """
     # Attempt to get the data from the token
     data = check_token(signer_email, token)
     if data is not None:
@@ -217,6 +248,9 @@ def confirm_email(token):
         email = data['email']
         if uid:
             be_change_email(uid, email)
+            send_mail('Your email has been changed', email,
+                text_body=render_template('emails/confirm_email.txt'),
+                html_body=render_template('emails/confirm_email.html'))
             flash('We\'ve updated your e-mail address', 'success')
             return redirect(url_for('signin'))
 
@@ -228,6 +262,12 @@ def confirm_email(token):
 @app.route('/settings/password', methods=['GET', 'POST'])
 @login_required
 def change_password():
+    """
+    The view a user uses to change their password.
+
+    This will change their password straight away once they have authenticated,
+    it will then send them a confirmation e-mail.
+    """
     form = PasswordChangeForm(request.form)
     if request.method == 'POST':
         if form.validate():
@@ -235,12 +275,11 @@ def change_password():
                 # Update the users password!
                 be_change_password(current_user['uid'], form.new_password.data)
                 flash('We\'ve updated your password', 'success')
-                send_mail('Your password has been reset',
+                # Inform the user via e-mail that their password has changed
+                send_mail('Your password has been changed',
                     curret_user['email'],
-                    text_body=render_template('emails/password_change.txt',
-                                              token=token),
-                    html_body=render_template('emails/password_change.html',
-                                              token=token))
+                    text_body=render_template('emails/password_change.txt'),
+                    html_body=render_template('emails/password_change.html'))
         else:
             flash('Oh no! There are errors in your form', 'error')
 
@@ -250,16 +289,30 @@ def change_password():
 @app.route('/settings/delete', methods=['GET', 'POST'])
 @login_required
 def delete_account():
+    """
+    View the user uses to delete their account.
+
+    Once the user has submitted the form and their password has been validated
+    there is no turning back. They will receive an e-mail to confirm the
+    account deletion.
+    """
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             uid = int(current_user['uid'])
+            email = int(current_user['email'])
             # Log the current user out
             logout()
             # Delete the account
             be_delete_account(uid)
             # Inform the user that the account has/is being deleted
             flash('You account is being deleted, this may take a few momments')
+            # Send the user their last ever email on Pjuu
+            send_mail('Your account is being deleted', email,
+                text_body=render_template('emails/account_deletion.txt'),
+                html_body=render_template('emails/account_deletion.html'))         
+            # Send user back to login
+            return redirect(url_for('signin'))
         else:
             flash('Oops! wrong password', 'error')
     return render_template('delete_account.html', form=form)

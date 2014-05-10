@@ -64,15 +64,123 @@ class BackendTests(unittest.TestCase):
 		Tests that a comment can be created on a post
 		"""
 		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		# Create a second test user to test commenting on someone else post
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
 		# Create post
 		self.assertEqual(create_post(1, 'Test post'), 1)
 		# Create comment
 		self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
 		# Check the comment was created
 		self.assertEqual(int(get_comment(1).get('cid', None)), 1)
+		# Create a comment by the second user
+		self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
+		# Check the comment was created
+		self.assertEqual(int(get_comment(2).get('cid', None)), 2)
 		# Ensure the comment is the posts 'comment' list
 		# Remember redis returns everything as a string
 		# This will fail if decode response is not enabled
 		self.assertIn(u'1', r.lrange(K.POST_COMMENTS % 1, 0 , -1))
 		# Ensure the comment is also in the users 'comments' list
 		self.assertIn(u'1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+		# Ensure the same applies for the second users post
+		self.assertIn(u'2', r.lrange(K.POST_COMMENTS % 1, 0 , -1))
+		# Ensure the comment is also in the users 'comments' list
+		self.assertIn(u'2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
+
+	def test_check_post(self):
+		"""
+		Will test that check_post returns the correct value with various
+		combinations.
+
+		Note: Bare with this one it is quite tedious.
+		"""
+		# Create two test users
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Create a post
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		# check_post should be True when user 1 creates post 1
+		self.assertTrue(check_post(1, 1))
+		# check_post should be false, user 2 didn't create post 1
+		self.assertFalse(check_post(2, 1))
+		# Create a couple of comments
+		self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+		self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
+		# Ensure the check_post is fine for all
+		self.assertTrue(check_post(1, 1, 1))
+		# This does not look correct but is. See backend.py@check_post
+		self.assertTrue(check_post(1, 1, 2))
+		# Ensure the function isn't broken on comments
+		self.assertFalse(check_post(2, 1, 1))
+		self.assertFalse(check_post(1, 2, 1))
+		self.assertFalse(check_post(2, 2, 2))
+
+	def test_get_post_get_comment(self):
+		"""
+		Will test that the get_post() and get_comment() functions of the posts
+		system.
+
+		These should return a representation of the post/comment including all
+		the data needed to display these on the site. If they can not build
+		this repr then they should return None. This will allow the lists to
+		clean them selves when they encounter this.
+		"""
+		# Create test user
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		# Create test post
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		# Attempt to get the repesentation
+		post = get_post(1)
+		self.assertIsNotNone(post)
+		# Check the representation has all the correct fields
+		self.assertEqual(post['uid'], '1')
+		self.assertEqual(post['pid'], '1')
+		self.assertEqual(post['body'], 'Test post')
+		self.assertEqual(post['score'], '0')
+		self.assertEqual(post['user_username'], 'test')
+		self.assertEqual(post['user_email'], 'test@pjuu.com')
+		self.assertEqual(post['comment_count'], 0)
+		# Attempt to get a non existant post
+		self.assertIsNone(get_post(2))
+		# Attempt to get a post but one where the user is deleted.
+		self.assertEqual(create_post(2, 'Test post'), 2)
+		# Attempt to get the repesentation
+		post = get_post(2)
+		self.assertIsNone(post)
+
+		# Create a comment and ensure the repr is updated and that we can
+		# Get a comment repr
+		self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+		# Attempt to get the repesentation
+		post = get_post(1)
+		self.assertIsNotNone(post)
+		# Check the comment count for the post
+		self.assertEqual(post['comment_count'], 1)
+
+		# Lets start testing comments, we will use the one above
+		comment = get_comment(1)
+		self.assertEqual(comment['uid'], '1')
+		self.assertEqual(comment['pid'], '1')
+		self.assertEqual(comment['cid'], '1')
+		self.assertEqual(comment['body'], 'Test comment')
+		self.assertEqual(comment['score'], '0')
+		self.assertEqual(comment['user_username'], 'test')
+		self.assertEqual(comment['user_email'], 'test@pjuu.com')
+		# Attempt to get the post author. Remember this is a username as the
+		# only use for it is to generate a URL /<username>/<pid>/<cid>/*
+		self.assertEqual(comment['post_author'], 'test')
+		# Attempt to get a non existant comment
+		self.assertIsNone(get_comment(2))
+		# Attempt to get a comment where the user is deleted
+		self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
+		# Attempt to get the representation
+		comment = get_comment(2)
+		self.assertIsNone(comment)
+
+
+class FrontendTests(unittest.TestCase):
+	"""
+	This test case will test all the posts subpackages; views, decorators
+	and forms
+	"""
+	pass

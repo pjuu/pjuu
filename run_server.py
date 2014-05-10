@@ -24,13 +24,14 @@ import cherrypy
 # Pjuu imports
 from pjuu import app
 
+
 if __name__ == '__main__':
     """
     Run Pjuu inside a debug enabled CherryPy.
     This is our test server. It is much more stable than Flasks.
 
     By default we bind this to all IPs so that we can test the
-    the dev site over with our phones over the local network
+    the dev site with our phones over the local network
     """
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')

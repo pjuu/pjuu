@@ -20,8 +20,9 @@
 # Pjuu imports
 from pjuu import keys as K, redis as r
 
-# Redis LUA scripts. These extend functionality so we can ensure you we
-# do not write to a non-exist users list and remove race conditions
+# Redis LUA scripts
+# Not all of these are used at the moment. I wrote them as they may be useful
+# in the future if the Redis code inside Pjuu ever gets an overhaul.
 
 # Thie script creates a new user, sets the passed in (lookup keys), and
 # returns the new pid. This may seem overkill as we check the username and
