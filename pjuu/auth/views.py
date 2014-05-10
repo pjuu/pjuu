@@ -146,8 +146,8 @@ def activate(token):
             flash('Your account has now been activated.', 'success')
             return redirect(url_for('signin'))
     # The token is either out of date or has been tampered with
-    flash('Invalid token.', 'error')
-    return redirect(url_for('signup'))
+    flash('Invalid token', 'error')
+    return redirect(url_for('signin'))
 
 
 @app.route('/forgot', methods=['GET', 'POST'])
