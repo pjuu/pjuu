@@ -52,10 +52,12 @@ def following_filter(profile):
     return is_following(current_user['uid'], profile['uid'])
 
 
-@app.template_filter('gravatar')
-def gravatar_filter(email, size=24):
+@app.template_filter('avatar')
+def avatar_filter(email, size=24):
     """
     Returns gravatar URL for a given email with the size size.
+
+    Note: In future this will return a Pjuu avatar URL
     """
     return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
            (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
@@ -124,7 +126,7 @@ def millify_filter(n):
 def timeify_filter(time):
     """
     Takes integer epoch time and returns a DateTime string for display.
-    If this conversion fails this function will return Unknown
+    If this conversion fails this function will return "Err"
     """
     try:
         time = int(time)
@@ -259,7 +261,7 @@ def follow(username):
     if uid is None:
         abort(404)
 
-    # Follow user
+    # Follow user, ensure the user doesn't follow themself
     if uid != int(current_user['uid']):
         if follow_user(current_user['uid'], uid):
             flash('You have started following %s' % username, 'information')
@@ -283,7 +285,7 @@ def unfollow(username):
     if uid is None:
         abort(404)
 
-    # Unfollow user
+    # Unfollow user, ensure the user doesn't unfollow themself
     if uid != int(current_user['uid']):
         if unfollow_user(current_user['uid'], uid):
             flash('You are no longer following %s' % username, 'information')
@@ -291,12 +293,6 @@ def unfollow(username):
         flash('You can\'t follow/unfollow yourself', 'information')
 
     return redirect(redirect_url)
-
-
-@app.route('/alerts', methods=['GET'])
-@login_required
-def alerts():
-    return "Alerts"
 
 
 @app.route('/search', methods=['GET'])

@@ -237,6 +237,8 @@ def get_comment(cid):
             # We need the username from the parent pid to construct a URL
             pid = int(comment['pid'])
             author_uid = int(r.hget(K.POST % pid, 'uid'))
+            # Although this key is called post_autor it is actually a username
+            # and not a uid. get_post_author returns the authors uid.
             comment['post_author'] = r.hget(K.USER % author_uid, 'username')
         except (KeyError, ValueError):
             return None

@@ -32,6 +32,10 @@ from flask.sessions import SessionInterface, SessionMixin
 
 
 class RedisSession(CallbackDict, SessionMixin):
+    """
+    How a session is stored inside Pjuu
+    """
+
     def __init__(self, initial=None, sid=None, new=False):
         def on_update(self):
             self.modified = True
@@ -43,6 +47,11 @@ class RedisSession(CallbackDict, SessionMixin):
 
 
 class RedisSessionInterface(SessionInterface):
+    """
+    A replacement SessionInterface for Flask which allows us to store them
+    inside our precious Redis :)
+    """
+
     serializer = pickle
     session_class = RedisSession
 
@@ -83,6 +92,7 @@ class RedisSessionInterface(SessionInterface):
         val = self.serializer.dumps(dict(session))
         self.redis.setex(self.prefix + session.sid,
                             int(redis_exp.total_seconds()), val)
+        # Secure cookies have been added to Armin's original snippet
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=cookie_exp, domain=domain,
                             httponly=app.config['SESSION_COOKIE_HTTPONLY'],

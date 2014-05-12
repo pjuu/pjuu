@@ -177,6 +177,12 @@ class BackendTests(unittest.TestCase):
 		comment = get_comment(2)
 		self.assertIsNone(comment)
 
+	def test_votes(self):
+		pass
+
+	def test_delete(self):
+		pass
+
 
 class FrontendTests(unittest.TestCase):
 	"""

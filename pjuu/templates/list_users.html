@@ -5,7 +5,7 @@
 {% for item in pagination.items %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
     <div class="top-section">
-        <img class="avatar" src="{{ item.email|gravatar(24) }}"/>
+        <img class="avatar" src="{{ item.email|avatar(24) }}"/>
         <div class="control">
             {% if item.uid != current_user['uid'] %}
             {% if item|following %}

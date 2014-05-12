@@ -119,7 +119,7 @@ def signup():
                                                     token=token))
 
                 flash('Yay! You\'ve signed up<br/>Please check your e-mails '
-                      'to activate your account.', 'success')
+                      'to activate your account', 'success')
                 return redirect(url_for('signin'))
         # This will fire if the form is invalid
         flash('Oh no! There are errors in your form', 'error')
@@ -193,7 +193,7 @@ def reset(token):
                 flash('Your password has now been reset', 'success')
                 return redirect(url_for('signin'))
             else:
-                flash('Oh no! There are errors in your form.', 'error')
+                flash('Oh no! There are errors in your form', 'error')
     else:
         flash('Invalid token', 'error')
         return redirect(url_for('signin'))
@@ -225,7 +225,7 @@ def change_email():
                 flash('We\'ve sent you an email, please confirm this',
                       'success')
         else:
-            flash('Oh no! There are errors in your form.', 'error')
+            flash('Oh no! There are errors in your form', 'error')
 
     return render_template('change_email.html', form=form)
 
@@ -245,10 +245,12 @@ def confirm_email(token):
     if data is not None:
         # Change the users e-mail
         uid = data['uid']
+        # We will email the address stored in the token. This may help us
+        # identify if there is any miss match
         email = data['email']
         if uid:
             be_change_email(uid, email)
-            send_mail('Your email has been changed', email,
+            send_mail('Your email has been changed', [email],
                 text_body=render_template('emails/confirm_email.txt'),
                 html_body=render_template('emails/confirm_email.html'))
             flash('We\'ve updated your e-mail address', 'success')
@@ -277,7 +279,7 @@ def change_password():
                 flash('We\'ve updated your password', 'success')
                 # Inform the user via e-mail that their password has changed
                 send_mail('Your password has been changed',
-                    curret_user['email'],
+                    [current_user['email']],
                     text_body=render_template('emails/password_change.txt'),
                     html_body=render_template('emails/password_change.html'))
         else:
@@ -308,7 +310,7 @@ def delete_account():
             # Inform the user that the account has/is being deleted
             flash('You account is being deleted, this may take a few momments')
             # Send the user their last ever email on Pjuu
-            send_mail('Your account is being deleted', email,
+            send_mail('Your account is being deleted', [email],
                 text_body=render_template('emails/account_deletion.txt'),
                 html_body=render_template('emails/account_deletion.html'))         
             # Send user back to login

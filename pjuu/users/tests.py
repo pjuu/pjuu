@@ -97,8 +97,8 @@ class BackendTests(unittest.TestCase):
 		self.assertEqual(get_feed(1).total, 1)
 		# Ensure the item is in Redis
 		self.assertIn(u'1', r.lrange(K.USER_FEED % 1, 0, -1))
-		# Create a second user, make 1 follow them, make them post and ensure
-		# that the news users post appears in user 1s feed
+		# Create a second user, make 1 follow them, make then post and ensure
+		# that the new users post appears in user 1s feed
 		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
 		self.assertTrue(follow_user(1, 2))
 		self.assertEqual(create_post(2, 'Test post'), 2)
@@ -113,6 +113,42 @@ class BackendTests(unittest.TestCase):
 		self.assertEqual(get_feed(1).total, 1)
 		# Ensure the item is in Redis
 		self.assertNotIn(u'2', r.lrange(K.USER_FEED % 1, 0, -1))
+
+	def test_get_posts(self):
+		"""
+		Test users post list works correctly
+		"""
+		pass
+
+	def test_get_comments(self):
+		"""
+		Ensure a posts comments are stored correctly in post:$pid:comments list
+		"""
+		pass
+
+	def test_get_followers_following(self):
+		"""
+		Ensure followers and following lists are working correctly.
+		"""
+		pass
+
+	def test_follow_unfollow(self):
+		"""
+		Ensure uesrs have the ability to follow and unfollow each other
+		"""
+		pass
+
+	def test_is_following(self):
+		"""
+		Ensure we can identify that users are following each other or not.
+		"""
+		pass
+
+	def test_search(self):
+		"""
+		Make sure users can actually find each other.
+		"""
+		pass
 
 
 class FrontendTests(unittest.TestCase):

@@ -5,7 +5,7 @@
 {% block main %}
 <div id="profile" class="block clearfix">
     <div class="top-section">
-        <img class="avatar" src="{{ profile['email']|gravatar(48) }}"/>
+        <img class="avatar" src="{{ profile['email']|avatar(48) }}"/>
         <div class="details clearfix">
                 <div class="username">
                     {{ profile['username']|capitalize }}

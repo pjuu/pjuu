@@ -177,13 +177,6 @@ input[type=submit] {
     padding: 1em;
 }
 
-#auth .errorlist {
-    color: #C00;
-    list-style: none;
-    margin: 1em 0.5em;
-    padding: 0;
-}
-
 #auth .link {
     background-color: #FFF;
     border: 1px solid #680;
@@ -191,6 +184,14 @@ input[type=submit] {
     margin: 1em auto;
     padding: 0.75em;
     text-align: center;
+}
+
+/* error list can be used anywhere */
+.errorlist {
+    color: #C00;
+    list-style: none;
+    margin: 1em 0.5em;
+    padding: 0;
 }
 
 /* HEADER ================================================================= */

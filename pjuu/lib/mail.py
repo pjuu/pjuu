@@ -26,11 +26,15 @@ def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
     """
     Sends e-mail via flask-mail
     """
+    msg = Message()
+    msg.subject = subject
+    msg.recipients = recipients
+    msg.sender = sender
+    msg.body = text_body
+    msg.html = html_body
+    # If no mail is set then an e-mail will not actually be sent it will have
+    # its subject, sender, recipient sent to stdout
     if not app.config['NO_MAIL']:
-        msg = Message()
-        msg.subject = subject
-        msg.recipients = recipients
-        msg.sender = sender
-        msg.body = text_body
-        msg.html = html_body
         mail.send(msg)
+    else:
+        print "Mail:", msg.subject, msg.recipients, msg.sender

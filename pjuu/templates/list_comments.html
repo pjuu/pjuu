@@ -5,7 +5,7 @@
 {% for item in pagination.items %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
     <div class="top-section">
-        <img class="avatar" src="{{ item.user_email|gravatar(24) }}"/>
+        <img class="avatar" src="{{ item.user_email|avatar(24) }}"/>
         <div class="control">
             {% if item.user_username == current_user.username %}
             <a href="{{ url_for('delete_post', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">

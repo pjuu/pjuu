@@ -5,7 +5,7 @@
 {% block main %}
 <div id="post" class="block clearfix">
     <div class="top-section">
-        <img class="avatar" src="{{ post.user_email|gravatar(48) }}" />
+        <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
 
         <div class="control">
             {% if post.user_username == current_user.username %}

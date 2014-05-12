@@ -25,6 +25,7 @@ import re
 from pjuu import app, keys as K, lua as L, redis as r
 from pjuu.lib import timestamp
 from pjuu.lib.pagination import Pagination
+from pjuu.auth.backend import get_user
 from pjuu.posts.backend import get_comment, get_post
 
 
@@ -39,16 +40,6 @@ def get_profile(uid):
         profile['followers_count'] = r.zcard(K.USER_FOLLOWERS % uid)
         profile['following_count'] = r.zcard(K.USER_FOLLOWING % uid)
     return profile if profile else None
-
-
-def get_user(uid):
-    """
-    Returns a users mini-profile for lists. This is the full hash of a user
-    without adding the additional information.
-    """
-    uid = int(uid)
-    user = r.hgetall(K.USER % uid)
-    return user if user else None
 
 
 def get_feed(uid, page=1):

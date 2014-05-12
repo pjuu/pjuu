@@ -15,4 +15,4 @@ script:
 notifications:
   email:
     recipients:
-      - joe@pjuu.com
+      - build@pjuu.com
