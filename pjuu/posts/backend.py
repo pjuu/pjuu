@@ -286,23 +286,24 @@ def vote(uid, pid, cid=None, amount=1):
     """
     uid = int(uid)
     pid = int(pid)
-
-    # If voting on a comment
-    if cid is not None:
-        cid = int(cid)
-        author_uid = int(r.hget(K.COMMENT % cid, 'uid'))
-        if author_uid != uid:
-            r.zadd(K.COMMENT_VOTES % cid, amount, uid)
-            r.hincrby(K.COMMENT % cid, 'score', amount=amount)
-            r.hincrby(K.USER % author_uid, 'score', amount=amount)
-            return True
-    else:
-        author_uid = int(r.hget(K.POST % pid, 'uid'))
-        if author_uid != uid:
-            r.zadd(K.POST_VOTES % pid, amount, uid)
-            r.hincrby(K.POST % pid, 'score', amount=amount)
-            r.hincrby(K.USER % author_uid, 'score', amount=amount)
-            return True
+    # Ensure user has not voted before
+    if not has_voted(uid, pid, cid):
+        # Voting on a comment
+        if cid is not None:
+            cid = int(cid)
+            author_uid = int(r.hget(K.COMMENT % cid, 'uid'))
+            if author_uid != uid:
+                r.zadd(K.COMMENT_VOTES % cid, amount, uid)
+                r.hincrby(K.COMMENT % cid, 'score', amount=amount)
+                r.hincrby(K.USER % author_uid, 'score', amount=amount)
+                return True
+        else:
+            author_uid = int(r.hget(K.POST % pid, 'uid'))
+            if author_uid != uid:
+                r.zadd(K.POST_VOTES % pid, amount, uid)
+                r.hincrby(K.POST % pid, 'score', amount=amount)
+                r.hincrby(K.USER % author_uid, 'score', amount=amount)
+                return True
 
     return False
 
@@ -317,13 +318,13 @@ def delete_comments(uid, pid):
     uid = int(uid)
     pid = int(pid)
 
-    cids = r.lrange(K.POST_COMMETNS % pid, 0, -1)
+    cids = r.lrange(K.POST_COMMENTS % pid, 0, -1)
     for cid in cids:
         # Delete comment and votes
         cid = int(cid)
         # We need to get the comment authors uid so that we can remove the
         # comment from there user:$uid:comments list
-        author_id = r.hget('comment:%d' % cid, 'uid')
+        author_id = int(r.hget('comment:%d' % cid, 'uid'))
         # Delete the comment and remove from the posts list
         r.delete(K.COMMENT % cid)
         r.delete(K.COMMENT_VOTES % cid)
@@ -331,7 +332,7 @@ def delete_comments(uid, pid):
         # This makes these lists self cleaning
         r.lrem(K.USER_COMMENTS % author_id, 0, cid)
     # Finally delete the comment list
-    r.delet(K.POST_COMMENTS % pid)
+    r.delete(K.POST_COMMENTS % pid)
 
 
 def delete(uid, pid, cid=None):
@@ -351,18 +352,23 @@ def delete(uid, pid, cid=None):
         cid = int(cid)
         # We need to get the comment authors uid so that we can remove the
         # comment from there user:$uid:comments list
-        author_id = r.hget(K.COMMENT % cid, 'uid')
+        author_id = int(r.hget(K.COMMENT % cid, 'uid'))
         # Delete the comment and remove from the posts list
         r.delete(K.COMMENT % cid)
         r.delete(K.COMMENT_VOTES % cid)
         r.lrem(K.POST_COMMENTS % pid, 0, cid)
         # Delete the comment from the users comment list
         r.lrem(K.USER_COMMENTS % author_id, 0, cid)
+        return True
     else:
+        # Get the post authors ID
+        author_id = int(r.hget(K.POST % pid, 'uid'))
         # Delete post, comments and votes
         r.delete(K.POST % pid)
         r.delete(K.POST_VOTES % pid)
         # Delete the post from the users post list
-        r.lrem(K.USER_POSTS % uid, 0, pid)
+        r.lrem(K.USER_POSTS % author_id, 0, pid)
         # Delete all comments on the post
         delete_comments(uid, pid)
+        return True
+    return False

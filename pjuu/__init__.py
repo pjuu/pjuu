@@ -46,7 +46,7 @@ mail = Mail(app)
 
 # Create Redis object for sessions)
 redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
-							 db=app.config['SESSION_REDIS_DB'])
+							               db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
 app.session_interface = RedisSessionInterface(redis=redis_sessions)
 
@@ -57,7 +57,10 @@ app.session_interface = RedisSessionInterface(redis=redis_sessions)
 # TODO may require tweaks during productions
 if not app.debug:
     import logging
-    logging_handler = logging.FileHandler(app.config['LOG_FILE'])
+    logging_handler = logging.SMTPHandler(app.config['MAIL_SERVER'],
+                                          app.config['MAIL_DEFAULT_SENDER'],
+                                          [app.config['LOGGER_MAIL']],
+                                          'Pjuu application error',)
     logging_handler.setLevel(logging.WARNING)
     logging_handler.setFormatter(logging.Formatter(
         "%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d] %(message)s"

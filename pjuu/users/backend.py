@@ -69,7 +69,7 @@ def get_posts(uid, page=1):
     Returns a users posts as a Pagination.
     """
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
-    total = r.llen(K.USER_POSTS)
+    total = r.llen(K.USER_POSTS % uid)
     pids = r.lrange(K.USER_POSTS % uid, (page - 1) * per_page,
                     page * per_page)
     posts = []
@@ -108,6 +108,36 @@ def get_comments(pid, page=1):
             total = r.llen(K.POST_COMMENTS % cid)
 
     return Pagination(comments, total, page, per_page)
+
+
+def follow_user(who_uid, whom_uid):
+    """
+    Add whom to who's following set and who to whom's followers set
+    """
+    who_uid = int(who_uid)
+    whom_uid = int(whom_uid)
+    if r.zrank(K.USER_FOLLOWING % who_uid, whom_uid) is not None:
+        return False
+    # Follow user
+    # Score is based on UTC epoch time
+    r.zadd(K.USER_FOLLOWING % who_uid, timestamp(), whom_uid)
+    r.zadd(K.USER_FOLLOWERS % whom_uid, timestamp(), who_uid)
+    return True
+
+
+def unfollow_user(who_uid, whom_uid):
+    """
+    Remove whom from whos following set and remove who from whoms
+    followers set
+    """
+    who_uid = int(who_uid)
+    whom_uid = int(whom_uid)
+    if r.zrank(K.USER_FOLLOWING % who_uid, whom_uid) is None:
+        return False
+    # Delete uid from who following and whom followers
+    r.zrem(K.USER_FOLLOWING % who_uid, whom_uid)
+    r.zrem(K.USER_FOLLOWERS % whom_uid, who_uid)
+    return True
 
 
 def get_following(uid, page=1):
@@ -154,36 +184,6 @@ def get_followers(uid, page=1):
     return Pagination(users, total, page, per_page)
 
 
-def follow_user(who_uid, whom_uid):
-    """
-    Add whom to who's following set and who to whom's followers set
-    """
-    who_uid = int(who_uid)
-    whom_uid = int(whom_uid)
-    if r.zrank(K.USER_FOLLOWING % who_uid, whom_uid):
-        return False
-    # Follow user
-    # Score is based on UTC epoch time
-    r.zadd(K.USER_FOLLOWING % who_uid, timestamp(), whom_uid)
-    r.zadd(K.USER_FOLLOWERS % whom_uid, timestamp(), who_uid)
-    return True
-
-
-def unfollow_user(who_uid, whom_uid):
-    """
-    Remove whom from whos following set and remove who from whoms
-    followers set
-    """
-    who_uid = int(who_uid)
-    whom_uid = int(whom_uid)
-    if r.zrank(K.USER_FOLLOWING % who_uid, whom_uid) is None:
-        return False
-    # Delete uid from who following and whom followers
-    r.zrem(K.USER_FOLLOWING % who_uid, whom_uid)
-    r.zrem(K.USER_FOLLOWERS % whom_uid, who_uid)
-    return True
-
-
 def is_following(who_uid, whom_uid):
     """
     Check to see if who is following whom. These need to be uids
@@ -199,16 +199,19 @@ def is_following(who_uid, whom_uid):
 def search(query, page=1):
     """
     Handles searching for users. This is inefficient; O(n) it will
-    not scale to full production
+    not scale to full production.
+
+    This will also BLOCK Redis why it runs
     """
     per_page = app.config['PROFILE_ITEMS_PER_PAGE']
     # Clean up query string
     query = query.lower()
-    username_re = re.compile('[^a-z0-9_]+')
+    username_re = re.compile('[^a-zA-Z0-9_]+')
     query = username_re.sub('', query)
     # Lets find and get the users
     if len(query) > 0:
-        keys = r.keys(K.UID_USERNAME % query)
+        # We will concatenate the glob pattern to the query
+        keys = r.keys(K.UID_USERNAME % (query + '*'))
     else:
         keys = []
     results = []

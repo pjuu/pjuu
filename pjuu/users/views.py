@@ -181,6 +181,15 @@ def profile(username):
                            pagination=pagination, post_form=post_form)
 
 
+@app.route('/<username>/avatar', methods=['GET'])
+@login_required
+def avatar(username):
+    """
+    Returns a users Gravatar image
+    """
+    pass
+
+
 @app.route('/<username>/<int:pid>', methods=['GET'])
 @login_required
 def view_post(username, pid):

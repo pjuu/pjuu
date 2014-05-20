@@ -111,7 +111,7 @@ def signup():
             # Lets check the account was created
             if uid:
                 token = generate_token(signer_activate, {'uid': uid})
-                # Do not send e-mail if NOMAIL
+                # Send an e-mail to activate their account
                 send_mail('Activation', [form.email.data],
                           text_body=render_template('emails/activate.txt',
                                                     token=token),
@@ -302,15 +302,16 @@ def delete_account():
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             uid = int(current_user['uid'])
-            email = int(current_user['email'])
+            email = current_user['email']
             # Log the current user out
             logout()
             # Delete the account
             be_delete_account(uid)
             # Inform the user that the account has/is being deleted
-            flash('You account is being deleted, this may take a few momments')
+            flash('Your account has been deleted<br />Thanks for using us',
+                  'information')
             # Send the user their last ever email on Pjuu
-            send_mail('Your account is being deleted', [email],
+            send_mail('Your account has been deleted', [email],
                 text_body=render_template('emails/account_deletion.txt'),
                 html_body=render_template('emails/account_deletion.html'))         
             # Send user back to login

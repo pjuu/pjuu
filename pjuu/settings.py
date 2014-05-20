@@ -62,6 +62,5 @@ TOKEN_SALT_ACTIVATE = 'ACTIVATE'
 TOKEN_SALT_FORGOT = 'FORGOT'
 TOKEN_SALT_EMAIL = 'EMAIL'
 
-# Logger file (this is for Warnings+)
-# TODO allow changing this so you can use syslog, etc...
-LOG_FILE = ''
+# Logger settings
+LOGGER_MAIL = 'alerts@pjuu.com'

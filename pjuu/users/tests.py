@@ -96,7 +96,7 @@ class BackendTests(unittest.TestCase):
 		self.assertEqual(len(get_feed(1).items), 1)
 		self.assertEqual(get_feed(1).total, 1)
 		# Ensure the item is in Redis
-		self.assertIn(u'1', r.lrange(K.USER_FEED % 1, 0, -1))
+		self.assertIn('1', r.lrange(K.USER_FEED % 1, 0, -1))
 		# Create a second user, make 1 follow them, make then post and ensure
 		# that the new users post appears in user 1s feed
 		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
@@ -106,49 +106,155 @@ class BackendTests(unittest.TestCase):
 		self.assertEqual(len(get_feed(1).items), 2)
 		self.assertEqual(get_feed(1).total, 2)
 		# Ensure the item is in Redis
-		self.assertIn(u'2', r.lrange(K.USER_FEED % 1, 0, -1))
+		self.assertIn('2', r.lrange(K.USER_FEED % 1, 0, -1))
 		# Delete user 2 and ensure user 1's feed cleans itself
 		delete_account(2)
 		self.assertEqual(len(get_feed(1).items), 1)
 		self.assertEqual(get_feed(1).total, 1)
 		# Ensure the item is in Redis
-		self.assertNotIn(u'2', r.lrange(K.USER_FEED % 1, 0, -1))
+		self.assertNotIn('2', r.lrange(K.USER_FEED % 1, 0, -1))
 
 	def test_get_posts(self):
 		"""
 		Test users post list works correctly
 		"""
-		pass
+		# Create test user
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		# Ensure the users post list is empty
+		self.assertEqual(len(get_posts(1).items), 0)
+		# Create a test post, ensure it appears in the users list
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		self.assertEqual(len(get_posts(1).items), 1)
+		self.assertEqual(get_posts(1).total, 1)
+		# Ensure the post id is in the Redis list
+		self.assertIn('1', r.lrange(K.USER_POSTS % 1, 0, -1))
+		# Done
 
 	def test_get_comments(self):
 		"""
 		Ensure a posts comments are stored correctly in post:$pid:comments list
 		"""
-		pass
+		# Create two test users
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Ensure the comment lists are empty
+		self.assertEqual(len(get_comments(1).items), 0)
+		self.assertEqual(len(get_comments(2).items), 0)
+		# Create a post for each user and a comment on each for both user
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		self.assertEqual(create_post(2, 'Test post'), 2)
+		self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+		self.assertEqual(create_comment(1, 2, 'Test comment'), 2)
+		self.assertEqual(create_comment(2, 1, 'Test comment'), 3)
+		self.assertEqual(create_comment(2, 2, 'Test comment'), 4)
+		# Ensure each comment appears in each users list
+		self.assertEqual(len(get_comments(1).items), 2)
+		self.assertEqual(len(get_comments(2).items), 2)
+		# Ensure the totals are correct
+		self.assertEqual(get_comments(1).total, 2)
+		self.assertEqual(get_comments(2).total, 2)
+		# Ensure the ids are in the Redis lists
+		self.assertIn('1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+		self.assertIn('2', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+		self.assertIn('3', r.lrange(K.USER_COMMENTS % 2, 0, -1))
+		self.assertIn('4', r.lrange(K.USER_COMMENTS % 2, 0, -1))
+		# Done
 
-	def test_get_followers_following(self):
+	def test_follow_unfollow_get_followers_following_is_following(self):
 		"""
-		Ensure followers and following lists are working correctly.
+		Test everything about following. There is not that much to it to
+		deserve 3 seperate methods.
 		"""
-		pass
-
-	def test_follow_unfollow(self):
-		"""
-		Ensure uesrs have the ability to follow and unfollow each other
-		"""
-		pass
-
-	def test_is_following(self):
-		"""
-		Ensure we can identify that users are following each other or not.
-		"""
-		pass
+		# Create two test users
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Ensure is_following() is false atm
+		self.assertFalse(is_following(1, 2))
+		self.assertFalse(is_following(2, 1))
+		# Ensure user 1 can follow user 2
+		self.assertTrue(follow_user(1, 2))
+		# Ensure the user can't follow them again
+		self.assertFalse(follow_user(1, 2))
+		# And visa-versa
+		self.assertTrue(follow_user(2, 1))
+		# Ensre the user can't follow them again
+		self.assertFalse(follow_user(2, 1))
+		# Ensure the id's are in the Redis sorted sets, followers and following
+		self.assertIn('2', r.zrange(K.USER_FOLLOWING % 1, 0, -1))
+		self.assertIn('2', r.zrange(K.USER_FOLLOWERS % 1, 0, -1))
+		self.assertIn('1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
+		self.assertIn('1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
+		# Ensure the get_followers and get_following functions return
+		# the correct data
+		self.assertEqual(len(get_following(1).items), 1)
+		self.assertEqual(len(get_following(1).items), 1)
+		self.assertEqual(len(get_following(2).items), 1)
+		self.assertEqual(len(get_following(2).items), 1)
+		# Ensure the totals are correct
+		self.assertEqual(get_following(1).total, 1)
+		self.assertEqual(get_followers(1).total, 1)
+		self.assertEqual(get_following(2).total, 1)
+		self.assertEqual(get_followers(1).total, 1)
+		# Make sure is_following() returns correctly
+		self.assertTrue(is_following(1, 2))
+		self.assertTrue(is_following(2, 1))
+		# User 1 unfollow user 2 and ensure the sorted sets are updated
+		self.assertTrue(unfollow_user(1, 2))
+		self.assertNotIn('2', r.zrange(K.USER_FOLLOWING % 1, 0, -1))
+		self.assertNotIn('1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
+		# Ensure the user can't unfollow the user again
+		self.assertFalse(unfollow_user(1, 2))
+		# User 2 unfollow user 1 and ensure the sorted sets are updates
+		self.assertTrue(unfollow_user(2, 1))
+		self.assertNotIn('1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
+		self.assertNotIn('2', r.zrange(K.USER_FOLLOWERS % 1, 0, -1))
+		# Let's make sure unfollow won't work... AGAIN
+		self.assertFalse(unfollow_user(2, 1))
+		# Ensure get_followers and get_following return the correct value
+		self.assertEqual(len(get_following(1).items), 0)
+		self.assertEqual(len(get_following(1).items), 0)
+		self.assertEqual(len(get_following(2).items), 0)
+		self.assertEqual(len(get_following(2).items), 0)
+		# Ensure the totals are correct
+		self.assertEqual(get_following(1).total, 0)
+		self.assertEqual(get_followers(1).total, 0)
+		self.assertEqual(get_following(2).total, 0)
+		self.assertEqual(get_followers(1).total, 0)
+		# Make sure is_following() returns correctly
+		self.assertFalse(is_following(1, 2))
+		self.assertFalse(is_following(2, 1))
+		# Done
 
 	def test_search(self):
 		"""
 		Make sure users can actually find each other.
+
+		This will need a lot more work once we add in a proper search facility
+		rather than just the Redis KEYS command
 		"""
-		pass
+		# Create test user
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		# Ensure that the user can be found
+		self.assertEqual(len(search('test1').items), 1)
+		self.assertEqual(search('test1').total, 1)
+		# Ensure partial match
+		self.assertEqual(len(search('tes').items), 1)
+		self.assertEqual(search('tes').total, 1)
+		# Ensure nothing return if no user
+		self.assertEqual(len(search('test2').items), 0)
+		self.assertEqual(search('test2').total, 0)
+		# Ensure no partial if incorrect
+		self.assertEqual(len(search('bob').items), 0)
+		self.assertEqual(search('bob').total, 0)
+		# Create a second test user
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Ensure the new user can be found
+		self.assertEqual(len(search('test2').items), 1)
+		self.assertEqual(search('test2').total, 1)
+		# Ensure partial match returns both test1/2 users
+		self.assertEqual(len(search('tes').items), 2)
+		self.assertEqual(search('tes').total, 2)
+		# Done
 
 
 class FrontendTests(unittest.TestCase):

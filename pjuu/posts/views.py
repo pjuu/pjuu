@@ -114,7 +114,7 @@ def upvote(username, pid=-1, cid=None):
         if not result:
             flash('You can not vote on your own posts', 'information')
     else:
-        flash('You have already voted on this item', 'information')
+        flash('You have already voted on this post', 'information')
 
     return redirect(redirect_url)
 
@@ -144,7 +144,7 @@ def downvote(username, pid=-1, cid=None):
         if not result:
             flash('You can not vote on your own posts', 'information')
     else:
-        flash('You have already voted on this item', 'information')
+        flash('You have already voted on this post', 'information')
 
     return redirect(redirect_url)
 

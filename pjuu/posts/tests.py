@@ -21,7 +21,7 @@
 import unittest
 # Pjuu imports
 from pjuu import keys as K, redis as r
-from pjuu.auth.backend import create_user
+from pjuu.auth.backend import create_user, get_user
 from .backend import *
 
 
@@ -178,10 +178,117 @@ class BackendTests(unittest.TestCase):
 		self.assertIsNone(comment)
 
 	def test_votes(self):
-		pass
+		"""
+		Test that the voting mechanism will adjust the relevant score counters
+		on users, posts and comments, etc...
+		"""
+		# Create three test users
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
+		# Create a post by user 1
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		# Get user 2 to upvote
+		self.assertTrue(vote(2, 1))
+		# Ensure post score has been adjusted
+		self.assertEqual(get_post(1)['score'], '1')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '1')
+		# Get user 3 to downvote
+		self.assertTrue(vote(3, 1, amount=-1))
+		# Ensure post score has been adjusted
+		self.assertEqual(get_post(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')
+		# Ensure user 1 can not vote on there own comment
+		self.assertFalse(vote(1, 1))
+		# Ensure the score didn't adjust (may be a code bug some day)
+		# Ensure post score has been adjusted
+		self.assertEqual(get_post(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')
+		# Check to see if a user can vote twice on a comment
+		self.assertFalse(vote(2, 1))
+		# Ensure the score didn't adjust (may be a code bug some day)
+		# Ensure post score has been adjusted
+		self.assertEqual(get_post(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')		
+		# Repeat the same tests on a comment
+		# Create a comment by user 1
+		self.assertEqual(create_comment(1, 1, 'Test post'), 1)
+		# Get user 2 to upvote
+		self.assertTrue(vote(2, 1, 1))
+		# Ensure post score has been adjusted
+		self.assertEqual(get_comment(1)['score'], '1')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '1')
+		# Get user 3 to downvote
+		self.assertTrue(vote(3, 1, 1, amount=-1))
+		# Ensure post score has been adjusted
+		self.assertEqual(get_comment(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')
+		# Ensure user 1 can not vote on there own comment
+		self.assertFalse(vote(1, 1, 1))
+		# Ensure the score didn't adjust (may be a code bug some day)
+		# Ensure post score has been adjusted
+		self.assertEqual(get_comment(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')
+		# Check to see if a user can vote twice on a comment
+		self.assertFalse(vote(2, 1, 1))
+		# Ensure the score didn't adjust (may be a code bug some day)
+		# Ensure post score has been adjusted
+		self.assertEqual(get_comment(1)['score'], '0')
+		# Ensure user score has been adjusted
+		self.assertEqual(get_user(1)['score'], '0')				
 
 	def test_delete(self):
-		pass
+		"""
+		Tests delete_post() does what it should.
+		This will in turn test delete_comments() as this will be triggered when
+		a post is deleted.
+		"""
+		# Create three test users
+		self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+		self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+		# Create a post
+		self.assertEqual(create_post(1, 'Test post'), 1)
+		# Create multiple comments
+		self.assertEqual(create_comment(1, 1, 'Test comment 1'), 1)
+		self.assertEqual(create_comment(2, 1, 'Test comment 2'), 2)
+		self.assertEqual(create_comment(1, 1, 'Test comment 3'), 3)
+		self.assertEqual(create_comment(2, 1, 'Test comment 4'), 4)
+		# Test deleting one comment
+		# This function does not actually test to see if the user has the
+		# the rights to delete the post. This should be tested in the frontend
+		# Check a comment can be deleted
+		self.assertTrue(delete(2, 1, 4))
+		# Check that getting the comment returns None
+		self.assertIsNone(get_comment(4))
+		# Ensure the comment is no longer in the posts comment list and no
+		# longer in the users comment list
+		self.assertNotIn('4', r.lrange(K.POST_COMMENTS % 4, 0, -1))
+		self.assertNotIn('4', r.lrange(K.USER_COMMENTS % 4, 0, -1))
+		# Just ensure that the previous comment is in user 2's comment list
+		# and inside the post list
+		self.assertNotIn('2', r.lrange(K.POST_COMMENTS % 4, 0, -1))
+		self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 4, 0, -1))
+		# Delete the post. This should delete all the comments, we will check
+		self.assertTrue(delete(2, 1))
+		# Check that the post does not exist
+		self.assertIsNone(get_post(1))
+		# Check that non of the comments exist
+		self.assertIsNone(get_comment(1))
+		self.assertIsNone(get_comment(2))
+		self.assertIsNone(get_comment(3))
+		# Ensure that the posts comment list has been deleted
+		self.assertFalse(r.exists(K.POST_COMMENTS % 1))
+		# Ensure that non of the comments appear in the users comments lists
+		self.assertNotIn('1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+		self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
+		self.assertNotIn('3', r.lrange(K.USER_COMMENTS % 1, 0, -1))
 
 
 class FrontendTests(unittest.TestCase):

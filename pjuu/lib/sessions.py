@@ -91,7 +91,7 @@ class RedisSessionInterface(SessionInterface):
         cookie_exp = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
         self.redis.setex(self.prefix + session.sid,
-                            int(redis_exp.total_seconds()), val)
+                         int(redis_exp.total_seconds()), val)
         # Secure cookies have been added to Armin's original snippet
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=cookie_exp, domain=domain,

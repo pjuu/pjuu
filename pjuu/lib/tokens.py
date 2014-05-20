@@ -37,7 +37,6 @@ def generate_token(signer, data):
             print timestamp(), "Generate token:", token
     except (TypeError, ValueError):
         return None
-
     return token
 
 
