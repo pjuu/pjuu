@@ -79,6 +79,10 @@ class BackendTests(unittest.TestCase):
 		# Make sure no dict is returned for no user
 		self.assertIsNone(get_user(2))
 		# Check other user functions
+		# get_username()
+		self.assertEqual(get_username(1), 'test')
+		self.assertIsNone(get_username(2))		
+		# get_email()
 		self.assertEqual(get_email(1), 'test@pjuu.com')
 		self.assertIsNone(get_email(2))
 

@@ -146,6 +146,14 @@ def get_user(uid):
     return None
 
 
+def get_username(uid):
+    """ READ
+    Get a users username by there uid
+    """
+    uid = int(uid)
+    return r.hget(K.USER % uid, 'username')
+
+
 def get_email(uid):
     """ READ
     Gets a users e-mail address from a uid
