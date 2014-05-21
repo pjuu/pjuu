@@ -87,7 +87,8 @@ class SignUpForm(Form):
                message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
-    # We can not use recaptcha in Debug as I work on the train
+    # We can not use recaptcha in Debug as I work on the train. This is
+    # probably not the best solution but I'm running with it.
     if not app.debug:
         recaptcha = RecaptchaField()
 

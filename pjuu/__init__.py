@@ -27,7 +27,7 @@ from lib.sessions import RedisSessionInterface
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.3dev'
+__version__ = '0.2.5'
 
 
 # Create application
@@ -57,13 +57,14 @@ app.session_interface = RedisSessionInterface(redis=redis_sessions)
 # TODO may require tweaks during productions
 if not app.debug:
     import logging
-    logging_handler = logging.SMTPHandler(app.config['MAIL_SERVER'],
-                                          app.config['MAIL_DEFAULT_SENDER'],
-                                          [app.config['LOGGER_MAIL']],
-                                          'Pjuu application error',)
+    from logging.handlers import SMTPHandler
+    logging_handler = SMTPHandler(app.config['MAIL_SERVER'],
+                                  app.config['MAIL_DEFAULT_SENDER'],
+                                  [app.config['LOGGER_MAIL']],
+                                  'Pjuu application error')
     logging_handler.setLevel(logging.WARNING)
     logging_handler.setFormatter(logging.Formatter(
-        "%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d] %(message)s"
+        "%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d]: %(message)s"
     ))
     app.logger.addHandler(logging_handler)
 
