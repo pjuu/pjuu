@@ -20,6 +20,7 @@
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail
+from raven.contrib.flask import Sentry
 from redis import StrictRedis
 # Pjuu imports
 from lib.sessions import RedisSessionInterface
@@ -44,29 +45,15 @@ redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
 # Create Flask-Mail
 mail = Mail(app)
 
+# Sentry logger
+# We now only use Sentry for logging all our in application errors
+sentry = Sentry(app)
+
 # Create Redis object for sessions)
 redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
 							               db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
 app.session_interface = RedisSessionInterface(redis=redis_sessions)
-
-
-# LOGGING
-# This is what will log errors in Pjuu to a standard logging handler
-# This will not log in Debug mode as Werkzeug and stdout/stderr will
-# TODO may require tweaks during productions
-if not app.debug:
-    import logging
-    from logging.handlers import SMTPHandler
-    logging_handler = SMTPHandler(app.config['MAIL_SERVER'],
-                                  app.config['MAIL_DEFAULT_SENDER'],
-                                  [app.config['LOGGER_MAIL']],
-                                  'Pjuu application error')
-    logging_handler.setLevel(logging.WARNING)
-    logging_handler.setFormatter(logging.Formatter(
-        "%(asctime)s: %(levelname)s: [%(pathname)s:%(lineno)d]: %(message)s"
-    ))
-    app.logger.addHandler(logging_handler)
 
 
 # Import all Pjuu stuffs

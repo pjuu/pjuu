@@ -13,4 +13,5 @@ gunicorn==18.0
 hiredis==0.1.2
 itsdangerous==0.23
 redis==2.9.1
+raven==4.2.3
 wsgiref==0.1.2
