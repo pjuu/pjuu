@@ -47,11 +47,12 @@ mail = Mail(app)
 
 # Sentry logger
 # We now only use Sentry for logging all our in application errors
-sentry = Sentry(app)
+if not app.debug:
+  sentry = Sentry(app)
 
 # Create Redis object for sessions)
 redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
-							               db=app.config['SESSION_REDIS_DB'])
+                             db=app.config['SESSION_REDIS_DB'])
 # Set session handler to Redis
 app.session_interface = RedisSessionInterface(redis=redis_sessions)
 
