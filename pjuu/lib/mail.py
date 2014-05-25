@@ -36,5 +36,6 @@ def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
     # its subject, sender, recipient sent to stdout
     if not app.config['NO_MAIL']:
         mail.send(msg)
-    else:
+    elif app.debug:
+        # Allow users to turn off NO_MAIL and display a print only in debug
         print "Mail:", msg.subject, msg.recipients, msg.sender

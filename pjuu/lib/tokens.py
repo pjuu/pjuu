@@ -21,7 +21,7 @@
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
 # 3rd party imports
-from itsdangerous import SignatureExpired
+from itsdangerous import SignatureExpired, BadSignature
 # Pjuu imports
 from pjuu import app
 from . import timestamp
@@ -50,6 +50,6 @@ def check_token(signer, token):
         data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
         if app.debug:
             print timestamp(), "Check token:", token
-    except (TypeError, ValueError, SignatureExpired):
+    except (TypeError, ValueError, SignatureExpired, BadSignature):
         return None
     return data
