@@ -1,4 +1,4 @@
-ls/base.html' %}
+{% extends 'emails/base.txt' %}
 
 {% block content %}
 Hi,
