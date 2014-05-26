@@ -166,7 +166,7 @@ def forgot():
         if uid:
             # Only send e-mails to user which exist.
             token = generate_token(signer_forgot, {'uid': uid})
-            send_mail('Password reset', get_email(uid),
+            send_mail('Password reset', [get_email(uid)],
                       text_body=render_template('emails/forgot.txt',
                                                 token=token),
                       html_body=render_template('emails/forgot.html',
