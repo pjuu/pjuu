@@ -137,7 +137,7 @@ def activate(token):
     if data is not None:
         # Attempt to activate the users account
         uid = data['uid']
-        if uid and get_user(uid) is not None:
+        if uid and get_email(uid) is not None:
             be_activate(uid)
             # If we have got to this point. Send a welcome e-mail :)
             send_mail('Welcome', [get_email(uid)],
