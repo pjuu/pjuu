@@ -136,15 +136,22 @@ def activate(token):
     data = check_token(signer_activate, token)
     if data is not None:
         # Attempt to activate the users account
-        uid = data['uid']
-        if uid and get_email(uid) is not None:
-            be_activate(uid)
-            # If we have got to this point. Send a welcome e-mail :)
-            send_mail('Welcome', [get_email(uid)],
-                      text_body=render_template('emails/welcome.txt'),
-                      html_body=render_template('emails/welcome.html'))
-            flash('Your account has now been activated.', 'success')
-            return redirect(url_for('signin'))
+        uid = data.get('uid')
+        if uid:
+            # Don't keep sending e-mails to activated users
+            if not is_active(uid):
+                be_activate(uid)
+                # If we have got to this point. Send a welcome e-mail :)
+                send_mail('Welcome', [get_email(uid)],
+                          text_body=render_template('emails/welcome.txt'),
+                          html_body=render_template('emails/welcome.html'))
+                flash('Your account has now been activated', 'success')
+                return redirect(url_for('signin'))
+            else:
+                # Inform the user their account has already been activated
+                flash('Your account has already in activated', 'information')
+                return redirect(url_for('signin'))
+
     # The token is either out of date or has been tampered with
     flash('Invalid token', 'error')
     return redirect(url_for('signin'))
@@ -318,4 +325,5 @@ def delete_account():
             return redirect(url_for('signin'))
         else:
             flash('Oops! wrong password', 'error')
+
     return render_template('delete_account.html', form=form)

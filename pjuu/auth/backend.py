@@ -33,7 +33,7 @@ username_re = re.compile(r'^\w{3,16}$')
 email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 
-# Signers
+# Token signers, These work along with lib/tokens.py
 signer_activate = TimedSerializer(app.config['TOKEN_KEY'],
                                   app.config['TOKEN_SALT_ACTIVATE'])
 signer_forgot = TimedSerializer(app.config['TOKEN_KEY'],
