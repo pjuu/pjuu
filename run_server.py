@@ -22,7 +22,7 @@
 from werkzeug.debug import DebuggedApplication
 import cherrypy
 # Pjuu imports
-from pjuu import app
+from pjuu import create_app
 
 
 if __name__ == '__main__':
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     By default we bind this to all IPs so that we can test the
     the dev site with our phones over the local network
     """
+    app = create_app('settings.py')
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
     cherrypy.config.update({

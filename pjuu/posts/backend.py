@@ -19,9 +19,11 @@
 
 # Stdlib
 import re
+# 3rd party imports
+from flask import current_app as app
 # Pjuu imports
-from pjuu import app, keys as K, lua as L, redis as r
-from pjuu.lib import timestamp
+from pjuu import redis as r
+from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.auth.backend import get_uid_username
 
 

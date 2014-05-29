@@ -20,47 +20,68 @@
 # 3rd party imports
 from flask import Flask
 from flask.ext.mail import Mail
+from flask.ext.redis import Redis
 from raven.contrib.flask import Sentry
-from redis import StrictRedis
 # Pjuu imports
 from lib.sessions import RedisSessionInterface
 
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.2.5'
+__version__ = '0.3dev'
 
 
-# Create application
-app = Flask(__name__)
-
-# Load configuration from 'settings.py' and attempt to overwrite
-# with file stored in PJUU_SETTINGS environment variable
-app.config.from_object('pjuu.settings')
-app.config.from_envvar('PJUU_SETTINGS', silent=True)
-
-# This is the _MAIN_ redis client. ONLY STORE DATA HERE
-redis = StrictRedis(host=app.config['REDIS_HOST'], db=app.config['REDIS_DB'],
-                    decode_responses=True)
-# Create Flask-Mail
-mail = Mail(app)
-
-# Sentry logger
-# We now only use Sentry for logging all our in application errors
-if not app.debug:
-  sentry = Sentry(app)
-
-# Create Redis object for sessions)
-redis_sessions = StrictRedis(host=app.config['SESSION_REDIS_HOST'],
-                             db=app.config['SESSION_REDIS_DB'])
-# Set session handler to Redis
-app.session_interface = RedisSessionInterface(redis=redis_sessions)
+# Global Flask-Mail object
+mail = Mail()
+# Global Redis objects
+# redis_sessions is only used by Flask for sessions
+redis = Redis()
+redis_sessions = Redis()
+# Raven global Sentry object for Flask
+sentry = Sentry()
 
 
-# Import all Pjuu stuffs
-# Load Redis LUA scripts, this will also load the scripts into Redis
-import lua
-# Endpoints
-import auth.views
-import users.views
-import posts.views
+def create_app(config_filename='settings.py'):
+    """
+    Creates a Pjuu WSGI application with the passed in confif_filename.
+
+    config_filename should be one of a Python file as per the default. To
+    create one simply copy the settings.py file and change the settings
+    to suit yourself
+    """
+    # Create application
+    app = Flask(__name__)
+
+    # Load configuration from the Python file passed as config_filename
+    app.config.from_pyfile(config_filename)
+
+    # This is the _MAIN_ redis client. ONLY STORE DATA HERE
+    redis.init_app(app)
+
+    # Create Flask-Mail
+    mail.init_app(app)
+
+    # Sentry logger
+    # We now only use Sentry for logging all our in application errors
+    # We do not need it if debug is True as we expect there could be errors
+    # and we get full visibility.
+    if not app.debug:
+      sentry.init_app(app)
+
+    # Create the Redis session interface
+    redis_sessions.init_app(app, 'SESSION_REDIS')
+
+    # Set session handler to Redis
+    app.session_interface = RedisSessionInterface(redis=redis_sessions)
+
+    with app.app_context():
+        # Import all Pjuu stuffs
+        # Load Redis LUA scripts, this will also load the scripts into Redis
+        import lib.lua
+        # Endpoints
+        import auth.views
+        import users.views
+        import posts.views
+
+    # Retrun a nice shiny new Pjuu application :)
+    return app

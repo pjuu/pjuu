@@ -18,9 +18,9 @@
 ##############################################################################
 
 # 3rd party imports
-from flask import flash, redirect, render_template, request, url_for
+from flask import (current_app as app, flash, redirect, render_template,
+                   request, url_for, session)
 # Pjuu imports
-from pjuu import app
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
@@ -71,6 +71,9 @@ def signin():
                     flash('You\'re a very naughty boy!', 'error')
                 # All OK log the user in
                 else:
+                    # We will also make the session permanent if the user
+                    # has requested too
+                    session.permanent = form.keep_signed_in.data
                     login(uid)
                     return redirect(redirect_url)
             else:

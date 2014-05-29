@@ -17,4 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
-# Tests for all modules in lib
+# Stdlib import
+import os
+# Pjuu imports
+from pjuu import create_app
+
+
+# Create the Pjuu WSGI application for mod_wsgi
+application = create_app()

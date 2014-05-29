@@ -9,8 +9,10 @@
     {{ form.username }}
     {{ form.password.label }}
     {{ form.password }}
+    {{ form.keep_signed_in }}
+    {{ form.keep_signed_in.label }}
     {{ form.csrf_token }}
-    <input type="submit" value="Sign In" tabindex="3"/>
+    <input type="submit" value="Sign In" tabindex="4"/>
 </form>
 {% endblock %}
 {% block links %}

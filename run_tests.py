@@ -21,18 +21,30 @@
 # Stdlib imports
 import sys
 import unittest
+# Pjuu imports
+from pjuu import create_app
 
 
 if __name__ == '__main__':
-	# Prepare for testing
-	test_loader = unittest.defaultTestLoader
-	test_runner =  unittest.TextTestRunner()
-	test_suite = test_loader.discover('pjuu', pattern='tests.py')
+	"""
+	Run Pjuu's unittests. This will return 1 on failure to be compatible with
+	Travis-CI.
 
-	# Run all located tests and save the returns
-	test_results = test_runner.run(test_suite)
+	Note: If there are major errors this may never get round to returning
+	      a 0 please be careful.
+	Note: This may change to pytest in the future.
+	"""
+	app = create_app('settings.py')
+	with app.app_context():
+		# Prepare for testing
+		test_loader = unittest.defaultTestLoader
+		test_runner =  unittest.TextTestRunner()
+		test_suite = test_loader.discover('pjuu', pattern='tests.py')
 
-	# If we have any test failures set the return code from script to 1
-	# This will allow Travis-CI to inform us that the build failed
-	if test_results.failures:
-		sys.exit(1)
+		# Run all located tests and save the returns
+		test_results = test_runner.run(test_suite)
+
+		# If we have any test failures set the return code from script to 1
+		# This will allow Travis-CI to inform us that the build failed
+		if test_results.failures:
+			sys.exit(1)

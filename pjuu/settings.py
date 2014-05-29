@@ -7,8 +7,13 @@
 
 # Will show debug information when running in 'manage.py runserver'
 DEBUG = True
-# Pjuu will not send e-mails
-NO_MAIL = DEBUG
+
+# Are you testing Pjuu? This will prevent Flask-Mail sending any e-mails and
+# will also force Flask-WTF Recaptcha to return True
+TESTING = True
+
+# In the case of debugging we need a server name, so here's one:
+#SERVER_NAME = 'localhost'
 
 # Keep it secret, keep it safe
 # Ensure you change this!
@@ -38,9 +43,10 @@ MAIL_PASSWORD = None
 MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Flask-WTF (Cross site request forgery)
-# Change this for extra security.
-CSRF_ENABLED = True
-CSRF_SESSION_KEY = SECRET_KEY
+# CSRF should be off during testing to allow us to submit forms
+WTF_CSRF_ENABLED = not TESTING
+# Change this for extra security
+WTF_CSRF_SESSION_KEY = SECRET_KEY
 
 # Recaptcha
 # Add in your Recaptcha keys here
@@ -57,10 +63,12 @@ PROFILE_ITEMS_PER_PAGE = 25
 
 # Signer Keys
 # Please see pjuu.auth.backend for details
+# You can change the TOKEN_KEY for extra security
 TOKEN_KEY = SECRET_KEY
 TOKEN_SALT_ACTIVATE = 'ACTIVATE'
 TOKEN_SALT_FORGOT = 'FORGOT'
 TOKEN_SALT_EMAIL = 'EMAIL'
 
-# Logger settings
-LOGGER_MAIL = 'alerts@pjuu.com'
+# Sentry settings
+# If you do not add a Sentry DSN you will not receive any logging information
+SENTRY_DSN = ''

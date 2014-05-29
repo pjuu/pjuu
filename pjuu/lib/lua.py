@@ -17,8 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
-# Pjuu imports
-from pjuu import keys as K, redis as r
+from pjuu import redis as r
 
 # Redis LUA scripts
 # Not all of these are used at the moment. I wrote them as they may be useful
@@ -69,7 +68,8 @@ else
 end
 """
 
-# Load the scripts in to redis
+
+# Load the above scripts in to Redis object r
 create_user = r.register_script(lua_create_user)
 zadd_ifkey = r.register_script(lua_zadd_ifkey)
 lpush_ifkey = r.register_script(lua_lpush_ifkey)

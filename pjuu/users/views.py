@@ -22,11 +22,10 @@ from hashlib import md5
 import math
 from time import gmtime, strftime
 # 3rd party imports
-from flask import (abort, flash, redirect, render_template, request,
-                   url_for)
+from flask import (current_app as app, abort, flash, redirect, render_template,
+                   request, url_for)
 import re
 # Pjuu imports
-from pjuu import app, redis as r
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid, get_uid_email, get_uid_username
 from pjuu.auth.decorators import login_required
@@ -179,15 +178,6 @@ def profile(username):
     post_form = PostForm()
     return render_template('posts.html', profile=profile,
                            pagination=pagination, post_form=post_form)
-
-
-@app.route('/<username>/avatar', methods=['GET'])
-@login_required
-def avatar(username):
-    """
-    Returns a users Gravatar image
-    """
-    pass
 
 
 @app.route('/<username>/<int:pid>', methods=['GET'])

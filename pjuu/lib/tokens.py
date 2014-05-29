@@ -21,9 +21,9 @@
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
 # 3rd party imports
+from flask import current_app as app
 from itsdangerous import SignatureExpired, BadSignature
 # Pjuu imports
-from pjuu import app
 from . import timestamp
 
 

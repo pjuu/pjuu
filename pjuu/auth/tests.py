@@ -20,14 +20,18 @@
 # Stdlib imports
 import unittest
 # 3rd party imports
-from flask import _app_ctx_stack, request, session
+from flask import current_app as app, _app_ctx_stack, request, session, url_for
 # Pjuu imports
-from pjuu import app, keys as K, redis as r
+from pjuu import redis as r
+from pjuu.lib import keys as K
 from pjuu.users.backend import follow_user
 from pjuu.posts.backend import create_post, create_comment
 from . import current_user
 from .backend import *
 
+###############################################################################
+# BACKEND #####################################################################
+###############################################################################
 
 class BackendTests(unittest.TestCase):
 	"""
@@ -298,10 +302,123 @@ class BackendTests(unittest.TestCase):
 		self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
 		self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
 
+###############################################################################
+# FRONTEND ####################################################################
+###############################################################################
 
 class FrontendTests(unittest.TestCase):
 	"""
 	This test case will test all the auth subpackages views, decorators
 	and forms
 	"""
-	pass
+
+	def setUp(self):
+		"""
+		Flush the database and create a test client so that we can check all
+		end points.
+		"""
+		r.flushdb()
+		# Get our test client
+		self.client = app.test_client()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_signin_signout(self):
+		"""
+		These functions will test the signin and signout endpoints. We will use
+		url_for so that we can change the URIs in the future.
+		"""
+		# There is no user in the system check that we can't authenticate
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test',
+				'password': 'Password'
+			})
+		# We should get a 200 with an error message if we were not successful
+		self.assertEqual(resp.status_code, 200)
+		self.assertIn('Invalid user name or password', resp.data)
+
+		# Why we are here we will just check that logging in doesn't raise an
+		# issue if not logged in
+		resp = self.client.get(url_for('signout'))
+		# We should be 302 redirected to /signin
+		self.assertEqual(resp.status_code, 302)	
+
+		# Create a test user and try loggin in, should fail as the user isn't
+		# activated
+		self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test',
+				'password': 'Password'
+			})
+		# We should get a 200 with an information message
+		self.assertEqual(resp.status_code, 200)
+		self.assertIn('Please activate your account', resp.data)
+
+		# Activate account an try again. We should receive a 302 to /
+		self.assertTrue(activate(1))
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test',
+				'password': 'Password'
+			})
+		self.assertEqual(resp.status_code, 302)
+		# TODO add some check to look for location
+
+		# Attempt to try and get back to login when we are already logged in
+		resp = self.client.get(url_for('signin'))
+		self.assertEqual(resp.status_code, 302)
+
+		# Now we are logged in lets just ensure logout doesn't do anything daft
+		# We should be redirected back to /
+		resp = self.client.get(url_for('signout'))
+		# We should be 302 redirected to /signin
+		self.assertEqual(resp.status_code, 302)
+
+		# We will now ban the user just to ensure they can't get in. They
+		# should receive a 200 and a warning message
+		self.assertTrue(ban(1))
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test',
+				'password': 'Password'
+			})
+		self.assertEqual(resp.status_code, 200)
+		self.assertIn('You\'re a very naughty boy!', resp.data)
+		# Unban the user so we can use it again
+		self.assertTrue(ban(1, False), True)
+
+		# Lets try and cheat the system
+		# Attempt invalid Password
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test',
+				'password': 'Password1'
+			})
+		# We should get a 200 with an error message if we were not successful
+		self.assertEqual(resp.status_code, 200)
+		self.assertIn('Invalid user name or password', resp.data)
+
+		# Attempt user does not exist
+		resp = self.client.post(url_for('signin'), data={
+				'username': 'test1',
+				'password': 'Password1'
+			})
+		# We should get a 200 with an error message if we were not successful
+		self.assertEqual(resp.status_code, 200)
+		self.assertIn('Invalid user name or password', resp.data)
+
+	def test_signup_activate(self):
+		pass
+
+	def test_forgot_reset(self):
+		pass
+
+	def test_change_confirm_email(self):
+		pass
+
+	def test_change_password(self):
+		pass
+
+	def test_delete_account(self):
+		pass

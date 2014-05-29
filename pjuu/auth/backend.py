@@ -20,12 +20,12 @@
 # Stdlib imports
 import re
 # 3rd party imports
-from flask import _app_ctx_stack, session
+from flask import current_app as app, _app_ctx_stack, session
 from itsdangerous import TimedSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
-from pjuu import app, keys as K, lua as L, redis as r
-from pjuu.lib import timestamp
+from pjuu import redis as r
+from pjuu.lib import keys as K, lua as L, timestamp
 
 
 # E-mail checker

@@ -20,11 +20,15 @@
 # Stdlib imports
 import unittest
 # Pjuu imports
-from pjuu import keys as K, redis as r
+from pjuu import redis as r
+from pjuu.lib import keys as K
 from pjuu.auth.backend import create_user, delete_account
 from pjuu.posts.backend import create_post, create_comment
 from .backend import *
 
+###############################################################################
+# BACKEND #####################################################################
+###############################################################################
 
 class BackendTests(unittest.TestCase):
 	"""
@@ -256,10 +260,48 @@ class BackendTests(unittest.TestCase):
 		self.assertEqual(search('tes').total, 2)
 		# Done
 
+###############################################################################
+# FRONTEND ####################################################################
+###############################################################################
 
 class FrontendTests(unittest.TestCase):
 	"""
 	This test case will test all the users subpackages; views, decorators
 	and forms
 	"""
-	pass
+
+	def setUp(self):
+		"""
+		Flush the database and create a test client so that we can check all
+		end points.
+		"""
+		r.flushdb()
+		# Get our test client
+		self.client = app.test_client()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_feed(self):
+		pass
+
+	def test_profile(self):
+		pass
+
+	def test_view_post(self):
+		pass
+
+	def test_following_followers(self):
+		pass
+
+	def test_follow_unfollow(self):
+		pass
+
+	def test_search(self):
+		pass
+
+	def test_settings_profile(self):
+		pass

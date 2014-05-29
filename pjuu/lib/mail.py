@@ -17,8 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##############################################################################
 
+# 3rd party imports
+from flask import current_app as app
 from flask.ext.mail import Message
-from pjuu import app, mail
+# Pjuu imports
+from pjuu import mail
 
 
 def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
@@ -32,10 +35,4 @@ def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
     msg.sender = sender
     msg.body = text_body
     msg.html = html_body
-    # If no mail is set then an e-mail will not actually be sent it will have
-    # its subject, sender, recipient sent to stdout
-    if not app.config['NO_MAIL']:
-        mail.send(msg)
-    elif app.debug:
-        # Allow users to turn off NO_MAIL and display a print only in debug
-        print "Mail:", msg.subject, msg.recipients, msg.sender
+    mail.send(msg)

@@ -18,9 +18,8 @@
 ##############################################################################
 
 # 3rd party imports
-from flask import abort, flash, redirect, request, url_for
+from flask import current_app as app, abort, flash, redirect, request, url_for
 # Pjuu imports
-from pjuu import app
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid
 from pjuu.auth.decorators import login_required

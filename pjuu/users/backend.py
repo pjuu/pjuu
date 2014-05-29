@@ -21,9 +21,11 @@
 from time import gmtime
 from calendar import timegm
 import re
+# 3rd party imports
+from flask import current_app as app
 # Pjuu imports
-from pjuu import app, keys as K, lua as L, redis as r
-from pjuu.lib import timestamp
+from pjuu import redis as r
+from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.lib.pagination import Pagination
 from pjuu.auth.backend import get_user
 from pjuu.posts.backend import get_comment, get_post
@@ -196,7 +198,7 @@ def is_following(who_uid, whom_uid):
 
 
 # TODO Fix this!
-def search(query, page=1):
+def search(query):
     """
     Handles searching for users. This is inefficient; O(n) it will
     not scale to full production.
@@ -214,10 +216,15 @@ def search(query, page=1):
         keys = r.keys(K.UID_USERNAME % (query + '*'))
     else:
         keys = []
+
+    # Get results from the keys, only show a maximum of per_page is a search.
+    # It could change too much between pages to be stable
+    # We will simply trim the keys list to this value, it's easier :)
+    keys = keys[:per_page]
     results = []
     for key in keys:
         uid = r.get(key)
         results.append(get_user(uid))
     total = len(results)
 
-    return Pagination(results, total, page, per_page)
+    return Pagination(results, total, 1, per_page)

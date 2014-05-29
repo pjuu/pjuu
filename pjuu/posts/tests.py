@@ -20,10 +20,14 @@
 # Stdlib imports
 import unittest
 # Pjuu imports
-from pjuu import keys as K, redis as r
+from pjuu import redis as r
+from pjuu.lib import keys as K
 from pjuu.auth.backend import create_user, get_user
 from .backend import *
 
+###############################################################################
+# BACKEND #####################################################################
+###############################################################################
 
 class BackendTests(unittest.TestCase):
 	"""
@@ -290,10 +294,42 @@ class BackendTests(unittest.TestCase):
 		self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
 		self.assertNotIn('3', r.lrange(K.USER_COMMENTS % 1, 0, -1))
 
+###############################################################################
+# FRONTEND ####################################################################
+###############################################################################
 
 class FrontendTests(unittest.TestCase):
 	"""
 	This test case will test all the posts subpackages; views, decorators
 	and forms
 	"""
-	pass
+
+	def setUp(self):
+		"""
+		Flush the database and create a test client so that we can check all
+		end points.
+		"""
+		r.flushdb()
+		# Get our test client
+		self.client = app.test_client()
+
+	def tearDown(self):
+		"""
+		Simply flush the database. Keep it clean for other tests
+		"""
+		r.flushdb()
+
+	def test_post(self):
+		pass
+
+	def test_comment(self):
+		pass
+
+	def test_upvote(self):
+		pass
+
+	def test_downvote(self):
+		pass
+
+	def test_delete_post(self):
+		pass
