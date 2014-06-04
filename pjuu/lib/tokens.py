@@ -25,7 +25,7 @@ from flask import current_app as app, g
 from itsdangerous import SignatureExpired, BadSignature
 # Pjuu imports
 from . import timestamp
-import .keys as K
+import pjuu.lib.keys as K
 
 
 def generate_token(signer, data):
