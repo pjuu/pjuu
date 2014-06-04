@@ -1,10 +1,10 @@
-{% extends 'base_main.html' %}
+s{% extends 'base_main.html' %}
 
 {% block title %}Search{% endblock %}
 
 {% block main %}
 <div id="author" class="block search clearfix">
-	<h1>Search for users</h1>
+    <h1>Search for users</h1>
     <form action="{{ url_for('search') }}" method="GET">
         {{ form.query }}
         <input type="submit" value="Search"/>

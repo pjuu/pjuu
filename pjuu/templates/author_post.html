@@ -1,5 +1,5 @@
 <div id="author" class="block author-post clearfix">
-	<h1>Create new post</h1>
+    <h1>Create new post</h1>
     <form action="{{ url_for('post', next=request.path) }}" method="post">
         {{ post_form.body(rows=3, maxlength=255) }}
         {{ post_form.csrf_token }}

@@ -19,7 +19,7 @@
 
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
-                   request, url_for, session)
+                   request, url_for, session, g)
 # Pjuu imports
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
@@ -27,7 +27,7 @@ from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth.backend import delete_account as be_delete_account
 from . import current_user
 from .backend import (authenticate, login, logout, create_user,
-                      activate as be_activate,
+                      activate as be_activate, get_user,
                       change_password as be_change_password,
                       change_email as be_change_email,
                       get_uid, is_active, is_banned, get_email,
@@ -43,6 +43,23 @@ def inject_user():
     Injects `current_user` into the Jinja environment
     """
     return dict(current_user=current_user)
+
+
+@app.after_request
+def inject_token_header(response):
+    """
+    This function will always be called after a response but will only have any
+    affect in testing mode. This will inject a header called X-Pjuu-Token into
+    the response.
+
+    When a token is created and TESTING = True, the token will be stored on
+    the g object. This function will check this and then add the header
+    """
+    if app.testing:
+        token = g.get('token')
+        if token:
+            response.headers['X-Pjuu-Token'] = token
+    return response
 
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -140,7 +157,7 @@ def activate(token):
     if data is not None:
         # Attempt to activate the users account
         uid = data.get('uid')
-        if uid:
+        if uid and get_user(uid):
             # Don't keep sending e-mails to activated users
             if not is_active(uid):
                 be_activate(uid)
@@ -152,7 +169,7 @@ def activate(token):
                 return redirect(url_for('signin'))
             else:
                 # Inform the user their account has already been activated
-                flash('Your account has already in activated', 'information')
+                flash('Your account has already been activated', 'information')
                 return redirect(url_for('signin'))
 
     # The token is either out of date or has been tampered with

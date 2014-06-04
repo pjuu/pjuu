@@ -33,7 +33,7 @@ if __name__ == '__main__':
     By default we bind this to all IPs so that we can test the
     the dev site with our phones over the local network
     """
-    app = create_app('settings.py')
+    app = create_app()
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
     cherrypy.config.update({

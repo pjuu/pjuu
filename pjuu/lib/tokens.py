@@ -21,10 +21,11 @@
 from base64 import (urlsafe_b64encode as b64encode,
                     urlsafe_b64decode as b64decode)
 # 3rd party imports
-from flask import current_app as app
+from flask import current_app as app, g
 from itsdangerous import SignatureExpired, BadSignature
 # Pjuu imports
 from . import timestamp
+import .keys as K
 
 
 def generate_token(signer, data):
@@ -33,8 +34,8 @@ def generate_token(signer, data):
     """
     try:
         token = b64encode(signer.dumps(data).encode('ascii'))
-        if app.debug:
-            print timestamp(), "Generate token:", token
+        if app.testing:
+            g.token = token
     except (TypeError, ValueError):
         return None
     return token
@@ -47,9 +48,8 @@ def check_token(signer, token):
     original token will me passed back.
     """
     try:
-        data = signer.loads(b64decode(token.encode('ascii')), max_age=86400)
-        if app.debug:
-            print timestamp(), "Check token:", token
+        data = signer.loads(b64decode(token.encode('ascii')),
+                            max_age=K.EXPIRE_24HRS)
     except (TypeError, ValueError, SignatureExpired, BadSignature):
         return None
     return data

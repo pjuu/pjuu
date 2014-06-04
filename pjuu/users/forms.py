@@ -30,5 +30,5 @@ class ChangeProfileForm(Form):
 
 
 class SearchForm(Form):
-	""" This form is really simple. It is here to keep all forms at WTFroms """
-	query =  TextField("Query")
+    """ This form is really simple. It is here to keep all forms at WTFroms """
+    query =  TextField("Query")

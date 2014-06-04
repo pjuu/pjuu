@@ -29,12 +29,15 @@ from pjuu import redis as r
 lua_create_user = """
 if redis.call('EXISTS', KEYS[1]) == 0 and
    redis.call('EXISTS', KEYS[2]) == 0 then
-	local pid = redis.call('INCR', 'global:uid')
-	redis.call('SET', KEYS[1], pid)
-	redis.call('SET', KEYS[2], pid)
-	return pid
+    local pid = redis.call('INCR', 'global:uid')
+    redis.call('SET', KEYS[1], pid)
+    redis.call('SET', KEYS[2], pid)
+    -- Ensure that the new account is set to expire
+    redis.call('EXPIRE', KEYS[1], 86400)
+    redis.call('EXPIRE', KEYS[2], 86400)
+    return pid
 else
-	return nil
+    return nil
 end
 """
 
@@ -42,9 +45,9 @@ end
 # Syntax: zadd_ifkey key key score member
 lua_zadd_ifkey = """
 if redis.call('EXISTS', KEYS[1]) == 1 then
-	return redis.call('ZADD', KEYS[2], ARGV[1], ARGV[2])
+    return redis.call('ZADD', KEYS[2], ARGV[1], ARGV[2])
 else
-	return nil
+    return nil
 end
 """
 
@@ -52,9 +55,9 @@ end
 # Syntax: lpush_ifkey key key value
 lua_lpush_ifkey = """
 if redis.call('EXISTS', KEYS[1]) == 1 then
-	return redis.call('LPUSH', KEYS[2], ARGV[1])
+    return redis.call('LPUSH', KEYS[2], ARGV[1])
 else
-	return nil
+    return nil
 end
 """
 
@@ -62,9 +65,9 @@ end
 # Syntax: hsetx field value
 lua_hsetx = """
 if redis.call('EXISTS', KEYS[1]) == 1 then
-	return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
+    return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
 else
-	return nil
+    return nil
 end
 """
 

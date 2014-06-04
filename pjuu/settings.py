@@ -12,7 +12,7 @@ DEBUG = True
 # will also force Flask-WTF Recaptcha to return True
 TESTING = True
 
-# In the case of debugging we need a server name, so here's one:
+# In the case of testing we need a server name, so here's one:
 #SERVER_NAME = 'localhost'
 
 # Keep it secret, keep it safe
@@ -44,7 +44,7 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Flask-WTF (Cross site request forgery)
 # CSRF should be off during testing to allow us to submit forms
-WTF_CSRF_ENABLED = not TESTING
+WTF_CSRF_ENABLED = True
 # Change this for extra security
 WTF_CSRF_SESSION_KEY = SECRET_KEY
 

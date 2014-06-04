@@ -41,19 +41,24 @@ redis_sessions = Redis()
 sentry = Sentry()
 
 
-def create_app(config_filename='settings.py'):
+def create_app(config_filename='settings.py', config_dict={}):
     """
     Creates a Pjuu WSGI application with the passed in confif_filename.
 
     config_filename should be one of a Python file as per the default. To
     create one simply copy the settings.py file and change the settings
     to suit yourself
+
+    settings_dict can be used to override any settings inside config_filename
     """
     # Create application
     app = Flask(__name__)
 
     # Load configuration from the Python file passed as config_filename
     app.config.from_pyfile(config_filename)
+    # Override the settings from config_filename, even add new ones :)
+    # This is useful for testing, we use it for Travis-CI, see run_tests.py
+    app.config.update(config_dict)
 
     # This is the _MAIN_ redis client. ONLY STORE DATA HERE
     redis.init_app(app)
@@ -83,5 +88,5 @@ def create_app(config_filename='settings.py'):
         import users.views
         import posts.views
 
-    # Retrun a nice shiny new Pjuu application :)
+    # Retrun a nice shiny new Pjuu WSGI application :)
     return app

@@ -87,6 +87,9 @@ def _load_user():
     user = None
     if 'uid' in session:
         user = r.hgetall(K.USER % session['uid'])
+        # Remove the uid from the session if the user is not logged in
+        if not user:
+            session.pop('uid', None)
     _app_ctx_stack.top.user = user
 
 
@@ -236,7 +239,8 @@ def create_user(username, email, password):
                 'score': 0
             }
             r.hmset(K.USER % uid, user)
-            # Create look up keys for auth system (these are lowercase)
+            # Set the TTL for the user account
+            r.expire(K.USER % uid, K.EXPIRE_24HRS)
             return uid
     return None
 
@@ -321,6 +325,10 @@ def activate(uid, action=True):
         if r.exists(K.USER % uid):
             action = int(action)
             r.hset(K.USER % uid, 'active', action)
+            # Remove the TTL on the user keys
+            r.persist(K.USER % uid)
+            r.persist(K.UID_USERNAME % get_username(uid))
+            r.persist(K.UID_EMAIL % get_email(uid))
             return True
         else:
             return False

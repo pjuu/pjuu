@@ -1,7 +1,7 @@
 /* GLOBAL ================================================================= */
 
 html, body {
-	background-color: #EFB;
+    background-color: #EFB;
     font-family: Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 400;
@@ -36,7 +36,7 @@ html[xmlns] .clearfix {
 }
 
 #wrapper {
-	width: 100%;
+    width: 100%;
 }
 
 .external-link {
@@ -135,11 +135,11 @@ input[type=submit] {
 
 /* AUTHENTICATION ========================================================= */
 #auth {
-	width: 100%;
+    width: 100%;
 }
 
 #auth a {
-	font-weight: 700;
+    font-weight: 700;
 }
 
 #auth h1 {
@@ -150,9 +150,9 @@ input[type=submit] {
 }
 
 #auth .container {
-	margin: 0 auto;
-	min-width: 320px;
-	max-width: 380px;
+    margin: 0 auto;
+    min-width: 320px;
+    max-width: 380px;
 }
 
 #auth .logo {
@@ -196,34 +196,34 @@ input[type=submit] {
 
 /* HEADER ================================================================= */
 #header {
-	background-color: #9C0;
-	border-bottom: 1px solid #680;
-	height: 3em;
-	line-height: 3em;
-	position: fixed;
-	top: 0;
-	width: 100%;
+    background-color: #9C0;
+    border-bottom: 1px solid #680;
+    height: 3em;
+    line-height: 3em;
+    position: fixed;
+    top: 0;
+    width: 100%;
 }
 
 #header .container {
-	margin: 0 auto;
-	max-width: 800px;
+    margin: 0 auto;
+    max-width: 800px;
 }
 
 #header .logo {
-	float: left;
-	max-height: 2.5em;
-	margin: 0.25em 0;
-	padding: 0 0.5em;
+    float: left;
+    max-height: 2.5em;
+    margin: 0.25em 0;
+    padding: 0 0.5em;
 }
 
 #header .menu {
-	color: #FFF;
-	float: right;
+    color: #FFF;
+    float: right;
     font-size: 1em;
-	font-weight: 700;
-	margin: 0;
-	padding: 0 0.5em;
+    font-weight: 700;
+    margin: 0;
+    padding: 0 0.5em;
 }
 
 #header .menu img {
@@ -234,33 +234,33 @@ input[type=submit] {
 }
 
 #header .menu a {
-	color: #000;
-	text-decoration: none;
+    color: #000;
+    text-decoration: none;
 }
 
 #header .menu a:hover {
-	color: #FFF;
+    color: #FFF;
 }
 
 #header .menu li {
-	float: left;
-	list-style: none;
-	padding: 0 1em;
+    float: left;
+    list-style: none;
+    padding: 0 1em;
 }
 
 #header .menu li:hover {
-	background-color: #680;
+    background-color: #680;
 }
 
 /* MAIN =================================================================== */
 #main {
-	margin: 4em 0 0 0;
-	width: 100%;
+    margin: 4em 0 0 0;
+    width: 100%;
 }
 
 #main .container {
-	margin: 0 auto;
-	max-width: 700px;
+    margin: 0 auto;
+    max-width: 700px;
 }
 
 #main .block {
@@ -810,23 +810,23 @@ input[type=submit] {
         width: 98%;
     }
 
-	#header .container {
-		margin: 0;
-		width: 100%;
-	}
+    #header .container {
+        margin: 0;
+        width: 100%;
+    }
 
     #header .menu {
         font-size: 0.75em;
     }
 
-	#header .menu li {
-		padding: 0 0.5em;
-	}
+    #header .menu li {
+        padding: 0 0.5em;
+    }
 
-	#main .container {
-		padding: 0;
-		width: 98%;
-	}
+    #main .container {
+        padding: 0;
+        width: 98%;
+    }
 
     #profile .body {
         display: none;

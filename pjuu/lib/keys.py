@@ -20,6 +20,7 @@
 # Although not strictly Redis, these expiration constants are useful
 EXPIRE_SECONDS = 604800
 EXPIRE_MILLISECONDS = 604800000
+EXPIRE_24HRS = 86400
 
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
