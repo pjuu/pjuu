@@ -510,7 +510,75 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('Invalid token', resp.data)
 
     def test_forgot_reset(self):
-        pass
+        """
+        Test forgotten password and the password reset form.
+        """
+        # Test that we can GET the forgot page
+        resp = self.client.get(url_for('forgot'))
+        self.assertEqual(resp.status_code, 200)
+
+        # Try and post data to the form even though we don't have a user.
+        # This will work as the form will always return the same response
+        # this is to stop users trying to recover random details
+        resp = self.client.post(url_for('forgot'), data={
+                'username': 'test'
+            }, follow_redirects=True)
+        # We should be redirect to login and a message flashed
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('If we\'ve found your account we\'ve', resp.data)
+        # Let's make sure there is no X-Pjuu-Token header added as one should
+        # not be generated for a non existant user
+        self.assertIsNone(resp.headers.get('X-Pjuu-Token'))
+
+        # Lets do this again but with a user (this is the only way to test
+        # password resetting)
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        # Lets do the above test again but with this new user
+        resp = self.client.post(url_for('forgot'), data={
+                'username': 'test'
+            }, follow_redirects=True)
+        # We should be redirect to login and a message flashed
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('If we\'ve found your account we\'ve', resp.data)
+        # This time we should have a token
+        token = resp.headers.get('X-Pjuu-Token')
+        self.assertIsNotNone(token)
+
+        # Now we will try and change the password on our account
+        # Lets just make sure we can get to the reset view with our token
+        resp = self.client.get(url_for('reset', token=token))
+        self.assertEqual(resp.status_code, 200)
+
+        # Lets post to the view
+        resp = self.client.post(url_for('reset', token=token), data={
+                'password': 'Password',
+                'password2': 'Password'
+            }, follow_redirects=True)
+        # This should redirect us back to the signin view as well as have
+        # changed out password
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Your password has now been reset', resp.data)
+        # We will just check we can log in with the new Password not password
+        self.assertTrue(authenticate('test', 'Password'))
+        # I know, I know this is tested in the backend buts let's make sure
+        # we can't auth with the old password
+        self.assertFalse(authenticate('test', 'password'))
+
+        # Lets make sure the form tells us when we have filled it in wrong
+        # Attempt to set a mis matching password
+        resp = self.client.post(url_for('reset', token=token), data={
+                'password': 'password',
+                'password2': 'Password'
+            }, follow_redirects = True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+        # Attempt to not even fill the form in
+        resp = self.client.post(url_for('reset', token=token), data={},
+                                follow_redirects = True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+        # This test is probably not compreshensive enough. Will add to it in
+        # the near future. At least we can ensure the view works.
 
     def test_change_confirm_email(self):
         pass
