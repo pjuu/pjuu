@@ -27,7 +27,7 @@ from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth.backend import delete_account as be_delete_account
 from . import current_user
 from .backend import (authenticate, login, logout, create_user,
-                      activate as be_activate,
+                      activate as be_activate, get_user,
                       change_password as be_change_password,
                       change_email as be_change_email,
                       get_uid, is_active, is_banned, get_email,
