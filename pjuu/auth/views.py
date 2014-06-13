@@ -137,7 +137,7 @@ def activate(token):
     if data is not None:
         # Attempt to activate the users account
         uid = data.get('uid')
-        if uid:
+        if uid and get_user(uid):
             # Don't keep sending e-mails to activated users
             if not is_active(uid):
                 be_activate(uid)
