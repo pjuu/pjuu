@@ -1,21 +1,25 @@
 # -*- coding: utf8 -*-
 
-##############################################################################
-# Copyright 2014 Joe Doherty <joe@pjuu.com>
-#
-# Pjuu is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Pjuu is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
+"""
+Description:
+    The actual Flask endpoints for the auth system.
+
+Licence:
+    Copyright 2014 Joe Doherty <joe@pjuu.com>
+
+    Pjuu is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Pjuu is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
@@ -31,7 +35,7 @@ from .backend import (authenticate, login, logout, create_user,
                       change_password as be_change_password,
                       change_email as be_change_email,
                       get_uid, is_active, is_banned, get_email,
-                      signer_activate, signer_forgot, signer_email)
+                      SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                     ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
@@ -45,21 +49,20 @@ def inject_user():
     return dict(current_user=current_user)
 
 
-@app.after_request
-def inject_token_header(response):
+@app.before_request
+def kick_banned_user():
     """
-    This function will always be called after a response but will only have any
-    affect in testing mode. This will inject a header called X-Pjuu-Token into
-    the response.
+    This function will check too see if the user has been banned since login.
 
-    When a token is created and TESTING = True, the token will be stored on
-    the g object. This function will check this and then add the header
+    Without this we would have to wait for the user to try and login again
+    before they are informed that they are banned. This fucntion will just
+    ensure they are kicked out
     """
-    if app.testing:
-        token = g.get('token')
-        if token:
-            response.headers['X-Pjuu-Token'] = token
-    return response
+    if 'uid' in session:
+        if is_banned(session['uid']):
+            session.pop('uid', None)
+            flash('You\'re a very naughty boy!', 'error')
+
 
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -130,7 +133,7 @@ def signup():
                               form.password.data)
             # Lets check the account was created
             if uid:
-                token = generate_token(signer_activate, {'uid': uid})
+                token = generate_token(SIGNER_ACTIVATE, {'uid': uid})
                 # Send an e-mail to activate their account
                 send_mail('Activation', [form.email.data],
                           text_body=render_template('emails/activate.txt',
@@ -153,7 +156,7 @@ def activate(token):
     Activates the user account so long as the token is valid.
     """
     # Attempt to get the data from the token
-    data = check_token(signer_activate, token)
+    data = check_token(SIGNER_ACTIVATE, token)
     if data is not None:
         # Attempt to activate the users account
         uid = data.get('uid')
@@ -192,7 +195,7 @@ def forgot():
         uid = get_uid(form.username.data)
         if uid:
             # Only send e-mails to user which exist.
-            token = generate_token(signer_forgot, {'uid': uid})
+            token = generate_token(SIGNER_FORGOT, {'uid': uid})
             send_mail('Password reset', [get_email(uid)],
                       text_body=render_template('emails/forgot.txt',
                                                 token=token),
@@ -212,7 +215,7 @@ def reset(token):
     is valid.
     """
     form = ResetForm(request.form)
-    data = check_token(signer_forgot, token)
+    data = check_token(SIGNER_FORGOT, token)
     if data is not None:
         if request.method == 'POST':
             if form.validate():
@@ -240,7 +243,7 @@ def change_email():
     if request.method == 'POST':
         if form.validate():
             if authenticate(current_user['username'], form.password.data):
-                token = generate_token(signer_email,
+                token = generate_token(SIGNER_EMAIL,
                             {'uid': current_user['uid'],
                              'email': form.new_email.data})
                 # Send a confirmation to the new email address
@@ -268,7 +271,7 @@ def confirm_email(token):
     be sent to the new email address.
     """
     # Attempt to get the data from the token
-    data = check_token(signer_email, token)
+    data = check_token(SIGNER_EMAIL, token)
     if data is not None:
         # Change the users e-mail
         uid = data['uid']

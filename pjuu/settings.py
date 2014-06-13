@@ -71,4 +71,6 @@ TOKEN_SALT_EMAIL = 'EMAIL'
 
 # Sentry settings
 # If you do not add a Sentry DSN you will not receive any logging information
+# If you do not run Sentry then you can add a custom logger in see the Flask
+# documentation: http://flask.pocoo.org/docs/errorhandling/
 SENTRY_DSN = ''

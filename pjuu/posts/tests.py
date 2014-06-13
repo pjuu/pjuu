@@ -19,6 +19,8 @@
 
 # Stdlib imports
 import unittest
+# 3rd party imports
+from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
@@ -312,6 +314,7 @@ class FrontendTests(unittest.TestCase):
         r.flushdb()
         # Get our test client
         self.client = app.test_client()
+        g.token = None
 
     def tearDown(self):
         """

@@ -1,5 +1,6 @@
 # Same as requirements.txt but with the WSGI servers removed.
-# These are not needed for Travis to run the tests
+# These are not needed for Travis to run the tests and just make setting up
+# the environment a longer process
 Flask==0.10.1
 Flask-And-Redis==0.5
 Flask-Mail==0.9.0

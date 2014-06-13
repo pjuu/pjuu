@@ -1,26 +1,30 @@
 # -*- coding: utf8 -*-
 
-##############################################################################
-# Copyright 2014 Joe Doherty <joe@pjuu.com>
-#
-# Pjuu is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Pjuu is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
+"""
+Description:
+    Auth package unit tests
+
+Licence:
+    Copyright 2014 Joe Doherty <joe@pjuu.com>
+
+    Pjuu is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Pjuu is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 # Stdlib imports
 import unittest
 # 3rd party imports
-from flask import current_app as app, _app_ctx_stack, request, session, url_for
+from flask import current_app as app, request, session, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
@@ -241,6 +245,11 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(int(r.get(K.UID_EMAIL % 'test@pjuu.com')), -1)
         # Ensure the email TTL has been set
         self.assertNotEqual(int(r.ttl(K.UID_EMAIL % 'test@pjuu.com')), -1)
+        # Try and authenticate a user now that it has been deleted.
+        # I have seen this cause issues during development
+        self.assertFalse(authenticate('test', 'Password'))
+        self.assertIsNone(get_uid_username('test'))
+        self.assertIsNone(get_uid_email('test@pjuu.com'))
 
     def test_delete_account_posts_comments(self):
         """
@@ -333,11 +342,15 @@ class FrontendTests(unittest.TestCase):
         r.flushdb()
         # Get our test client
         self.client = app.test_client()
+        g.token = None
 
     def tearDown(self):
         """
         Simply flush the database. Keep it clean for other tests
         """
+        # We also need to clear Flask's 'g' object after each test.
+        # This is because the token will be left there.
+        g.token = None
         r.flushdb()
 
     def test_signin_signout(self):
@@ -377,9 +390,22 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Please activate your account', resp.data)
 
-        # Activate account an try again. We should receive a 302 to /
-        # We will follow the redirect and check that the 'Feed' h1 is there
+        # Activate account
         self.assertTrue(activate(1))
+
+        # Test that the correct warning is shown if the user is banned
+        self.assertTrue(ban(1))
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'Password'
+            })
+        # We should get a 200 with an information message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You\'re a very naughty boy!', resp.data)
+        # Lets unban the user now so we can carry on
+        self.assertTrue(ban(1, False))
+
+        # Now the user is active and not banned actuall log in
         resp = self.client.post(url_for('signin'), data={
                 'username': 'test',
                 'password': 'Password'
@@ -428,6 +454,27 @@ class FrontendTests(unittest.TestCase):
         # We should get a 200 with an error message if we were not successful
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid user name or password', resp.data)
+
+        # Log the user in and ensure they are logged out if there account
+        # is banned during using the site and not just at login
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'Password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('<h1>Feed</h1>', resp.data)
+        # Lets go to another view, we will check out profile and look for our
+        # username
+        resp = self.client.get(url_for('settings_profile'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('test@pjuu.com', resp.data)
+        # Let's ban the user now
+        self.assertTrue(ban(1))
+        # Attempt to get to the feed
+        resp = self.client.get(url_for('feed'), follow_redirects=True)
+        # We should be redirected to signin with the standard message
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You\'re a very naughty boy!', resp.data)
 
     def test_signup_activate(self):
         """
@@ -581,10 +628,191 @@ class FrontendTests(unittest.TestCase):
         # the near future. At least we can ensure the view works.
 
     def test_change_confirm_email(self):
-        pass
+        """
+        Test changing your e-mail address from the frontend. This is the last
+        function which uses Tokens.
+
+        Note: We need to be logged in for this view to work.
+        """
+        # Try going to the view without being logged in
+        resp = self.client.get(url_for('change_email'), follow_redirects=True)
+        # We will just ensure we have been redirected to /signin
+        self.assertEqual(resp.status_code, 200)
+        # We should see a message saying we need to signin
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Let's create a user an login
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        # Activate the account
+        self.assertTrue(activate(1))
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Lets check to see that our current email is listed on the inital
+        # settings page
+        resp = self.client.get(url_for('settings_profile'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('test@pjuu.com', resp.data)
+
+        # Lets double check we can get the change_email page and attempt to 
+        # change our password.
+        resp = self.client.get(url_for('change_email'))
+        self.assertEqual(resp.status_code, 200)
+        # Attempt to change our e-mail
+        resp = self.client.post(url_for('change_email'), data={
+                'password': 'password',
+                'new_email': 'test1@pjuu.com'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('We\'ve sent you an email, please confirm', resp.data)
+        # Get the auth token
+        token = resp.headers.get('X-Pjuu-Token')
+        self.assertIsNotNone(token)
+
+        # Confirm the email change
+        resp = self.client.get(url_for('confirm_email', token=token),
+                               follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('We\'ve updated your e-mail address', resp.data)
+
+        # Let's ensure that our new e-mail appears on our profile page
+        resp = self.client.get(url_for('settings_profile'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('test1@pjuu.com', resp.data)
+        # Yey our email was updated
+
+        # Lets just make sure we can't change our e-mail without a password
+        resp = self.client.post(url_for('change_email'), data={
+                'password': '',
+                'new_email': 'test1@pjuu.com'
+            }, follow_redirects=True)
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+
+        # Lets make sure the email doesn't change until the confirmation is
+        # checked
+        resp = self.client.post(url_for('change_email'), data={
+                'password': 'password',
+                'new_email': 'test2@pjuu.com'
+            }, follow_redirects=True)
+        self.assertIn('We\'ve sent you an email, please confirm', resp.data)
+        resp = self.client.get(url_for('settings_profile'))
+        self.assertNotIn('test2@pjuu.com', resp.data)
+        # Done for now :)
 
     def test_change_password(self):
-        pass
+        """
+        Test that users can change their own passwords when they are logged in
+        """
+        # Try going to the view without being logged in
+        resp = self.client.get(url_for('change_password'),
+                               follow_redirects=True)
+        # We will just ensure we have been redirected to /signin
+        self.assertEqual(resp.status_code, 200)
+        # We should see a message saying we need to signin
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Let's create a user an login
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        # Activate the account
+        self.assertTrue(activate(1))
+        # Log the user in
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Goto the change password page
+        resp = self.client.get(url_for('change_password'))
+        self.assertEqual(resp.status_code, 200)
+
+        # Attempt to change our password
+        resp = self.client.post(url_for('change_password'), data={
+                'password': 'password',
+                'new_password': 'PASSWORD',
+                'new_password2': 'PASSWORD'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('We\'ve updated your password', resp.data)
+        # Password was successfully changed
+
+        # Lets try an change our password to one which is not a valid password
+        resp = self.client.post(url_for('change_password'), data={
+                'password': 'PASSWORD',
+                'new_password': 'pass',
+                'new_password2': 'pass'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Password must be at least 6 characters long', resp.data)
+
+        # Lets try an change our password but make them not match
+        resp = self.client.post(url_for('change_password'), data={
+                'password': 'PASSWORD',
+                'new_password': 'password',
+                'new_password2': 'passw0rd'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Passwords must match', resp.data)
+
+        # Lets try and change our pasword but provide a wrong current password
+        resp = self.client.post(url_for('change_password'), data={
+                'password': 'password',
+                'new_password': 'password',
+                'new_password2': 'password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Invalid password', resp.data)
 
     def test_delete_account(self):
-        pass
+        """
+        Test deleting an account from the frontend
+        """
+        # Attempt to get to the delete_account view when not logged in
+        resp = self.client.get(url_for('delete_account'),
+                               follow_redirects=True)
+        # We will just ensure we have been redirected to /signin
+        self.assertEqual(resp.status_code, 200)
+        # We should see a message saying we need to signin
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Let's create a user an login
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        # Activate the account
+        self.assertTrue(activate(1))
+        # Log the user in
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Check that we can get to the delete_account page
+        resp = self.client.get(url_for('delete_account'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('This action is irreversable', resp.data)
+
+        # Attempy to delete account. We are going to do this the other way
+        # round. We will try and do it with an invalid password etc first.
+        resp = self.client.post(url_for('delete_account'), data={
+                'password': 'PASSWORD'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Oops! wrong password', resp.data)
+
+        # That's all we can do to try and brake this. Let's delete our account
+        resp = self.client.post(url_for('delete_account'), data={
+                'password': 'password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Your account has been deleted', resp.data)
+
+        # We are now back at signin. Let's check we can't login
+        resp = self.client.post(url_for('signin'), data={
+                'username': 'test',
+                'password': 'password'
+            })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Invalid user name or password', resp.data)
+        # Done

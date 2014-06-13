@@ -1,26 +1,33 @@
 # -*- coding: utf8 -*-
 
-##############################################################################
-# Copyright 2014 Joe Doherty <joe@pjuu.com>
-#
-# Pjuu is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Pjuu is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
+"""
+Description:
+    The backend function for the auth system.
+
+    If in the future we decice to replace Redis we can simply change all these
+    funtions to use a new backend
+
+Licence:
+    Copyright 2014 Joe Doherty <joe@pjuu.com>
+
+    Pjuu is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Pjuu is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 # Stdlib imports
 import re
 # 3rd party imports
-from flask import current_app as app, _app_ctx_stack, session
+from flask import current_app as app, _app_ctx_stack, session, g
 from itsdangerous import TimedSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
 # Pjuu imports
@@ -29,23 +36,23 @@ from pjuu.lib import keys as K, lua as L, timestamp
 
 
 # E-mail checker
-username_re = re.compile(r'^\w{3,16}$')
-email_re = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
+USERNAME_RE = re.compile(r'^\w{3,16}$')
+EMAIL_RE = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
 
 
 # Token signers, These work along with lib/tokens.py
-signer_activate = TimedSerializer(app.config['TOKEN_KEY'],
+SIGNER_ACTIVATE = TimedSerializer(app.config['TOKEN_KEY'],
                                   app.config['TOKEN_SALT_ACTIVATE'])
-signer_forgot = TimedSerializer(app.config['TOKEN_KEY'],
+SIGNER_FORGOT = TimedSerializer(app.config['TOKEN_KEY'],
                                 app.config['TOKEN_SALT_FORGOT'])
-signer_email = TimedSerializer(app.config['TOKEN_KEY'],
+SIGNER_EMAIL = TimedSerializer(app.config['TOKEN_KEY'],
                                app.config['TOKEN_SALT_EMAIL'])
 
 
 # Reserved names
 # TODO Come up with a better solution for this. Before adding a name here
 # ensure that no one is using it.
-reserved_names = [
+RESERVED_NAMES = [
     'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
     'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
     'recover', 'forgot', 'api', 'app', 'apps', 'archive', 'auth',
@@ -91,6 +98,23 @@ def _load_user():
         if not user:
             session.pop('uid', None)
     _app_ctx_stack.top.user = user
+
+
+@app.after_request
+def inject_token_header(response):
+    """ N/A
+    This function will always be called after a response but will only have any
+    affect in testing mode. This will inject a header called X-Pjuu-Token into
+    the response.
+
+    When a token is created and TESTING = True, the token will be stored on
+    the g object. This function will check this and then add the header
+    """
+    if app.testing:
+        token = g.get('token')
+        if token:
+            response.headers['X-Pjuu-Token'] = token
+    return response
 
 
 def get_uid_username(username):
@@ -174,11 +198,11 @@ def check_username(username):
     username = username.lower()
 
     # Check the username is valud
-    if not username_re.match(username):
+    if not USERNAME_RE.match(username):
         return False
 
     # Check the username is not reserved
-    if username in reserved_names:
+    if username in RESERVED_NAMES:
         return False
 
     # Check no one is using the username
@@ -197,7 +221,7 @@ def check_email(email):
     email = email.lower()
 
     # Check the email is actually a valid e-mail
-    if not email_re.match(email):
+    if not EMAIL_RE.match(email):
         return False
 
     # Ensure no one is already using the email address
@@ -351,7 +375,7 @@ def ban(uid, action=True):
         else:
             return False
     except (TypeError, ValueError):
-        return 
+        return False
 
 
 def bite(uid, action=True):
@@ -369,7 +393,7 @@ def bite(uid, action=True):
         else:
             return False
     except (TypeError, ValueError):
-        return 
+        return False
 
 
 def change_password(uid, password):
