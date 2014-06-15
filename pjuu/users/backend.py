@@ -216,8 +216,12 @@ def search(query, page=1):
         keys = []
     results = []
     for key in keys:
-        uid = r.get(key)
-        results.append(get_user(uid))
+        user = get_user(r.get(key))
+        # Ensure the user exists before adding to the list and is not
+        # a deleted accoumt remnant
+        if user:
+            results.append(user)
+
     total = len(results)
 
     return Pagination(results, total, page, per_page)
