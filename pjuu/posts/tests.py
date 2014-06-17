@@ -691,3 +691,35 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 404)
 
         # Create a comment for each user on the only remaining post (2)
+        self.assertEqual(create_comment(1, 2, 'Test comment, user 1'), 1)
+        self.assertEqual(create_comment(2, 2, 'Test comment, user 2'), 2)
+
+        # Visit the post ensure the comments are there and there is a delete
+        # button, there should only be one as we are user 1 :)
+        resp = self.client.get(url_for('view_post', username='test2', pid=2))
+        # Make sure both comments are there
+        self.assertIn('Test comment, user 1', resp.data)
+        self.assertIn('Test comment, user 2', resp.data)
+        # Ensure the delete button is there
+        self.assertIn('<div class="delete">X</div>', resp.data)
+
+        # Let's delete are out comment
+        resp = self.client.get(url_for('delete_post', username='test2', pid=2,
+                                       cid=1), follow_redirects=True)
+        # Check we have confirmation
+        self.assertIn('Comment has been deleted', resp.data)
+        # Lets check that comment 2 is there
+        self.assertIn('Test comment, user 2', resp.data)
+        # Lets ensure our comment is gone and that the delete button is gone
+        self.assertNotIn('Test comment, user 1', resp.data)
+        self.assertNotIn('<div class="delete">X</div>', resp.data)
+
+        # Attempt to delete user 2's post we shoudl receive a 403
+        resp = self.client.get(url_for('delete_post', username='test2', pid=2,
+                                       cid=2))
+        self.assertEqual(resp.status_code, 403)
+
+        # Let's just ensure the comment wasn't deleted
+        resp = self.client.get(url_for('view_post', username='test2', pid=2))
+        self.assertIn('Test comment, user 2', resp.data)
+        # Done for now

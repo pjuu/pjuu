@@ -30,4 +30,5 @@ from pjuu import create_app
 # Create the Pjuu WSGI application for mod_wsgi
 # You can pass in your production settings to the create_app() so you do not
 # have to override any settings in settings.py :)
+# This is the worlds most simple file. Looks at __init__ for more information.
 application = create_app()

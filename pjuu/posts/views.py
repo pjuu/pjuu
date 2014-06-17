@@ -161,7 +161,14 @@ def delete_post(username, pid, cid=None):
     """
     Deletes posts and comments.
     """
-    redirect_url = handle_next(request, url_for('feed'))
+    # The default redirect is different for a post/comment deletion
+    # Comment deletion keeps you on the page and post deletion takes you
+    # to your feed
+    if cid is not None:
+        redirect_url = handle_next(request, url_for('view_post',
+            username=username, pid=pid))
+    else:
+        redirect_url = handle_next(request, url_for('feed'))
 
     uid = get_uid(username)
     if not check_post(uid, pid, cid):

@@ -1,4 +1,4 @@
-s<div id="author" class="block author-comment clearfix">
+<div id="author" class="block author-comment clearfix">
     <h1>Make a comment</h1>
     <form action="{{ url_for('comment', username=post.user_username, pid=post.pid, next=request.path)  }}" method="post">
         {{ post_form.body(rows=3, maxlength=255) }}
