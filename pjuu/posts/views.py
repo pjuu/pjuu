@@ -91,6 +91,7 @@ def comment(username, pid):
 
 @app.route('/<username>/<int:pid>/upvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/upvote', methods=['GET'])
+@login_required
 def upvote(username, pid=-1, cid=None):
     """
     Upvotes a post or comment.
@@ -121,6 +122,7 @@ def upvote(username, pid=-1, cid=None):
 
 @app.route('/<username>/<int:pid>/downvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/downvote', methods=['GET'])
+@login_required
 def downvote(username, pid=-1, cid=None):
     """
     Downvotes a post or comment.
