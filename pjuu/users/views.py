@@ -36,7 +36,7 @@ from pjuu.posts.forms import PostForm
 from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments, search as be_search)
+                      get_comments, search as be_search, set_about)
 
 
 # Username regular expressions
@@ -324,8 +324,7 @@ def settings_profile():
             # Update current_user, this was highlighted by Ant is issue 1
             current_user['about'] = form.about.data
             # Set the users new about in Redis
-            r.hset('user:%s' % current_user['uid'], 'about', form.about.data)
-            current_user['about'] = form.about.data
+            set_about(current_user['uid'], form.about.data)
             flash('Your profile has been updated', 'success')
         else:
             flash('error in your form', 'error')

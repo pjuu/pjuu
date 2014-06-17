@@ -688,6 +688,6 @@ class FrontendTests(unittest.TestCase):
                       resp.data)
         # Let's ensure the post no longer exists
         resp = self.client.get(url_for('view_post', username='test1', pid=1))
-        self.assertEqual(resp.status_code, 404
+        self.assertEqual(resp.status_code, 404)
 
         # Create a comment for each user on the only remaining post (2)

@@ -11,8 +11,7 @@
 # Will show debug information when running in 'manage.py runserver'
 DEBUG = True
 
-# Are you testing Pjuu? This will prevent Flask-Mail sending any e-mails and
-# will also force Flask-WTF Recaptcha to return True
+# Are you testing Pjuu? This will prevent Flask-Mail sending any e-mails
 TESTING = True
 
 # In the case of testing we need a server name, so here's one:
@@ -52,15 +51,6 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 WTF_CSRF_ENABLED = True
 # Change this for extra security
 WTF_CSRF_SESSION_KEY = SECRET_KEY
-
-# Recaptcha
-# Add in your Recaptcha keys here
-RECAPTCHA_USE_SSL = True
-RECAPTCHA_PUBLIC_KEY = ''
-RECAPTCHA_PRIVATE_KEY = ''
-RECAPTCHA_OPTIONS = {
-    'theme': 'white'
-}
 
 # Pagination
 FEED_ITEMS_PER_PAGE = 25

@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # the unittest's.
     app = create_app(config_dict={
             # Testing needs to be enabled so that we can get passed the
-            # recaptcha in tests and also so Flask-Mail does not send mail
+            # in tests and also so Flask-Mail does not send mail
             'TESTING': 'True',
             # We need a SERVER_NAME so that we can use url_for()
             'SERVER_NAME': 'localhost',

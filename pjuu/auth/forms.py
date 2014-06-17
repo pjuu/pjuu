@@ -22,7 +22,7 @@ Licence:
 """
 
 # 3rd party imports
-from flask.ext.wtf import Form, RecaptchaField
+from flask.ext.wtf import Form
 from wtforms import BooleanField, PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
@@ -97,8 +97,6 @@ class ChangeEmailForm(Form):
 class SignUpForm(Form):
     """
     Allow users to signup.
-
-    Note: In testing mode recaptcha will always evaluate
     """
     username = TextField('User name', [
         Regexp(r'^\w{3,16}$',
@@ -112,7 +110,6 @@ class SignUpForm(Form):
                message='Password must be at least 6 characters long'),
         Required()])
     password2 = PasswordField('Confirm password')
-    recaptcha = RecaptchaField()
 
     def validate_username(form, field):
         if not check_username(field.data):

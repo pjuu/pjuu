@@ -232,3 +232,15 @@ def search(query):
     total = len(results)
 
     return Pagination(results, total, 1, per_page)
+
+
+def set_about(uid, about):
+    """
+    Set a users about message on their profile.
+
+    This is a simple Redis operation but is here so all Redis actions are in
+    the backends
+    """
+    uid = int(uid)
+    # Set the about message for the user in their hash
+    r.hset(K.USER % uid, 'about', about)

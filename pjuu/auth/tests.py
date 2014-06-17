@@ -480,9 +480,8 @@ class FrontendTests(unittest.TestCase):
         """
         Tests the signup and activate endpoint inside Pjuu.
 
-        There are some limitations to this! We can not test Recaptcha and we
-        can also not test e-mails are actually being sent. These should be
-        tested manually when you are running production settings.
+        There are some limitations to this! We can not test e-mail sending as
+        this will not be available on Travis.
         """
         # Test that we can GET the signup page
         resp = self.client.get(url_for('signup'))

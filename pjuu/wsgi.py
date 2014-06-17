@@ -24,8 +24,6 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib import
-import os
 # Pjuu imports
 from pjuu import create_app
 

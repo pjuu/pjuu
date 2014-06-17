@@ -95,15 +95,6 @@ input[type=submit] {
     padding: 0.5em 1em;
 }
 
-/* recaptcha */
-#recaptcha_widget_div {
-    margin: 0.5em auto 1em;
-}
-
-#recaptcha_area {
-    margin: 0 auto;
-}
-
 /* FLASH MESSAGES ========================================================= */
 .message {
     border-radius: 3px;
