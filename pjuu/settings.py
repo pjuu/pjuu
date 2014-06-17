@@ -1,9 +1,12 @@
 # -*- coding: utf8 -*-
 
 # Pjuu example settings file
-# Please change the below for production
+# Please copy this file and change the below for production
+
 # Please make sure all settings have been updated for your
-# development environment
+# development environment in this file! This file is used by run_server and
+# also by run_tests, with run_tests it will automatically override some
+# settings to allow the tests to run. See run_tests.py for more details
 
 # Will show debug information when running in 'manage.py runserver'
 DEBUG = True
@@ -22,6 +25,8 @@ SECRET_KEY = 'Development Key'
 # Redis settings (this is just the datastore, not sessions)
 REDIS_HOST = 'localhost'
 REDIS_DB = 0
+# Ensure that Unicode string are decoded
+REDIS_DECODE_RESPONSES = True
 
 # Sessions
 # Redis settings for sessions

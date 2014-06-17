@@ -1,6 +1,5 @@
 # -*- coding: utf8 -*-
 
-
 """
 Description:
     Auth view dectorators

@@ -1,21 +1,25 @@
 # -*- coding: utf8 -*-
 
-##############################################################################
-# Copyright 2014 Joe Doherty <joe@pjuu.com>
-#
-# Pjuu is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Pjuu is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
+"""
+Description:
+    The actual Flask endpoints for the posts system.
+
+Licence:
+    Copyright 2014 Joe Doherty <joe@pjuu.com>
+
+    Pjuu is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Pjuu is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 # 3rd party imports
 from flask import current_app as app, abort, flash, redirect, request, url_for
@@ -63,7 +67,8 @@ def post(redirect_url=None):
         pid = create_post(current_user['uid'], form.body.data)
         flash('Your post has been added', 'success')
     else:
-        # This alert can handle only 1 form error
+        # This flash can handle only 1 form error
+        # TODO replace this implementation of dealing with errors
         flash(form.body.errors[0], 'error')
     return redirect(redirect_url)
 
@@ -84,12 +89,12 @@ def comment(username, pid):
     else:
         # This alert can handle only 1 form error
         flash(form.body.errors[0], 'error')
-
     return redirect(redirect_url)
 
 
 @app.route('/<username>/<int:pid>/upvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/upvote', methods=['GET'])
+@login_required
 def upvote(username, pid=-1, cid=None):
     """
     Upvotes a post or comment.
@@ -120,6 +125,7 @@ def upvote(username, pid=-1, cid=None):
 
 @app.route('/<username>/<int:pid>/downvote', methods=['GET'])
 @app.route('/<username>/<int:pid>/<int:cid>/downvote', methods=['GET'])
+@login_required
 def downvote(username, pid=-1, cid=None):
     """
     Downvotes a post or comment.

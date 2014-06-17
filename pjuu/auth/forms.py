@@ -2,7 +2,7 @@
 
 """
 Description:
-    Forms used in the auth module
+    Forms used in the auth package
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>

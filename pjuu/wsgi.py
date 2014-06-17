@@ -2,7 +2,10 @@
 
 """
 Description:
-    Forms used in the posts package
+    This file is what should be imported to deploy Pjuu.
+
+    This is just a simple system for loading an application. If you rename this
+    file too .wsgi rather than .py it should work with Apache also.
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -21,15 +24,12 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# 3rd party imports
-from flask.ext.wtf import Form
-from wtforms import TextAreaField
-from wtforms.validators import Required, Length
+# Stdlib import
+import os
+# Pjuu imports
+from pjuu import create_app
 
-
-class PostForm(Form):
-    """
-    This is the form used for Posts and Comments at the momment.
-    """
-    body = TextAreaField('Post', [Required(), Length(max=255,
-               message='Posts can not be larger than 255 characters')])
+# Create the Pjuu WSGI application for mod_wsgi
+# You can pass in your production settings to the create_app() so you do not
+# have to override any settings in settings.py :)
+application = create_app()

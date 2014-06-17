@@ -73,6 +73,10 @@ def create_app(config_filename='settings.py', config_dict=None):
     # This is useful for testing, we use it for Travis-CI, see run_tests.py
     app.config.update(config_dict)
 
+    # You can also set an environment variable called PJUU_SETTINGS this will
+    # override all other Settings applied to Pjuu so long as you define them
+    app.config.from_envvar('PJUU_SETTINGS', silent=True)
+
     # This is the _MAIN_ redis client. ONLY STORE DATA HERE
     redis.init_app(app)
 
