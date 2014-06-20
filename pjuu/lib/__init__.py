@@ -43,7 +43,7 @@ def handle_next(request, default_url='/'):
     """
     Will handle passing next to an argument and ensure it is safe
     """
-    redirect_url = request.values.get('next', None)
+    redirect_url = request.args.get('next', None)
     if not redirect_url or not is_safe_url(request.host_url, redirect_url):
         redirect_url = default_url
     return redirect_url

@@ -319,12 +319,15 @@ class FrontendTests(unittest.TestCase):
         r.flushdb()
         # Get our test client
         self.client = app.test_client()
-        g.token = None
+        # Push a request context
+        self.ctx = app.test_request_context()
+        self.ctx.push()
 
     def tearDown(self):
         """
         Simply flush the database. Keep it clean for other tests
         """
+        self.ctx.pop()
         r.flushdb()
 
     def test_post(self):

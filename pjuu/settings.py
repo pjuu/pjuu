@@ -12,10 +12,10 @@
 DEBUG = True
 
 # Are you testing Pjuu? This will prevent Flask-Mail sending any e-mails
-TESTING = True
+TESTING = False
 
 # In the case of testing we need a server name, so here's one:
-#SERVER_NAME = 'localhost'
+# SERVER_NAME = 'localhost'
 
 # Keep it secret, keep it safe
 # Ensure you change this!

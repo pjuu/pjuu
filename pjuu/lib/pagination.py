@@ -72,11 +72,11 @@ class Pagination(object):
         return self.page < self.pages
 
 
-def handle_page(request, default_url='/'):
+def handle_page(request):
     """
     Will handle passing 'page' to an view and ensure it is safe
     """
-    page = request.values.get('page', None)
+    page = request.args.get('page', None)
     # Ensure the page is a valid integer
     try:
         page = int(page)

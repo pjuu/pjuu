@@ -3,6 +3,9 @@
 {% block list %}
 {% if pagination.items %}
 {% for item in pagination.items %}
+{% if config.TESTING %}
+<!-- list:post:{{item.pid}} -->
+{% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
     <div class="top-section">
         <img class="avatar" src="{{ item.user_email|avatar(24) }}"/>

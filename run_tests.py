@@ -61,6 +61,9 @@ if __name__ == '__main__':
             'SESSION_REDIS_DB': 3
         })
 
+    # Create a request context to run all of the tests in.
+    # The FrontendTests in each module will create a test request context
+    # before each test and pop it afterwards
     with app.app_context():
         # Prepare for testing
         test_loader = unittest.defaultTestLoader
