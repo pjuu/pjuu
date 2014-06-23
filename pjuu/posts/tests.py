@@ -360,8 +360,7 @@ class FrontendTests(unittest.TestCase):
 
         # We are now logged in :) Let's ensure we can't GET the /post endpoint
         resp = self.client.get(url_for('post'))
-        # WTF! Why is this 404? See the comment tests and you will see a 405!
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 405)
 
         # Lets post a test post
         # Because we are not passing a next query param we will be redirected

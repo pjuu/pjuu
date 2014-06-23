@@ -53,12 +53,18 @@ def voted_filter(pid, cid=None):
     return vote
 
 
-@app.route('/post', methods=['POST'])
+@app.route('/post', methods=['GET', 'POST'])
 @login_required
 def post(redirect_url=None):
     """
     current_user creates a new post on Pjuu :)
+
+    This view accepts GET and POST yet only acts on a POST. This is so that the
+    Werkzeug router does not treat this like a profile lookup
     """
+    if request.method == 'GET':
+        return abort(405)
+
     redirect_url = handle_next(request,
         url_for('profile', username=current_user['username']))
 

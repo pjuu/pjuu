@@ -368,10 +368,78 @@ class FrontendTests(unittest.TestCase):
 
     def test_view_post(self):
         """
-        Similar to above but check the same for the view_post page.
+        Similar to above but check the same for the view_post page. This is
+        mainly intended to check that comments render correctly
         """
-        # TODO: THIS
-        pass
+        # Create two test users
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        self.assertTrue(activate(1))
+        self.assertTrue(activate(2))
+
+        # Create a post as test1. We need this to ensure that we can not get
+        # to the endpoint if we are logged out
+        self.assertEqual(create_post(1, 'Test post'), 1)
+
+        # Ensure we can't hit the endpoing
+        resp = self.client.get(url_for('view_post', username='test1', pid=1),
+                               follow_redirects=True)
+        # Ensure we didn't get anything
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Let's ensure we can't GET the endpoint for commenting
+        # This is a POST only view
+        resp = self.client.get(url_for('comment', username='test1', pid=1),
+                               follow_redirects=True)
+        self.assertEqual(resp.status_code, 405)
+
+        # Let's ensure we can't POST to the endpoint for commenting when not
+        # logged in
+        resp = self.client.post(url_for('comment', username='test1', pid=1),
+                                data={'body': 'Test comment'},
+                                follow_redirects=True)
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Sign in
+        self.client.post(url_for('signin'), data={
+                'username': 'test1',
+                'password': 'Password'
+            }, follow_redirects=True)
+
+        # Ensure that we can not see the endpoint
+        resp = self.client.get(url_for('view_post', username='test1', pid=1),
+                               follow_redirects=True)
+        self.assertIn('<!-- view:post:1 -->', resp.data)
+        self.assertIn('Test post', resp.data)
+
+        # Ensure we ourselves can comment on the post
+        resp = self.client.post(url_for('comment', username='test1', pid=1),
+                                data={'body': 'Test comment'},
+                                follow_redirects=True)
+        self.assertIn('<!-- list:comment:1 -->', resp.data)
+        self.assertIn('Test comment', resp.data)
+
+        # Let's logout and log in as test2
+        self.client.get(url_for('signout'))
+        self.client.post(url_for('signin'), data={
+                'username': 'test2',
+                'password': 'Password'
+            })
+        # Check that we can see the comment
+        resp = self.client.get(url_for('view_post', username='test1', pid=1),
+                               follow_redirects=True)
+        self.assertIn('<!-- view:post:1 -->', resp.data)
+        self.assertIn('Test post', resp.data)
+        self.assertIn('<!-- list:comment:1 -->', resp.data)
+        self.assertIn('Test comment', resp.data)
+
+        # Let's ensure that we test2 can post a comment
+        resp = self.client.post(url_for('comment', username='test1', pid=1),
+                                data={'body': 'Test comment test2'},
+                                follow_redirects=True)
+        self.assertIn('<!-- list:comment:2 -->', resp.data)
+        self.assertIn('Test comment test2', resp.data)
+        # Done for now
 
     def test_follow_unfollow(self):
         """

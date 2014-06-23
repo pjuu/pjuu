@@ -1,14 +1,10 @@
 {% extends 'base.html' %}
 
-{% block additional_css %}
-<link href="{{ url_for('static', filename='css/auth.css') }}" rel="stylesheet" type="text/css">
-{% endblock %}
-
 {% block layout %}
 <div id="auth">
     <div class="container">
-        <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}"/>
-        <div class="motto">An open source social thing</div>
+        <img class="logo" src="{{ url_for('static', filename='img/logo_otter.svg') }}" width="200"/>
+        <div class="motto"><b>Pjuu</b> - An open source social thing</div>
         {% include 'messages.html' %}
         <div class="form clearfix">
             <h1>{% block header %}{% endblock %}</h1>

@@ -3,6 +3,9 @@
 {% block title %}Post - {{ post.user_username|capitalize }}{% endblock %}
 
 {% block main %}
+{% if config.TESTING %}
+<!-- view:post:{{post.pid}} -->
+{% endif %}
 <div id="post" class="block clearfix">
     <div class="top-section">
         <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
