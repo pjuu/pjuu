@@ -1,18 +1,14 @@
 language: python
-
 python:
-  - "2.7"
-
+- '2.7'
 services:
-  - redis-server
-
+- redis-server
 install:
-  - pip install -r .travis-requirements.txt
-
+- pip install -r .travis-requirements.txt
 script:
-  - "./run_tests.py"
-
+- ./run_tests.py
 notifications:
   email:
-    recipients:
-      - build@pjuu.com
+    - build@pjuu.com
+  hipchat:
+    secure: "Xe7w97SNj6ATiq9okqneO+SymBggzmhZg0R5sf+R3xgNGBbuQSEi7WRqyICkmM2zEKWeapWDX/vNn0s/UxO+4r6KHncyWBPv97Bef6KbNNwTI0okTguy8HXVGTD6RDLOiaYdCX2yB8oFVb/v4soeglKqmPienuCZdTdV24ZQg/k="
