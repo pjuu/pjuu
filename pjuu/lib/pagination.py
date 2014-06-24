@@ -37,8 +37,13 @@ class Pagination(object):
     def __init__(self, items, total, page=1, per_page=50):
         self.items = items
         self.total = total
-        self.page = page
         self.per_page = per_page
+        self.page = page
+        # If a user types a very large page number these will make the prev
+        # button go to the last page. This is not perfect and may mean a
+        # design change for Pagination in the future
+        if page > self.pages:
+            self.page = self.pages + 1
 
     @property
     def pages(self):
