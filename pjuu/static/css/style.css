@@ -142,7 +142,7 @@ input[type=submit] {
 
 #auth .container {
     margin: 0 auto;
-    min-width: 320px;
+    min-width: 300px;
     max-width: 380px;
 }
 
@@ -799,6 +799,13 @@ input[type=submit] {
 
     #auth .container {
         width: 98%;
+    }
+
+    #auth .logo {
+        display: block;
+        margin: 1em auto 0;
+        padding: 0;
+        width: 40%;
     }
 
     #header .container {
