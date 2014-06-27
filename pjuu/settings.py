@@ -12,7 +12,11 @@
 DEBUG = True
 
 # Are you testing Pjuu? This will prevent Flask-Mail sending any e-mails
-TESTING = False
+# This is on by default so you do not need a e-mail server. To use auth tokens
+# you can find them in Headers as X-Pjuu-Token on the return from a function.
+# Note: It will be attached to the 302 is most cases so ensure you check the
+# correct response to find this
+TESTING = True
 
 # In the case of testing we need a server name, so here's one:
 # SERVER_NAME = 'localhost'
@@ -68,4 +72,6 @@ TOKEN_SALT_EMAIL = 'EMAIL'
 # If you do not add a Sentry DSN you will not receive any logging information
 # If you do not run Sentry then you can add a custom logger in see the Flask
 # documentation: http://flask.pocoo.org/docs/errorhandling/
+# You will need to do add a custom one inside the __init__.py file within the
+# create_app() function.
 SENTRY_DSN = ''
