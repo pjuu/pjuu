@@ -8,15 +8,14 @@
     <link href="{{ url_for('static', filename='css/normalize.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css"/>
     {% block additional_css %}{% endblock %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
-    {% block additional_js %}{% endblock %}
 </head>
 <body>
-<div id="wrapper">
-    {% block layout %}{% endblock %}
-</div>
-<script type="text/javascript" src="{{ url_for('static', filename='js/author.js') }}"></script>
-{% block additional_footer_js %}{% endblock %}
+    <div id="wrapper">
+        {% block layout %}{% endblock %}
+    </div>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/author.js') }}"></script>
+    {% block additional_js %}{% endblock %}
 </body>
 </html>
