@@ -4,6 +4,8 @@
 Hi,
 
 Welcome to Pjuu. You can now do social type things. :)
+
+Hope you have fun
 {% endblock %}
 
 {% block content_footer %}

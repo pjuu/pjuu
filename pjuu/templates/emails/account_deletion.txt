@@ -9,5 +9,4 @@ Thank you for using Pjuu. We hope you enjoyed using it.
 {% endblock %}
 
 {% block content_footer %}
-If you have received this e-mail but have not signed up for the Pjuu then you can simply ignore this e-mail.
 {% endblock %}

@@ -1,6 +1,8 @@
 {% extends 'emails/base.txt' %}
 
 {% block content %}
+Hi,
+
 You have asked for a password reset.
 
 If you click the link below you will then be able to reset your password.
