@@ -28,7 +28,7 @@
                 {{ post.body|e|urlize|nameify }}
                 {% endautoescape %}
             </div>
-            <div class="created">{{ post.created|timeify }}</div>
+            <div class="created">{{ post.created|timeify }} GMT</div>
         </div>
     </div>
     <div class="panel clearfix">
