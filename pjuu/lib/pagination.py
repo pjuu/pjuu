@@ -39,11 +39,6 @@ class Pagination(object):
         self.total = total
         self.per_page = per_page
         self.page = page
-        # If a user types a very large page number these will make the prev
-        # button go to the last page. This is not perfect and may mean a
-        # design change for Pagination in the future
-        if page > self.pages:
-            self.page = self.pages + 1
 
     @property
     def pages(self):
@@ -62,6 +57,10 @@ class Pagination(object):
 
     @property
     def prev_num(self):
+        # So nothing goes wrong if the page number is higher than
+        # the page count
+        if self.page > self.pages:
+            return self.pages
         return self.page - 1
 
     @property
@@ -85,6 +84,10 @@ def handle_page(request):
     # Ensure the page is a valid integer
     try:
         page = int(page)
+        # Hack fix to stop integers too large being sent to Redis
+        # TODO: Fix This
+        if page > 4294967295:
+            page = 4294967295
     except (TypeError, ValueError):
         page = 1
     return page

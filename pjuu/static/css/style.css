@@ -674,6 +674,7 @@ input[type=submit] {
 /* PAGINATION ============================================================= */
 #pagination {
     font-size: 13px;
+    font-weight: 700;
     padding: 0 0.5em 0.5em;
 }
 
@@ -685,18 +686,20 @@ input[type=submit] {
     background-color: #EEE;
     border: 1px solid #BBB;
     border-radius: 3px;
-    color: #BBB;
+    color: #333;
     padding: 0.25em 0;
     text-align: center;
-    width: 6em;
+    width: 4em;
 }
 
 #pagination .prev {
     float: left;
+    margin: 0 1em 0 0;
 }
 
 #pagination .next {
     float: right;
+    margin: 0 0 0 1em;
 }
 
 /* SETTINGS ================================================================ */

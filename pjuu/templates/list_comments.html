@@ -46,12 +46,12 @@
                 {% endif %}
             </li>
             {% else %}
-            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
+            <a href="{{ url_for('upvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path + '?' + request.query_string) }}">
                <li class="voting-item link">
                     <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
                 </li>
             </a>
-            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
+            <a href="{{ url_for('downvote', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path + '?' + request.query_string) }}">
                 <li class="voting-item link">
                     <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
                 </li>

@@ -12,13 +12,13 @@
         <div class="control">
             {% if item.uid != current_user['uid'] %}
             {% if item|following %}
-            <a href="{{ url_for('unfollow', username=item.username, next=request.url) }}">
+            <a href="{{ url_for('unfollow', username=item.username, next=request.path + '?' + request.query_string) }}">
                 <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
                      class="action-button unfollow">Following
                 </div>
             </a>
             {% else %}
-            <a href="{{ url_for('follow', username=item.username, next=request.url) }}">
+            <a href="{{ url_for('follow', username=item.username, next=request.path + '?' + request.query_string) }}">
                 <div class="action-button follow">Follow</div>
             </a>
             {% endif %}
