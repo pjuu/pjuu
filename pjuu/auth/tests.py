@@ -535,6 +535,40 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('E-mail address already in use', resp.data)
         self.assertIn('Passwords must match', resp.data)
 
+        # Try a few scenarios with email addresses we are not happy about.
+        resp = self.client.post(url_for('signup'), data={
+                'username': 'test1',
+                'email': 'test#test@pjuu.com',
+                'password': 'Password',
+                'password2': 'Password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Ensure there is an overall form error
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+        self.assertIn('Invalid email address', resp.data)
+
+        resp = self.client.post(url_for('signup'), data={
+                'username': 'test1',
+                'email': 'test#test@pjuu.com',
+                'password': 'Password',
+                'password2': 'Password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Ensure there is an overall form error
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+        self.assertIn('Invalid email address', resp.data)
+
+        # Ensure that we CAN signup with a + in the name. This is a hate of
+        # mine. Not being able to namespace my e-mail addresses
+        resp = self.client.post(url_for('signup'), data={
+                'username': 'test2',
+                'email': 'test+test2@pjuu.com',
+                'password': 'Password',
+                'password2': 'Password'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Yay! You\'ve signed up', resp.data)
+
         # Log in to Pjuu so that we can make sure we can not get back to signup
         resp = self.client.post(url_for('signin'), data={
                 'username': 'test',

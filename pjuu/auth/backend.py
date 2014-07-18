@@ -35,9 +35,12 @@ from pjuu import redis as r
 from pjuu.lib import keys as K, lua as L, timestamp
 
 
-# E-mail checker
-USERNAME_RE = re.compile(r'^\w{3,16}$')
-EMAIL_RE = re.compile(r'^.+@[^.].*\.[a-z]{2,10}$')
+# Username & E-mail checker re patters
+USERNAME_PATTERN = r'^\w{3,16}$'
+EMAIL_PATTERN = r'^[^@%!/|`#&?]+@[^.@%!/|`#&?][^@%!/|`#&?]*\.[a-z]{2,10}$'
+# Usuable regular expression objects
+USERNAME_RE = re.compile(USERNAME_PATTERN)
+EMAIL_RE = re.compile(EMAIL_PATTERN)
 
 
 # Token signers, These work along with lib/tokens.py
@@ -190,16 +193,25 @@ def get_email(uid):
     return r.hget(K.USER % uid, 'email')
 
 
-def check_username(username):
-    """ READ
-    Used to check for username availability inside the signup form.
-    Returns true if the name is free, false otherwise
+def check_username_pattern(username):
+    """ N/A
+    Used to check a username matches a REGEX pattern
     """
     username = username.lower()
 
     # Check the username is valud
     if not USERNAME_RE.match(username):
         return False
+
+    return True
+
+
+def check_username(username):
+    """ READ
+    Used to check for username availability inside the signup form.
+    Returns true if the name is free, false otherwise
+    """
+    username = username.lower()
 
     # Check the username is not reserved
     if username in RESERVED_NAMES:
@@ -213,16 +225,26 @@ def check_username(username):
     return True
 
 
-def check_email(email):
-    """ READ
-    Used to check an e-mail addresses availability.
-    Return true if free and false otherwise.
+def check_email_pattern(email):
+    """ N/A
+    Used to check an e-mail addresses matches the REGEX pattern.
     """
     email = email.lower()
 
     # Check the email is actually a valid e-mail
     if not EMAIL_RE.match(email):
         return False
+
+    # Email is correct
+    return True
+
+
+def check_email(email):
+    """ READ
+    Used to check an e-mail addresses availability.
+    Return true if free and false otherwise.
+    """
+    email = email.lower()
 
     # Ensure no one is already using the email address
     # This will also catch emails which have been deleted in the
@@ -241,7 +263,8 @@ def create_user(username, email, password):
     """
     username = username.lower()
     email = email.lower()
-    if check_username(username) and check_email(email):
+    if check_username(username) and check_email(email) and \
+       check_username_pattern(username) and check_email_pattern(email):
         # Create the user lookup keys and get the uid. This LUA script ensures
         # that the name can not be taken at the same time causing a race
         # condition

@@ -28,7 +28,8 @@ from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Pjuu imports
 from . import current_user
-from .backend import check_email, check_username, authenticate
+from .backend import (check_email, check_username, authenticate, EMAIL_PATTERN,
+                      USERNAME_PATTERN)
 
 
 class ForgotForm(Form):
@@ -81,8 +82,9 @@ class ChangeEmailForm(Form):
     """
     Allow users to change their own e-mail address
     """
-    new_email = TextField('New e-mail address', [Email(),
-                                                 Length(max=254), Required()])
+    new_email = TextField('New e-mail address', [
+        Regexp(EMAIL_PATTERN, message='Invalid email address'),
+        Length(max=254), Required()])
     password = PasswordField('Current password')
 
     def validate_new_email(form, field):
@@ -99,11 +101,13 @@ class SignUpForm(Form):
     Allow users to signup.
     """
     username = TextField('User name', [
-        Regexp(r'^\w{3,16}$',
+        Regexp(USERNAME_PATTERN,
                message=('Must be between 3 and 16 characters and can only '
                         'contain letters, numbers and \'_\' characters.')),
         Required()])
-    email = TextField('E-mail address', [Email(), Length(max=254), Required()])
+    email = TextField('E-mail address', [
+        Regexp(EMAIL_PATTERN, message='Invalid email address'),
+        Length(max=254), Required()])
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
         Length(min=6,
