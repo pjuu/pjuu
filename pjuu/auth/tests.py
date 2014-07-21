@@ -143,6 +143,15 @@ class BackendTests(unittest.TestCase):
         self.assertTrue(bite(1, False))
         self.assertFalse(is_op(1))
 
+        # Account should not be muted
+        self.assertFalse(is_mute(1))
+        # Mute
+        self.assertTrue(mute(1))
+        self.assertTrue(is_mute(1))
+        # Un-mute
+        self.assertTrue(mute(1, False))
+        self.assertFalse(is_mute(1))
+
     def test_authenticate(self):
         """
         Check a user can authenticate

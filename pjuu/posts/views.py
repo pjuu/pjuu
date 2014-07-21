@@ -25,7 +25,7 @@ Licence:
 from flask import current_app as app, abort, flash, redirect, request, url_for
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import get_uid
+from pjuu.auth.backend import get_uid, is_mute
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from .backend import (create_post, create_comment, check_post, vote as be_vote,
@@ -68,6 +68,11 @@ def post(redirect_url=None):
     redirect_url = handle_next(request,
         url_for('profile', username=current_user['username']))
 
+    # Stop muted users from creating posts
+    if is_mute(current_user['uid']):
+        flash('You have been silenced!', 'warning')
+        return redirect(redirect_url)
+
     form = PostForm(request.form)
     if form.validate():
         pid = create_post(current_user['uid'], form.body.data)
@@ -87,6 +92,11 @@ def comment(username, pid):
     """
     redirect_url = handle_next(request,
         url_for('view_post', username=username, pid=pid))
+
+    # Stop muted users from commenting
+    if is_mute(current_user['uid']):
+        flash('You have been silenced!', 'warning')
+        return redirect(redirect_url)
 
     form = PostForm(request.form)
     if form.validate():

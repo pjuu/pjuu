@@ -35,7 +35,7 @@ from .lib.sessions import RedisSessionInterface
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.3'
+__version__ = '0.4'
 
 
 # Global Flask-Mail object

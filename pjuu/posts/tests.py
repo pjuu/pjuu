@@ -28,7 +28,7 @@ from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
-from pjuu.auth.backend import create_user, activate, get_user
+from pjuu.auth.backend import create_user, activate, get_user, mute
 from pjuu.users.backend import follow_user
 from .backend import *
 
@@ -449,6 +449,27 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('A second post', resp.data)
         self.assertIn('Hello followers', resp.data)
         self.assertIn('光铸钥匙', resp.data)
+
+        # Check that a muted user can not create a post
+        # Mute out user
+        self.assertTrue(mute(1))
+        resp = self.client.post(url_for('post', next=url_for('feed')), data={
+                'body': 'Muting test'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Let's ensure the warning is there
+        self.assertIn('You have been silenced!', resp.data)
+        self.assertNotIn('Muting test', resp.data)
+        # Un-mute the user and try and post the same thing
+        self.assertTrue(mute(1, False))
+        resp = self.client.post(url_for('post', next=url_for('feed')), data={
+                'body': 'Muting test'
+            }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Let's ensure the warning is there
+        self.assertNotIn('You have been silenced!', resp.data)
+        self.assertIn('Muting test', resp.data)
+
         # Done for now
 
     def test_comment(self):
@@ -521,9 +542,30 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('Test comment', resp.data)
         self.assertIn('Comment 2', resp.data)
 
+        # Lets check we can not comment if we are muted
+        self.assertTrue(mute(2))
+        resp = self.client.post(url_for('comment', username='test', pid=1),
+                                data={'body': 'Muting test'},
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Check that the comment was never posted
+        self.assertIn('You have been silenced!', resp.data)
+        self.assertNotIn('Muting test', resp.data)
+
+        # Reverse the muting and test again
+        self.assertTrue(mute(2, False))
+        resp = self.client.post(url_for('comment', username='test', pid=1),
+                                data={'body': 'Muting test'},
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Check that the comment was never posted
+        self.assertNotIn('You have been silenced!', resp.data)
+        self.assertIn('Muting test', resp.data)
+
         # Lets signout
         resp = self.client.get(url_for('signout'))
         self.assertEqual(resp.status_code, 302)
+
         # Done for now
 
     def test_up_down_vote(self):

@@ -282,6 +282,7 @@ def create_user(username, email, password):
                 'active': 0,
                 'banned': 0,
                 'op': 0,
+                'muted': 0,
                 'about': "",
                 'score': 0
             }
@@ -323,6 +324,18 @@ def is_op(uid):
     try:
         uid = int(uid)
         result = int(r.hget(K.USER % uid, "op"))
+        return bool(result)
+    except (TypeError, ValueError):
+        return False
+
+
+def is_mute(uid):
+    """ READ
+    Checks to see if a user account has been muted
+    """
+    try:
+        uid = int(uid)
+        result = int(r.hget(K.USER % uid, "muted"))
         return bool(result)
     except (TypeError, ValueError):
         return False
@@ -405,13 +418,31 @@ def bite(uid, action=True):
     """ READ/WRITE
     Bite a user (think spideman), makes them op
 
-    By passing False as action this will unban the user
+    By passing False as action this will unbite the user
     """
     try:
         uid = int(uid)
         if r.exists(K.USER % uid):
             action = int(action)
             r.hset(K.USER % uid, 'op', action)
+            return True
+        else:
+            return False
+    except (TypeError, ValueError):
+        return False
+
+
+def mute(uid, action=True):
+    """ READ/WRITE
+    Mutes a user, this stops them from posting, commenting or following users
+
+    By passing False as action this will un-mute the user
+    """
+    try:
+        uid = int(uid)
+        if r.exists(K.USER % uid):
+            action = int(action)
+            r.hset(K.USER % uid, 'muted', action)
             return True
         else:
             return False
