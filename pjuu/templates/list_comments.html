@@ -10,7 +10,9 @@
     <div class="top-section">
         <img class="avatar" src="{{ item.user_email|avatar(24) }}"/>
         <div class="control">
-            {% if item.user_username == current_user.username %}
+            {# post is from the view template which calls this template! This allows users who
+               own the posts to delete comments made on there post #}
+            {% if item.user_username == current_user.username or post.user_username == current_user.username %}
             <a href="{{ url_for('delete_post', username=item.post_author, pid=item.pid, cid=item.cid, next=request.path) }}">
                 <div class="delete">X</div>
             </a>

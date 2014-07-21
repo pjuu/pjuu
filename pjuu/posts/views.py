@@ -192,9 +192,13 @@ def delete_post(username, pid, cid=None):
 
     if cid is not None:
         author_uid = get_comment_author(cid)
-        if author_uid != int(current_user['uid']):
+        # Allow not only the comment author to remove the comment but also
+        # allow the post author to do so!
+        if author_uid != int(current_user['uid']) and \
+           uid != int(current_user['uid']):
             return abort(403)
     else:
+        # If this is a post ONLY allow the post author to delete
         if uid != int(current_user['uid']):
             return abort(403)
 
