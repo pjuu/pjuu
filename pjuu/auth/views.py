@@ -23,19 +23,20 @@ Licence:
 
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
-                   request, url_for, session, g)
+                   request, url_for, session, g, jsonify)
 # Pjuu imports
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
-from pjuu.auth.backend import delete_account as be_delete_account
 from . import current_user
 from .backend import (authenticate, login, logout, create_user,
                       activate as be_activate, get_user,
                       change_password as be_change_password,
                       change_email as be_change_email,
                       get_uid, is_active, is_banned, get_email,
-                      SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL)
+                      SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL,
+                      delete_account as be_delete_account,
+                      dump_account as be_dump_account)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                     ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
@@ -350,3 +351,12 @@ def delete_account():
             flash('Oops! wrong password', 'error')
 
     return render_template('delete_account.html', form=form)
+
+
+@app.route('/settings/dump', methods=['GET'])
+@login_required
+def dump_account():
+    # Dump the users account
+    data = be_dump_account(current_user['uid'])
+    # JSONify the data and display it to the user :) simple
+    return jsonify(data)

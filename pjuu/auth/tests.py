@@ -333,6 +333,64 @@ class BackendTests(unittest.TestCase):
         self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
         self.assertNotIn(u'1', r.zrange(K.USER_FOLLOWING % 2, 0, -1))
 
+    def test_dump_account(self):
+        """
+        Test dump_account. We will create some posts and comments and check all
+        this data appears in the dumps
+
+        Remember that ALL data coming out of Redis is a string. We are not
+        going to convert each type. EVERYTHING IS A STRING
+        """
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+
+        # Dump the account so that we can test :D
+        data = dump_account(1)
+
+        # Check we got some data
+        self.assertIsNotNone(data)
+        # Ensure that we can see the data in the 'user' key
+        self.assertEqual('test', data['user']['username'])
+        self.assertEqual('0', data['user']['active'])
+        # Check that uid and password have been scrubbed
+        self.assertEqual('<UID>', data['user']['uid'])
+        self.assertEqual('<PASSWORD HASH>', data['user']['password'])
+        # Ensure posts and comments are None
+        self.assertEqual([], data['posts'])
+        self.assertEqual([], data['comments'])
+
+        # Create some posts as the user and check they are in the dumps
+        self.assertEqual(create_post(1, 'Post 1'), 1)
+        self.assertEqual(create_post(1, 'Post 2'), 2)
+        self.assertEqual(create_post(1, 'Post 3'), 3)
+
+        data = dump_account(1)
+        self.assertIsNotNone(data)
+        # Ensure that the posts are there
+        self.assertNotEqual([], data['posts'])
+        self.assertEqual('Post 1', data['posts'][2]['body'])
+        self.assertEqual('Post 2', data['posts'][1]['body'])
+        self.assertEqual('Post 3', data['posts'][0]['body'])
+        # Ensure there is no a uid in the post
+        self.assertEqual('<UID>', data['posts'][0]['uid'])
+
+        # Create some comments on the above posts and re-dump
+        self.assertEqual(create_comment(1, 1, 'Comment 1'), 1)
+        self.assertEqual(create_comment(1, 1, 'Comment 2'), 2)
+        self.assertEqual(create_comment(1, 2, 'Comment 3'), 3)
+        self.assertEqual(create_comment(1, 3, 'Comment 4'), 4)
+
+        # Re-dumo the database
+        data = dump_account(1)
+        self.assertNotEqual([], data['comments'])
+        # Check that all 4 comments have been dumped
+
+        self.assertEqual('Comment 1', data['comments'][3]['body'])
+        self.assertEqual('Comment 2', data['comments'][2]['body'])
+        self.assertEqual('Comment 3', data['comments'][1]['body'])
+        self.assertEqual('Comment 4', data['comments'][0]['body'])
+
+        # This is a very basic test. May need expanding in the future
+
 ###############################################################################
 # FRONTEND ####################################################################
 ###############################################################################

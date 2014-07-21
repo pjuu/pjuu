@@ -583,3 +583,63 @@ def delete_account(uid):
 
     # All done. This code may need making safer in case there are issues
     # elsewhere in the code base
+
+
+def dump_account(uid):
+    """ READ
+    Will dump ALL of the users data as a dictionary ready for JSONify in the
+    front end :)
+
+    This WILL dump everything about the user. There is SOME caveats to this.
+    It will not list all voters on posts or comments as this is just meta data
+    on the posts. It will also not show your PASSWORD HASH as this probably
+    isn't a danger factor but lets not test that.
+
+    Your followers and following lists will also not be shown as these IDs are
+    related to a user which IS NOT the user dumping the data.
+
+    This will not list all comments underneath a post as this IS NOT the users
+    data either.
+
+    At the moment this WILL just dump account, posts and comments. ALL you have
+    not deleted
+    """
+    uid = int(uid)
+
+    # Attempt to get the users account
+    user = r.hgetall(K.USER % uid)
+    if user:
+        # We are going to remove the uid and the password hash as this may
+        # lead to some security issues
+        user['uid'] = '<UID>'
+        user['password'] = '<PASSWORD HASH>'
+    else:
+        # If there is no user then we will just stop this here. The account has
+        # gone, there is no data anyway
+        return None
+
+    # Get the users posts, pid's are not secret they are in the URLs. We will
+    # hide the UIDs however
+    posts = []
+    for pid in r.lrange(K.USER_POSTS % uid, 0, -1):
+        pid = int(pid)
+        post = r.hgetall(K.POST % pid)
+        # Don't add a post that does not exist
+        if post:
+            post['uid'] = '<UID>'
+            posts.append(post)
+
+    # Get a list of the users comments
+    comments = []
+    for cid in r.lrange(K.USER_COMMENTS % uid, 0, -1):
+        cid = int(cid)
+        comment = r.hgetall(K.COMMENT % cid)
+        if comment:
+            comment['uid'] = '<UID>'
+            comments.append(comment)
+
+    return {
+        'user': user,
+        'posts': posts,
+        'comments': comments
+    }
