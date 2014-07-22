@@ -199,61 +199,67 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
         # Create a post by user 1
         self.assertEqual(create_post(1, 'Test post'), 1)
+
+        # Get user 3 to downvote, this will test that the user can not go
+        # negative yet the post can
+        self.assertTrue(vote(3, 1, amount=-1))
+        # Ensure post score has been adjusted
+        self.assertEqual(get_post(1)['score'], '-1')
+        # Ensure user score has been adjusted
+        self.assertEqual(get_user(1)['score'], '0')
+
         # Get user 2 to upvote
         self.assertTrue(vote(2, 1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(1)['score'], '1')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
-        # Get user 3 to downvote
-        self.assertTrue(vote(3, 1, amount=-1))
-        # Ensure post score has been adjusted
         self.assertEqual(get_post(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')
+        self.assertEqual(get_user(1)['score'], '1')
         # Ensure user 1 can not vote on there own comment
         self.assertFalse(vote(1, 1))
         # Ensure the score didn't adjust (may be a code bug some day)
         # Ensure post score has been adjusted
         self.assertEqual(get_post(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')
+        self.assertEqual(get_user(1)['score'], '1')
         # Check to see if a user can vote twice on a comment
         self.assertFalse(vote(2, 1))
         # Ensure the score didn't adjust (may be a code bug some day)
         # Ensure post score has been adjusted
         self.assertEqual(get_post(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')        
+        self.assertEqual(get_user(1)['score'], '1')
+
         # Repeat the same tests on a comment
         # Create a comment by user 1
-        self.assertEqual(create_comment(1, 1, 'Test post'), 1)
-        # Get user 2 to upvote
-        self.assertTrue(vote(2, 1, 1))
-        # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '1')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
+        self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+
         # Get user 3 to downvote
         self.assertTrue(vote(3, 1, 1, amount=-1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '0')
+        self.assertEqual(get_comment(1)['score'], '-1')
         # Ensure user score has been adjusted
         self.assertEqual(get_user(1)['score'], '0')
+
+        # Get user 2 to upvote
+        self.assertTrue(vote(2, 1, 1))
+        # Ensure post score has been adjusted
+        self.assertEqual(get_comment(1)['score'], '0')
+        # Ensure user score has been adjusted
+        self.assertEqual(get_user(1)['score'], '1')
         # Ensure user 1 can not vote on there own comment
         self.assertFalse(vote(1, 1, 1))
         # Ensure the score didn't adjust (may be a code bug some day)
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')
+        self.assertEqual(get_user(1)['score'], '1')
         # Check to see if a user can vote twice on a comment
         self.assertFalse(vote(2, 1, 1))
         # Ensure the score didn't adjust (may be a code bug some day)
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')                
+        self.assertEqual(get_user(1)['score'], '1')                
 
     def test_delete(self):
         """

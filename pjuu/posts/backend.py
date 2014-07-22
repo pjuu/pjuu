@@ -303,14 +303,40 @@ def vote(uid, pid, cid=None, amount=1):
             author_uid = int(r.hget(K.COMMENT % cid, 'uid'))
             if author_uid != uid:
                 r.zadd(K.COMMENT_VOTES % cid, amount, uid)
+                # Comment scores can be negative
                 r.hincrby(K.COMMENT % cid, 'score', amount=amount)
+
+                # Get the score of the author
+                current_user_score = r.hget(K.USER % author_uid, 'score')
+                try:
+                    current_user_score = int(current_user_score)
+                    if current_user_score <= 0 and amount < 0:
+                        amount = 0
+                except (ValueError, TypeError):
+                    # If we can not convert the score to an Int ignore it.
+                    pass
+
+                # The above code will stop the user going in to negative score
                 r.hincrby(K.USER % author_uid, 'score', amount=amount)
                 return True
         else:
             author_uid = int(r.hget(K.POST % pid, 'uid'))
             if author_uid != uid:
                 r.zadd(K.POST_VOTES % pid, amount, uid)
+                # Post scores can be negative
                 r.hincrby(K.POST % pid, 'score', amount=amount)
+
+                # Get the score of the author
+                current_user_score = r.hget(K.USER % author_uid, 'score')
+                try:
+                    current_user_score = int(current_user_score)
+                    if current_user_score <= 0 and amount < 0:
+                        amount = 0
+                except (ValueError, TypeError):
+                    # If we can not convert the score to an Int ignore it.
+                    pass
+
+                # The above code will stop the user going in to negative score
                 r.hincrby(K.USER % author_uid, 'score', amount=amount)
                 return True
 
