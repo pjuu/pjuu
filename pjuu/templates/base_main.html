@@ -15,7 +15,10 @@
                 <img src="{{ url_for('static', filename='img/glyphicons/user.png') }}"/>
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
             </li></a>
-            {# <a href="{{ url_for('alerts') }}"><li>Alerts</li></a> #}
+            <a href="{{ url_for('alerts') }}"><li>
+                <img src="{{ url_for('static', filename='img/glyphicons/alerts.png') }}"/>
+                <span class="no-mobile">Alerts</span>
+            </li></a>
             <a href="{{ url_for('search') }}"><li>
                 <img src="{{ url_for('static', filename='img/glyphicons/search.png') }}"/>
                 <span class="no-mobile">Search</span>

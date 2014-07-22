@@ -333,3 +333,12 @@ def settings_profile():
         else:
             flash('error in your form', 'error')
     return render_template('settings_profile.html', form=form)
+
+
+@app.route('/alerts', methods=['GET'])
+@login_required
+def alerts():
+    """
+    Display a users alerts (notifications) to them on the site.
+    """
+    return render_template('alerts.html')
