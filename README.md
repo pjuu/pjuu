@@ -22,3 +22,7 @@ We are open to all pull requests. Spend some time taking a look around, locate a
 ## Security
 
 All software has bugs in and Pjuu is no different. These may have security implications. If you find one that you suspect could allow you to do something you shouldn't be able to please do not post it as an issue on Github. We would really appreciate it if you could send an e-mail to security@pjuu.com with the relevant details.
+
+## Credits
+
+James Rand - illustrating our Otter logo :)
