@@ -514,6 +514,8 @@ def delete_account(uid):
         r.delete(K.POST % pid) # WRITE
         # Delete all the votes made on the post
         r.delete(K.POST_VOTES % pid) # WRITE
+        # Delete posts subscribers list
+        r.delete(K.POST_SUBSCRIBERS % pid)
 
         cids = r.lrange(K.POST_COMMENTS % pid, 0, -1)
         for cid in cids:

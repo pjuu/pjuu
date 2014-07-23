@@ -29,7 +29,8 @@ from pjuu.auth.backend import get_uid, is_mute
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from .backend import (create_post, create_comment, check_post, vote as be_vote,
-                      has_voted, get_comment_author, delete as be_delete)
+                      has_voted, get_comment_author, delete as be_delete,
+                      is_subscribed, unsubscribe as be_unsubscribe)
 from .forms import PostForm
 
 
@@ -51,6 +52,14 @@ def voted_filter(pid, cid=None):
         if vote > 0:
             vote = "+" + str(vote)
     return vote
+
+
+@app.template_filter('subscribed')
+def subscribed_filter(pid):
+    """
+    A simple filter to check if the current user is subscribed to a post
+    """
+    return is_subscribed(current_user['uid'], pid)
 
 
 @app.route('/post', methods=['GET', 'POST'])
@@ -211,5 +220,27 @@ def delete_post(username, pid, cid=None):
         flash('Comment has been deleted', 'success')
     else:
         flash('Post has been deleted along with all comments', 'success')
+
+    return redirect(redirect_url)
+
+
+@app.route('/<username>/<int:pid>/unsubscribe')
+@login_required
+def unsubscribe(username, pid):
+    """
+    Unsubscribes a user from a post
+    """
+    # The default URL is to go back to the posts view
+    redirect_url = handle_next(request, url_for('view_post',
+        username=username, pid=pid))
+
+    uid = get_uid(username)
+    if not check_post(uid, pid):
+        return abort(404)
+
+    # Unsubscribe the user from the post, only show them a message if they
+    # were actually unsubscribed
+    if be_unsubscribe(current_user['uid'], pid):
+        flash('You have been unsubscribed from this post', 'success')
 
     return redirect(redirect_url)

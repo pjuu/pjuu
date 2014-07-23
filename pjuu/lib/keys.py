@@ -78,6 +78,9 @@ POST_VOTES = "post:%d:votes"
 # Returns: list
 POST_COMMENTS = "post:%d:comments"
 
+# Returns: zset
+POST_SUBSCRIBERS = "post:%d:subscribers"
+
 # Comment related keys
 # Usage: <VARIABLE> % cid(int)
 

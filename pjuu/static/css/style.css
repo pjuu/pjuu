@@ -294,6 +294,16 @@ input[type=submit] {
     background-color: #C00;
 }
 
+.unsubscribe {
+    color: #555;
+    background-color: #BBB;
+}
+
+.unsubscribe:hover {
+    color: #FFF;
+    background-color: #F00;
+}
+
 /* PROFILE =============================================================== */
 #profile {
     background-color: #FFF;

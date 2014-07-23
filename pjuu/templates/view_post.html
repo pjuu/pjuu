@@ -59,6 +59,13 @@
             {% endif %}
             {% endif %}
         </ul>
+        {% if post.pid|subscribed %}
+        <a href="{{ url_for('unsubscribe', username=post.user_username, pid=post.pid, next=request.path + '?' + request.query_string) }}">
+            <div class="action-button unsubscribe">
+                Unsubscribe
+            </div>
+        </a>
+        {% endif %}
     </div>
 </div>
 

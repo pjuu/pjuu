@@ -30,7 +30,7 @@ import re
 from flask import current_app as app
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.lib import keys as K, lua as L, timestamp
+from pjuu.lib import alerts as A, keys as K, lua as L, timestamp
 from pjuu.auth.backend import get_uid_username
 
 
@@ -129,6 +129,13 @@ def create_post(uid, body):
     # Append to all followers feeds
     populate_feeds(uid, pid)
 
+    # Subscribe the poster to there post
+    subscribe(uid, pid, A.POSTER)
+    # Subscribe tagees
+    tagees = parse_tags(body)
+    for tagee in tagees:
+        subscribe(tagee[0], pid, A.TAGEE)
+
     return pid
 
 
@@ -160,6 +167,13 @@ def create_comment(uid, pid, body):
     # Please see Issue #3 on Github
     pipe.lpush(K.USER_COMMENTS % uid, cid)
     pipe.execute()
+
+    # Subscribe the user to the post
+    subscribe(uid, pid, A.COMMENTER)
+    # Subscribe tagees
+    tagees = parse_tags(body)
+    for tagee in tagees:
+        subscribe(tagee[0], pid, A.TAGEE)
 
     return cid
 
@@ -345,6 +359,8 @@ def vote(uid, pid, cid=None, amount=1):
 
 def delete_comments(uid, pid):
     """
+    HUNGRY OTTER-ABLE
+
     This will cycle through a posts comments and remove each comment
     in turn. It will also remove the comment from the users comment list.
 
@@ -401,9 +417,61 @@ def delete(uid, pid, cid=None):
         # Delete post, comments and votes
         r.delete(K.POST % pid)
         r.delete(K.POST_VOTES % pid)
+        # Delete posts subscribers list
+        r.delete(K.POST_SUBSCRIBERS % pid)
         # Delete the post from the users post list
         r.lrem(K.USER_POSTS % author_id, 0, pid)
         # Delete all comments on the post
         delete_comments(uid, pid)
         return True
     return False
+
+
+def subscribe(uid, pid, reason):
+    """
+    Subscribes a user (uid) to post (pid) for reason.
+
+    This is a helper function to make subscriptions easier. It will also ensure
+    that post authors are not subscribed to there own posts.
+    """
+    # Esnure pid, uid and reason are all int's
+    pid = int(pid)
+    uid = int(uid)
+    reason = int(reason)
+
+    # Check that pid exsits if not do nothing
+    if not r.exists(K.POST % pid):
+        return False
+
+    # Only subscribe the user if the user is not already subscribed
+    # this will mean the original reason is kept
+    if r.zrank(K.POST_SUBSCRIBERS % pid, uid) is None:
+        r.zadd(K.POST_SUBSCRIBERS % pid, reason, uid)
+
+    # Return true if we are here. This means they are either already subscribed
+    # or newly subscribed, it doesn't matter
+    return True
+
+
+def unsubscribe(uid, pid):
+    """
+    Unsubscribe a user from a post.
+
+    This function always returns true if the user was unsubscribed
+    """
+    uid = int(uid)
+    pid = int(pid)
+
+    # Actually remove the uid from the subscribers list
+    return bool(r.zrem(K.POST_SUBSCRIBERS % pid, uid))
+
+
+def is_subscribed(uid, pid):
+    """
+    Returns a boolean to denote if a user is subscribed or not
+    """
+    uid = int(uid)
+    pid = int(pid)
+
+    # Check that the uid to the pid
+    return r.zrank(K.POST_SUBSCRIBERS % pid, uid) is not None
