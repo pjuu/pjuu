@@ -761,6 +761,10 @@ input[type=submit] {
     color: #F00;
 }
 
+#setting img {
+    margin: 0.5em 1em;
+}
+
 /* FOOTER ================================================================= */
 #footer {
     color: #680;
