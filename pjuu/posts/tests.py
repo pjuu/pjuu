@@ -307,6 +307,90 @@ class BackendTests(unittest.TestCase):
         self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
         self.assertNotIn('3', r.lrange(K.USER_COMMENTS % 1, 0, -1))
 
+    def test_subscriptions(self):
+        """
+        Test the backend subscription system.
+
+        This includes subscribe(), unsubscribe() and is_subscribed().
+
+        This will also test the correct subscriptions after a post, comment or
+        tagging.
+        """
+        # Create a couple of test accounts
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
+
+        # Post as user 1 and ensure user 1 exists in Redis
+        self.assertEqual(create_post(1, 'Test post 1'), 1)
+        self.assertIsNotNone(r.zrank(K.POST_SUBSCRIBERS % 1, 1))
+
+        # Even though it is exactly the same as the above ensure that
+        # is_subscribed() returns True
+        self.assertTrue(is_subscribed(1, 1))
+        # Lets ensure this actually fails! And see if user two is a subscriber
+        self.assertFalse(is_subscribed(2, 1))
+
+        # Ensure that the REASON (zset score) is set to the correct value
+        # This should be 1
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 1)
+
+        # Post a comment as user 1 and ensure the reason does NOT changes
+        self.assertEqual(create_comment(1, 1, 'Test comment 1'), 1)
+
+        # Ensure our reason did not change
+        # If we were not subscribed we would be given reason 2 (COMMENTOR)
+        self.assertNotEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 2)
+
+        # Test unsubscribe
+        self.assertTrue(unsubscribe(1, 1))
+        # Ensure that is_subscribed shows correct
+        self.assertFalse(is_subscribed(1, 1))
+        # Test that if we unsubscribe again we get a False result
+        self.assertFalse(unsubscribe(1, 1))
+        # Check that unsubscribing some that was never subscribed returns false
+        self.assertFalse(unsubscribe(2, 1))
+
+        # Let's test that commenting subscribes us to the post with the correct
+        # reason
+        self.assertEqual(create_comment(1, 1, 'Test comment 2'), 2)
+
+        # Ensure we are subscribed
+        self.assertTrue(is_subscribed(1, 1))
+
+        # Check that our reason HAS changed
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 2)
+
+        # Create a comment as test2 and ensure this user becomes subscribed for
+        # the same reason
+        self.assertEqual(create_comment(2, 1, 'Test comment 3'), 3)
+        self.assertTrue(is_subscribed(2, 1))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 2), 2)
+
+        # Create a new post as test1 and tag test2 and test3 in it
+        # ensure all 3 are subscribed and test2 and test3 have the correct
+        # reason
+        self.assertEqual(create_post(1, 'Test post 2: @test2 @test3'), 2)
+        self.assertTrue(is_subscribed(2, 2))
+        self.assertTrue(is_subscribed(3, 2))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 2), 3)
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
+
+        # Unsubscribe test2 and test3
+        self.assertTrue(unsubscribe(2, 2))
+        self.assertFalse(is_subscribed(2, 2))
+        self.assertTrue(unsubscribe(3, 2))
+        self.assertFalse(is_subscribed(3, 2))
+
+        # Create a comment as test1 and ensure tagging in a comment subscribes
+        # users which are tagged
+        self.assertEqual(create_comment(1, 2, 'Test post 2: @test2 @test3'), 4)
+        self.assertTrue(is_subscribed(2, 2))
+        self.assertTrue(is_subscribed(3, 2))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 2), 3)
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
+        # Done for now
+
 ###############################################################################
 # FRONTEND ####################################################################
 ###############################################################################
@@ -699,7 +783,7 @@ class FrontendTests(unittest.TestCase):
         """
         Let's test the ability to delete posts and comments
         """
-        # Create 2 users for this
+        # Create 3 users for this
         self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
         self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
         self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
@@ -816,3 +900,45 @@ class FrontendTests(unittest.TestCase):
         self.assertNotIn('Test comment, user 3', resp.data)
 
         # Done for now
+
+    def test_subscriptions(self):
+        """
+        Test that subscriptions work through the frontend.
+
+        This mainly just tests unsubscribe button as the rest is tested in the
+        backend.
+        """
+        # Create 3 users for this
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
+        # Activate the accounts
+        self.assertTrue(activate(1))
+        self.assertTrue(activate(2))
+        self.assertTrue(activate(3))
+
+        # Create a test post as test1
+        self.assertEqual(create_post(1, 'Test post, user 1'), 1)
+
+        # Login as test1
+        # Don't bother testing this AGAIN
+        self.client.post(url_for('signin'), data={
+                'username': 'test1',
+                'password': 'Password'
+            })
+
+        # Visit the posts page and ensure unsubscribe button is there
+        # We should have been subscribed when create_post was run above
+        resp = self.client.get(url_for('view_post', username='test1', pid=1))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('<div class="action-button unsubscribe">', resp.data)
+
+        # Unsubscribe via the frontend and ensure the button is removed and
+        # we get a flash message
+        resp = self.client.get(url_for('unsubscribe', username='test1', pid=1),
+                               follow_redirects=True)
+        self.assertIn('You have been unsubscribed from this post', resp.data)
+        self.assertNotIn('<div class="action-button unsubscribe">', resp.data)
+
+        # Done for now. This proves that unsubscribe works and the backend test
+        # proves that all methods being subscibed work :D
