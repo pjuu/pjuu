@@ -40,7 +40,7 @@ from pjuu.posts.forms import PostForm
 from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments, search as be_search, set_about)
+                      get_comments, search as be_search, set_about, get_alerts)
 
 
 # Username regular expressions
@@ -341,4 +341,5 @@ def alerts():
     """
     Display a users alerts (notifications) to them on the site.
     """
-    return render_template('alerts.html')
+    _results = get_alerts(current_user['uid'])
+    return render_template('alerts.html', pagination=_results)

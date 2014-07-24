@@ -249,3 +249,13 @@ def set_about(uid, about):
     uid = int(uid)
     # Set the about message for the user in their hash
     r.hset(K.USER % uid, 'about', about)
+
+
+def get_alerts(uid, page=1):
+    """
+    Return a paginated list of alert objects.
+    """
+    per_page = app.config['PROFILE_ITEMS_PER_PAGE']
+
+    # Returns an empty pagination at the moment. This is a stub
+    return Pagination([], 0, page, per_page)
