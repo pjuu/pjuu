@@ -88,8 +88,10 @@ def post(redirect_url=None):
         flash('Your post has been added', 'success')
     else:
         # This flash can handle only 1 form error
-        # TODO replace this implementation of dealing with errors
-        flash(form.body.errors[0], 'error')
+        # There is an odd issue where are error is thrown with no errors
+        # Can't recreate the issue
+        if len(form.body.errors) > 0:
+            flash(form.body.errors[0], 'error')
     return redirect(redirect_url)
 
 
@@ -112,8 +114,11 @@ def comment(username, pid):
         cid = create_comment(current_user['uid'], pid, form.body.data)
         flash('Your comment has been added', 'success')
     else:
-        # This alert can handle only 1 form error
-        flash(form.body.errors[0], 'error')
+        # This flash can handle only 1 form error
+        # There is an odd issue where are error is thrown with no errors
+        # Can't recreate the issue
+        if len(form.body.errors) > 0:
+            flash(form.body.errors[0], 'error')
     return redirect(redirect_url)
 
 
