@@ -21,13 +21,12 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib imports
-import unittest
 # 3rd party imports
 from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
+from pjuu.lib.tests import BackendTestCase, FrontendTestCase
 from pjuu.auth.backend import create_user, activate, get_user, mute
 from pjuu.users.backend import follow_user
 from .backend import *
@@ -36,23 +35,10 @@ from .backend import *
 # BACKEND #####################################################################
 ###############################################################################
 
-class BackendTests(unittest.TestCase):
+class BackendTests(BackendTestCase):
     """
     This case will test ALL post backend functions.
     """
-
-    def setUp(self):
-        """
-        Simply flush the database, we do not want any data already in redis
-        changing the outcome of the tests
-        """
-        r.flushdb()
-
-    def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
-        """
-        r.flushdb()
 
     def test_create_post(self):
         """
@@ -395,30 +381,11 @@ class BackendTests(unittest.TestCase):
 # FRONTEND ####################################################################
 ###############################################################################
 
-class FrontendTests(unittest.TestCase):
+class FrontendTests(FrontendTestCase):
     """
     This test case will test all the posts subpackages; views, decorators
     and forms
     """
-
-    def setUp(self):
-        """
-        Flush the database and create a test client so that we can check all
-        end points.
-        """
-        r.flushdb()
-        # Get our test client
-        self.client = app.test_client()
-        # Push a request context
-        self.ctx = app.test_request_context()
-        self.ctx.push()
-
-    def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
-        """
-        self.ctx.pop()
-        r.flushdb()
 
     def test_post(self):
         """
