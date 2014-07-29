@@ -23,9 +23,12 @@ Licence:
 """
 
 # Although not strictly Redis, these expiration constants are useful
+# Standard 7 days
 EXPIRE_SECONDS = 604800
 EXPIRE_MILLISECONDS = 604800000
+# Other time periods
 EXPIRE_24HRS = 86400
+EXPIRE_4WKS = 2419200
 
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
@@ -56,6 +59,9 @@ USER_FOLLOWERS = "user:%d:followers"
 
 # Returns: zset
 USER_FOLLOWING = "user:%d:following"
+
+# Returns: list
+USER_ALERTS = "user:%d:alerts"
 
 # Look-up keys
 # Usage: <VARIABLE> % string
@@ -89,3 +95,9 @@ COMMENT = "comment:%d"
 
 # Returns: zset
 COMMENT_VOTES = "comment:%d:votes"
+
+# Alert related keys
+# Usage: <VARAIBLE> % aid(int)
+
+# Returns: hash
+ALERT = "alert:%d"

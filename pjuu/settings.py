@@ -59,6 +59,7 @@ WTF_CSRF_SESSION_KEY = SECRET_KEY
 # Pagination
 FEED_ITEMS_PER_PAGE = 25
 PROFILE_ITEMS_PER_PAGE = 25
+ALERT_ITEMS_PER_PAGE = 50
 
 # Signer Keys
 # Please see pjuu.auth.backend for details

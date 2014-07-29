@@ -30,7 +30,7 @@ import re
 from flask import current_app as app
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.lib import alerts as A, keys as K, lua as L, timestamp
+from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.auth.backend import get_uid_username
 
 
@@ -38,6 +38,17 @@ from pjuu.auth.backend import get_uid_username
 # Used to match '@' tags in a post
 tag_re = re.compile('(?:^|(?<=[^\w]))@'
                     '(\w{3,16})(?:$|(?=[\.\;\,\:\ \t]))')
+
+
+# Subscription reasons
+# You are the original poster
+POSTER = 1
+
+# You commented on the pose
+COMMENTER = 2
+
+# You have been tagged in the post
+TAGEE = 3
 
 
 def parse_tags(body, send_all=False):
@@ -130,11 +141,11 @@ def create_post(uid, body):
     populate_feeds(uid, pid)
 
     # Subscribe the poster to there post
-    subscribe(uid, pid, A.POSTER)
+    subscribe(uid, pid, POSTER)
     # Subscribe tagees
     tagees = parse_tags(body)
     for tagee in tagees:
-        subscribe(tagee[0], pid, A.TAGEE)
+        subscribe(tagee[0], pid, TAGEE)
 
     return pid
 
@@ -169,11 +180,11 @@ def create_comment(uid, pid, body):
     pipe.execute()
 
     # Subscribe the user to the post
-    subscribe(uid, pid, A.COMMENTER)
+    subscribe(uid, pid, COMMENTER)
     # Subscribe tagees
     tagees = parse_tags(body)
     for tagee in tagees:
-        subscribe(tagee[0], pid, A.TAGEE)
+        subscribe(tagee[0], pid, TAGEE)
 
     return cid
 

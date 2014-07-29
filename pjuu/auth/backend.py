@@ -583,6 +583,10 @@ def delete_account(uid):
     # process. Probably not but let's be on the safe side
     r.delete(K.USER_FEED % uid)
 
+    # Delete the users alert list
+    # DO NOT DELETE ANY ALERTS, THESE AS THESE ARE GENERIC
+    r.delete(K.USER_ALERTS % uid)
+
     # All done. This code may need making safer in case there are issues
     # elsewhere in the code base
 
