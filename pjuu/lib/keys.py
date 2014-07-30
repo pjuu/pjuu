@@ -38,6 +38,7 @@ EXPIRE_4WKS = 2419200
 GLOBAL_UID = "global:uid"
 GLOBAL_PID = "global:pid"
 GLOBAL_CID = "global:cid"
+GLOBAL_AID = "global:aid"
 
 # Keys to get all user information
 # Usage: <VARIABLE> % int
