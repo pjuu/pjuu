@@ -23,7 +23,7 @@ Licence:
 
 # 3rd party imports
 from flask import current_app as app
-from flask.ext.mail import Message
+from flask_mail import Message
 # Pjuu imports
 from pjuu import mail
 

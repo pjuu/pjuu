@@ -26,8 +26,8 @@ Licence:
 
 # 3rd party imports
 from flask import Flask
-from flask.ext.mail import Mail
-from flask.ext.redis import Redis
+from flask_mail import Mail
+from flask_redis import Redis
 from raven.contrib.flask import Sentry
 # Pjuu imports
 from .lib.sessions import RedisSessionInterface

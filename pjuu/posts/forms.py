@@ -22,7 +22,7 @@ Licence:
 """
 
 # 3rd party imports
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextAreaField
 from wtforms.validators import Required, Length
 
