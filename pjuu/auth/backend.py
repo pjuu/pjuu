@@ -257,6 +257,14 @@ def check_email(email):
     return True
 
 
+def user_exists(uid):
+    """ READ
+    Helper function to check that a user exists or not.
+    """
+    uid = int(uid)
+    return r.exists(K.USER % uid)
+
+
 def create_user(username, email, password):
     """ READ/WRITE
     Creates a user account
@@ -382,7 +390,7 @@ def activate(uid, action=True):
     """
     try:
         uid = int(uid)
-        if r.exists(K.USER % uid):
+        if user_exists(uid):
             action = int(action)
             r.hset(K.USER % uid, 'active', action)
             # Remove the TTL on the user keys
@@ -404,7 +412,7 @@ def ban(uid, action=True):
     """
     try:
         uid = int(uid)
-        if r.exists(K.USER % uid):
+        if user_exists(uid):
             action = int(action)
             r.hset(K.USER % uid, 'banned', action)
             return True
@@ -422,7 +430,7 @@ def bite(uid, action=True):
     """
     try:
         uid = int(uid)
-        if r.exists(K.USER % uid):
+        if user_exists(uid):
             action = int(action)
             r.hset(K.USER % uid, 'op', action)
             return True
@@ -440,7 +448,7 @@ def mute(uid, action=True):
     """
     try:
         uid = int(uid)
-        if r.exists(K.USER % uid):
+        if user_exists(uid):
             action = int(action)
             r.hset(K.USER % uid, 'muted', action)
             return True
