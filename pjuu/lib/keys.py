@@ -61,7 +61,7 @@ USER_FOLLOWERS = "user:%d:followers"
 # Returns: zset
 USER_FOLLOWING = "user:%d:following"
 
-# Returns: list
+# Returns: zset
 USER_ALERTS = "user:%d:alerts"
 
 # Look-up keys

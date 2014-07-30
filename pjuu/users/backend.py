@@ -255,9 +255,10 @@ def get_alerts(uid, page=1):
     """
     Return a paginated list of alert objects.
     """
+    uid = int(uid)
     per_page = app.config['ALERT_ITEMS_PER_PAGE']
-    total = r.llen(K.USER_ALERTS % uid)
-    aids = r.lrange(K.USER_ALERTS % uid, (page - 1) * per_page,
+    total = r.zcard(K.USER_ALERTS % uid)
+    aids = r.zrange(K.USER_ALERTS % uid, (page - 1) * per_page,
                     (page * per_page) - 1)
     alerts = []
     for aid in aids:
@@ -267,7 +268,7 @@ def get_alerts(uid, page=1):
             alerts.append(alert)
         else:
             # Self cleaning list
-            r.lrem(K.USER_ALERTS % uid, 1, pid)
-            total = r.llen(K.USER_ALERTS % uid)
+            r.zrem(K.USER_ALERTS % uid, 1, aid)
+            total = r.zcard(K.USER_ALERTS % uid)
 
-    return Pagination([], 0, page, per_page)
+    return Pagination(alerts, total, page, per_page)
