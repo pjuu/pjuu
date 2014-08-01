@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+
 
 """
 Description:
@@ -74,8 +74,8 @@ def post(redirect_url=None):
     if request.method == 'GET':
         return abort(405)
 
-    redirect_url = handle_next(request,
-        url_for('profile', username=current_user['username']))
+    redirect_url = handle_next(request, url_for('profile',
+                               username=current_user['username']))
 
     # Stop muted users from creating posts
     if is_mute(current_user['uid']):
@@ -101,8 +101,8 @@ def comment(username, pid):
     """
     current_user creates a comment of post 'pid' with the author 'username'
     """
-    redirect_url = handle_next(request,
-        url_for('view_post', username=username, pid=pid))
+    redirect_url = handle_next(request, url_for('view_post',
+                               username=username, pid=pid))
 
     # Stop muted users from commenting
     if is_mute(current_user['uid']):
@@ -132,8 +132,8 @@ def upvote(username, pid=-1, cid=None):
     The 'username' may seem a little confusing but the comment is on the
     'pid' which was created by 'username'.
     """
-    redirect_url = handle_next(request,
-        url_for('view_post', username=username, pid=pid))
+    redirect_url = handle_next(request, url_for('view_post',
+                               username=username, pid=pid))
 
     uid = get_uid(username)
     if not check_post(uid, pid, cid):
@@ -163,8 +163,8 @@ def downvote(username, pid=-1, cid=None):
     The 'username' may seem a little confusing but the comment is on the
     'pid' which was created by 'username'.
     """
-    redirect_url = handle_next(request,
-        url_for('view_post', username=username, pid=pid))
+    redirect_url = handle_next(request, url_for('view_post',
+                               username=username, pid=pid))
 
     uid = get_uid(username)
     if not check_post(uid, pid, cid):
@@ -196,7 +196,7 @@ def delete_post(username, pid, cid=None):
     # to your feed
     if cid is not None:
         redirect_url = handle_next(request, url_for('view_post',
-            username=username, pid=pid))
+                                   username=username, pid=pid))
     else:
         redirect_url = handle_next(request, url_for('feed'))
 
@@ -237,7 +237,7 @@ def unsubscribe(username, pid):
     """
     # The default URL is to go back to the posts view
     redirect_url = handle_next(request, url_for('view_post',
-        username=username, pid=pid))
+                               username=username, pid=pid))
 
     uid = get_uid(username)
     if not check_post(uid, pid):

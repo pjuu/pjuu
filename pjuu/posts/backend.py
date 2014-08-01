@@ -103,7 +103,7 @@ def populate_feeds(uid, pid):
     # This is not transactional as to not hold Redis up.
     for fid in followers:
         fid = int(fid)
-        # >> LUA
+        # Add the pid to the list
         r.lpush(K.USER_FEED % fid, pid)
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
@@ -322,7 +322,7 @@ def vote(uid, pid, cid=None, amount=1):
     pid = int(pid)
     # Ensure user has not voted before
     if not has_voted(uid, pid, cid):
-        # Voting on a comment
+        # Voting on a comment
         if cid is not None:
             cid = int(cid)
             author_uid = int(r.hget(K.COMMENT % cid, 'uid'))

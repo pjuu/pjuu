@@ -31,9 +31,11 @@ from pjuu.auth.backend import create_user, activate, get_user, mute
 from pjuu.users.backend import follow_user
 from .backend import *
 
+
 ###############################################################################
 # BACKEND #####################################################################
 ###############################################################################
+
 
 class BackendTests(BackendTestCase):
     """
@@ -46,7 +48,7 @@ class BackendTests(BackendTestCase):
         """
         # Create a user to test creating post
         self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
-        # Create post
+        # Create post
         self.assertEqual(create_post(1, 'Test post'), 1)
         # Check the post was created by looking at the pid
         self.assertEqual(int(get_post(1).get('pid', None)), 1)
@@ -63,7 +65,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
         # Create a second test user to test commenting on someone else post
         self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
-        # Create post
+        # Create post
         self.assertEqual(create_post(1, 'Test post'), 1)
         # Create comment
         self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
@@ -76,11 +78,11 @@ class BackendTests(BackendTestCase):
         # Ensure the comment is the posts 'comment' list
         # Remember redis returns everything as a string
         # This will fail if decode response is not enabled
-        self.assertIn(u'1', r.lrange(K.POST_COMMENTS % 1, 0 , -1))
+        self.assertIn(u'1', r.lrange(K.POST_COMMENTS % 1, 0, -1))
         # Ensure the comment is also in the users 'comments' list
         self.assertIn(u'1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
         # Ensure the same applies for the second users post
-        self.assertIn(u'2', r.lrange(K.POST_COMMENTS % 1, 0 , -1))
+        self.assertIn(u'2', r.lrange(K.POST_COMMENTS % 1, 0, -1))
         # Ensure the comment is also in the users 'comments' list
         self.assertIn(u'2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
 
@@ -166,7 +168,7 @@ class BackendTests(BackendTestCase):
         # Attempt to get the post author. Remember this is a username as the
         # only use for it is to generate a URL /<username>/<pid>/<cid>/*
         self.assertEqual(comment['post_author'], 'test')
-        # Attempt to get a non existant comment
+        # Attempt to get a non existant comment
         self.assertIsNone(get_comment(2))
         # Attempt to get a comment where the user is deleted
         self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
@@ -245,7 +247,7 @@ class BackendTests(BackendTestCase):
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(1)['score'], '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')                
+        self.assertEqual(get_user(1)['score'], '1')
 
     def test_delete(self):
         """
@@ -274,7 +276,7 @@ class BackendTests(BackendTestCase):
         # longer in the users comment list
         self.assertNotIn('4', r.lrange(K.POST_COMMENTS % 4, 0, -1))
         self.assertNotIn('4', r.lrange(K.USER_COMMENTS % 4, 0, -1))
-        # Just ensure that the previous comment is in user 2's comment list
+        # Just ensure that the previous comment is in user 2's comment list
         # and inside the post list
         self.assertNotIn('2', r.lrange(K.POST_COMMENTS % 4, 0, -1))
         self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 4, 0, -1))
@@ -377,9 +379,11 @@ class BackendTests(BackendTestCase):
         self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
         # Done for now
 
+
 ###############################################################################
 # FRONTEND ####################################################################
 ###############################################################################
+
 
 class FrontendTests(FrontendTestCase):
     """
@@ -400,8 +404,8 @@ class FrontendTests(FrontendTestCase):
         # Lets ensure we can't POST to /post when logged out
         # As above we should simply be redirected
         resp = self.client.post(url_for('post'), data={
-                'body': 'A post'
-            })
+            'body': 'A post'
+        })
         self.assertEqual(resp.status_code, 302)
 
         # Let's create a user an login
@@ -410,9 +414,9 @@ class FrontendTests(FrontendTestCase):
         self.assertTrue(activate(1))
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
         # We are now logged in :) Let's ensure we can't GET the /post endpoint
@@ -423,8 +427,8 @@ class FrontendTests(FrontendTestCase):
         # Because we are not passing a next query param we will be redirected
         # to /test (users profile) after this post
         resp = self.client.post(url_for('post'), data={
-                'body': 'A new post'
-            }, follow_redirects=True)
+            'body': 'A new post'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure our new post appears in the output
         self.assertIn('A new post', resp.data)
@@ -434,8 +438,8 @@ class FrontendTests(FrontendTestCase):
         # Let's post again but this time lets redirect ourselves back to feed.
         # We will ensure both posts exist in the feed
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
-                'body': 'A second post'
-            }, follow_redirects=True)
+            'body': 'A second post'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure both posts are their
         self.assertIn('A new post', resp.data)
@@ -454,8 +458,8 @@ class FrontendTests(FrontendTestCase):
         # Create a post as user 1, we will then log out and ensure these posts
         # appear in the other users lists
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
-                'body': 'Hello followers'
-            }, follow_redirects=True)
+            'body': 'Hello followers'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure all posts are their
         self.assertIn('A new post', resp.data)
@@ -469,9 +473,9 @@ class FrontendTests(FrontendTestCase):
 
         # Log in as test2 and ensure the post is in their feed
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test2',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test2',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Hello followers', resp.data)
         # Log out
@@ -479,9 +483,9 @@ class FrontendTests(FrontendTestCase):
 
         # Log in as test3 and ensure the post in their feed
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test3',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test3',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Hello followers', resp.data)
         # Log out
@@ -489,17 +493,17 @@ class FrontendTests(FrontendTestCase):
 
         # Sign back in as out test user so that we can keep testing
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
         # Back to testing. Let's ensure that users can post unicode text
         # I copied this Chinese text from a header file on my Mac. I do not
         # know what it means, I just need the characters
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
-                'body': '光铸钥匙'
-            }, follow_redirects=True)
+            'body': '光铸钥匙'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure all posts are their
         self.assertIn('A new post', resp.data)
@@ -511,8 +515,8 @@ class FrontendTests(FrontendTestCase):
         # Mute out user
         self.assertTrue(mute(1))
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
-                'body': 'Muting test'
-            }, follow_redirects=True)
+            'body': 'Muting test'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure the warning is there
         self.assertIn('You have been silenced!', resp.data)
@@ -520,8 +524,8 @@ class FrontendTests(FrontendTestCase):
         # Un-mute the user and try and post the same thing
         self.assertTrue(mute(1, False))
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
-                'body': 'Muting test'
-            }, follow_redirects=True)
+            'body': 'Muting test'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure the warning is there
         self.assertNotIn('You have been silenced!', resp.data)
@@ -542,9 +546,9 @@ class FrontendTests(FrontendTestCase):
         self.assertTrue(activate(1))
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
         # Create a post to comment on we will do this in the backend to get
@@ -579,9 +583,9 @@ class FrontendTests(FrontendTestCase):
         self.assertTrue(activate(2))
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test2',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test2',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
         # Lets just check that we can see the comment if we go to the view_post
@@ -653,9 +657,9 @@ class FrontendTests(FrontendTestCase):
         # We will now actually test the frontend
         # Log in as user 1
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'password'
-            }, follow_redirects=True)
+            'username': 'test1',
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
         # Lets ensure both vote links are there
@@ -765,9 +769,9 @@ class FrontendTests(FrontendTestCase):
 
         # Log in as user 1
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            }, follow_redirects=True)
+            'username': 'test1',
+            'password': 'Password'
+        }, follow_redirects=True)
         self.assertIn('<h1>Feed</h1>', resp.data)
 
         # Visit our own post and ensure the delete button is there
@@ -812,7 +816,7 @@ class FrontendTests(FrontendTestCase):
                                        cid=1), follow_redirects=True)
         # Check we have confirmation
         self.assertIn('Comment has been deleted', resp.data)
-        # Lets check that comment 2 is there
+        # Lets check that comment 2 is there
         self.assertIn('Test comment, user 2', resp.data)
         self.assertIn('Test comment, user 3', resp.data)
         # Lets ensure our comment is gone
@@ -825,7 +829,7 @@ class FrontendTests(FrontendTestCase):
         # Let's check we got the error
         self.assertEqual(resp.status_code, 403)
 
-        # Attempt to delete user 2's post we should receive a 403
+        # Attempt to delete user 2's post we should receive a 403
         resp = self.client.get(url_for('delete_post', username='test2', pid=2,
                                        cid=2))
         self.assertEqual(resp.status_code, 403)
@@ -842,9 +846,9 @@ class FrontendTests(FrontendTestCase):
         # own comments
 
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test2',
-                'password': 'Password'
-            }, follow_redirects=True)
+            'username': 'test2',
+            'password': 'Password'
+        }, follow_redirects=True)
         self.assertIn('<h1>Feed</h1>', resp.data)
 
         # Goto test2s post
@@ -860,7 +864,7 @@ class FrontendTests(FrontendTestCase):
                                        cid=3), follow_redirects=True)
         # Check we have confirmation
         self.assertIn('Comment has been deleted', resp.data)
-        # Lets check that comment 2 is there
+        # Lets check that comment 2 is there
         self.assertIn('Test comment, user 2', resp.data)
         # Lets ensure our comment is gone
         self.assertNotIn('Test comment, user 1', resp.data)
@@ -890,9 +894,9 @@ class FrontendTests(FrontendTestCase):
         # Login as test1
         # Don't bother testing this AGAIN
         self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            })
+            'username': 'test1',
+            'password': 'Password'
+        })
 
         # Visit the posts page and ensure unsubscribe button is there
         # We should have been subscribed when create_post was run above
