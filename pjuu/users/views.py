@@ -50,7 +50,7 @@ username_re = re.compile(r' @([A-Za-z_]{3, 16}) ')
 @app.template_filter('following')
 def following_filter(profile):
     """
-    Checks if current user is following the user with id piped to filter 
+    Checks if current user is following the user with id piped to filter
     """
     return is_following(current_user['uid'], profile['uid'])
 
@@ -209,6 +209,9 @@ def view_post(username, pid):
 @app.route('/<username>/following', methods=['GET'])
 @login_required
 def following(username):
+    """
+    Returns all users following the current user as a pagination
+    """
     uid = get_uid(username)
 
     if uid is None:
@@ -231,6 +234,9 @@ def following(username):
 @app.route('/<username>/followers', methods=['GET'])
 @login_required
 def followers(username):
+    """
+    Returns all a users followers as a pagination object
+    """
     uid = get_uid(username)
 
     if uid is None:
@@ -256,8 +262,8 @@ def follow(username):
     """
     Used to follow a user
     """
-    redirect_url = handle_next(request,
-        url_for('following', username=current_user['username']))
+    redirect_url = handle_next(request, url_for('following',
+                               username=current_user['username']))
 
     uid = get_uid(username)
 
@@ -280,8 +286,8 @@ def unfollow(username):
     """
     Used to unfollow a user
     """
-    redirect_url = handle_next(request,
-        url_for('following', username=current_user['username']))
+    redirect_url = handle_next(request, url_for('following',
+                               username=current_user['username']))
 
     uid = get_uid(username)
 

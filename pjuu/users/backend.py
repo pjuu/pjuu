@@ -217,7 +217,7 @@ def search(query):
     query = username_re.sub('', query)
     # Lets find and get the users
     if len(query) > 0:
-        # We will concatenate the glob pattern to the query
+        # We will concatenate the glob pattern to the query
         keys = r.keys(K.UID_USERNAME % (query + '*'))
     else:
         keys = []

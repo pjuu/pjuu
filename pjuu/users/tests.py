@@ -31,9 +31,11 @@ from pjuu.auth.backend import create_user, delete_account, activate
 from pjuu.posts.backend import create_post, create_comment
 from .backend import *
 
+
 ###############################################################################
 # BACKEND #####################################################################
 ###############################################################################
+
 
 class BackendTests(BackendTestCase):
     """
@@ -124,7 +126,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(get_posts(1).total, 1)
         # Ensure the post id is in the Redis list
         self.assertIn('1', r.lrange(K.USER_POSTS % 1, 0, -1))
-        # Done
+        # Done
 
     def test_get_comments(self):
         """
@@ -256,9 +258,11 @@ class BackendTests(BackendTestCase):
         self.assertEqual(search('test2').total, 0)
         # Done
 
+
 ###############################################################################
 # FRONTEND ####################################################################
 ###############################################################################
+
 
 class FrontendTests(FrontendTestCase):
     """
@@ -291,9 +295,9 @@ class FrontendTests(FrontendTestCase):
         # Log in as user 1 and check that they can see a couple of posts on the
         # first page
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            }, follow_redirects=True)
+            'username': 'test1',
+            'password': 'Password'
+        }, follow_redirects=True)
         # This sends us too / (feed) by defaults
         self.assertEqual(resp.status_code, 200)
         self.assertIn('User 1, Post 50!', resp.data)
@@ -326,8 +330,8 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<div class="delete">X</div>', resp.data)
         # Delete the post
         resp = self.client.get(url_for('delete_post', username='test1',
-                                       pid=101, next=url_for('feed')),
-                                       follow_redirects=True)
+                               pid=101, next=url_for('feed')),
+                               follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('User 1, Post 49!', resp.data)
         self.assertNotIn('User 1, Post 50!', resp.data)
@@ -369,9 +373,9 @@ class FrontendTests(FrontendTestCase):
 
         # Sign in
         self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            }, follow_redirects=True)
+            'username': 'test1',
+            'password': 'Password'
+        }, follow_redirects=True)
 
         # Ensure that we can not see the endpoint
         resp = self.client.get(url_for('view_post', username='test1', pid=1),
@@ -389,9 +393,9 @@ class FrontendTests(FrontendTestCase):
         # Let's logout and log in as test2
         self.client.get(url_for('signout'))
         self.client.post(url_for('signin'), data={
-                'username': 'test2',
-                'password': 'Password'
-            })
+            'username': 'test2',
+            'password': 'Password'
+        })
         # Check that we can see the comment
         resp = self.client.get(url_for('view_post', username='test1', pid=1),
                                follow_redirects=True)
@@ -437,9 +441,9 @@ class FrontendTests(FrontendTestCase):
         # Ensure that test1 can follow and unfollow test2
         # Signin
         resp = self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            }, follow_redirects=True)
+            'username': 'test1',
+            'password': 'Password'
+        }, follow_redirects=True)
         self.assertIn('<h1>Feed</h1>', resp.data)
 
         # Visit test2 and ensure followers count is 0
@@ -518,9 +522,9 @@ class FrontendTests(FrontendTestCase):
         # Let's sign in!
         # We will sign in as joe this time as that is me
         self.client.post('signin', data={
-                'username': 'joe',
-                'password': 'Password'
-            })
+            'username': 'joe',
+            'password': 'Password'
+        })
 
         # Let's check we see the correct thing on the search page when there
         # is no search
@@ -579,9 +583,9 @@ class FrontendTests(FrontendTestCase):
 
         # Signin
         self.client.post(url_for('signin'), data={
-                'username': 'test1',
-                'password': 'Password'
-            })
+            'username': 'test1',
+            'password': 'Password'
+        })
 
         # Go to our settings page and ensure everything is there
         resp = self.client.get(url_for('settings_profile'))
@@ -590,7 +594,7 @@ class FrontendTests(FrontendTestCase):
         # Post to the form and update our about. We should also be this on
         # this page
         resp = self.client.post(url_for('settings_profile'), data={
-                'about': 'Otters love fish!'
-            }, follow_redirects=True)
+            'about': 'Otters love fish!'
+        }, follow_redirects=True)
         self.assertIn('Otters love fish!', resp.data)
         # Done for now

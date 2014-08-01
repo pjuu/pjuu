@@ -29,14 +29,15 @@ from urlparse import urlparse, urljoin
 from time import gmtime
 from calendar import timegm
 
+
 def is_safe_url(host_url, target):
     """
     Ensure the url is safe to redirect
     """
     ref_url = urlparse(host_url)
     test_url = urlparse(urljoin(host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
+    return (test_url.scheme in ('http', 'https') and
+            ref_url.netloc == test_url.netloc)
 
 
 def handle_next(request, default_url='/'):
