@@ -519,9 +519,9 @@ def delete_account(uid):
     for pid in pids:
         pid = int(pid)
         # Delete post
-        r.delete(K.POST % pid) # WRITE
+        r.delete(K.POST % pid)
         # Delete all the votes made on the post
-        r.delete(K.POST_VOTES % pid) # WRITE
+        r.delete(K.POST_VOTES % pid)
         # Delete posts subscribers list
         r.delete(K.POST_SUBSCRIBERS % pid)
 
@@ -532,17 +532,17 @@ def delete_account(uid):
             cid_author = r.hget(K.COMMENT % cid, 'uid')
             cid_author = int(cid_author)
             # Delete comment
-            r.delete(K.COMMENT % cid) # WRITE
+            r.delete(K.COMMENT % cid)
             # Delete comment votes
-            r.delete(K.COMMENT_VOTES % cid) # WRITE
+            r.delete(K.COMMENT_VOTES % cid)
             # Remove the cid from users comment list
             # This may remove some of ours. This will just make deleting
             # a bit quicker
-            r.lrem(K.USER_COMMENTS % cid_author, 0, cid) # WRITE
+            r.lrem(K.USER_COMMENTS % cid_author, 0, cid)
         # Delete the comments list
-        r.delete(K.POST_COMMENTS % pid) # WRITE
+        r.delete(K.POST_COMMENTS % pid)
     # Delete the users post list
-    r.delete(K.USER_POSTS % uid) # WRITE
+    r.delete(K.USER_POSTS % uid)
 
     # Delete all comments the user has every made. Including all votes on
     # those comments
@@ -629,7 +629,7 @@ def dump_account(uid):
         user['password'] = '<PASSWORD HASH>'
     else:
         # If there is no user then we will just stop this here. The account has
-        # gone, there is no data anyway
+        # gone, there is no data anyway
         return None
 
     # Get the users posts, pid's are not secret they are in the URLs. We will

@@ -65,7 +65,6 @@ def kick_banned_user():
             flash('You\'re a very naughty boy!', 'error')
 
 
-
 @app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
@@ -136,12 +135,14 @@ def signup():
             if uid:
                 token = generate_token(SIGNER_ACTIVATE, {'uid': uid})
                 # Send an e-mail to activate their account
-                send_mail('Activation', [form.email.data],
-                          text_body=render_template('emails/activate.txt',
-                                                    token=token),
-                          html_body=render_template('emails/activate.html',
-                                                    token=token))
-
+                send_mail(
+                    'Activation',
+                    [form.email.data],
+                    text_body=render_template('emails/activate.txt',
+                                              token=token),
+                    html_body=render_template('emails/activate.html',
+                                              token=token)
+                )
                 flash('Yay! You\'ve signed up<br/>Please check your e-mails '
                       'to activate your account', 'success')
                 return redirect(url_for('signin'))
@@ -166,9 +167,12 @@ def activate(token):
             if not is_active(uid):
                 be_activate(uid)
                 # If we have got to this point. Send a welcome e-mail :)
-                send_mail('Welcome', [get_email(uid)],
-                          text_body=render_template('emails/welcome.txt'),
-                          html_body=render_template('emails/welcome.html'))
+                send_mail(
+                    'Welcome',
+                    [get_email(uid)],
+                    text_body=render_template('emails/welcome.txt'),
+                    html_body=render_template('emails/welcome.html')
+                )
                 flash('Your account has now been activated', 'success')
                 return redirect(url_for('signin'))
             else:
@@ -197,11 +201,14 @@ def forgot():
         if uid:
             # Only send e-mails to user which exist.
             token = generate_token(SIGNER_FORGOT, {'uid': uid})
-            send_mail('Password reset', [get_email(uid)],
-                      text_body=render_template('emails/forgot.txt',
-                                                token=token),
-                      html_body=render_template('emails/forgot.html',
-                                                token=token))
+            send_mail(
+                'Password reset',
+                [get_email(uid)],
+                text_body=render_template('emails/forgot.txt',
+                                          token=token),
+                html_body=render_template('emails/forgot.html',
+                                          token=token)
+            )
         flash('If we\'ve found your account we\'ve e-mailed you',
               'information')
         return redirect(url_for('signin'))
@@ -244,15 +251,20 @@ def change_email():
     if request.method == 'POST':
         if form.validate():
             if authenticate(current_user['username'], form.password.data):
-                token = generate_token(SIGNER_EMAIL,
-                            {'uid': current_user['uid'],
-                             'email': form.new_email.data})
+                # Get an authentication token
+                token = generate_token(SIGNER_EMAIL, {
+                    'uid': current_user['uid'],
+                    'email': form.new_email.data}
+                )
                 # Send a confirmation to the new email address
-                send_mail('Confirm e-mail change', [form.new_email.data],
+                send_mail(
+                    'Confirm e-mail change',
+                    [form.new_email.data],
                     text_body=render_template('emails/email_change.txt',
                                               token=token),
                     html_body=render_template('emails/email_change.html',
-                                              token=token))
+                                              token=token)
+                )
                 flash('We\'ve sent you an email, please confirm this',
                       'success')
         else:
@@ -281,9 +293,12 @@ def confirm_email(token):
         email = data['email']
         if uid:
             be_change_email(uid, email)
-            send_mail('Your email has been changed', [email],
+            send_mail(
+                'Your email has been changed',
+                [email],
                 text_body=render_template('emails/confirm_email.txt'),
-                html_body=render_template('emails/confirm_email.html'))
+                html_body=render_template('emails/confirm_email.html')
+            )
             flash('We\'ve updated your e-mail address', 'success')
             return redirect(url_for('signin'))
 
@@ -308,11 +323,13 @@ def change_password():
                 # Update the users password!
                 be_change_password(current_user['uid'], form.new_password.data)
                 flash('We\'ve updated your password', 'success')
-                # Inform the user via e-mail that their password has changed
-                send_mail('Your password has been changed',
+                # Inform the user via e-mail that their password has changed
+                send_mail(
+                    'Your password has been changed',
                     [current_user['email']],
                     text_body=render_template('emails/password_change.txt'),
-                    html_body=render_template('emails/password_change.html'))
+                    html_body=render_template('emails/password_change.html')
+                )
         else:
             flash('Oh no! There are errors in your form', 'error')
 
@@ -342,9 +359,12 @@ def delete_account():
             flash('Your account has been deleted<br />Thanks for using us',
                   'information')
             # Send the user their last ever email on Pjuu
-            send_mail('Your account has been deleted', [email],
+            send_mail(
+                'Your account has been deleted',
+                [email],
                 text_body=render_template('emails/account_deletion.txt'),
-                html_body=render_template('emails/account_deletion.html'))         
+                html_body=render_template('emails/account_deletion.html')
+            )
             # Send user back to login
             return redirect(url_for('signin'))
         else:
