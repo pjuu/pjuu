@@ -486,3 +486,17 @@ def is_subscribed(uid, pid):
 
     # Check that the uid to the pid
     return r.zrank(K.POST_SUBSCRIBERS % pid, uid) is not None
+
+
+def subscription_reason(uid, pid):
+    """
+    Returns the reason a user is subscribed to a post. Very simple function
+    which will return the score in the zset or None if the user is not
+    subscribed.
+    """
+    uid = int(uid)
+    pid = int(pid)
+
+    # Simply get the score for the uid, Redis will return the None if it isn't
+    # there
+    return r.zscore(K.POST_SUBSCRIBERS % pid, uid)
