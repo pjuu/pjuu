@@ -25,9 +25,6 @@ Licence:
 
 from pjuu import redis as r
 
-# Redis LUA scripts
-# Not all of these are used at the moment. I wrote them as they may be useful
-# in the future if the Redis code inside Pjuu ever gets an overhaul.
 
 # Thie script creates a new user, sets the passed in (lookup keys), and
 # returns the new pid. This may seem overkill as we check the username and
