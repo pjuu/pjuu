@@ -47,39 +47,6 @@ else
 end
 """
 
-# Will add a member to a sorted set so long as KEYS[2] exists.
-# Syntax: zadd_ifkey key key score member
-lua_zadd_ifkey = """
-if redis.call('EXISTS', KEYS[1]) == 1 then
-    return redis.call('ZADD', KEYS[2], ARGV[1], ARGV[2])
-else
-    return nil
-end
-"""
-
-# Will push an item to a list so long as KEYS[2] exists.
-# Syntax: lpush_ifkey key key value
-lua_lpush_ifkey = """
-if redis.call('EXISTS', KEYS[1]) == 1 then
-    return redis.call('LPUSH', KEYS[2], ARGV[1])
-else
-    return nil
-end
-"""
-
-# Will hset a value in to a hash if the hash exists
-# Syntax: hsetx field value
-lua_hsetx = """
-if redis.call('EXISTS', KEYS[1]) == 1 then
-    return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
-else
-    return nil
-end
-"""
-
 
 # Load the above scripts in to Redis object r
 create_user = r.register_script(lua_create_user)
-zadd_ifkey = r.register_script(lua_zadd_ifkey)
-lpush_ifkey = r.register_script(lua_lpush_ifkey)
-hsetx = r.register_script(lua_hsetx)
