@@ -26,7 +26,7 @@ from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
-from pjuu.lib.tests import BackendTestCase, FrontendTestCase
+from pjuu.lib.test_helpers import BackendTestCase, FrontendTestCase
 from pjuu.auth.backend import create_user, delete_account, activate
 from pjuu.posts.backend import create_post, create_comment
 from .backend import *

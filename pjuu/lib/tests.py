@@ -2,7 +2,11 @@
 
 """
 Description:
-    Pjuu base test cases
+    Tests for library modules.
+
+    Note: Each module should be split in to it's own test case!
+    Note: Most of these tests should extend BackendTestCase, nothing in the lib
+          module should ever need testing from a front end point of view
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -21,56 +25,11 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib imports
-import unittest
-# 3rd party imports
-from flask import current_app as app, g
-# Pjuu imports
-from pjuu import redis as r
+
+from .test_helpers import BackendTestCase
 
 
-class BackendTestCase(unittest.TestCase):
-    """
-    This case will test ALL post backend functions.
-    """
+class AlertTests(BackendTestCase):
 
-    def setUp(self):
-        """
-        Simply flush the database, we do not want any data already in redis
-        changing the outcome of the tests
-        """
-        r.flushdb()
-
-    def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
-        """
-        r.flushdb()
-
-
-class FrontendTestCase(unittest.TestCase):
-    """
-    This test case will test all the posts subpackages; views, decorators
-    and forms
-    """
-
-    def setUp(self):
-        """
-        Flush the database and create a test client so that we can check all
-        end points.
-        """
-        r.flushdb()
-        # Get our test client
-        self.client = app.test_client()
-        # Push a request context
-        self.ctx = app.test_request_context()
-        self.ctx.push()
-        # Clear the token from g object, this hangs around
-        g.token = None
-
-    def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
-        """
-        self.ctx.pop()
-        r.flushdb()
+    def test_create_alert(self):
+        self.assertTrue(1 + 1, 2)
