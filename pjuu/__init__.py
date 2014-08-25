@@ -77,18 +77,18 @@ def create_app(config_filename='settings.py', config_dict=None):
     # override all other Settings applied to Pjuu so long as you define them
     app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
-    # This is the _MAIN_ redis client. ONLY STORE DATA HERE
-    redis.init_app(app)
-
-    # Create Flask-Mail
-    mail.init_app(app)
-
     # Sentry logger
     # We now only use Sentry for logging all our in application errors
     # We do not need it if debug is True as we expect there could be errors
     # and we get full visibility.
     if not app.debug:
         sentry.init_app(app)
+
+    # This is the _MAIN_ redis client. ONLY STORE DATA HERE
+    redis.init_app(app)
+
+    # Create Flask-Mail
+    mail.init_app(app)
 
     # Create the Redis session interface
     redis_sessions.init_app(app, 'SESSION_REDIS')
