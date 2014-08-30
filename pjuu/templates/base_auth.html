@@ -5,6 +5,10 @@
     <div class="container">
         <img class="logo" src="{{ url_for('static', filename='img/logo_otter.png') }}" width="200"/>
         <div class="motto"><b>Pjuu</b> - An open source social thing</div>
+        <div class="memorial">
+            In loving memory of my Dad, Michael Doherty<br/>
+            <b>26 Nov 1965 - 30 Aug 2014</b>
+        </div>
         {% include 'messages.html' %}
         <div class="form clearfix">
             <h1>{% block header %}{% endblock %}</h1>

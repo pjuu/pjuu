@@ -160,6 +160,14 @@ input[type=submit] {
     text-align: center;
 }
 
+#auth .memorial {
+    color: #000;
+    font-family: Georgia, Garamond, serif;
+    font-size: 1em;
+    margin: 1em auto;
+    text-align: center;
+}
+
 #auth .form {
     background-color: #FFF;
     border: 1px solid #680;
