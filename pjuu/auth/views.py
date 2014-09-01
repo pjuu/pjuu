@@ -136,7 +136,7 @@ def signup():
                 token = generate_token(SIGNER_ACTIVATE, {'uid': uid})
                 # Send an e-mail to activate their account
                 send_mail(
-                    'Activation',
+                    'Pjuu Account Notification - Activation',
                     [form.email.data],
                     text_body=render_template('emails/activate.txt',
                                               token=token),
@@ -168,7 +168,7 @@ def activate(token):
                 be_activate(uid)
                 # If we have got to this point. Send a welcome e-mail :)
                 send_mail(
-                    'Welcome',
+                    'Welcome To Pjuu!',
                     [get_email(uid)],
                     text_body=render_template('emails/welcome.txt'),
                     html_body=render_template('emails/welcome.html')
@@ -202,7 +202,7 @@ def forgot():
             # Only send e-mails to user which exist.
             token = generate_token(SIGNER_FORGOT, {'uid': uid})
             send_mail(
-                'Password reset',
+                'Pjuu Account Notification - Password Reset',
                 [get_email(uid)],
                 text_body=render_template('emails/forgot.txt',
                                           token=token),
@@ -258,7 +258,7 @@ def change_email():
                 )
                 # Send a confirmation to the new email address
                 send_mail(
-                    'Confirm e-mail change',
+                    'Pjuu Account Notification - Confirm Email Change',
                     [form.new_email.data],
                     text_body=render_template('emails/email_change.txt',
                                               token=token),
@@ -294,7 +294,7 @@ def confirm_email(token):
         if uid:
             be_change_email(uid, email)
             send_mail(
-                'Your email has been changed',
+                'Pjuu Account Notification - Email Address Changed',
                 [email],
                 text_body=render_template('emails/confirm_email.txt'),
                 html_body=render_template('emails/confirm_email.html')
@@ -325,7 +325,7 @@ def change_password():
                 flash('We\'ve updated your password', 'success')
                 # Inform the user via e-mail that their password has changed
                 send_mail(
-                    'Your password has been changed',
+                    'Pjuu Account Notification - Account Password Changed',
                     [current_user['email']],
                     text_body=render_template('emails/password_change.txt'),
                     html_body=render_template('emails/password_change.html')
@@ -360,7 +360,7 @@ def delete_account():
                   'information')
             # Send the user their last ever email on Pjuu
             send_mail(
-                'Your account has been deleted',
+                'Pjuu Account Notification - Account Deletion',
                 [email],
                 text_body=render_template('emails/account_deletion.txt'),
                 html_body=render_template('emails/account_deletion.html')
