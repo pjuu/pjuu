@@ -64,7 +64,6 @@ def kick_banned_user():
             flash('You\'re a very naughty boy!', 'error')
 
 
-
 @app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
