@@ -75,5 +75,5 @@ if __name__ == '__main__':
 
         # If we have any test failures set the return code from script to 1
         # This will allow Travis-CI to inform us that the build failed
-        if not test_results.wasSuccessful()::
+        if not test_results.wasSuccessful():
             sys.exit(1)
