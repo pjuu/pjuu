@@ -456,12 +456,8 @@ def subscribe(uid, pid, reason):
 
     # Only subscribe the user if the user is not already subscribed
     # this will mean the original reason is kept
-    if r.zrank(K.POST_SUBSCRIBERS % pid, uid) is None:
-        r.zadd(K.POST_SUBSCRIBERS % pid, reason, uid)
-
-    # Return true if we are here. This means they are either already subscribed
-    # or newly subscribed, it doesn't matter
-    return True
+    return L.zadd_member_nx(keys=[K.POST_SUBSCRIBERS % pid],
+                            args=[reason, uid])
 
 
 def unsubscribe(uid, pid):

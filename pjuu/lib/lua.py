@@ -45,5 +45,18 @@ end
 """
 
 
+# This script will only do a zadd on KEYS[1] if the member is not already there
+# Please note, unlike ZADD this can only add one member at a time
+lua_zadd_member_nx = """
+if not redis.call('ZRANK', KEYS[1], ARGV[2]) then
+    redis.call('SET', 'HERE', 1)
+    return redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+else
+    return nil
+end
+"""
+
+
 # Load the above scripts in to Redis object r
 create_user = r.register_script(lua_create_user)
+zadd_member_nx = r.register_script(lua_zadd_member_nx)
