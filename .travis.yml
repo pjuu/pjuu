@@ -16,4 +16,4 @@ notifications:
   email:
     - build@pjuu.com
   hipchat:
-    secure: "Xe7w97SNj6ATiq9okqneO+SymBggzmhZg0R5sf+R3xgNGBbuQSEi7WRqyICkmM2zEKWeapWDX/vNn0s/UxO+4r6KHncyWBPv97Bef6KbNNwTI0okTguy8HXVGTD6RDLOiaYdCX2yB8oFVb/v4soeglKqmPienuCZdTdV24ZQg/k="
+    secure: "oT27TGIlAvHgtRUBejYapmt95o/q1wVRWGWh7npbPspAwWfxKVF3ZudrPR+FPx+THGNkBRiS3uxrVML6/aY2tEog6JmhhcSENz9uvBlvc6cGBgD3HGLhn1m/LX71ul73HwR8CLofqpZo3d3TqiXdbPZONUzkMQHs3NYSjB4qoto="
