@@ -347,5 +347,5 @@ def alerts():
     """
     Display a users alerts (notifications) to them on the site.
     """
-    _results = get_alerts(current_user['uid'])
+    _results = None
     return render_template('alerts.html', pagination=_results)
