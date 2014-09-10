@@ -24,11 +24,11 @@ Licence:
 # Stdlib imports
 from hashlib import md5
 import math
+import re
 from time import gmtime, strftime
 # 3rd party imports
 from flask import (current_app as app, abort, flash, redirect, render_template,
                    request, url_for)
-import re
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid, get_uid_email, get_uid_username

@@ -168,7 +168,7 @@ def activate(token):
                 be_activate(uid)
                 # If we have got to this point. Send a welcome e-mail :)
                 send_mail(
-                    'Welcome To Pjuu!',
+                    'Pjuu Account Notifcation - Welcome!',
                     [get_email(uid)],
                     text_body=render_template('emails/welcome.txt'),
                     html_body=render_template('emails/welcome.html')
@@ -325,7 +325,7 @@ def change_password():
                 flash('We\'ve updated your password', 'success')
                 # Inform the user via e-mail that their password has changed
                 send_mail(
-                    'Pjuu Account Notification - Account Password Changed',
+                    'Pjuu Account Notification - Password Changed',
                     [current_user['email']],
                     text_body=render_template('emails/password_change.txt'),
                     html_body=render_template('emails/password_change.html')
