@@ -26,8 +26,7 @@ Licence:
 
 # Stdlib imports
 from urlparse import urlparse, urljoin
-from time import gmtime, clock
-from calendar import timegm
+from time import time, clock
 
 
 def is_safe_url(host_url, target):
@@ -60,4 +59,4 @@ def timestamp():
     Note: gmtime (and time) are not accurate enough on there own for this.
           The system clock has been appended for additional accuracy.
     """
-    return timegm(gmtime()) + clock()
+    return time() + clock()
