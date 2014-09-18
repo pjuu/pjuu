@@ -27,9 +27,11 @@ Licence:
 # Stdlib
 import re
 # 3rd party imports
-from flask import current_app as app
+from flask import current_app as app, url_for
+from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import redis as r
+from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.auth.backend import get_uid_username
 
@@ -49,6 +51,63 @@ COMMENTER = 2
 
 # You have been tagged in the post
 TAGEE = 3
+
+
+class PostingAlert(BaseAlert):
+    """
+    Base form for all alerts used within the posts package.
+
+    These are ALL related to posts and require additional information.
+    """
+
+    def __init__(self, uid, pid):
+        # Call the BaseAlert __init__ method
+        super(PostingAlert, self).__init__(uid)
+        # Assign pid and ensure it is an int
+        self.pid = int(pid)
+        # Call Redis to get some additional information
+        self.author_uid = int(r.hget(K.POST % pid, 'uid'))
+        self.author_username = r.hget(K.USER % self.author_uid, 'username')
+
+
+class TaggingAlert(PostingAlert):
+
+    def prettify(self):
+        return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
+               .format(url_for('profile', username=self.get_username()),
+                       do_capitalize(self.get_username()),
+                       url_for('view_post', username=self.author_username,
+                               pid=self.pid))
+
+
+class CommentingAlert(PostingAlert):
+
+    def before_alert(self, uid):
+        """
+        Inject subscription_reason in to the alert for the user.
+        This allows us too simply use this late to provide a better alert.
+        """
+        self.subscription_reason = subscription_reason(uid, self.pid)
+
+    def prettify(self):
+        # Let's try and work out why this user is being notified of a comment
+        if self.subscription_reason == POSTER:
+            sr = 'posted'
+        elif self.subscription_reason == COMMENTER:
+            sr = 'commented on'
+        elif self.subscription_reason == TAGEE:
+            sr = 'were tagged in'
+        else:
+            # This should never really happen but let's play ball eh?
+            sr = 'are subscribed too'
+
+        return '<a href="{0}">{1}</a> ' \
+               'commented on a <a href="{2}">post</a> you {3}' \
+               .format(url_for('profile', username=self.get_username()),
+                       do_capitalize(self.get_username()),
+                       url_for('view_post', username=self.author_username,
+                               pid=self.pid),
+                       sr)
 
 
 def parse_tags(body, send_all=False):
@@ -142,10 +201,19 @@ def create_post(uid, body):
 
     # Subscribe the poster to there post
     subscribe(uid, pid, POSTER)
+
+    # Create alert manager and alert
+    alert = TaggingAlert(uid, pid)
+    am = AlertManager(alert)
     # Subscribe tagees
     tagees = parse_tags(body)
     for tagee in tagees:
-        subscribe(tagee[0], pid, TAGEE)
+        # Don't allow tagging yourself
+        if tagee[0] != uid:
+            subscribe(tagee[0], pid, TAGEE)
+            # Always alert a user to a tagging even if they are already
+            # subscribed to the post
+            am.alert_user(tagee[0])
 
     return pid
 
@@ -179,12 +247,34 @@ def create_comment(uid, pid, body):
     pipe.lpush(K.USER_COMMENTS % uid, cid)
     pipe.execute()
 
+    # Alert all subscribers to the post that a new comment has been added.
+    # We do this before subscribing anyone new
+    # Create alert manager and alert
+    alert = CommentingAlert(uid, pid)
+    am = AlertManager(alert)
+    # Iterate through subscribers and let them know about the comment
+    for subscriber in get_subscribers(pid):
+        # ENsure subscriber is an int
+        subscriber = int(subscriber)
+        # Ensure we don't get alerted for our own comments
+        if subscriber != uid:
+            am.alert_user(subscriber)
+
     # Subscribe the user to the post
     subscribe(uid, pid, COMMENTER)
+
+    # Create alert manager and alert
+    alert = TaggingAlert(uid, pid)
+    am = AlertManager(alert)
     # Subscribe tagees
     tagees = parse_tags(body)
     for tagee in tagees:
-        subscribe(tagee[0], pid, TAGEE)
+        # Don't allow tagging yourself
+        if tagee[0] != uid:
+            subscribe(tagee[0], pid, TAGEE)
+            # Always alert a user to a tagging even if they are already
+            # subscribed to the post
+            am.alert_user(tagee[0])
 
     return cid
 
@@ -471,6 +561,16 @@ def unsubscribe(uid, pid):
 
     # Actually remove the uid from the subscribers list
     return bool(r.zrem(K.POST_SUBSCRIBERS % pid, uid))
+
+
+def get_subscribers(pid):
+    """
+    Return a list of subscribers for a given post (pid)
+    """
+    pid = int(pid)
+
+    return r.zrange(K.POST_SUBSCRIBERS % pid, 0, -1)
+
 
 
 def is_subscribed(uid, pid):

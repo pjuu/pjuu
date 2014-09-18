@@ -1,5 +1,22 @@
 {% extends 'list.html' %}
 
 {% block list %}
+{% if pagination.items %}
+{% for item in pagination.items %}
+{% if config.TESTING %}
+{% endif %}
+<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
+    <img class="avatar" src="{{ item.get_email()|avatar(16) }}"/>
+    <div class="control">
+    Control
+    </div>
+    <div class="details-alert clearfix">
+        <div class="body">{{ item.prettify()|safe }}</div>
+        <div class="created">{{ item.timestamp|timeify }} GMT</div>
+    </div>
+</li>
+{% endfor %}
+{% else %}
 <div class="empty">Empty</div>
+{% endif %}
 {% endblock %}

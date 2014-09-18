@@ -26,9 +26,12 @@ from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K
+# We only need alert manage, the wonders of Pickling eh?
+from pjuu.lib.alerts import AlertManager
 from pjuu.lib.test_helpers import BackendTestCase, FrontendTestCase
 from pjuu.auth.backend import create_user, delete_account, activate
-from pjuu.posts.backend import create_post, create_comment
+from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
+                                CommentingAlert)
 from .backend import *
 
 
@@ -257,6 +260,128 @@ class BackendTests(BackendTestCase):
         self.assertIsNone(delete_account(2))
         self.assertEqual(search('test2').total, 0)
         # Done
+
+    def test_alerts(self):
+        """
+        This will test many of the alert features.
+
+        Note: This is also going to test the current alerts being created by
+              the posts app as Alerts is a lib/users thing.
+
+              If you add new alerts in future an would like to test them I
+              suggest you do it HERE and maybe add a line to test_alerts in
+              FrontendTests.test_alerts also.
+
+              Also note that although the alerts system in posts relies on
+              the subscription system, subscriptions are solely a posts things
+              and as such are tested there.
+        """
+        # Create 2 users and have them follow each other
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        self.assertTrue(activate(1))
+        self.assertTrue(activate(2))
+
+        # Check the users alerts zset does not exist
+        self.assertFalse(r.exists(K.USER_ALERTS % 1))
+        self.assertFalse(r.exists(K.USER_ALERTS % 2))
+
+        # Get the users to follow each other this can be our first test
+        # of the alerts system as these are alerted on :D
+        self.assertTrue(follow_user(1, 2))
+        self.assertTrue(follow_user(2, 1))
+
+        # Assert the alerts zset exist and does as we expect
+        self.assertTrue(r.exists(K.USER_ALERTS % 1))
+        self.assertTrue(r.exists(K.USER_ALERTS % 2))
+        # Assert the length (ZCARD) of each is one
+        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 1)
+        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 1)
+
+        # Get one of the alerts are doing check the correct uid is set
+        # Just pull the first item from the zset thats probably easiest
+        alert_pickle = r.zrevrange(K.USER_ALERTS % 1, 0, 0)[0]
+        # Let's get an alert manager
+        am = AlertManager()
+        am.loads(alert_pickle)
+
+        # Check that is user two who created the alert
+        self.assertEqual(am.alert.uid, 2)
+        # Check that prettify include user2's username and not mine
+        self.assertIn('test2', am.alert.prettify())
+        self.assertNotIn('test1', am.alert.prettify())
+        # Assert part of the prettify word is there
+        self.assertIn('has started following you', am.alert.prettify())
+        self.assertEqual(type(am.alert), FollowAlert)
+
+        # This is a FollowAlert, ensure it does not have a pid
+        self.assertFalse(hasattr(am.alert, 'pid'))
+
+        # We are not getting in to the realm of tagging each other.
+        # Yes, yes, posts code, but let do this properly
+        self.assertEqual(create_post(1, 'Hello @test2'), 1)
+
+        # Lets check test2's alerts zset again an ensure it has grown
+        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 2)
+
+        # Get the second alert and double check a few things
+        alert_pickle = r.zrevrange(K.USER_ALERTS % 2, 0, 0)[0]
+        # Let's get an alert manager
+        am = AlertManager()
+        am.loads(alert_pickle)
+
+        # Check additional data
+        self.assertEqual(am.alert.uid, 1)
+        # Don't check for pid, just get it, it should be there
+        self.assertEqual(am.alert.pid, 1)
+        self.assertEqual(am.alert.get_username(), 'test1')
+        self.assertEqual(am.alert.get_email(), 'test1@pjuu.com')
+        self.assertIn(' tagged you in a ', am.alert.prettify())
+        self.assertEqual(type(am.alert), TaggingAlert)
+
+        # Get test2 to comment on the post, it should alert test1 but not test2
+        self.assertEqual(create_comment(2, 1, 'Hello friend'), 1)
+        # Check the length of both users alerts zset's
+        # User 1 should now be equal with 2 alerts
+        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 2)
+        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 2)
+
+        # Get the new alert from test1 and ensure they are post correct
+        alert_pickle = r.zrevrange(K.USER_ALERTS % 1, 0, 0)[0]
+        # Let's get an alert manager
+        am = AlertManager()
+        am.loads(alert_pickle)
+
+        # Check the data
+        self.assertEqual(am.alert.uid, 2)
+        self.assertEqual(am.alert.pid, 1)
+        self.assertEqual(am.alert.get_username(), 'test2')
+        self.assertEqual(am.alert.get_email(), 'test2@pjuu.com')
+        self.assertEqual(type(am.alert), CommentingAlert)
+        # This is a sort of test of the subscription system.
+        # I should be being alerted because I was originally tagged
+        # Let's check that from prettify
+        self.assertIn('you posted', am.alert.prettify())
+
+        # Create a post as test1
+        self.assertEqual(create_post(1, 'Hello again'), 2)
+        # Create a comment as test1 and tag test2 in the comment
+        self.assertEqual(create_comment(1, 2, 'Oh and @test2'), 2)
+
+        # Get test2's alert feed and ensure that this alert is there
+        alert_pickle = r.zrevrange(K.USER_ALERTS % 2, 0, 0)[0]
+        # Let's get an alert manager
+        am = AlertManager()
+        am.loads(alert_pickle)
+
+        # Check the data
+        self.assertEqual(am.alert.uid, 1) # Ensure test1
+        self.assertEqual(am.alert.pid, 2)
+        self.assertEqual(am.alert.get_username(), 'test1')
+        self.assertEqual(am.alert.get_email(), 'test1@pjuu.com')
+        self.assertEqual(type(am.alert), TaggingAlert)
+
+        # Done for the present moment
 
 
 ###############################################################################

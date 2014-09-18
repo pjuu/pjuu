@@ -26,7 +26,7 @@ Licence:
 
 # Stdlib imports
 from urlparse import urlparse, urljoin
-from time import gmtime
+from time import gmtime, clock
 from calendar import timegm
 
 
@@ -52,8 +52,12 @@ def handle_next(request, default_url='/'):
 
 def timestamp():
     """
-    This function will generate a UNIX UTC timestamp integer.
+    This function will generate a UNIX UTC + Clock timestamp integer.
 
     This is too be placed at all timestamped occurances.
+
+
+    Note: gmtime (and time) are not accurate enough on there own for this.
+          The system clock has been appended for additional accuracy.
     """
-    return timegm(gmtime())
+    return timegm(gmtime()) + clock()

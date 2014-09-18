@@ -27,14 +27,26 @@ from time import gmtime
 from calendar import timegm
 import re
 # 3rd party imports
-from flask import current_app as app
+from flask import current_app as app, url_for
+from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K, lua as L, timestamp
+from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
 from pjuu.auth.backend import get_user
 from pjuu.posts.backend import get_comment, get_post
 
+
+class FollowAlert(BaseAlert):
+    """
+    Form for a FollowAlert, very simple, pretty much a lib.alerts.BaseAlert
+    """
+
+    def prettify(self):
+        return '<a href="{0}">{1}</a> has started following you' \
+               .format(url_for('profile', username=self.get_username()),
+                       do_capitalize(self.get_username()))
 
 def get_profile(uid):
     """
@@ -129,6 +141,12 @@ def follow_user(who_uid, whom_uid):
     # Score is based on UTC epoch time
     r.zadd(K.USER_FOLLOWING % who_uid, timestamp(), whom_uid)
     r.zadd(K.USER_FOLLOWERS % whom_uid, timestamp(), who_uid)
+
+    # Create an alert and inform whom that who is now following them
+    alert = FollowAlert(who_uid)
+    am = AlertManager(alert)
+    am.alert_user(whom_uid)
+
     return True
 
 
@@ -258,16 +276,23 @@ def get_alerts(uid, page=1):
     uid = int(uid)
     per_page = app.config['ALERT_ITEMS_PER_PAGE']
     total = r.zcard(K.USER_ALERTS % uid)
-    aids = r.zrange(K.USER_ALERTS % uid, (page - 1) * per_page,
+    # Called aids as legacy, there is no such thing as an alert id
+    # We use REVRANGE as alerts should be newest to oldest
+    aids = r.zrevrange(K.USER_ALERTS % uid, (page - 1) * per_page,
                     (page * per_page) - 1)
+
+    # Create AlertManager to load the alerts
+    am = AlertManager()
+
     alerts = []
     for aid in aids:
-        # Get user
-        alert = {}
-        if alert:
-            alerts.append(alert)
+        # Load the alert in to the alert manager
+        am.loads(aid)
+        if am.alert:
+            # Add the entire alert from the manager on the list
+            alerts.append(am.alert)
         else:
-            # Self cleaning list
+            # Self cleaning zset
             r.zrem(K.USER_ALERTS % uid, 1, aid)
             total = r.zcard(K.USER_ALERTS % uid)
 

@@ -28,7 +28,7 @@ import re
 from time import gmtime, strftime
 # 3rd party imports
 from flask import (current_app as app, abort, flash, redirect, render_template,
-                   request, url_for)
+                   request, url_for, jsonify)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid, get_uid_email, get_uid_username
@@ -132,7 +132,11 @@ def timeify_filter(time):
     If this conversion fails this function will return "Err"
     """
     try:
-        time = int(time)
+        # Please not that time is now a floating point value for extra
+        # precision. We don't really need this when displaying it to the users
+        # however.
+        # Time can't be coverted directly to a int as it is a float point repr
+        time = int(float(time))
         return strftime("%a %d %b %Y %H:%M:%S", gmtime(time))
     except ValueError:
         return "Err"
@@ -347,5 +351,26 @@ def alerts():
     """
     Display a users alerts (notifications) to them on the site.
     """
-    _results = None
+    uid = current_user['uid']
+
+    if uid is None:
+        abort(404)
+
+    # Pagination
+    page = handle_page(request)
+
+    _results = get_alerts(uid, page)
     return render_template('alerts.html', pagination=_results)
+
+
+@app.route('/i-has-alerts', methods=['GET'])
+@login_required
+def i_has_alerts():
+    """
+    Will return a simple JSON response to denote if the current user has any
+    alerts since last time this was called.
+
+    This will be passed in with the template but will allow something like
+    jQuery to check.
+    """
+    return jsonify(result=True)

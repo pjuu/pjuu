@@ -585,6 +585,10 @@ input[type=submit] {
     margin: 0 9em 0 4em;
 }
 
+#list .details-alert {
+    margin: -1em 2em 0 4em;
+}
+
 #list .username {
     font-size: 1em;
 }
@@ -811,7 +815,7 @@ input[type=submit] {
 }
 
 /* MEDIA QUERIES ========================================================== */
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 650px) {
     .no-mobile {
         display: none;
     }
