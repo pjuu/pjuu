@@ -40,7 +40,8 @@ from pjuu.posts.forms import PostForm
 from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
-                      get_comments, search as be_search, set_about, get_alerts)
+                      get_comments, search as be_search, set_about, get_alerts,
+                      i_has_alerts as be_i_has_alerts)
 
 
 # Username regular expressions
@@ -140,6 +141,17 @@ def timeify_filter(time):
         return strftime("%a %d %b %Y %H:%M:%S", gmtime(time))
     except ValueError:
         return "Err"
+
+
+@app.template_filter('has_alerts')
+def has_alerts_filter(uid):
+    """
+    Check to see if the user has any alerts. Should only ever really be Used
+    with current_user
+
+    Uses the i_has_alerts() backend function
+    """
+    return be_i_has_alerts(uid)
 
 
 @app.route('/', methods=['GET'])
@@ -363,9 +375,9 @@ def alerts():
     return render_template('alerts.html', pagination=_results)
 
 
-@app.route('/has-alerts', methods=['GET'])
+@app.route('/i-has-alerts', methods=['GET'])
 @login_required
-def has_alerts():
+def i_has_alerts():
     """
     Will return a simple JSON response to denote if the current user has any
     alerts since last time this was called.
@@ -373,4 +385,4 @@ def has_alerts():
     This will be passed in with the template but will allow something like
     jQuery to check.
     """
-    return jsonify(result=True)
+    return jsonify(result=be_i_has_alerts(current_user['uid']))

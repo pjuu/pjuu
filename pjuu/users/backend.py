@@ -282,10 +282,17 @@ def get_alerts(uid, page=1):
           the objects so there should be no privacy concerns.
     """
     uid = int(uid)
+
+    # Update the last time the user checked there alerts
+    # This will allow us to alert a user too new alerts with the /i-has-alerts
+    # url
+    r.hset(K.USER % uid, 'alerts_last_checked', timestamp())
+
     per_page = app.config['ALERT_ITEMS_PER_PAGE']
 
     # Before we get totals we will clean the sorted set to remove any
     # data older than 4 weeks.
+    # This cleans the oldest to the newest
     r.zremrangebyscore(K.USER_ALERTS % uid, '-inf',
                        timestamp() - K.EXPIRE_4WKS)
 
@@ -312,3 +319,21 @@ def get_alerts(uid, page=1):
             total = r.zcard(K.USER_ALERTS % uid)
 
     return Pagination(alerts, total, page, per_page)
+
+
+def i_has_alerts(uid):
+    """
+    Checks too see if user has any new alerts since they last visited the
+    /alerts endoint
+    """
+    uid = int(uid)
+
+    # Get the stamp since last check from Redis
+    alerts_last_checked = r.hget(K.USER % uid, 'alerts_last_checked')
+
+    # Do the check. This will just see if there is anything returned from the
+    # sorted set newer than the last_checked timestamp, SIMPLES.
+    #
+    # Note: zrevrangebyscore has max and min the wrong way round :P
+    return bool(r.zrevrangebyscore(K.USER_ALERTS % uid, '+inf',
+                alerts_last_checked, start=0, num=1))

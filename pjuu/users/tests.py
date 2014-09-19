@@ -419,10 +419,12 @@ class BackendTests(BackendTestCase):
         alerts = get_alerts(1)
         # Check length
         self.assertEqual(len(alerts.items), 2)
-        # Check last item to ensure it is NOT the old follow alert
-        # Calculate age of last alert
+        # Check oldest item to ensure it is NOT the old follow alert
+        # Calculate age of oldest alert
         alert_age = alerts.items[len(alerts.items) - 1].timestamp - timestamp()
         self.assertLess(alert_age, K.EXPIRE_4WKS)
+        # We won't bother checking in Redis as we can now conrim that the the
+        # get_alerts() function is working.
 
         # Done for the present moment
 
