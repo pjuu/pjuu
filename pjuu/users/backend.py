@@ -272,9 +272,24 @@ def set_about(uid, about):
 def get_alerts(uid, page=1):
     """
     Return a paginated list of alert objects.
+
+    Note: Due to the fact that we are storing alerts in a sorted set we can not
+          set an expire. These will need to be expired manually, which happens
+          everytime this is called. This way there should be a minimal number
+          of call to ZREMRANGEBYSCORE.
+
+          Alerts are stored for 4 weeks. We store nothing more than IDs within
+          the objects so there should be no privacy concerns.
     """
     uid = int(uid)
     per_page = app.config['ALERT_ITEMS_PER_PAGE']
+
+    # Before we get totals we will clean the sorted set to remove any
+    # data older than 4 weeks.
+    r.zremrangebyscore(K.USER_ALERTS % uid, '-inf',
+                       timestamp() - K.EXPIRE_4WKS)
+
+    # Get total number of elements in the sorted set
     total = r.zcard(K.USER_ALERTS % uid)
     # Called aids as legacy, there is no such thing as an alert id
     # We use REVRANGE as alerts should be newest to oldest

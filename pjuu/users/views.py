@@ -363,9 +363,9 @@ def alerts():
     return render_template('alerts.html', pagination=_results)
 
 
-@app.route('/i-has-alerts', methods=['GET'])
+@app.route('/has-alerts', methods=['GET'])
 @login_required
-def i_has_alerts():
+def has_alerts():
     """
     Will return a simple JSON response to denote if the current user has any
     alerts since last time this was called.

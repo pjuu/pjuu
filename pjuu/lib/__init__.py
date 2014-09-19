@@ -51,12 +51,13 @@ def handle_next(request, default_url='/'):
 
 def timestamp():
     """
-    This function will generate a UNIX UTC + Clock timestamp integer.
+    This function will generate a UNIX timestamp + Clock floating point.
 
     This is too be placed at all timestamped occurances.
 
-
-    Note: gmtime (and time) are not accurate enough on there own for this.
-          The system clock has been appended for additional accuracy.
+    Note: time probably is accurate enough after a bit more testing but what
+          harm can adding the clock() too it do?
+          Pjuu tries to not rely on time for the site, the unittests however,
+          need to be able to get the latest alert.
     """
     return time() + clock()

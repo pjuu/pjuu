@@ -25,7 +25,7 @@ Licence:
 from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.lib import keys as K
+from pjuu.lib import keys as K, timestamp
 # We only need alert manage, the wonders of Pickling eh?
 from pjuu.lib.alerts import AlertManager
 from pjuu.lib.test_helpers import BackendTestCase, FrontendTestCase
@@ -380,6 +380,49 @@ class BackendTests(BackendTestCase):
         self.assertEqual(am.alert.get_username(), 'test1')
         self.assertEqual(am.alert.get_email(), 'test1@pjuu.com')
         self.assertEqual(type(am.alert), TaggingAlert)
+
+        # Lets check the get_alerts feature of backend
+        # Ensure that we are getting the same results here
+        self.assertIsNotNone(get_alerts(1))
+
+        # Ensure the length is correct, we are checking Test 1
+        self.assertEqual(len(get_alerts(1).items), 2)
+
+        # Perform the last test of the alsers thems selves and ensure they are
+        # the same.
+        # We do not need an alert manager here as these are used by get_alerts
+        alert = get_alerts(1).items[0]
+        # Check the data
+        self.assertEqual(alert.uid, 2)
+        self.assertEqual(alert.pid, 1)
+        self.assertEqual(alert.get_username(), 'test2')
+        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        self.assertEqual(type(alert), CommentingAlert)
+
+        # Ensure that getting alerts for a non existant user does not brake
+        # things. It should return an empty pagination
+        self.assertEqual(get_alerts(3).items, [])
+
+        # Create some old alerts, push them to a zset and ensure that
+        # get_alerts clears them when called
+        alert = FollowAlert(2)
+        # Overwrite timestamp
+        # 8 weeks ago
+        alert.timestamp = alert.timestamp - 4838400
+        am = AlertManager(alert)
+        am.alert_user(1)
+
+        # Ensure the new length in Redis is correct
+        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 3)
+
+        # Call get alerts seperatley so we can double check it
+        alerts = get_alerts(1)
+        # Check length
+        self.assertEqual(len(alerts.items), 2)
+        # Check last item to ensure it is NOT the old follow alert
+        # Calculate age of last alert
+        alert_age = alerts.items[len(alerts.items) - 1].timestamp - timestamp()
+        self.assertLess(alert_age, K.EXPIRE_4WKS)
 
         # Done for the present moment
 
