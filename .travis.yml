@@ -7,13 +7,11 @@ services:
   - redis-server
 
 install:
-  - pip install -r .travis-requirements.txt
+  - pip install -r requirements.txt
 
 script:
   - ./run_tests.py
 
 notifications:
-  email:
-    - build@pjuu.com
   hipchat:
     secure: "oT27TGIlAvHgtRUBejYapmt95o/q1wVRWGWh7npbPspAwWfxKVF3ZudrPR+FPx+THGNkBRiS3uxrVML6/aY2tEog6JmhhcSENz9uvBlvc6cGBgD3HGLhn1m/LX71ul73HwR8CLofqpZo3d3TqiXdbPZONUzkMQHs3NYSjB4qoto="
