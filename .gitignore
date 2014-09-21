@@ -14,3 +14,6 @@ pjuu/static/img/glyphicons/*.png
 .idea/*
 error.log
 pjuu.sublime*
+htmlcov/
+.coverage
+coverage.xml
