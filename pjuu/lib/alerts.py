@@ -116,10 +116,16 @@ class AlertManager(object):
         """
         pickled_alert = str(pickled_alert)
         # Try the unpickling process
-        self.alert = jsonpickle.decode(b64decode(pickled_alert))
-        # Let's double check that what we got is actually a base alert
-        if not isinstance(self.alert, BaseAlert):
-            raise TypeError('Can not load a non-BaseAlert dump')
+        try:
+            _alert = jsonpickle.decode(b64decode(pickled_alert))
+            # We need to ensure we get an alert back
+            if isinstance(_alert, BaseAlert):
+                self.alert = _alert
+            # All okay
+            return True
+        except TypeError, ValueError:
+            # Didn't work
+            return False
 
     def alert_user(self, uid):
         """
