@@ -329,7 +329,8 @@ def i_has_alerts(uid):
     uid = int(uid)
 
     # Get the stamp since last check from Redis
-    alerts_last_checked = r.hget(K.USER % uid, 'alerts_last_checked')
+    # If this has not been called before make it 0
+    alerts_last_checked = r.hget(K.USER % uid, 'alerts_last_checked') or 0
 
     # Do the check. This will just see if there is anything returned from the
     # sorted set newer than the last_checked timestamp, SIMPLES.

@@ -21,6 +21,8 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Stdlib imports
+import json
 # 3rd party imports
 from flask import current_app as app, url_for, g
 # Pjuu imports
@@ -423,7 +425,7 @@ class BackendTests(BackendTestCase):
         # Calculate age of oldest alert
         alert_age = alerts.items[len(alerts.items) - 1].timestamp - timestamp()
         self.assertLess(alert_age, K.EXPIRE_4WKS)
-        # We won't bother checking in Redis as we can now conrim that the the
+        # We won't bother checking in Redis as we can now confirmm that the
         # get_alerts() function is working.
 
         # Done for the present moment
@@ -768,3 +770,61 @@ class FrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertIn('Otters love fish!', resp.data)
         # Done for now
+
+    def test_alerts(self):
+        """
+        Ensure that users can use the alerts feature of Pjuu.
+        """
+        # Ensure that both alert endpoints, /alerts and /i-has-alerts both
+        # do not work unless the user is logged in
+        resp = self.client.get('alerts', follow_redirects=True)
+        self.assertIn('You need to be logged in to view that', resp.data)       
+
+        resp = self.client.get('i_has_alerts', follow_redirects=True)
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Create two users so that we can test alerting
+        # We will not go in to that much details here as a lot of this is
+        # checked in the backend
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        # Activate them
+        self.assertTrue(activate(1))
+        self.assertTrue(activate(2))
+
+        # Login as user 1
+        self.client.post(url_for('signin'), data={
+            'username': 'test1',
+            'password': 'Password'
+        })
+
+        # Ensure that alerts shows nothing and that i-has-alerts returns False
+        resp = self.client.get(url_for('alerts'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('list:alert', resp.data)
+
+        resp = self.client.get(url_for('i_has_alerts'))
+        json_resp = json.loads(resp.data)
+        self.assertFalse(json_resp["result"])
+
+        # Get user 2 to tag user 1 in a post
+        self.assertEqual(create_post(2, 'Hello @test1'), 1)
+
+        # Ensure that we have alerts
+        # Check i-has-alerts first not to clear it
+        resp = self.client.get(url_for('i_has_alerts'))
+        json_resp = json.loads(resp.data)
+        self.assertTrue(json_resp["result"])
+
+        resp = self.client.get(url_for('alerts'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('list:alert', resp.data)
+        # Check that the prettify is actually being called
+        self.assertIn('tagged you in a', resp.data)
+
+        # Now that we have checked our alerts lets ensure i-has-alerts is false
+        resp = self.client.get(url_for('i_has_alerts'))
+        json_resp = json.loads(resp.data)
+        self.assertFalse(json_resp["result"])
+
+        # Did say this was a simple test, done for now
