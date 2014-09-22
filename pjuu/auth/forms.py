@@ -43,8 +43,8 @@ class SignInForm(Form):
     """
     Form to allow users to login
     """
-    username = TextField('User name or E-Mail')
-    password = PasswordField('Password')
+    username = TextField('User name or E-Mail', [Required()])
+    password = PasswordField('Password', [Required()])
     keep_signed_in = BooleanField('Keep me signed in')
 
 

@@ -21,6 +21,8 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Stdlib import
+import json
 # 3rd party imports
 from flask import current_app as app, request, session, url_for, g
 # Pjuu imports
@@ -70,6 +72,8 @@ class BackendTests(BackendTestCase):
         # Check lookup keys exist
         self.assertEqual(get_uid('test'), 1)
         self.assertEqual(get_uid('test@pjuu.com'), 1)
+        # Make sure get_user with no valid user returns None
+        self.assertIsNone(get_user(0))
         # Make sure getting the user returns a dict
         self.assertIsNotNone(get_user(1))
         # Make sure no dict is returned for no user
@@ -81,6 +85,11 @@ class BackendTests(BackendTestCase):
         # get_email()
         self.assertEqual(get_email(1), 'test@pjuu.com')
         self.assertIsNone(get_email(2))
+
+        # Test other helpers function
+        # Check get_uid_* with invalid entries
+        self.assertIsNone(get_uid_username('testymctest'))
+        self.assertIsNone(get_uid_email('testymctest@pjuu.com'))
 
         # Ensure that the TTL is set for all 3 keys which are created.
         # Username and e-mail look up keys and also the user account itself
@@ -113,6 +122,14 @@ class BackendTests(BackendTestCase):
         self.assertFalse(is_active(2))
         self.assertFalse(is_active("test"))
 
+        # Broken is_active
+        self.assertFalse(is_active(None))
+        # Broken activate
+        # Invalid type
+        self.assertFalse(activate(None))
+        # Non-existant user
+        self.assertFalse(activate(-1))
+
         # Account should not be banned
         self.assertFalse(is_banned(1))
         # Ban
@@ -121,6 +138,12 @@ class BackendTests(BackendTestCase):
         # Unban
         self.assertTrue(ban(1, False))
         self.assertFalse(is_banned(1))
+
+        # Broken is_banned
+        self.assertFalse(is_banned(None))
+        # Broken ban
+        self.assertFalse(ban(None))
+        self.assertFalse(ban(-1))
 
         # Account should not be op
         self.assertFalse(is_op(1))
@@ -131,6 +154,12 @@ class BackendTests(BackendTestCase):
         self.assertTrue(bite(1, False))
         self.assertFalse(is_op(1))
 
+        # Broken is_op
+        self.assertFalse(is_op(None))
+        # Broken bite
+        self.assertFalse(bite(None))
+        self.assertFalse(bite(-1))
+
         # Account should not be muted
         self.assertFalse(is_mute(1))
         # Mute
@@ -139,6 +168,12 @@ class BackendTests(BackendTestCase):
         # Un-mute
         self.assertTrue(mute(1, False))
         self.assertFalse(is_mute(1))
+
+        # Broken is_mute
+        self.assertFalse(is_mute(False))
+        # Broken mute
+        self.assertFalse(mute(None))
+        self.assertFalse(mute(-1))
 
     def test_authenticate(self):
         """
@@ -257,11 +292,19 @@ class BackendTests(BackendTestCase):
         Note: This is not a full test of the posts system. See posts/test.py
         """
         # Create test user
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
-        # Create a post
+        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        # Second user to test deletion from user:1:comments
+        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        # Create a post as both users
         self.assertEqual(create_post(1, "Test post"), 1)
-        # Create a comment
+        self.assertEqual(create_post(2, "Test post"), 2)
+        # Create multiple comments on both posts
+        # 1
         self.assertEqual(create_comment(1, 1, "Test comment"), 1)
+        self.assertEqual(create_comment(1, 1, "Test comment"), 2)
+        # 2
+        self.assertEqual(create_comment(1, 2, "Test comment"), 3)
+        self.assertEqual(create_comment(1, 2, "Test comment"), 4)
 
         # Ensure all the keys have been set
         self.assertTrue(r.hgetall(K.POST % 1))
@@ -287,7 +330,7 @@ class BackendTests(BackendTestCase):
         self.assertFalse(r.lrange(K.USER_FEED % 1, 0, -1))
         # Assert posts is empty
         self.assertFalse(r.lrange(K.USER_POSTS % 1, 0, -1))
-        # Asset comments is empty
+        # Assert comments is empty
         self.assertFalse(r.lrange(K.USER_COMMENTS % 1, 0, -1))
 
     def test_delete_account_followers_following(self):
@@ -376,6 +419,9 @@ class BackendTests(BackendTestCase):
         self.assertEqual('Comment 2', data['comments'][2]['body'])
         self.assertEqual('Comment 3', data['comments'][1]['body'])
         self.assertEqual('Comment 4', data['comments'][0]['body'])
+
+        # Testing running dump account with a non-existant user
+        self.assertIsNone(dump_account(1000))
 
         # This is a very basic test. May need expanding in the future
 
@@ -513,6 +559,15 @@ class FrontendTests(FrontendTestCase):
         # We should be redirected to signin with the standard message
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You\'re a very naughty boy!', resp.data)
+
+        # Adding test from form.validate() == False in signup
+        # Coverage
+        resp = self.client.post(url_for('signin'), data={
+            'username': '',
+            'password': ''
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Invalid user name or password', resp.data)
 
     def test_signup_activate(self):
         """
@@ -693,8 +748,12 @@ class FrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Oh no! There are errors in your form', resp.data)
-        # This test is probably not compreshensive enough. Will add to it in
-        # the near future. At least we can ensure the view works.
+
+        # Test reset with an invalid token
+        resp = self.client.post(url_for('reset', token='token'), data={},
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Invalid token', resp.data)
 
     def test_change_confirm_email(self):
         """
@@ -768,7 +827,13 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('We\'ve sent you an email, please confirm', resp.data)
         resp = self.client.get(url_for('settings_profile'))
         self.assertNotIn('test2@pjuu.com', resp.data)
-        # Done for now :)
+
+        # Check invalid token for confirm_email
+        # Coverage
+        resp = self.client.get(url_for('confirm_email', token='token'),
+                               follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Invalid token', resp.data)
 
     def test_change_password(self):
         """
@@ -885,3 +950,28 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid user name or password', resp.data)
         # Done
+
+    def test_dump_account(self):
+        """
+        Simple check to make sure dump_account works in the views.
+
+        Will simply check that a JSON response comes back. Don't worry this
+        is pretty much a direct interface to the backend function of the same
+        name. See BackendTestCase for more details.
+        """
+        # Let's create a user an login
+        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        # Activate the account
+        self.assertTrue(activate(1))
+        # Log the user in
+        resp = self.client.post(url_for('signin'), data={
+            'username': 'test',
+            'password': 'password'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Dump account
+        resp = self.client.get(url_for('dump_account'))
+        self.assertEqual(resp.status_code, 200)
+        json_resp = json.loads(resp.data)
+        self.assertEqual(json_resp['user']['username'], 'test')
