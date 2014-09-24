@@ -26,7 +26,8 @@ Licence:
 """
 
 # Pjuu imports
-from pjuu.auth.backend import create_user
+from pjuu.auth.backend import create_user, delete_account
+from pjuu.users.backend import get_alerts
 from pjuu.lib import keys as K
 from .alerts import *
 from .test_helpers import BackendTestCase
@@ -135,4 +136,15 @@ class AlertTests(BackendTestCase):
         # Check the alert is the same
         self.assertEqual(am.alert.uid, alert.uid)
         self.assertEqual(am.alert.timestamp, alert.timestamp)
+
+        # Check verification
+        # We will just check base alert so we will remove one test1
+        delete_account(1)
+        # Check the alert is there, try and load an ensure it is gone
+        self.assertEqual(len(r.zrange(K.USER_ALERTS % 2, 0, -1)), 1)
+        # Check the alert loads from Redis
+        get_alerts(2)
+        # Check that the length of the alert is now 0
+        self.assertEqual(len(r.zrange(K.USER_ALERTS % 2, 0, -1)), 0)
+
         # Done for now

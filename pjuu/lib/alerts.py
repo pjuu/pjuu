@@ -56,6 +56,15 @@ class BaseAlert(object):
         """
         return r.hget(K.USER % self.uid, 'email')
 
+    def verify(self):
+        """
+        Check the alert is valid. You may need to overwrite this if you add
+        anything to base alerts. See posts.backends.PostingAlert for more
+        details on how to implement this.
+        """
+        # Simple implementation, check that we can get a username
+        return bool(self.get_username())
+
     def before_alert(self, uid):
         """
         Called before the this alert is raised to the user with uid.
@@ -116,13 +125,16 @@ class AlertManager(object):
         # Try the unpickling process
         try:
             _alert = jsonpickle.decode(pickled_alert)
-            # We need to ensure we get an alert back
-            if isinstance(_alert, BaseAlert):
-                self.alert = _alert
-            # All okay
-            return True
         except (TypeError, ValueError):
-            # Didn't work
+            # We failed to get an alert
+            _alert = None
+
+        # Ensure we got an alert and that it verifies.
+        if _alert and _alert.verify():
+            # Alert was okay give the manager the alert
+            self.alert = _alert
+            return True
+        else:
             return False
 
     def alert_user(self, uid):

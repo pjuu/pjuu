@@ -315,7 +315,7 @@ def get_alerts(uid, page=1):
             alerts.append(am.alert)
         else:
             # Self cleaning zset
-            r.zrem(K.USER_ALERTS % uid, 1, alert_hash)
+            r.zrem(K.USER_ALERTS % uid, 1, alert_dump)
             total = r.zcard(K.USER_ALERTS % uid)
 
     return Pagination(alerts, total, page, per_page)

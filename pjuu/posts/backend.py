@@ -69,6 +69,12 @@ class PostingAlert(BaseAlert):
         self.author_uid = int(r.hget(K.POST % pid, 'uid'))
         self.author_username = r.hget(K.USER % self.author_uid, 'username')
 
+    def verify(self):
+        """
+        Overwrite the verify of BaseAlert to add checking the post exists
+        """
+        return bool(self.get_username() and r.exists(K.POST % self.pid))
+
 
 class TaggingAlert(PostingAlert):
 
