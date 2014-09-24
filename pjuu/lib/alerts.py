@@ -28,8 +28,6 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib imports
-from base64 import b64decode, b64encode
 # 3rd party imports
 import jsonpickle
 # Pjuu imports
@@ -108,7 +106,7 @@ class AlertManager(object):
         if not self.alert:
             raise TypeError('make_pickle only works with an alert')
         # Pickle and b64 encode
-        return b64encode(jsonpickle.encode(self.alert))
+        return jsonpickle.encode(self.alert)
 
     def loads(self, pickled_alert):
         """
@@ -117,13 +115,13 @@ class AlertManager(object):
         pickled_alert = str(pickled_alert)
         # Try the unpickling process
         try:
-            _alert = jsonpickle.decode(b64decode(pickled_alert))
+            _alert = jsonpickle.decode(pickled_alert)
             # We need to ensure we get an alert back
             if isinstance(_alert, BaseAlert):
                 self.alert = _alert
             # All okay
             return True
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             # Didn't work
             return False
 

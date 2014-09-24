@@ -300,22 +300,22 @@ def get_alerts(uid, page=1):
     total = r.zcard(K.USER_ALERTS % uid)
     # Called aids as legacy, there is no such thing as an alert id
     # We use REVRANGE as alerts should be newest to oldest
-    aids = r.zrevrange(K.USER_ALERTS % uid, (page - 1) * per_page,
-                    (page * per_page) - 1)
+    alert_dumps = r.zrevrange(K.USER_ALERTS % uid, (page - 1) * per_page,
+                              (page * per_page) - 1)
 
     # Create AlertManager to load the alerts
     am = AlertManager()
 
     alerts = []
-    for aid in aids:
+    for alert_dump in alert_dumps:
         # Load the alert in to the alert manager
-        am.loads(aid)
+        am.loads(alert_dump)
         if am.alert:
             # Add the entire alert from the manager on the list
             alerts.append(am.alert)
         else:
             # Self cleaning zset
-            r.zrem(K.USER_ALERTS % uid, 1, aid)
+            r.zrem(K.USER_ALERTS % uid, 1, alert_hash)
             total = r.zcard(K.USER_ALERTS % uid)
 
     return Pagination(alerts, total, page, per_page)

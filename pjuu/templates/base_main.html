@@ -16,7 +16,11 @@
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
             </li></a>
             <a href="{{ url_for('alerts') }}"><li>
+                {% if current_user.uid|has_alerts %}
+                <img src="{{ url_for('static', filename='img/glyphicons/new_alerts.png') }}"/>
+                {% else %}
                 <img src="{{ url_for('static', filename='img/glyphicons/alerts.png') }}"/>
+                {% endif %}
                 <span class="no-mobile">Alerts</span>
             </li></a>
             <a href="{{ url_for('search') }}"><li>

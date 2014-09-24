@@ -25,8 +25,6 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib imports
-from base64 import b64encode
 # Pjuu imports
 from pjuu.auth.backend import create_user
 from pjuu.lib import keys as K
@@ -114,10 +112,7 @@ class AlertTests(BackendTestCase):
 
         # Try an load some stuff that isn't valid
         # A 'Hello world' string :)
-        self.assertRaises(TypeError, AlertManager().loads('Hello world'))
-        # The same string base64 encoded, this should be a ValueError
-        self.assertRaises(ValueError, lambda: AlertManager().loads(
-                          b64encode('Hello world')))
+        self.assertFalse(AlertManager().loads('Hello world'))
 
         # Test that alerts can be sent to a user.
         # Note: This is more thourogly tested in the users app, as this is
