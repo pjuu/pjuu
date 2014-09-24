@@ -376,7 +376,6 @@ def alerts():
 
 
 @app.route('/i-has-alerts', methods=['GET'])
-@login_required
 def i_has_alerts():
     """
     Will return a simple JSON response to denote if the current user has any
@@ -385,4 +384,8 @@ def i_has_alerts():
     This will be passed in with the template but will allow something like
     jQuery to check.
     """
+    # We don't want this view to redirect to signin so we will throw a 403
+    # this will make jQuery easier to use with this endpoint
+    if not current_user:
+        return abort(403)    
     return jsonify(result=be_i_has_alerts(current_user['uid']))
