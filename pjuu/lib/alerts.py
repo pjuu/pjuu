@@ -34,6 +34,7 @@ import jsonpickle
 from pjuu import redis as r
 from pjuu.lib import keys as K, lua as L, timestamp
 
+# TODO, make more efficient once we know the whole problem domain
 
 class BaseAlert(object):
     """

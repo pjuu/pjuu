@@ -17,9 +17,9 @@
             </li></a>
             <a href="{{ url_for('alerts') }}"><li>
                 {% if current_user.uid|has_alerts %}
-                <img src="{{ url_for('static', filename='img/glyphicons/new_alerts.png') }}"/>
+                <img id="alert-button" src="{{ url_for('static', filename='img/glyphicons/new_alerts.png') }}"/>
                 {% else %}
-                <img src="{{ url_for('static', filename='img/glyphicons/alerts.png') }}"/>
+                <img id="alert-button" src="{{ url_for('static', filename='img/glyphicons/alerts.png') }}"/>
                 {% endif %}
                 <span class="no-mobile">Alerts</span>
             </li></a>
