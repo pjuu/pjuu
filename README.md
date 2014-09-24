@@ -3,26 +3,74 @@
 
 An open-source social networking application which runs https://pjuu.com.
 
-This is an open source project released under the GNU AGPLv3 license. See LICENSE for more details.
+This is an open source project released under the GNU AGPLv3 license. See LICENSE for more details or visit the official GNU page at http://www.gnu.org/licenses/agpl-3.0.html.
 
-## About
+### About
 
-The goal of Pjuu is to provide an online community but one where you are in control of your data.
+This is the primary code base for https://pjuu.com, the website is deployed directly from this respository.
 
-Our main priority is our users privacy. When you no longer want to use the site you can delete your account. This will remove all data that is held on you. This includes your account, every post you made, every comment you made, and everything in between. Your data will exist in backups for 7 days at the most after that there will be nothing.
+The main goal of Pjuu as an application is privacy.
 
-We are also trying to remove our reliance on external services, soon to go is Gravatar. This will meam your usage will be known by as few people as possible.
+Pjuu is written in Python/Flask and uses Redis as the sole data store.
 
-Our aim is to be as open and transparent as possible about the site; pjuu.com pulls from this Github repository to the live site there is no hidden code in between.
+### Getting started
 
-## Contributing
+Getting started working on Pjuu or deploying it yourself is quite easy. We will only cover development here and the following documentation is for Debian Linux (we are big fans), this should work with Ubuntu also.
+
+We are presuming a fresh installation, this will setup the environment:
+
+```
+$ sudo apt-get install build-essentials python-dev python-setuptools
+
+$ sudo easy_install virtualenv
+
+$ git clone https://github.com/pjuu/pjuu.git
+
+$ cd pjuu
+
+$ virtualenv venv
+
+$ source venv/bin/activate
+
+$ pip install -r requirements.txt
+```
+
+Running the unit tests:
+
+```
+$ python run_tests.py
+```
+
+Running the unit tests with coverage:
+
+```
+$ coverage run --source=pjuu --omit=pjuu/wsgi.py,*/tests.py,*.html,*.txt run_tests.py
+```
+
+Running the development server (CherryPy):
+
+```
+$ python run_server.py
+```
+
+You can view the site by visiting: http://localhost:5000
+
+If you need to use any of the backend functions you can access the shell:
+
+```
+$ python run_shell.py
+```
+
+You can now play with the code base :)
+
+### Contributing
 
 We are open to all pull requests. Spend some time taking a look around, locate a bug, design issue or spelling mistake then send us a pull request :)
 
-## Security
+### Security
 
 All software has bugs in and Pjuu is no different. These may have security implications. If you find one that you suspect could allow you to do something you shouldn't be able to please do not post it as an issue on Github. We would really appreciate it if you could send an e-mail to security@pjuu.com with the relevant details.
 
-## Credits
+### Credits
 
 James Rand - illustrating our Otter logo :)
