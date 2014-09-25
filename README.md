@@ -15,12 +15,22 @@ Pjuu is written in Python/Flask and uses Redis as the sole data store.
 
 ### Getting started
 
-Getting started working on Pjuu or deploying it yourself is quite easy. We will only cover development here and the following documentation is for Debian Linux (we are big fans), this should work with Ubuntu also.
+Getting started working on Pjuu or deploying it yourself is quite easy. We will only cover development here and the following documentation is for Debian 7 (Wheezy) Linux (we are big fans), this should work with Ubuntu also.
 
 We are presuming a fresh installation, this will setup the environment:
 
+Note: This will install Redis from wheezy-backports you may want to change this. Wheezy backports uses Redis version 2.8.6, you may already have a newer version, in Ubuntu for example.
+
+Note: If you are struggling or would like to develop a feature which requires a newer version of Redis, checkout dotdeb.org it's pretty awesome.
+
 ```
+$ sudo sh -c 'echo "deb http://ftp.uk.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list'
+
+$ sudo apt-get update
+
 $ sudo apt-get install build-essentials python-dev python-setuptools
+
+$ sudo apt-get install -t wheezy-backports redis-server
 
 $ sudo easy_install virtualenv
 
