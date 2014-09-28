@@ -184,8 +184,8 @@ def downvote(username, pid=-1, cid=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/delete')
-@app.route('/<username>/<int:pid>/<int:cid>/delete')
+@app.route('/<username>/<int:pid>/delete', methods=['GET'])
+@app.route('/<username>/<int:pid>/<int:cid>/delete', methods=['GET'])
 @login_required
 def delete_post(username, pid, cid=None):
     """

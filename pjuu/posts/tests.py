@@ -28,7 +28,7 @@ from pjuu import redis as r
 from pjuu.lib import keys as K
 from pjuu.lib.test_helpers import BackendTestCase, FrontendTestCase
 from pjuu.auth.backend import create_user, activate, get_user, mute
-from pjuu.users.backend import follow_user
+from pjuu.users.backend import follow_user, get_alerts
 from .backend import *
 
 
@@ -377,6 +377,52 @@ class BackendTests(BackendTestCase):
         self.assertTrue(is_subscribed(3, 2))
         self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 2), 3)
         self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
+        # Done for now
+
+    def test_alerts(self):
+        """
+        Unlike the test_alerts() definition in the users package this just
+        tests that TaggingAlert and CommentingAlert are generated in the right
+        situation
+        """
+        # Create 3 test users
+        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
+        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
+        user3 = create_user('test3', 'test3@pjuu.com', 'Password')
+        # No need to activate the accounts
+
+        # User1 tag user2 in a post
+        post1 = create_post(user1, 'Hello @test2')
+
+        # Get alerts for test2 and check that it is correct
+        alerts = get_alerts(user2).items
+        alert = alerts[0]
+        self.assertTrue(isinstance(alert, TaggingAlert))
+        self.assertEqual(alert.get_username(), 'test1')
+        self.assertEqual(alert.get_email(), 'test1@pjuu.com')
+        self.assertIn('tagged you in a', alert.prettify())
+
+        # Have user2 tag user3 in a comment
+        create_comment(user2, post1, 'And you @test3')
+        # Check the alerts again
+        alerts = get_alerts(user3).items
+        alert = alerts[0]
+        self.assertTrue(isinstance(alert, TaggingAlert))
+        self.assertEqual(alert.get_username(), 'test2')
+        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        self.assertIn('tagged you in a', alert.prettify())
+
+        # User 1 should now have a commenting alert from user2
+        alerts = get_alerts(user1).items
+        alert = alerts[0]
+        self.assertTrue(isinstance(alert, CommentingAlert))
+        self.assertEqual(alert.get_username(), 'test2')
+        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        # Please remember that prettify requires a uid to format it too in the
+        # case of a commenting alert
+        self.assertIn('commented on a', alert.prettify(user1))
+        self.assertIn('you posted', alert.prettify(user1))
+
         # Done for now
 
 

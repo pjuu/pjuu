@@ -265,170 +265,77 @@ class BackendTests(BackendTestCase):
 
     def test_alerts(self):
         """
-        This will test many of the alert features.
-
-        Note: This is also going to test the current alerts being created by
-              the posts app as Alerts is a lib/users thing.
-
-              If you add new alerts in future an would like to test them I
-              suggest you do it HERE and maybe add a line to test_alerts in
-              FrontendTests.test_alerts also.
-
-              Also note that although the alerts system in posts relies on
-              the subscription system, subscriptions are solely a posts things
-              and as such are tested there.
+        Tests for the 2 functions which are used on the side to get alerts and
+        also test FollowAlert from here.
         """
-        # Create 2 users and have them follow each other
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
-        self.assertTrue(activate(1))
-        self.assertTrue(activate(2))
+        # Create 2 test users
+        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
+        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
 
-        # Check the users alerts zset does not exist
-        self.assertFalse(r.exists(K.USER_ALERTS % 1))
-        self.assertFalse(r.exists(K.USER_ALERTS % 2))
+        # Ensure that get_alerts pagination object is empty
+        self.assertEqual(get_alerts(user1).total, 0)
+        self.assertEqual(len(get_alerts(user1).items), 0)
 
-        # Get the users to follow each other this can be our first test
-        # of the alerts system as these are alerted on :D
-        self.assertTrue(follow_user(1, 2))
-        self.assertTrue(follow_user(2, 1))
+        # Get user 2 to follow user 1
+        follow_user(user2, user1)
 
-        # Assert the alerts zset exist and does as we expect
-        self.assertTrue(r.exists(K.USER_ALERTS % 1))
-        self.assertTrue(r.exists(K.USER_ALERTS % 2))
-        # Assert the length (ZCARD) of each is one
-        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 1)
-        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 1)
+        # Check that i_has_alerts is True
+        self.assertTrue(i_has_alerts(user1))
 
-        # Get one of the alerts are doing check the correct uid is set
-        # Just pull the first item from the zset thats probably easiest
-        alert_pickle = r.zrevrange(K.USER_ALERTS % 1, 0, 0)[0]
-        # Let's get an alert manager
-        am = AlertManager()
-        am.loads(alert_pickle)
+        # Ensure that there is an alert in the get_alerts
+        self.assertEqual(get_alerts(user1).total, 1)
+        self.assertEqual(len(get_alerts(user1).items), 1)
 
-        # Check that is user two who created the alert
-        self.assertEqual(am.alert.uid, 2)
-        # Check that prettify include user2's username and not mine
-        self.assertIn('test2', am.alert.prettify())
-        self.assertNotIn('test1', am.alert.prettify())
-        # Assert part of the prettify word is there
-        self.assertIn('has started following you', am.alert.prettify())
-        self.assertEqual(type(am.alert), FollowAlert)
+        # Check that i_has_alerts is False, we have read them with get_alerts
+        self.assertFalse(i_has_alerts(user1))
 
-        # This is a FollowAlert, ensure it does not have a pid
-        self.assertFalse(hasattr(am.alert, 'pid'))
-
-        # We are not getting in to the realm of tagging each other.
-        # Yes, yes, posts code, but let do this properly
-        self.assertEqual(create_post(1, 'Hello @test2'), 1)
-
-        # Lets check test2's alerts zset again an ensure it has grown
-        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 2)
-
-        # Get the second alert and double check a few things
-        alert_pickle = r.zrevrange(K.USER_ALERTS % 2, 0, 0)[0]
-        # Let's get an alert manager
-        am = AlertManager()
-        am.loads(alert_pickle)
-
-        # Check additional data
-        self.assertEqual(am.alert.uid, 1)
-        # Don't check for pid, just get it, it should be there
-        self.assertEqual(am.alert.pid, 1)
-        self.assertEqual(am.alert.get_username(), 'test1')
-        self.assertEqual(am.alert.get_email(), 'test1@pjuu.com')
-        self.assertIn(' tagged you in a ', am.alert.prettify())
-        self.assertEqual(type(am.alert), TaggingAlert)
-
-        # Get test2 to comment on the post, it should alert test1 but not test2
-        self.assertEqual(create_comment(2, 1, 'Hello friend'), 1)
-        # Check the length of both users alerts zset's
-        # User 1 should now be equal with 2 alerts
-        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 2)
-        self.assertEqual(r.zcard(K.USER_ALERTS % 2), 2)
-
-        # Get the new alert from test1 and ensure they are post correct
-        alert_pickle = r.zrevrange(K.USER_ALERTS % 1, 0, 0)[0]
-        # Let's get an alert manager
-        am = AlertManager()
-        am.loads(alert_pickle)
-
-        # Check the data
-        self.assertEqual(am.alert.uid, 2)
-        self.assertEqual(am.alert.pid, 1)
-        self.assertEqual(am.alert.get_username(), 'test2')
-        self.assertEqual(am.alert.get_email(), 'test2@pjuu.com')
-        self.assertEqual(type(am.alert), CommentingAlert)
-        # This is a sort of test of the subscription system.
-        # I should be being alerted because I was originally tagged
-        # Let's check that from prettify
-        self.assertIn('you posted', am.alert.prettify())
-
-        # Create a post as test1
-        self.assertEqual(create_post(1, 'Hello again'), 2)
-        # Create a comment as test1 and tag test2 in the comment
-        self.assertEqual(create_comment(1, 2, 'Oh and @test2'), 2)
-
-        # Get test2's alert feed and ensure that this alert is there
-        alert_pickle = r.zrevrange(K.USER_ALERTS % 2, 0, 0)[0]
-        # Let's get an alert manager
-        am = AlertManager()
-        am.loads(alert_pickle)
-
-        # Check the data
-        self.assertEqual(am.alert.uid, 1) # Ensure test1
-        self.assertEqual(am.alert.pid, 2)
-        self.assertEqual(am.alert.get_username(), 'test1')
-        self.assertEqual(am.alert.get_email(), 'test1@pjuu.com')
-        self.assertEqual(type(am.alert), TaggingAlert)
-
-        # Lets check the get_alerts feature of backend
-        # Ensure that we are getting the same results here
-        self.assertIsNotNone(get_alerts(1))
-
-        # Ensure the length is correct, we are checking Test 1
-        self.assertEqual(len(get_alerts(1).items), 2)
-
-        # Perform the last test of the alsers thems selves and ensure they are
-        # the same.
-        # We do not need an alert manager here as these are used by get_alerts
-        alert = get_alerts(1).items[0]
-        # Check the data
-        self.assertEqual(alert.uid, 2)
-        self.assertEqual(alert.pid, 1)
+        # Get the alert and check that the alert is the follow alert
+        alert = get_alerts(user1).items[0]
+        self.assertTrue(isinstance(alert, FollowAlert))
+        # Also check it's still a BaseAlert
+        self.assertTrue(isinstance(alert, BaseAlert))
+        # Check its from test2
         self.assertEqual(alert.get_username(), 'test2')
         self.assertEqual(alert.get_email(), 'test2@pjuu.com')
-        self.assertEqual(type(alert), CommentingAlert)
+        self.assertIn('has started following you', alert.prettify())
 
-        # Ensure that getting alerts for a non existant user does not brake
-        # things. It should return an empty pagination
-        self.assertEqual(get_alerts(3).items, [])
+        # Delete test2 and ensure we get no alerts
+        delete_account(user2)
 
-        # Create some old alerts, push them to a zset and ensure that
-        # get_alerts clears them when called
-        alert = FollowAlert(2)
-        # Overwrite timestamp
-        # 8 weeks ago
-        alert.timestamp = alert.timestamp - 4838400
-        am = AlertManager(alert)
-        am.alert_user(1)
+        # Ensure the alert is still inside Redis
+        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 1)
 
-        # Ensure the new length in Redis is correct
-        self.assertEqual(r.zcard(K.USER_ALERTS % 1), 3)
+        # Get the alerts, should be none and should also clear the alert from
+        # Redis
+        self.assertEqual(get_alerts(user1).total, 0)
+        self.assertEqual(len(get_alerts(user1).items), 0)
+        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 0)
 
-        # Call get alerts seperatley so we can double check it
-        alerts = get_alerts(1)
-        # Check length
-        self.assertEqual(len(alerts.items), 2)
-        # Check oldest item to ensure it is NOT the old follow alert
-        # Calculate age of oldest alert
-        alert_age = alerts.items[len(alerts.items) - 1].timestamp - timestamp()
-        self.assertLess(alert_age, K.EXPIRE_4WKS)
-        # We won't bother checking in Redis as we can now confirmm that the
-        # get_alerts() function is working.
+        # Do the same as above to ensure we can delete an alert ourselves
+        # Create user2 again as test3
+        user2 = create_user('test3', 'test3@pjuu.com', 'Password')
 
-        # Done for the present moment
+        follow_user(user1, user2)
+
+        # Check the alerts are there
+        alert = get_alerts(user2).items[0]
+        self.assertTrue(isinstance(alert, FollowAlert))
+        # Also check it's still a BaseAlert
+        self.assertTrue(isinstance(alert, BaseAlert))
+        # Check its from test2
+        self.assertEqual(alert.get_username(), 'test1')
+        self.assertEqual(alert.get_email(), 'test1@pjuu.com')
+        self.assertIn('has started following you', alert.prettify())
+
+        # Delete the alert with aid from the alert
+        delete_alert(user2, alert.aid)
+
+        # Get the alerts and ensure the list is empty
+        self.assertEqual(get_alerts(user2).total, 0)
+        self.assertEqual(len(get_alerts(user2).items), 0)
+        self.assertEqual(r.zcard(K.USER_ALERTS % user2), 0)
+
+        # Done for now
 
 
 ###############################################################################
@@ -773,58 +680,61 @@ class FrontendTests(FrontendTestCase):
 
     def test_alerts(self):
         """
-        Ensure that users can use the alerts feature of Pjuu.
+        Check that alerts are displayed properly in the frontend
         """
-        # Ensure that both alert endpoints, /alerts and /i-has-alerts both
-        # do not work unless the user is logged in
-        resp = self.client.get('alerts', follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)       
+        # Create two test users
+        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
+        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
+        # Activate
+        activate(user1)
+        activate(user2)
 
-        resp = self.client.get('i_has_alerts', follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
-
-        # Create two users so that we can test alerting
-        # We will not go in to that much details here as a lot of this is
-        # checked in the backend
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
-        # Activate them
-        self.assertTrue(activate(1))
-        self.assertTrue(activate(2))
-
-        # Login as user 1
-        self.client.post(url_for('signin'), data={
+        # Login as user1
+        resp = self.client.post(url_for('signin'), data={
             'username': 'test1',
             'password': 'Password'
         })
 
-        # Ensure that alerts shows nothing and that i-has-alerts returns False
+        # Get I has alerts and check that it is false
+        resp = self.client.get(url_for('i_has_alerts'))
+        # Check the JSON response
+        self.assertFalse(json.loads(resp.data).get('result'))
+
+        # Ensure that /alerts returns nothing
         resp = self.client.get(url_for('alerts'))
-        self.assertEqual(resp.status_code, 200)
         self.assertNotIn('list:alert', resp.data)
+        self.assertIn('Empty', resp.data)
 
+        # Get user2 to follow user1
+        follow_user(user2, user1)
+
+        # Ensure that /i-has-alerts is correct
         resp = self.client.get(url_for('i_has_alerts'))
-        json_resp = json.loads(resp.data)
-        self.assertFalse(json_resp["result"])
+        # Check the JSON response
+        self.assertTrue(json.loads(resp.data).get('result'))
 
-        # Get user 2 to tag user 1 in a post
-        self.assertEqual(create_post(2, 'Hello @test1'), 1)
-
-        # Ensure that we have alerts
-        # Check i-has-alerts first not to clear it
-        resp = self.client.get(url_for('i_has_alerts'))
-        json_resp = json.loads(resp.data)
-        self.assertTrue(json_resp["result"])
-
+        # Ensure that /alerts returns nothing
         resp = self.client.get(url_for('alerts'))
-        self.assertEqual(resp.status_code, 200)
         self.assertIn('list:alert', resp.data)
-        # Check that the prettify is actually being called
-        self.assertIn('tagged you in a', resp.data)
+        self.assertNotIn('Empty', resp.data)
+        # Check test2's name is there
+        self.assertIn('test2', resp.data)
+        # Check that the prettify message from FollowAlert is there
+        self.assertIn('has started following you', resp.data)
 
-        # Now that we have checked our alerts lets ensure i-has-alerts is false
+        # We have now checked the alerts, ensure that i-has-alerts is False
         resp = self.client.get(url_for('i_has_alerts'))
-        json_resp = json.loads(resp.data)
-        self.assertFalse(json_resp["result"])
+        # Check the JSON response
+        self.assertFalse(json.loads(resp.data).get('result'))
 
-        # Did say this was a simple test, done for now
+        # Check that we can delete the alert
+        # Get the alert id from the backend function
+        aid = get_alerts(user1).items[0].aid
+
+        resp = self.client.get(url_for('delete_alert', aid=aid),
+                               follow_redirects=True)
+        self.assertIn('Alert has been removed', resp.data)
+        # Check that there are also no alerts now
+        self.assertIn('Empty', resp.data)
+
+        # Done for now

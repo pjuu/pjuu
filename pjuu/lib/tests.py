@@ -27,7 +27,6 @@ Licence:
 
 # Pjuu imports
 from pjuu.auth.backend import create_user, delete_account
-from pjuu.users.backend import get_alerts
 from pjuu.lib import keys as K
 from .alerts import *
 from .test_helpers import BackendTestCase
@@ -52,17 +51,18 @@ class AlertTests(BackendTestCase):
         # existant user
         self.assertIsNone(alert.get_username())
         self.assertIsNone(alert.get_email())
+        # Check that the alert does NOT verify
+        self.assertFalse(alert.verify())
         # Use lambda to test the exception comes out.
         # Alerts based on BaseAlert _SHOULD_ implement these themselves
-        # With before_alert we will just pass in a fake uid
-        self.assertRaises(NotImplementedError, lambda: alert.before_alert(1))
         self.assertRaises(NotImplementedError, lambda: alert.prettify())
 
         # Create a user an check that at least get_username and get_email work
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
-        alert = BaseAlert(1)
+        user = create_user('test', 'test@pjuu.com', 'Password')
+        alert = BaseAlert(user)
         self.assertEqual(alert.get_username(), 'test')
         self.assertEqual(alert.get_email(), 'test@pjuu.com')
+        self.assertTrue(alert.verify())
         # Done with BaseAlert :)
 
     def test_alertmanager(self):
@@ -72,79 +72,47 @@ class AlertTests(BackendTestCase):
         Similar to the above a very simple test. Will check that it can alert
         users and one can be created.
         """
-        # We need an alert for an AlertManager. Not a problem we will create 2
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        # Create our alert manager
+        am = AlertManager()
 
-        # Check that alert manager will not be created without a valid alert
-        # object
-        self.assertRaises(TypeError, lambda: AlertManager(1))
-        self.assertRaises(TypeError, lambda: AlertManager('1'))
+        # Try and load a non-existant alert
+        self.assertIsNone(am.get(123))
 
-        # Ensure that when an alert manager is created without an alert that
-        # we can not use the dumps method
-        self.assertRaises(TypeError, lambda: AlertManager().dumps())
+        # Try and alert on something which is not an alert
+        self.assertRaises(ValueError, lambda: am.alert('ALERT', [1, 2, 3]))
 
-        # Ensure that alert is none is we have not passed in alert
-        self.assertIsNone(AlertManager().alert)
-
-        # Create an alert so we can test the dumps and the loads methods
-        alert = BaseAlert(1)
-        am = AlertManager(alert)
-        self.assertIsNotNone(am.alert)
-
-        # Dump to a variable so we can load again
-        alert_pickle = am.dumps()
-        self.assertEqual(type(alert_pickle), str)
-
-        # Check that the alert object and the one stored in the am are the
-        # same object
-        self.assertIs(alert, am.alert)
-
-        # Check loads
-        self.assertTrue(am.loads(alert_pickle))
-
-        # Check the two alerts have the same uid but are not the same object
-        self.assertEqual(alert.uid, am.alert.uid)
-        self.assertEqual(alert.timestamp, am.alert.timestamp)
-        self.assertIsNot(alert, am.alert)
-        # Check that the dump is the same from the am as the stored one
-        self.assertEqual(alert_pickle, am.dumps())
-
-        # Try an load some stuff that isn't valid
-        # A 'Hello world' string :)
-        self.assertFalse(AlertManager().loads('Hello world'))
-
-        # Test that alerts can be sent to a user.
-        # Note: This is more thourogly tested in the users app, as this is
-        #       these things are mainly used. Especially pulling out the
-        #       from Redis to display them
+        # Test that alerting a single users does not work, they need to be
+        # iterable
         # Create an alert
-        # test1 will send an alert to test 2
         alert = BaseAlert(1)
-        am = AlertManager(alert)
-        am.alert_user(2)
+        self.assertRaises(TypeError, lambda: am.alert(alert, 1))
 
-        # Check Redis to see if this has gone through.
-        # I am just checking this __ONCE__ there are some timing issues with
-        # sorted sets and picking the right member, see users.tests for more
-        # details
-        # Check there is an alert
-        self.assertEqual(len(r.zrange(K.USER_ALERTS % 2, 0, -1)), 1)
-        # Check the alert loads from Redis
-        self.assertTrue(am.loads(r.zrange(K.USER_ALERTS % 2, 0, 0)[0]))
-        # Check the alert is the same
-        self.assertEqual(am.alert.uid, alert.uid)
-        self.assertEqual(am.alert.timestamp, alert.timestamp)
+        # Create a couple of users
+        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
+        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
 
-        # Check verification
-        # We will just check base alert so we will remove one test1
-        delete_account(1)
-        # Check the alert is there, try and load an ensure it is gone
-        self.assertEqual(len(r.zrange(K.USER_ALERTS % 2, 0, -1)), 1)
-        # Check the alert loads from Redis
-        get_alerts(2)
-        # Check that the length of the alert is now 0
-        self.assertEqual(len(r.zrange(K.USER_ALERTS % 2, 0, -1)), 0)
+        # Ensure the length of user1's alert feed is 0
+        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 0)
 
-        # Done for now
+        # Create an alert from user2
+        alert = BaseAlert(user2)
+        # Alert user1
+        am.alert(alert, [user1])
+
+        # Ensure the length of user1's alert feed is 1
+        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 1)
+
+        # Get alerts for user1, user Redis directly
+        alerts = r.zrange(K.USER_ALERTS % user1, 0, 0)
+        # Get the alert from alerts
+        alert = am.get(alerts[0])
+        self.assertIsNotNone(alert)
+        self.assertEqual(alert.get_username(), 'test2')
+        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+
+        # Delete test2 and ensure getting the alert returns None
+        delete_account(user2)
+        alert = am.get(alerts[0])
+        self.assertIsNone(alert)
+
+        # Done for now, may need expanding for coverage

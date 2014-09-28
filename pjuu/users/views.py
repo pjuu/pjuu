@@ -41,7 +41,8 @@ from .forms import ChangeProfileForm, SearchForm
 from .backend import (follow_user, unfollow_user, get_profile, get_feed,
                       get_posts, get_followers, get_following, is_following,
                       get_comments, search as be_search, set_about, get_alerts,
-                      i_has_alerts as be_i_has_alerts)
+                      i_has_alerts as be_i_has_alerts,
+                      delete_alert as be_delete_alert)
 
 
 # Username regular expressions
@@ -373,6 +374,25 @@ def alerts():
 
     _results = get_alerts(uid, page)
     return render_template('alerts.html', pagination=_results)
+
+
+@app.route('/alerts/<int:aid>/delete', methods=['GET'])
+@login_required
+def delete_alert(aid):
+    """
+    Remove an alert id (aid) from a users alerts feed
+    """
+    uid = current_user.get('uid')
+
+    if uid is None:
+        abort(404)
+
+    redirect_url = handle_next(request, url_for('alerts'))
+
+    if be_delete_alert(uid, aid):
+        flash('Alert has been removed', 'success')
+
+    return redirect(redirect_url)
 
 
 @app.route('/i-has-alerts', methods=['GET'])

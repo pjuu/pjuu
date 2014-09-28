@@ -73,12 +73,12 @@ class PostingAlert(BaseAlert):
         """
         Overwrite the verify of BaseAlert to add checking the post exists
         """
-        return bool(self.get_username() and r.exists(K.POST % self.pid))
+        return r.exists(K.USER % self.uid) and r.exists(K.POST % self.pid)
 
 
 class TaggingAlert(PostingAlert):
 
-    def prettify(self):
+    def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
                .format(url_for('profile', username=self.get_username()),
                        do_capitalize(self.get_username()),
@@ -88,20 +88,15 @@ class TaggingAlert(PostingAlert):
 
 class CommentingAlert(PostingAlert):
 
-    def before_alert(self, uid):
-        """
-        Inject subscription_reason in to the alert for the user.
-        This allows us too simply use this late to provide a better alert.
-        """
-        self.subscription_reason = subscription_reason(uid, self.pid)
-
-    def prettify(self):
+    def prettify(self, for_uid):
         # Let's try and work out why this user is being notified of a comment
-        if self.subscription_reason == POSTER:
+        reason = subscription_reason(for_uid, self.pid)
+
+        if reason == POSTER:
             sr = 'posted'
-        elif self.subscription_reason == COMMENTER:
+        elif reason == COMMENTER:
             sr = 'commented on'
-        elif self.subscription_reason == TAGEE:
+        elif reason == TAGEE:
             sr = 'were tagged in'
         else:
             # This should never really happen but let's play ball eh?
@@ -210,16 +205,20 @@ def create_post(uid, body):
 
     # Create alert manager and alert
     alert = TaggingAlert(uid, pid)
-    am = AlertManager(alert)
-    # Subscribe tagees
+    # Alert tagees
     tagees = parse_tags(body)
+    # Store a list of uids which need to alerted to the tagging
+    tagees_to_alert = []
     for tagee in tagees:
         # Don't allow tagging yourself
         if tagee[0] != uid:
+            # Subscribe the tagee to the alert
             subscribe(tagee[0], pid, TAGEE)
-            # Always alert a user to a tagging even if they are already
-            # subscribed to the post
-            am.alert_user(tagee[0])
+            # Add the tagee's uid to the list to alert them
+            tagees_to_alert.append(tagee[0])
+
+    # Alert the required tagees
+    AlertManager().alert(alert, tagees_to_alert)
 
     return pid
 
@@ -253,34 +252,45 @@ def create_comment(uid, pid, body):
     pipe.lpush(K.USER_COMMENTS % uid, cid)
     pipe.execute()
 
+    # COMMENT ALERTING
+
     # Alert all subscribers to the post that a new comment has been added.
     # We do this before subscribing anyone new
     # Create alert manager and alert
     alert = CommentingAlert(uid, pid)
-    am = AlertManager(alert)
+
+    subscribers = []
     # Iterate through subscribers and let them know about the comment
     for subscriber in get_subscribers(pid):
         # ENsure subscriber is an int
         subscriber = int(subscriber)
         # Ensure we don't get alerted for our own comments
         if subscriber != uid:
-            am.alert_user(subscriber)
+            subscribers.append(subscriber)
 
-    # Subscribe the user to the post
+    # Push the comment alert out to all subscribers
+    AlertManager().alert(alert, subscribers)
+
+    # Subscribe the user to the post, will not change anything if they are
+    # already subscribed
     subscribe(uid, pid, COMMENTER)
 
-    # Create alert manager and alert
+    # TAGGING
+
+    # Create alert
     alert = TaggingAlert(uid, pid)
-    am = AlertManager(alert)
+
     # Subscribe tagees
     tagees = parse_tags(body)
+    tagees_to_alert = []
     for tagee in tagees:
         # Don't allow tagging yourself
         if tagee[0] != uid:
             subscribe(tagee[0], pid, TAGEE)
-            # Always alert a user to a tagging even if they are already
-            # subscribed to the post
-            am.alert_user(tagee[0])
+            tagees_to_alert.append(tagee[0])
+
+    # Get an alert manager to notify all tagees
+    AlertManager().alert(alert, tagees_to_alert)
 
     return cid
 
@@ -576,7 +586,6 @@ def get_subscribers(pid):
     pid = int(pid)
 
     return r.zrange(K.POST_SUBSCRIBERS % pid, 0, -1)
-
 
 
 def is_subscribed(uid, pid):

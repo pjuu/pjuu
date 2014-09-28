@@ -43,7 +43,7 @@ class FollowAlert(BaseAlert):
     Form for a FollowAlert, very simple, pretty much a lib.alerts.BaseAlert
     """
 
-    def prettify(self):
+    def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> has started following you' \
                .format(url_for('profile', username=self.get_username()),
                        do_capitalize(self.get_username()))
@@ -144,8 +144,7 @@ def follow_user(who_uid, whom_uid):
 
     # Create an alert and inform whom that who is now following them
     alert = FollowAlert(who_uid)
-    am = AlertManager(alert)
-    am.alert_user(whom_uid)
+    AlertManager().alert(alert, [whom_uid])
 
     return True
 
@@ -272,14 +271,6 @@ def set_about(uid, about):
 def get_alerts(uid, page=1):
     """
     Return a paginated list of alert objects.
-
-    Note: Due to the fact that we are storing alerts in a sorted set we can not
-          set an expire. These will need to be expired manually, which happens
-          everytime this is called. This way there should be a minimal number
-          of call to ZREMRANGEBYSCORE.
-
-          Alerts are stored for 4 weeks. We store nothing more than IDs within
-          the objects so there should be no privacy concerns.
     """
     uid = int(uid)
 
@@ -290,35 +281,43 @@ def get_alerts(uid, page=1):
 
     per_page = app.config['ALERT_ITEMS_PER_PAGE']
 
-    # Before we get totals we will clean the sorted set to remove any
-    # data older than 4 weeks.
-    # This cleans the oldest to the newest
-    r.zremrangebyscore(K.USER_ALERTS % uid, '-inf',
-                       timestamp() - K.EXPIRE_4WKS)
-
     # Get total number of elements in the sorted set
     total = r.zcard(K.USER_ALERTS % uid)
-    # Called aids as legacy, there is no such thing as an alert id
-    # We use REVRANGE as alerts should be newest to oldest
-    alert_dumps = r.zrevrange(K.USER_ALERTS % uid, (page - 1) * per_page,
-                              (page * per_page) - 1)
+    aids = r.zrevrange(K.USER_ALERTS % uid, (page - 1) * per_page,
+                       (page * per_page) - 1)
 
     # Create AlertManager to load the alerts
     am = AlertManager()
 
     alerts = []
-    for alert_dump in alert_dumps:
+    for aid in aids:
+        aid = int(aid)
         # Load the alert in to the alert manager
-        am.loads(alert_dump)
-        if am.alert:
+        alert = am.get(aid)
+        if alert:
             # Add the entire alert from the manager on the list
-            alerts.append(am.alert)
+            alerts.append(alert)
         else:
             # Self cleaning zset
-            r.zrem(K.USER_ALERTS % uid, 1, alert_dump)
+            r.zrem(K.USER_ALERTS % uid, aid)
             total = r.zcard(K.USER_ALERTS % uid)
+            # May as well delete the alert if there is one
+            r.delete(K.ALERT % aid)
 
     return Pagination(alerts, total, page, per_page)
+
+
+def delete_alert(uid, aid):
+    """
+    Removes an alert with aid from user with uid's alert feed.
+
+    Note: THIS DOES NOT REMOVE THE ALERT ITSELF, THIS SAME ALERT COULD BE USED
+          BY SOMEONE ELSE.
+    """
+    uid = int(uid)
+    aid = int(aid)
+
+    return bool(r.zrem(K.USER_ALERTS % uid, aid))
 
 
 def i_has_alerts(uid):

@@ -4,13 +4,17 @@
 {% if pagination.items %}
 {% for item in pagination.items %}
 {% if config.TESTING %}
-<!-- list:alert -->
+<!-- list:alert:{{ item.aid }} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
     <img class="avatar" src="{{ item.get_email()|avatar(16) }}"/>
-    <div class="control"></div>
+    <div class="control">
+        <a href="{{ url_for('delete_alert', aid=item.aid, next=request.path) }}">
+            <div class="delete">X</div>
+        </a>
+    </div>
     <div class="details-alert clearfix">
-        <div class="body">{{ item.prettify()|safe }}</div>
+        <div class="body">{{ item.prettify(current_user.uid)|safe }}</div>
         <div class="created">{{ item.timestamp|timeify }} GMT</div>
     </div>
 </li>

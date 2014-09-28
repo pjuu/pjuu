@@ -28,20 +28,25 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Stdlib imports
+from collections import Iterable
+from uuid import uuid1
 # 3rd party imports
 import jsonpickle
 # Pjuu imports
 from pjuu import redis as r
 from pjuu.lib import keys as K, lua as L, timestamp
 
-# TODO, make more efficient once we know the whole problem domain
 
 class BaseAlert(object):
     """
     Base form for all alerts within Pjuu.
+
+    Note: This should not be used directly but subclassed.
     """
 
     def __init__(self, uid):
+        self.aid = uuid1().int
         self.timestamp = timestamp()
         self.uid = int(uid)
 
@@ -63,24 +68,10 @@ class BaseAlert(object):
         anything to base alerts. See posts.backends.PostingAlert for more
         details on how to implement this.
         """
-        # Simple implementation, check that we can get a username
-        return bool(self.get_username())
+        # Simple implementation, check the user exists
+        return r.exists(K.USER % self.uid)
 
-    def before_alert(self, uid):
-        """
-        Called before the this alert is raised to the user with uid.
-
-        self.uid is the user who created the alert (commenter, follower, etc.)
-        uid this argument is the uid of the user who is going to have __this__
-        alert added to there list.
-
-        This can be used for such things as looking up subscription reasons
-        and other stuff. You can update the alert from here before it is
-        pickled.
-        """
-        raise NotImplementedError
-
-    def prettify(self):
+    def prettify(self, for_uid=None):
         """
         Overwrite to show how the alert will be presented to the user.
 
@@ -98,61 +89,53 @@ class BaseAlert(object):
 class AlertManager(object):
     """
     Handles storing, loading and dishing out alerts.
-
-    An AlertManager should always be used in conjunction with an alert object.
     """
 
-    def __init__(self, alert=None):
-        # Throw an error if the alert is not BaseAlert
-        if alert is not None and not isinstance(alert, BaseAlert):
-            raise TypeError('Alert must be of type BaseAlert')
-        # Store the alert or None if nothing was passed
-        self.alert = alert
-
-    def dumps(self):
+    def get(self, aid):
         """
-        If there is an alert, turn it into an encode pickle
+        Attempts to load an Alert from Redis and unpickle it
         """
-        if not self.alert:
-            raise TypeError('make_pickle only works with an alert')
-        # Pickle and b64 encode
-        return jsonpickle.encode(self.alert)
-
-    def loads(self, pickled_alert):
-        """
-        Attempts to load an Alert from a pickled version
-        """
-        pickled_alert = str(pickled_alert)
+        aid = int(aid)
         # Try the unpickling process
         try:
-            _alert = jsonpickle.decode(pickled_alert)
+            pickled_alert = r.get(K.ALERT % aid)
+            alert = jsonpickle.decode(pickled_alert)
         except (TypeError, ValueError):
-            # We failed to get an alert
-            _alert = None
+            # We failed to get an alert for whateva reason
+            return None
 
         # Ensure we got an alert and that it verifies.
-        if _alert and _alert.verify():
-            # Alert was okay give the manager the alert
-            self.alert = _alert
-            return True
+        if alert.verify():
+            # Return the alert object
+            return alert
         else:
-            return False
+            # If the alert did not verify delete it
+            # This will stop this always being called
+            r.delete(K.ALERT % aid)
+            return None
 
-    def alert_user(self, uid):
+    def alert(self, alert, uids):
         """
         Will attempt to alert the user with uid to the alert being managed.
 
         This will call the alerts before_alert() method, which allows you to
         change the alert per user. It's not needed though.
         """
-        # Add the timestamp at the time the user is alerted
-        self.timestamp = timestamp()
-        try:
-            self.alert.before_alert(uid)
-        except NotImplementedError:
-            # Don't bother doing anything if before_alert is not there
-            # it is not actually needed
-            pass
+        # Check that the manager actually has an alert
+        if not isinstance(alert, BaseAlert):
+            raise ValueError('AlertManager requires an alert to alert')
 
-        # Add the alert pickle to the user with uid
-        r.zadd(K.USER_ALERTS % uid, self.alert.timestamp, self.dumps())
+        # Ensure uids is iterable
+        if not isinstance(uids, Iterable):
+            raise TypeError('uids must be iterable')
+
+        # Create the alert object
+        r.set(K.ALERT % alert.aid, jsonpickle.encode(alert))
+        # Set the 4WK timeout on it
+        r.expire(K.ALERT % alert.aid, K.EXPIRE_4WKS)
+
+        for uid in uids:
+            uid = int(uid)
+            # Only add the zset if the user still exists
+            L.zadd_keyx(keys=(K.USER_ALERTS % uid, K.USER % uid),
+                        args=(alert.timestamp, alert.aid))

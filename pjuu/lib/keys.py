@@ -95,3 +95,9 @@ COMMENT = "comment:%d"
 
 # Returns: zset
 COMMENT_VOTES = "comment:%d:votes"
+
+# Alert related keys
+# Usage: <VARIABLE> % aid(int)
+
+# Return: hash
+ALERT = "alert:%d"

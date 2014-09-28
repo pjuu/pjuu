@@ -57,6 +57,15 @@ end
 """
 
 
+# Only add a member to a sorted set at KEYS[1] is KEYS[2] exists.
+lua_zadd_keyx = """
+if redis.call('EXISTS', KEYS[2]) then
+    redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+end
+"""
+
+
 # Load the above scripts in to Redis object r
 create_user = r.register_script(lua_create_user)
 zadd_member_nx = r.register_script(lua_zadd_member_nx)
+zadd_keyx = r.register_script(lua_zadd_keyx)
