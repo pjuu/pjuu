@@ -129,3 +129,11 @@ class DeleteAccountForm(Form):
     Allow users to delete their own account
     """
     password = PasswordField('Current password')
+
+
+class DumpAccountForm(DeleteAccountForm):
+    """
+    Its the same form as delete account, however I did not want to confuse
+    people with the same name.
+    """
+    pass
