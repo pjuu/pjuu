@@ -6,6 +6,9 @@ python:
 services:
   - redis-server
 
+before_install:
+  - redis-cli info | grep redis_version
+
 install:
   - pip install -r requirements.txt
 
