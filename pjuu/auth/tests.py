@@ -970,8 +970,15 @@ class FrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
-        # Dump account
+        # Check that a password confirmation is now required
         resp = self.client.get(url_for('dump_account'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('This action will dump all of your data', resp.data)
+
+        # Send password to the view
+        resp = self.client.post(url_for('dump_account'), data={
+            'password': 'password'
+        }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         json_resp = json.loads(resp.data)
         self.assertEqual(json_resp['user']['username'], 'test')

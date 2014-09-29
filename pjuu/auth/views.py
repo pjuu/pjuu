@@ -39,7 +39,8 @@ from .backend import (authenticate, login, logout, create_user,
                       dump_account as be_dump_account)
 from .decorators import anonymous_required, login_required
 from .forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
-                    ChangeEmailForm, PasswordChangeForm, DeleteAccountForm)
+                    ChangeEmailForm, PasswordChangeForm, DeleteAccountForm,
+                    DumpAccountForm)
 
 
 @app.context_processor
@@ -373,10 +374,19 @@ def delete_account():
     return render_template('delete_account.html', form=form)
 
 
-@app.route('/settings/dump', methods=['GET'])
+@app.route('/settings/dump', methods=['GET', 'POST'])
 @login_required
 def dump_account():
-    # Dump the users account
-    data = be_dump_account(current_user['uid'])
-    # JSONify the data and display it to the user :) simple
-    return jsonify(data)
+    """
+    """
+    form = DumpAccountForm(request.form)
+    if request.method == 'POST':
+        if authenticate(current_user['username'], form.password.data):
+            # Dump the users account
+            data = be_dump_account(current_user['uid'])
+            # JSONify the data and display it to the user :) simple
+            return jsonify(data)
+        else:
+            flash('Oops! wrong password', 'error')
+
+    return render_template('dump_account.html', form=form)

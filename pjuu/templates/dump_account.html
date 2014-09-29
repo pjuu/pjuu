@@ -1,0 +1,20 @@
+{% extends 'settings.html' %}
+
+{% block settings %}
+<h1>Dump account</h1>
+<div id="setting" class="clearfix">
+    <div class="details">
+        <div class="detail">
+            <p>This action will dump all of your data for you too see.</p>
+            <p>Your user account, posts and comments will be dumped in JSON format for you to take a look through.</p>
+            <p>This will not dump any information on any other users however. This is to stop anyones data being collected apart from your own. Therefor you will see all the comments you posted and the PID's you posted them too. You will not however be able to find the comment on the site.</p>
+        </div>
+    </div>
+    <form action="" method="post" autocomplete="off">
+        {{ form.password.label }}
+        {{ form.password }}
+        {{ form.csrf_token }}
+        <input type="submit" value="Dump account" tabindex="4"/>
+    </form>
+</div>
+{% endblock %}

@@ -627,6 +627,7 @@ def dump_account(uid):
         # lead to some security issues
         user['uid'] = '<UID>'
         user['password'] = '<PASSWORD HASH>'
+        user['created'] = int(float(user['created']))
     else:
         # If there is no user then we will just stop this here. The account has
         # gone, there is no data anyway
@@ -641,6 +642,7 @@ def dump_account(uid):
         # Don't add a post that does not exist
         if post:
             post['uid'] = '<UID>'
+            post['created'] = int(float(post['created']))
             posts.append(post)
 
     # Get a list of the users comments
@@ -650,6 +652,7 @@ def dump_account(uid):
         comment = r.hgetall(K.COMMENT % cid)
         if comment:
             comment['uid'] = '<UID>'
+            comment['created'] = int(float(comment['created']))
             comments.append(comment)
 
     return {
