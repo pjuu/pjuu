@@ -28,8 +28,9 @@ Licence:
 # Pjuu imports
 from pjuu.auth.backend import create_user, delete_account
 from pjuu.lib import keys as K
-from .alerts import *
-from .test_helpers import BackendTestCase
+from pjuu.lib.alerts import *
+# Test imports
+from tests.helpers import BackendTestCase
 
 
 class AlertTests(BackendTestCase):

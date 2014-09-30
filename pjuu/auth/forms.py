@@ -27,9 +27,9 @@ from wtforms import BooleanField, PasswordField, TextField, ValidationError
 from wtforms.validators import Email, EqualTo, Length, Regexp, Required
 
 # Pjuu imports
-from . import current_user
-from .backend import (check_email, check_username, authenticate, EMAIL_PATTERN,
-                      USERNAME_PATTERN)
+from pjuu.auth import current_user
+from pjuu.auth.backend import (check_email, check_username, authenticate,
+                               EMAIL_PATTERN, USERNAME_PATTERN)
 
 
 class ForgotForm(Form):

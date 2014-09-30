@@ -29,7 +29,7 @@ Licence:
 from functools import wraps
 from flask import redirect, request, url_for, flash
 # Pjuu imports
-from . import current_user
+from pjuu.auth import current_user
 
 
 def anonymous_required(func):

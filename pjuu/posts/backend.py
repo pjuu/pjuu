@@ -31,9 +31,9 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.lib.alerts import BaseAlert, AlertManager
-from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.auth.backend import get_uid_username
+from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
+from pjuu.lib.alerts import BaseAlert, AlertManager
 
 
 # Regular expressions
@@ -45,10 +45,8 @@ tag_re = re.compile('(?:^|(?<=[^\w]))@'
 # Subscription reasons
 # You are the original poster
 POSTER = 1
-
-# You commented on the pose
+# You commented on the post
 COMMENTER = 2
-
 # You have been tagged in the post
 TAGEE = 3
 
@@ -63,17 +61,21 @@ class PostingAlert(BaseAlert):
     def __init__(self, uid, pid):
         # Call the BaseAlert __init__ method
         super(PostingAlert, self).__init__(uid)
-        # Assign pid and ensure it is an int
-        self.pid = int(pid)
-        # Call Redis to get some additional information
-        self.author_uid = int(r.hget(K.POST % pid, 'uid'))
-        self.author_username = r.hget(K.USER % self.author_uid, 'username')
+        self.pid = pid
+        self.author_uid = r.hget(K.POST.format(pid), 'uid')
+
+    def author_username(self):
+        """
+        Get the username of the user which triggered this alert
+        """
+        return r.hget(K.USER.format(self.author_uid), 'username')
 
     def verify(self):
         """
         Overwrite the verify of BaseAlert to add checking the post exists
         """
-        return r.exists(K.USER % self.uid) and r.exists(K.POST % self.pid)
+        return r.exists(K.USER.format(self.uid)) and \
+               r.exists(K.POST.format(self.pid))
 
 
 class TaggingAlert(PostingAlert):
@@ -82,7 +84,7 @@ class TaggingAlert(PostingAlert):
         return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
                .format(url_for('profile', username=self.get_username()),
                        do_capitalize(self.get_username()),
-                       url_for('view_post', username=self.author_username,
+                       url_for('view_post', username=self.author_username(),
                                pid=self.pid))
 
 
@@ -106,12 +108,12 @@ class CommentingAlert(PostingAlert):
                'commented on a <a href="{2}">post</a> you {3}' \
                .format(url_for('profile', username=self.get_username()),
                        do_capitalize(self.get_username()),
-                       url_for('view_post', username=self.author_username,
+                       url_for('view_post', username=self.author_username(),
                                pid=self.pid),
                        sr)
 
 
-def parse_tags(body, send_all=False):
+def parse_tags(body, deduplicate=False):
     """
     This function looks for '@' tags inside a post that match the regex.
 
@@ -137,8 +139,9 @@ def parse_tags(body, send_all=False):
         uid = get_uid_username(tag.group(1))
         if uid is not None:
             # There is two versions one sends all tag locations and the other
-            # deduplicates the list.
-            if send_all:
+            # de-duplicates the list.
+            # With a de-duplicated list this allows us to alert just once
+            if deduplicate:
                 results.append((uid, tag.group(1), tag.group(0), tag.span()))
             elif uid not in seen:
                 results.append((uid, tag.group(1), tag.group(0), tag.span()))
@@ -153,21 +156,18 @@ def populate_feeds(uid, pid):
     left of their list.
 
     This will take care of getting the followers from Redis also.
-    """
-    # TODO This needs putting in to Celery->RabbitMQ at some point
-    # as this could take a long long while.
-    # This has been seperated in to tasks.py ready for this action.
 
+    Note: HUNGRY OTTER-ABLE
+    """
     # Get a list of ALL users who are following a user
-    followers = r.zrange(K.USER_FOLLOWERS % uid, 0, -1)
+    followers = r.zrange(K.USER_FOLLOWERS.format(uid), 0, -1)
     # This is not transactional as to not hold Redis up.
     for fid in followers:
-        fid = int(fid)
         # Add the pid to the list
-        r.lpush(K.USER_FEED % fid, pid)
+        r.lpush(K.USER_FEED.format(fid), pid)
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
-        r.ltrim(K.USER_FEED % fid, 0, 999)
+        r.ltrim(K.USER_FEED.format(fid), 0, 999)
 
 
 def create_post(uid, body):
@@ -175,8 +175,9 @@ def create_post(uid, body):
     Creates a new post. Does all the other stuff to like prepend to feeds,
     post list, etc...
     """
-    uid = int(uid)
-    pid = int(r.incr(K.GLOBAL_PID))
+    # Get a new UUID for the pid
+    pid = get_uuid()
+
     # Hash form for posts
     # TODO this needs expanding to include some form of image upload hook
     post = {
@@ -186,22 +187,23 @@ def create_post(uid, body):
         'created': timestamp(),
         'score': 0
     }
-    # Transactional
-    pipe = r.pipeline()
+
     # Add post
-    pipe.hmset(K.POST % pid, post)
+    r.hmset(K.POST.format(pid), post)
     # Add post to users post list
-    pipe.lpush(K.USER_POSTS % uid, pid)
+    r.lpush(K.USER_POSTS.format(uid), pid)
     # Add post to authors feed
-    pipe.lpush(K.USER_FEED % uid, pid)
+    r.lpush(K.USER_FEED.format(uid), pid)
     # Ensure the feed does not grow to large
-    pipe.ltrim(K.USER_FEED % uid, 0, 999)
-    pipe.execute()
+    r.ltrim(K.USER_FEED.format(uid), 0, 999)
+
     # Append to all followers feeds
     populate_feeds(uid, pid)
 
     # Subscribe the poster to there post
     subscribe(uid, pid, POSTER)
+
+    # TAGGING
 
     # Create alert manager and alert
     alert = TaggingAlert(uid, pid)
@@ -227,10 +229,9 @@ def create_comment(uid, pid, body):
     """
     Create a new comment.
     """
-    uid = int(uid)
-    # Reserve the ID now. If the transaction fails we lost this ID
-    cid = int(r.incr(K.GLOBAL_CID))
-    pid = int(pid)
+    # Get a new UUID for the cid
+    cid = get_uuid()
+
     # Form for comment hash
     comment = {
         'cid': cid,
@@ -240,17 +241,15 @@ def create_comment(uid, pid, body):
         'created': timestamp(),
         'score': 0
     }
-    # Transactional
-    pipe = r.pipeline()
+
     # Add comment
-    pipe.hmset(K.COMMENT % cid, comment)
+    r.hmset(K.COMMENT.format(cid), comment)
     # Add comment to posts comment list
-    pipe.lpush(K.POST_COMMENTS % pid, cid)
+    r.lpush(K.POST_COMMENTS.format(pid), cid)
     # Add comment to users comment list
     # This may seem redundant but it allows for perfect account deletion
     # Please see Issue #3 on Github
-    pipe.lpush(K.USER_COMMENTS % uid, cid)
-    pipe.execute()
+    r.lpush(K.USER_COMMENTS.format(uid), cid)
 
     # COMMENT ALERTING
 
@@ -262,8 +261,6 @@ def create_comment(uid, pid, body):
     subscribers = []
     # Iterate through subscribers and let them know about the comment
     for subscriber in get_subscribers(pid):
-        # ENsure subscriber is an int
-        subscriber = int(subscriber)
         # Ensure we don't get alerted for our own comments
         if subscriber != uid:
             subscribers.append(subscriber)
@@ -307,20 +304,20 @@ def check_post(uid, pid, cid=None):
              checking who wrote CID
     """
     try:
-        uid = int(uid)
-        pid = int(pid)
+        uid = uid
+        pid = pid
 
         # Check if cid is a comment of post pid
         if cid:
-            cid = int(cid)
-            pid_check = int(r.hget(K.COMMENT % cid, 'pid'))
+            cid = cid
+            pid_check = r.hget(K.COMMENT.format(cid), 'pid')
 
-            if int(pid_check) != pid:
+            if pid_check != pid:
                 # No it isn't
                 return False
 
         # Check that post was written by uid
-        uid_check = int(r.hget(K.POST % pid, 'uid'))
+        uid_check = r.hget(K.POST.format(pid), 'uid')
         if uid_check != uid:
             return False
 
@@ -336,19 +333,18 @@ def get_post(pid):
     """
     Returns a representation of a post along with data on the user
     """
-    pid = int(pid)
-    post = r.hgetall(K.POST % pid)
+    post = r.hgetall(K.POST.format(pid))
 
     if post:
         try:
             # Look up user and add data to the repr
-            uid = int(post['uid'])
-            user_dict = r.hgetall(K.USER % uid)
+            uid = post['uid']
+            user_dict = r.hgetall(K.USER.format(uid))
 
             post['user_username'] = user_dict['username']
             post['user_email'] = user_dict['email']
             post['user_score'] = user_dict['score']
-            post['comment_count'] = r.llen(K.POST_COMMENTS % pid)
+            post['comment_count'] = r.llen(K.POST_COMMENTS.format(pid))
         except (KeyError, ValueError):
             return None
         else:
@@ -361,13 +357,12 @@ def get_comment(cid):
     """
     Returns a representation of a comment along with data on the user
     """
-    cid = int(cid)
-    comment = r.hgetall(K.COMMENT % cid)
+    comment = r.hgetall(K.COMMENT.format(cid))
 
     if comment:
         try:
             # Look up user and add data to the repr
-            uid = int(comment['uid'])
+            uid = comment['uid']
             user_dict = r.hgetall(K.USER % uid)
 
             comment['user_username'] = user_dict['username']
@@ -375,11 +370,12 @@ def get_comment(cid):
             comment['user_score'] = user_dict['score']
 
             # We need the username from the parent pid to construct a URL
-            pid = int(comment['pid'])
-            author_uid = int(r.hget(K.POST % pid, 'uid'))
+            pid = comment['pid']
+            author_uid = r.hget(K.POST.format(pid), 'uid')
             # Although this key is called post_autor it is actually a username
             # and not a uid. get_post_author returns the authors uid.
-            comment['post_author'] = r.hget(K.USER % author_uid, 'username')
+            comment['post_author'] = r.hget(K.USER.format(author_uid),
+                                            'username')
         except (KeyError, ValueError):
             return None
         else:
@@ -392,16 +388,14 @@ def get_post_author(pid):
     """
     Returns UID of posts author
     """
-    pid = int(pid)
-    return int(r.hget(K.POST % pid, 'uid'))
+    return r.hget(K.POST.format(pid), 'uid')
 
 
 def get_comment_author(cid):
     """
     Returns UID of comments author
     """
-    cid = int(cid)
-    return int(r.hget(K.COMMENT % cid, 'uid'))
+    return r.hget(K.COMMENT.format(cid), 'uid')
 
 
 def has_voted(uid, pid, cid=None):
@@ -410,13 +404,10 @@ def has_voted(uid, pid, cid=None):
 
     With return -1 if user downvoted, 1 if user upvoted and None if not voted
     """
-    uid = int(uid)
-    pid = int(pid)
     if cid is not None:
-        cid = int(cid)
-        result = r.zscore(K.COMMENT_VOTES % cid, uid)
+        result = r.zscore(K.COMMENT_VOTES.format(cid), uid)
     else:
-        result = r.zscore(K.POST_VOTES % pid, uid)
+        result = r.zscore(K.POST_VOTES.format(pid), uid)
     return result
 
 
@@ -424,86 +415,59 @@ def vote(uid, pid, cid=None, amount=1):
     """
     Handles all voting in Pjuu
     """
-    uid = int(uid)
-    pid = int(pid)
     # Ensure user has not voted before
     if not has_voted(uid, pid, cid):
         # Voting on a comment
         if cid is not None:
-            cid = int(cid)
-            author_uid = int(r.hget(K.COMMENT % cid, 'uid'))
+            author_uid = get_comment_author(cid)
+            # Stop user voting on there own comments
             if author_uid != uid:
-                r.zadd(K.COMMENT_VOTES % cid, amount, uid)
+                r.zadd(K.COMMENT_VOTES.format(cid), amount, uid)
                 # Comment scores can be negative
-                r.hincrby(K.COMMENT % cid, 'score', amount=amount)
+                r.hincrby(K.COMMENT.format(cid), 'score', amount=amount)
 
                 # Get the score of the author
-                current_user_score = r.hget(K.USER % author_uid, 'score')
+                cur_user_score = r.hget(K.USER.format(author_uid), 'score')
+                # Stop users scores going lower than 0
                 try:
-                    current_user_score = int(current_user_score)
-                    if current_user_score <= 0 and amount < 0:
+                    cur_user_score = int(cur_user_score)
+                    if cur_user_score <= 0 and amount < 0:
                         amount = 0
                 except (ValueError, TypeError):
                     # If we can not convert the score to an Int ignore it.
+                    # It probably isn't already stored in the system
                     pass
 
                 # The above code will stop the user going in to negative score
-                r.hincrby(K.USER % author_uid, 'score', amount=amount)
+                r.hincrby(K.USER.format(author_uid), 'score', amount=amount)
+
                 return True
         else:
-            author_uid = int(r.hget(K.POST % pid, 'uid'))
+            author_uid = get_post_author(pid)
             if author_uid != uid:
-                r.zadd(K.POST_VOTES % pid, amount, uid)
+                r.zadd(K.POST_VOTES.format(pid), amount, uid)
                 # Post scores can be negative
-                r.hincrby(K.POST % pid, 'score', amount=amount)
+                r.hincrby(K.POST.format(pid), 'score', amount=amount)
 
                 # Get the score of the author
-                current_user_score = r.hget(K.USER % author_uid, 'score')
+                cur_user_score = r.hget(K.USER.format(author_uid), 'score')
+                # Stop users scores going lower than 0
                 try:
-                    current_user_score = int(current_user_score)
-                    if current_user_score <= 0 and amount < 0:
+                    cur_user_score = int(cur_user_score)
+                    if cur_user_score <= 0 and amount < 0:
                         amount = 0
                 except (ValueError, TypeError):
                     # If we can not convert the score to an Int ignore it.
                     pass
 
-                # The above code will stop the user going in to negative score
-                r.hincrby(K.USER % author_uid, 'score', amount=amount)
+                r.hincrby(K.USER.format(author_uid), 'score', amount=amount)
+
                 return True
 
     return False
 
 
-def delete_comments(uid, pid):
-    """
-    HUNGRY OTTER-ABLE
-
-    This will cycle through a posts comments and remove each comment
-    in turn. It will also remove the comment from the users comment list.
-
-    It will then delete the list at the end.
-    """
-    uid = int(uid)
-    pid = int(pid)
-
-    cids = r.lrange(K.POST_COMMENTS % pid, 0, -1)
-    for cid in cids:
-        # Delete comment and votes
-        cid = int(cid)
-        # We need to get the comment authors uid so that we can remove the
-        # comment from there user:$uid:comments list
-        author_id = int(r.hget('comment:%d' % cid, 'uid'))
-        # Delete the comment and remove from the posts list
-        r.delete(K.COMMENT % cid)
-        r.delete(K.COMMENT_VOTES % cid)
-        # Delete the comment from the users comment list
-        # This makes these lists self cleaning
-        r.lrem(K.USER_COMMENTS % author_id, 0, cid)
-    # Finally delete the comment list
-    r.delete(K.POST_COMMENTS % pid)
-
-
-def delete(uid, pid, cid=None):
+def delete(pid, cid=None):
     """
     Deletes a post/comment
     If this is a post it will delete all comments, all votes, etc...
@@ -513,35 +477,58 @@ def delete(uid, pid, cid=None):
     Please ensure the user has permission to delete the item before
     passing to this, it will not check!
     """
-    uid = int(uid)
-    pid = int(pid)
     if cid:
         # Delete comment and votes
-        cid = int(cid)
         # We need to get the comment authors uid so that we can remove the
         # comment from there user:$uid:comments list
-        author_id = int(r.hget(K.COMMENT % cid, 'uid'))
+        author_id = r.hget(K.COMMENT.format(cid), 'uid')
         # Delete the comment and remove from the posts list
-        r.delete(K.COMMENT % cid)
-        r.delete(K.COMMENT_VOTES % cid)
-        r.lrem(K.POST_COMMENTS % pid, 0, cid)
+        r.delete(K.COMMENT.format(cid))
+        r.delete(K.COMMENT_VOTES.format(cid))
+        r.lrem(K.POST_COMMENTS.format(cid), 0, cid)
         # Delete the comment from the users comment list
-        r.lrem(K.USER_COMMENTS % author_id, 0, cid)
+        r.lrem(K.USER_COMMENTS.format(author_id), 0, cid)
         return True
     else:
         # Get the post authors ID
-        author_id = int(r.hget(K.POST % pid, 'uid'))
+        author_id = r.hget(K.POST.format(pid), 'uid')
         # Delete post, comments and votes
-        r.delete(K.POST % pid)
-        r.delete(K.POST_VOTES % pid)
+        r.delete(K.POST.format(pid))
+        r.delete(K.POST_VOTES.format(pid))
         # Delete posts subscribers list
-        r.delete(K.POST_SUBSCRIBERS % pid)
+        r.delete(K.POST_SUBSCRIBERS.format(pid))
         # Delete the post from the users post list
-        r.lrem(K.USER_POSTS % author_id, 0, pid)
-        # Delete all comments on the post
-        delete_comments(uid, pid)
+        r.lrem(K.USER_POSTS.format(author_id), 0, pid)
+        # Delete all posts comments
+        delete_post_comments(pid)
         return True
+
     return False
+
+
+def delete_post_comments(pid):
+    """
+    HUNGRY OTTER-ABLE
+
+    This will cycle through a posts comments and remove each comment
+    in turn. It will also remove the comment from the users comment list.
+
+    It will then delete the list at the end.
+    """
+    cids = r.lrange(K.POST_COMMENTS.format(pid), 0, -1)
+    for cid in cids:
+        # Delete comment and votes
+        # We need to get the comment authors uid so that we can remove the
+        # comment from there user:$uid:comments list
+        author_id = r.hget(K.COMMENT.format(cid), 'uid')
+        # Delete the comment and remove from the posts list
+        r.delete(K.COMMENT.format(cid))
+        r.delete(K.COMMENT_VOTES.format(cid))
+        # Delete the comment from the users comment list
+        # This makes these lists self cleaning
+        r.lrem(K.USER_COMMENTS.format(author_id), 0, cid)
+    # Finally delete the comment list
+    r.delete(K.POST_COMMENTS.format(pid))
 
 
 def subscribe(uid, pid, reason):
@@ -551,18 +538,13 @@ def subscribe(uid, pid, reason):
     This is a helper function to make subscriptions easier. It will also ensure
     that post authors are not subscribed to there own posts.
     """
-    # Esnure pid, uid and reason are all int's
-    pid = int(pid)
-    uid = int(uid)
-    reason = int(reason)
-
     # Check that pid exsits if not do nothing
-    if not r.exists(K.POST % pid):
+    if not r.exists(K.POST.format(pid)):
         return False
 
     # Only subscribe the user if the user is not already subscribed
     # this will mean the original reason is kept
-    return L.zadd_member_nx(keys=[K.POST_SUBSCRIBERS % pid],
+    return L.zadd_member_nx(keys=[K.POST_SUBSCRIBERS.format(pid)],
                             args=[reason, uid])
 
 
@@ -572,31 +554,22 @@ def unsubscribe(uid, pid):
 
     This function always returns true if the user was unsubscribed
     """
-    uid = int(uid)
-    pid = int(pid)
-
     # Actually remove the uid from the subscribers list
-    return bool(r.zrem(K.POST_SUBSCRIBERS % pid, uid))
+    return bool(r.zrem(K.POST_SUBSCRIBERS.format(pid), uid))
 
 
 def get_subscribers(pid):
     """
     Return a list of subscribers for a given post (pid)
     """
-    pid = int(pid)
-
-    return r.zrange(K.POST_SUBSCRIBERS % pid, 0, -1)
+    return r.zrange(K.POST_SUBSCRIBERS.format(pid), 0, -1)
 
 
 def is_subscribed(uid, pid):
     """
     Returns a boolean to denote if a user is subscribed or not
     """
-    uid = int(uid)
-    pid = int(pid)
-
-    # Check that the uid to the pid
-    return r.zrank(K.POST_SUBSCRIBERS % pid, uid) is not None
+    return r.zrank(K.POST_SUBSCRIBERS.format(pid), uid) is not None
 
 
 def subscription_reason(uid, pid):
@@ -605,9 +578,4 @@ def subscription_reason(uid, pid):
     which will return the score in the zset or None if the user is not
     subscribed.
     """
-    uid = int(uid)
-    pid = int(pid)
-
-    # Simply get the score for the uid, Redis will return the None if it isn't
-    # there
-    return r.zscore(K.POST_SUBSCRIBERS % pid, uid)
+    return r.zscore(K.POST_SUBSCRIBERS.format(pid), uid)

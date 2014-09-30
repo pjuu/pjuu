@@ -25,8 +25,9 @@ Licence:
 """
 
 # Stdlib imports
-from urlparse import urlparse, urljoin
 from time import time, clock
+from urlparse import urlparse, urljoin
+from uuid import uuid1
 
 
 def is_safe_url(host_url, target):
@@ -61,3 +62,10 @@ def timestamp():
           need to be able to get the latest alert.
     """
     return time() + clock()
+
+
+def get_uuid():
+    """ Return a new hex representation of a UUID.
+
+    """
+    return uuid1().hex

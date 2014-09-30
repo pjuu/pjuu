@@ -28,19 +28,19 @@ from flask import (current_app as app, flash, redirect, render_template,
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
-from . import current_user
-from .backend import (authenticate, login, logout, create_user,
-                      activate as be_activate, get_user,
-                      change_password as be_change_password,
-                      change_email as be_change_email,
-                      get_uid, is_active, is_banned, get_email,
-                      SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL,
-                      delete_account as be_delete_account,
-                      dump_account as be_dump_account)
-from .decorators import anonymous_required, login_required
-from .forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
-                    ChangeEmailForm, PasswordChangeForm, DeleteAccountForm,
-                    DumpAccountForm)
+from pjuu.auth import current_user
+from pjuu.auth.backend import (authenticate, login, logout, create_user,
+                               activate as be_activate, get_user,
+                               change_password as be_change_password,
+                               change_email as be_change_email,
+                               get_uid, is_active, is_banned, get_email,
+                               SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL,
+                               delete_account as be_delete_account,
+                               dump_account as be_dump_account)
+from pjuu.auth.decorators import anonymous_required, login_required
+from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
+                             ChangeEmailForm, PasswordChangeForm,
+                             DeleteAccountForm, DumpAccountForm)
 
 
 @app.context_processor

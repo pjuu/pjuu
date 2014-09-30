@@ -30,7 +30,7 @@ try:
 except ImportError:
     import pickle
 from datetime import timedelta
-from uuid import uuid4
+from uuid import uuid1
 # 3rd party imports
 from redis import Redis
 from werkzeug.datastructures import CallbackDict
@@ -68,7 +68,10 @@ class RedisSessionInterface(SessionInterface):
         self.prefix = prefix
 
     def generate_sid(self):
-        return str(uuid4())
+        """
+        Create a session id from the hex repr of a uuid1
+        """
+        return str(uuid1().hex)
 
     def get_redis_expiration_time(self, app, session):
         if session.permanent:

@@ -48,19 +48,19 @@ class BaseAlert(object):
     def __init__(self, uid):
         self.aid = uuid1().int
         self.timestamp = timestamp()
-        self.uid = int(uid)
+        self.uid = uid
 
     def get_username(self):
         """
         Helper; Get the username of the user who caused this.
         """
-        return r.hget(K.USER % self.uid, 'username')
+        return r.hget(K.USER.format(self.uid), 'username')
 
     def get_email(self):
         """
         Helper; Get the e-mail address of the user who caused this.
         """
-        return r.hget(K.USER % self.uid, 'email')
+        return r.hget(K.USER.format(self.uid), 'email')
 
     def verify(self):
         """
@@ -69,7 +69,7 @@ class BaseAlert(object):
         details on how to implement this.
         """
         # Simple implementation, check the user exists
-        return r.exists(K.USER % self.uid)
+        return r.exists(K.USER.format(self.uid))
 
     def prettify(self, for_uid=None):
         """
@@ -95,10 +95,9 @@ class AlertManager(object):
         """
         Attempts to load an Alert from Redis and unpickle it
         """
-        aid = int(aid)
         # Try the unpickling process
         try:
-            pickled_alert = r.get(K.ALERT % aid)
+            pickled_alert = r.get(K.ALERT.format(aid))
             alert = jsonpickle.decode(pickled_alert)
         except (TypeError, ValueError):
             # We failed to get an alert for whateva reason
@@ -111,7 +110,7 @@ class AlertManager(object):
         else:
             # If the alert did not verify delete it
             # This will stop this always being called
-            r.delete(K.ALERT % aid)
+            r.delete(K.ALERT.format(aid))
             return None
 
     def alert(self, alert, uids):
@@ -130,12 +129,11 @@ class AlertManager(object):
             raise TypeError('uids must be iterable')
 
         # Create the alert object
-        r.set(K.ALERT % alert.aid, jsonpickle.encode(alert))
+        r.set(K.ALERT.format(alert.aid), jsonpickle.encode(alert))
         # Set the 4WK timeout on it
-        r.expire(K.ALERT % alert.aid, K.EXPIRE_4WKS)
+        r.expire(K.ALERT.format(alert.aid), K.EXPIRE_4WKS)
 
         for uid in uids:
-            uid = int(uid)
             # Only add the zset if the user still exists
-            L.zadd_keyx(keys=(K.USER_ALERTS % uid, K.USER % uid),
+            L.zadd_keyx(keys=(K.USER_ALERTS.format(uid), K.USER.format(uid)),
                         args=(alert.timestamp, alert.aid))

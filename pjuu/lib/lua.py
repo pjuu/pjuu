@@ -32,7 +32,7 @@ from pjuu import redis as r
 lua_create_user = """
 if redis.call('EXISTS', KEYS[1]) == 0 and
    redis.call('EXISTS', KEYS[2]) == 0 then
-    local pid = redis.call('INCR', 'global:uid')
+    local pid = ARGV[1]
     redis.call('SET', KEYS[1], pid)
     redis.call('SET', KEYS[2], pid)
     -- Ensure that the new account is set to expire

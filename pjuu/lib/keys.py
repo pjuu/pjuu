@@ -3,7 +3,7 @@
 """
 Description:
     Key constants which Pjuu uses for Redis as well as some helpful stuff
-    which makes using Redis a little easier
+    which makes using Redis a little easier.
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -24,80 +24,84 @@ Licence:
 
 # Although not strictly Redis, these expiration constants are useful
 # Standard 7 days
-EXPIRE_SECONDS = 604800
-EXPIRE_MILLISECONDS = 604800000
+# Calculate it, makes it nicer to change
+EXPIRE_SECONDS = 7 * 24 * 60 * 60
+EXPIRE_MILLISECONDS = EXPIRE_SECONDS * 1000
 # Other time periods
-EXPIRE_24HRS = 86400
-EXPIRE_4WKS = 2419200
+EXPIRE_24HRS = 24 * 60 * 60
+EXPIRE_4WKS = 28 * 24 * 60 * 60
+
+# Standard contants
+# We occasionally need to set a key to something which is invalid and which
+# we can test for. For example when a user is deleted there username is
+# resserved for 7 days
+# We will use the lua repr for None
+NIL_VALUE = str(None)
 
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
 # around the code base
 
-# Counter keys for IDs
-GLOBAL_UID = "global:uid"
-GLOBAL_PID = "global:pid"
-GLOBAL_CID = "global:cid"
+# Usage example:
+#
+#   USER.format('aaebdfeb479c11e4ad966003089579ee')
+#
+# Will return the user identified by hex uuid repr
 
 # Keys to get all user information
-# Usage: <VARIABLE> % int
 
 # Returns: hash
-USER = "user:%d"
+USER = "{{user:{0}}}"
 
 # Returns: list
-USER_FEED = "user:%d:feed"
+USER_FEED = "{{user:{0}}}:feed"
 
 # Returns: list
-USER_POSTS = "user:%d:posts"
+USER_POSTS = "{{user:{0}}}:posts"
 
 # Returns: list
-USER_COMMENTS = "user:%d:comments"
+USER_COMMENTS = "{{user:{0}}}:comments"
 
 # Returns: zset
-USER_FOLLOWERS = "user:%d:followers"
+USER_FOLLOWERS = "{{user:{0}}}:followers"
 
 # Returns: zset
-USER_FOLLOWING = "user:%d:following"
+USER_FOLLOWING = "{{user:{0}}}:following"
 
 # Returns: zset
-USER_ALERTS = "user:%d:alerts"
+USER_ALERTS = "{{user:{0}}}:alerts"
 
 # Look-up keys
-# Usage: <VARIABLE> % string
 
-# Returns: int
-UID_EMAIL = "uid:email:%s"
+# Returns: uid(str)
+UID_EMAIL = "uid:email:{0}"
 
-# Returns: int
-UID_USERNAME = "uid:username:%s"
+# Returns: uid(str)
+UID_USERNAME = "uid:username:{0}"
 
 # Post related keys
-# Usage: <VARIABLE> % pid(int)
 
 # Returns: hash
-POST = "post:%d"
+POST = "{{post:{0}}}"
 
 # Returns: zset
-POST_VOTES = "post:%d:votes"
+POST_VOTES = "{{post:{0}}}:votes"
 
 # Returns: list
-POST_COMMENTS = "post:%d:comments"
+POST_COMMENTS = "{{post:{0}}}:comments"
 
 # Returns: zset
-POST_SUBSCRIBERS = "post:%d:subscribers"
+POST_SUBSCRIBERS = "{{post:{0}}}:subscribers"
 
 # Comment related keys
-# Usage: <VARIABLE> % cid(int)
 
 # Returns: hash
-COMMENT = "comment:%d"
+COMMENT = "{{comment:{0}}}"
 
 # Returns: zset
-COMMENT_VOTES = "comment:%d:votes"
+COMMENT_VOTES = "{{comment:{0}}}:votes"
 
 # Alert related keys
-# Usage: <VARIABLE> % aid(int)
 
 # Return: hash
-ALERT = "alert:%d"
+ALERT = "{{alert:{0}}}"

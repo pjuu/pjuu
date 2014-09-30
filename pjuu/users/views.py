@@ -31,22 +31,20 @@ from flask import (current_app as app, abort, flash, redirect, render_template,
                    request, url_for, jsonify)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import get_uid, get_uid_email, get_uid_username
+from pjuu.auth.backend import (get_uid, get_uid_email, get_uid_username,
+                               USERNAME_RE)
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import check_post, get_post, parse_tags
 from pjuu.posts.forms import PostForm
-from .forms import ChangeProfileForm, SearchForm
-from .backend import (follow_user, unfollow_user, get_profile, get_feed,
-                      get_posts, get_followers, get_following, is_following,
-                      get_comments, search as be_search, set_about, get_alerts,
-                      i_has_alerts as be_i_has_alerts,
-                      delete_alert as be_delete_alert)
-
-
-# Username regular expressions
-username_re = re.compile(r' @([A-Za-z_]{3, 16}) ')
+from pjuu.users.forms import ChangeProfileForm, SearchForm
+from pjuu.users.backend import (follow_user, unfollow_user, get_profile,
+                                get_feed, get_posts, get_followers,
+                                get_following, is_following, set_about,
+                                get_alerts, get_comments, search as be_search,
+                                i_has_alerts as be_i_has_alerts,
+                                delete_alert as be_delete_alert)
 
 
 @app.template_filter('following')
@@ -54,7 +52,7 @@ def following_filter(profile):
     """
     Checks if current user is following the user with id piped to filter
     """
-    return is_following(current_user['uid'], profile['uid'])
+    return is_following(current_use.get('uid'), profile.get('uid'))
 
 
 @app.template_filter('avatar')
@@ -167,7 +165,7 @@ def feed():
     # Pagination
     page = handle_page(request)
     # Get feed pagination
-    pagination = get_feed(int(current_user['uid']), page)
+    pagination = get_feed(current_user.get('uid'), page)
 
     # Post form
     post_form = PostForm()
@@ -280,17 +278,18 @@ def follow(username):
     Used to follow a user
     """
     redirect_url = handle_next(request, url_for('following',
-                               username=current_user['username']))
+                               username=current_user.get('username')))
 
     uid = get_uid(username)
 
+    # If we don't get a uid from the username the page doesn't exist
     if uid is None:
         abort(404)
 
-    # Follow user, ensure the user doesn't follow themself
-    if uid != int(current_user['uid']):
-        if follow_user(current_user['uid'], uid):
-            flash('You have started following %s' % username, 'information')
+    # Unfollow user, ensure the user doesn't unfollow themself
+    if uid != current_user.get('uid'):
+        if follow_user(current_user.get('uid'), uid):
+            flash('You are no longer following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')
 
@@ -304,17 +303,18 @@ def unfollow(username):
     Used to unfollow a user
     """
     redirect_url = handle_next(request, url_for('following',
-                               username=current_user['username']))
+                               username=current_user.get('username')))
 
     uid = get_uid(username)
 
+    # If we don't get a uid from the username the page doesn't exist
     if uid is None:
         abort(404)
 
     # Unfollow user, ensure the user doesn't unfollow themself
-    if uid != int(current_user['uid']):
-        if unfollow_user(current_user['uid'], uid):
-            flash('You are no longer following %s' % username, 'information')
+    if uid != current_user.get('uid'):
+        if unfollow_user(current_user.get('uid'), uid):
+            flash('You are no longer following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')
 
@@ -329,10 +329,10 @@ def search():
     There should be _NO_ CSRF as this will appear in the URL and look shit
     """
     form = SearchForm(request.form)
-    if 'query' not in request.args:
-        query = ''
-    else:
-        query = request.args['query']
+
+    # Get the query string. If its not there return an empty string
+    query = request.args.get('query', '')
+    
     _results = be_search(query)
     return render_template('search.html', form=form, query=query,
                            pagination=_results)
@@ -351,10 +351,11 @@ def settings_profile():
             # Update current_user, this was highlighted by Ant is issue 1
             current_user['about'] = form.about.data
             # Set the users new about in Redis
-            set_about(current_user['uid'], form.about.data)
+            set_about(current_user.get('uid'), form.about.data)
             flash('Your profile has been updated', 'success')
         else:
             flash('error in your form', 'error')
+
     return render_template('settings_profile.html', form=form)
 
 
@@ -364,10 +365,7 @@ def alerts():
     """
     Display a users alerts (notifications) to them on the site.
     """
-    uid = current_user['uid']
-
-    if uid is None:
-        abort(404)
+    uid = current_user.get('uid')
 
     # Pagination
     page = handle_page(request)
@@ -376,17 +374,14 @@ def alerts():
     return render_template('alerts.html', pagination=_results)
 
 
-@app.route('/alerts/<int:aid>/delete', methods=['GET'])
+@app.route('/alerts/<aid>/delete', methods=['GET'])
 @login_required
 def delete_alert(aid):
     """
     Remove an alert id (aid) from a users alerts feed
     """
     uid = current_user.get('uid')
-
-    if uid is None:
-        abort(404)
-
+    # Handle next
     redirect_url = handle_next(request, url_for('alerts'))
 
     if be_delete_alert(uid, aid):
@@ -407,5 +402,8 @@ def i_has_alerts():
     # We don't want this view to redirect to signin so we will throw a 403
     # this will make jQuery easier to use with this endpoint
     if not current_user:
-        return abort(403)    
-    return jsonify(result=be_i_has_alerts(current_user['uid']))
+        return abort(403)
+
+    uid = current_user.get('uid')
+
+    return jsonify(result=be_i_has_alerts(uid))
