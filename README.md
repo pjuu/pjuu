@@ -1,5 +1,5 @@
 # Pjuu
-[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg)](https://coveralls.io/r/pjuu/pjuu) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master)
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=0.4)](https://travis-ci.org/pjuu/pjuu?branch=0.4) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg?branch=0.4)](https://coveralls.io/r/pjuu/pjuu?branch=0.4) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=0.4)](https://requires.io/github/pjuu/pjuu/requirements/?branch=0.4)
 
 An open-source social networking application which runs https://pjuu.com.
 
