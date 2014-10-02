@@ -54,7 +54,7 @@ class FrontendTests(FrontendTestCase):
 
         # There is no user in the system check that we can't authenticate
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         })
         # We should get a 200 with an error message if we were not successful
@@ -70,9 +70,9 @@ class FrontendTests(FrontendTestCase):
 
         # Create a test user and try loggin in, should fail as the user isn't
         # activated
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         })
         # We should get a 200 with an information message
@@ -80,23 +80,23 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('Please activate your account', resp.data)
 
         # Activate account
-        self.assertTrue(activate(1))
+        self.assertTrue(activate(user1))
 
         # Test that the correct warning is shown if the user is banned
-        self.assertTrue(ban(1))
+        self.assertTrue(ban(user1))
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         })
         # We should get a 200 with an information message
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You\'re a very naughty boy!', resp.data)
         # Lets unban the user now so we can carry on
-        self.assertTrue(ban(1, False))
+        self.assertTrue(ban(user1, False))
 
-        # Now the user is active and not banned actuall log in
+        # Now the user is active and not banned actualy log in
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
@@ -113,32 +113,20 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Successfully signed out', resp.data)
 
-        # We will now ban the user just to ensure they can't get in. They
-        # should receive a 200 and a warning message
-        self.assertTrue(ban(1))
-        resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'Password'
-        })
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn('You\'re a very naughty boy!', resp.data)
-        # Unban the user so we can use it again
-        self.assertTrue(ban(1, False), True)
-
         # Lets try and cheat the system
         # Attempt invalid Password
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password1'
-        })
+        }, follow_redirects=True)
         # We should get a 200 with an error message if we were not successful
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid user name or password', resp.data)
 
         # Attempt user does not exist
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test1',
-            'password': 'Password1'
+            'username': 'bob',
+            'password': 'Password'
         })
         # We should get a 200 with an error message if we were not successful
         self.assertEqual(resp.status_code, 200)
@@ -147,7 +135,7 @@ class FrontendTests(FrontendTestCase):
         # Log the user in and ensure they are logged out if there account
         # is banned during using the site and not just at login
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
@@ -156,9 +144,9 @@ class FrontendTests(FrontendTestCase):
         # username
         resp = self.client.get(url_for('settings_profile'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('test@pjuu.com', resp.data)
+        self.assertIn('user1@pjuu.com', resp.data)
         # Let's ban the user now
-        self.assertTrue(ban(1))
+        self.assertTrue(ban(user1))
         # Attempt to get to the feed
         resp = self.client.get(url_for('feed'), follow_redirects=True)
         # We should be redirected to signin with the standard message
@@ -189,13 +177,14 @@ class FrontendTests(FrontendTestCase):
         # Lets attempt to create a new account. This should return a 302 to
         # /signin with a little message displayed to activate your account
         resp = self.client.post(url_for('signup'), data={
-            'username': 'test',
-            'email': 'test@pjuu.com',
+            'username': 'user1',
+            'email': 'user1@pjuu.com',
             'password': 'Password',
             'password2': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Yay! You\'ve signed up', resp.data)
+
         # We are in testing mode so we can get the auth token from the response
         # this is in the headers as X-Pjuu-Token
         token = resp.headers.get('X-Pjuu-Token')
@@ -217,8 +206,8 @@ class FrontendTests(FrontendTestCase):
         # and error codes. We will also put mismatch passwords in just to test
         # that all forms throw the correct error
         resp = self.client.post(url_for('signup'), data={
-            'username': 'test',
-            'email': 'test@pjuu.com',
+            'username': 'user1',
+            'email': 'user1@pjuu.com',
             'password': 'Password',
             'password2': 'PasswordPassword'
         }, follow_redirects=True)
@@ -232,19 +221,8 @@ class FrontendTests(FrontendTestCase):
 
         # Try a few scenarios with email addresses we are not happy about.
         resp = self.client.post(url_for('signup'), data={
-            'username': 'test1',
-            'email': 'test#test@pjuu.com',
-            'password': 'Password',
-            'password2': 'Password'
-        }, follow_redirects=True)
-        self.assertEqual(resp.status_code, 200)
-        # Ensure there is an overall form error
-        self.assertIn('Oh no! There are errors in your form', resp.data)
-        self.assertIn('Invalid email address', resp.data)
-
-        resp = self.client.post(url_for('signup'), data={
-            'username': 'test1',
-            'email': 'test#test@pjuu.com',
+            'username': 'user1',
+            'email': 'user1#user1@pjuu.com',
             'password': 'Password',
             'password2': 'Password'
         }, follow_redirects=True)
@@ -256,8 +234,8 @@ class FrontendTests(FrontendTestCase):
         # Ensure that we CAN signup with a + in the name. This is a hate of
         # mine. Not being able to namespace my e-mail addresses
         resp = self.client.post(url_for('signup'), data={
-            'username': 'test2',
-            'email': 'test+test2@pjuu.com',
+            'username': 'user2',
+            'email': 'user2+user2@pjuu.com',
             'password': 'Password',
             'password2': 'Password'
         }, follow_redirects=True)
@@ -266,7 +244,7 @@ class FrontendTests(FrontendTestCase):
 
         # Log in to Pjuu so that we can make sure we can not get back to signup
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
+            'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
@@ -279,7 +257,7 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 302)
 
         # Lets delete the account and then try and reactivate
-        delete_account(1)
+        delete_account(get_uid_username('user1'))
         resp = self.client.get(url_for('activate', token=token),
                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
@@ -297,7 +275,7 @@ class FrontendTests(FrontendTestCase):
         # This will work as the form will always return the same response
         # this is to stop users trying to recover random details
         resp = self.client.post(url_for('forgot'), data={
-            'username': 'test'
+            'username': 'user1'
         }, follow_redirects=True)
         # We should be redirect to login and a message flashed
         self.assertEqual(resp.status_code, 200)
@@ -308,10 +286,10 @@ class FrontendTests(FrontendTestCase):
 
         # Lets do this again but with a user (this is the only way to test
         # password resetting)
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        create_user('user1', 'user1@pjuu.com', 'Password')
         # Lets do the above test again but with this new user
         resp = self.client.post(url_for('forgot'), data={
-            'username': 'test'
+            'username': 'user1'
         }, follow_redirects=True)
         # We should be redirect to login and a message flashed
         self.assertEqual(resp.status_code, 200)
@@ -327,24 +305,24 @@ class FrontendTests(FrontendTestCase):
 
         # Lets post to the view
         resp = self.client.post(url_for('reset', token=token), data={
-            'password': 'Password',
-            'password2': 'Password'
+            'password': 'NewPassword',
+            'password2': 'NewPassword'
         }, follow_redirects=True)
         # This should redirect us back to the signin view as well as have
         # changed out password
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Your password has now been reset', resp.data)
         # We will just check we can log in with the new Password not password
-        self.assertTrue(authenticate('test', 'Password'))
+        self.assertTrue(authenticate('user1', 'NewPassword'))
         # I know, I know this is tested in the backend buts let's make sure
         # we can't auth with the old password
-        self.assertFalse(authenticate('test', 'password'))
+        self.assertFalse(authenticate('test', 'Password'))
 
         # Lets make sure the form tells us when we have filled it in wrong
         # Attempt to set a mis matching password
         resp = self.client.post(url_for('reset', token=token), data={
-            'password': 'password',
-            'password2': 'Password'
+            'password': 'PasswordOne',
+            'password2': 'PasswordTwo'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Oh no! There are errors in your form', resp.data)
@@ -375,19 +353,20 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Let's create a user an login
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
-        self.assertTrue(activate(1))
+        self.assertTrue(activate(user1))
+
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'password'
+            'username': 'user1',
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Lets check to see that our current email is listed on the inital
         # settings page
         resp = self.client.get(url_for('settings_profile'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('test@pjuu.com', resp.data)
+        self.assertIn('user1@pjuu.com', resp.data)
 
         # Lets double check we can get the change_email page and attempt to
         # change our password.
@@ -395,8 +374,8 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         # Attempt to change our e-mail
         resp = self.client.post(url_for('change_email'), data={
-            'password': 'password',
-            'new_email': 'test1@pjuu.com'
+            'password': 'Password',
+            'new_email': 'user1_new@pjuu.com'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('We\'ve sent you an email, please confirm', resp.data)
@@ -413,25 +392,33 @@ class FrontendTests(FrontendTestCase):
         # Let's ensure that our new e-mail appears on our profile page
         resp = self.client.get(url_for('settings_profile'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('test1@pjuu.com', resp.data)
+        self.assertIn('user1_new@pjuu.com', resp.data)
         # Yey our email was updated
 
         # Lets just make sure we can't change our e-mail without a password
         resp = self.client.post(url_for('change_email'), data={
             'password': '',
-            'new_email': 'test1@pjuu.com'
+            'new_email': 'user1_newer@pjuu.com'
         }, follow_redirects=True)
         self.assertIn('Oh no! There are errors in your form', resp.data)
 
         # Lets make sure the email doesn't change until the confirmation is
         # checked
         resp = self.client.post(url_for('change_email'), data={
-            'password': 'password',
-            'new_email': 'test2@pjuu.com'
+            'password': 'Password',
+            'new_email': 'user1_newer@pjuu.com'
         }, follow_redirects=True)
         self.assertIn('We\'ve sent you an email, please confirm', resp.data)
         resp = self.client.get(url_for('settings_profile'))
-        self.assertNotIn('test2@pjuu.com', resp.data)
+        self.assertNotIn('user1_newer@pjuu.com', resp.data)
+
+        # Try and change the e-mail address to one which is already in use
+        resp = self.client.post(url_for('change_email'), data={
+            'password': 'Password',
+            'new_email': 'user1_new@pjuu.com'
+        }, follow_redirects=True)
+        self.assertIn('E-mail address already in use', resp.data)
+        resp = self.client.get(url_for('settings_profile'))
 
         # Check invalid token for confirm_email
         # Coverage
@@ -453,13 +440,13 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Let's create a user an login
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
-        self.assertTrue(activate(1))
+        self.assertTrue(activate(user1))
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'password'
+            'username': 'user1',
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
@@ -469,9 +456,9 @@ class FrontendTests(FrontendTestCase):
 
         # Attempt to change our password
         resp = self.client.post(url_for('change_password'), data={
-            'password': 'password',
-            'new_password': 'PASSWORD',
-            'new_password2': 'PASSWORD'
+            'password': 'Password',
+            'new_password': 'NewPassword',
+            'new_password2': 'NewPassword'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('We\'ve updated your password', resp.data)
@@ -479,27 +466,27 @@ class FrontendTests(FrontendTestCase):
 
         # Lets try an change our password to one which is not a valid password
         resp = self.client.post(url_for('change_password'), data={
-            'password': 'PASSWORD',
-            'new_password': 'pass',
-            'new_password2': 'pass'
+            'password': 'NewPassword',
+            'new_password': 'Pass',
+            'new_password2': 'Pass'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Password must be at least 6 characters long', resp.data)
 
         # Lets try an change our password but make them not match
         resp = self.client.post(url_for('change_password'), data={
-            'password': 'PASSWORD',
-            'new_password': 'password',
-            'new_password2': 'passw0rd'
+            'password': 'NewPassword',
+            'new_password': 'Password',
+            'new_password2': 'OddPassword'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Passwords must match', resp.data)
 
         # Lets try and change our pasword but provide a wrong current password
         resp = self.client.post(url_for('change_password'), data={
-            'password': 'password',
-            'new_password': 'password',
-            'new_password2': 'password'
+            'password': 'WrongPassword',
+            'new_password': 'Password',
+            'new_password2': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid password', resp.data)
@@ -517,13 +504,13 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Let's create a user an login
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
-        self.assertTrue(activate(1))
+        self.assertTrue(activate(user1))
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'password'
+            'username': 'user1',
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
@@ -535,22 +522,22 @@ class FrontendTests(FrontendTestCase):
         # Attempy to delete account. We are going to do this the other way
         # round. We will try and do it with an invalid password etc first.
         resp = self.client.post(url_for('delete_account'), data={
-            'password': 'PASSWORD'
+            'password': 'WrongPassword'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Oops! wrong password', resp.data)
 
         # That's all we can do to try and brake this. Let's delete our account
         resp = self.client.post(url_for('delete_account'), data={
-            'password': 'password'
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Your account has been deleted', resp.data)
 
         # We are now back at signin. Let's check we can't login
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'password'
+            'username': 'user1',
+            'password': 'Password'
         })
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid user name or password', resp.data)
@@ -565,13 +552,18 @@ class FrontendTests(FrontendTestCase):
         name. See BackendTestCase for more details.
         """
         # Let's create a user an login
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
-        self.assertTrue(activate(1))
+        self.assertTrue(activate(user1))
+
+        # Attempt to acess the URL without being logged in
+        resp = self.client.get(url_for('dump_account'))
+        self.assertEqual(resp.status_code, 302)
+
         # Log the user in
         resp = self.client.post(url_for('signin'), data={
-            'username': 'test',
-            'password': 'password'
+            'username': 'user1',
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
@@ -582,8 +574,16 @@ class FrontendTests(FrontendTestCase):
 
         # Send password to the view
         resp = self.client.post(url_for('dump_account'), data={
-            'password': 'password'
+            'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         json_resp = json.loads(resp.data)
-        self.assertEqual(json_resp['user']['username'], 'test')
+        self.assertEqual(json_resp['user']['username'], 'user1')
+
+        # Test inputting the wrong password
+        # Send password to the view
+        resp = self.client.post(url_for('dump_account'), data={
+            'password': 'WrongPassword'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Oops! wrong password', resp.data)

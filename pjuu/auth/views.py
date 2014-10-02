@@ -350,7 +350,7 @@ def delete_account():
     form = DeleteAccountForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
-            uid = int(current_user['uid'])
+            uid = current_user['uid']
             email = current_user['email']
             # Log the current user out
             logout()

@@ -4,7 +4,7 @@
 {% if pagination.items %}
 {% for item in pagination.items %}
 {% if config.TESTING %}
-<!-- list:user:{{item.username}} -->
+<!-- list:user:{{item.uid}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
     <div class="top-section">

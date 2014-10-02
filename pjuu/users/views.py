@@ -52,7 +52,7 @@ def following_filter(profile):
     """
     Checks if current user is following the user with id piped to filter
     """
-    return is_following(current_use.get('uid'), profile.get('uid'))
+    return is_following(current_user.get('uid'), profile.get('uid'))
 
 
 @app.template_filter('avatar')
@@ -85,7 +85,7 @@ def nameify_filter(body):
 
     The 'e' filter is needed as we have had to turn auto escape off.
     """
-    tags = parse_tags(body, send_all=True)
+    tags = parse_tags(body, deduplicate=True)
     offset = 0
     for tag in tags:
         # Calculate the left and right hand sides of the tag
@@ -121,7 +121,7 @@ def millify_filter(n):
         if n < 0:
             return '-' + result
         return result
-    except ValueError:
+    except (TypeError, ValueError):
         return "Err"
 
 
@@ -138,7 +138,7 @@ def timeify_filter(time):
         # Time can't be coverted directly to a int as it is a float point repr
         time = int(float(time))
         return strftime("%a %d %b %Y %H:%M:%S", gmtime(time))
-    except ValueError:
+    except (TypeError, ValueError):
         return "Err"
 
 
@@ -199,7 +199,7 @@ def profile(username):
                            pagination=pagination, post_form=post_form)
 
 
-@app.route('/<username>/<int:pid>', methods=['GET'])
+@app.route('/<username>/<pid>', methods=['GET'])
 @login_required
 def view_post(username, pid):
     """
@@ -289,7 +289,7 @@ def follow(username):
     # Unfollow user, ensure the user doesn't unfollow themself
     if uid != current_user.get('uid'):
         if follow_user(current_user.get('uid'), uid):
-            flash('You are no longer following %s' % username, 'success')
+            flash('You have started following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')
 
@@ -354,7 +354,7 @@ def settings_profile():
             set_about(current_user.get('uid'), form.about.data)
             flash('Your profile has been updated', 'success')
         else:
-            flash('error in your form', 'error')
+            flash('Oh no! There are errors in your form', 'error')
 
     return render_template('settings_profile.html', form=form)
 

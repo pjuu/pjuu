@@ -95,7 +95,7 @@ def post(redirect_url=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/comment', methods=['POST'])
+@app.route('/<username>/<pid>/comment', methods=['POST'])
 @login_required
 def comment(username, pid):
     """
@@ -122,8 +122,8 @@ def comment(username, pid):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/upvote', methods=['GET'])
-@app.route('/<username>/<int:pid>/<int:cid>/upvote', methods=['GET'])
+@app.route('/<username>/<pid>/upvote', methods=['GET'])
+@app.route('/<username>/<pid>/<cid>/upvote', methods=['GET'])
 @login_required
 def upvote(username, pid=-1, cid=None):
     """
@@ -153,8 +153,8 @@ def upvote(username, pid=-1, cid=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/downvote', methods=['GET'])
-@app.route('/<username>/<int:pid>/<int:cid>/downvote', methods=['GET'])
+@app.route('/<username>/<pid>/downvote', methods=['GET'])
+@app.route('/<username>/<pid>/<cid>/downvote', methods=['GET'])
 @login_required
 def downvote(username, pid=-1, cid=None):
     """
@@ -184,8 +184,8 @@ def downvote(username, pid=-1, cid=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/delete', methods=['GET'])
-@app.route('/<username>/<int:pid>/<int:cid>/delete', methods=['GET'])
+@app.route('/<username>/<pid>/delete', methods=['GET'])
+@app.route('/<username>/<pid>/<cid>/delete', methods=['GET'])
 @login_required
 def delete_post(username, pid, cid=None):
     """
@@ -208,18 +208,18 @@ def delete_post(username, pid, cid=None):
         author_uid = get_comment_author(cid)
         # Allow not only the comment author to remove the comment but also
         # allow the post author to do so!
-        if author_uid != int(current_user['uid']) and \
-           uid != int(current_user['uid']):
+        if author_uid != current_user['uid'] and \
+           uid != current_user['uid']:
             return abort(403)
     else:
         # If this is a post ONLY allow the post author to delete
-        if uid != int(current_user['uid']):
+        if uid != current_user['uid']:
             return abort(403)
 
     # If you have made it here you can delete the post/comment
     # be_delete _WILL_ delete all the comments under a post if a post
     # is being deleted.
-    be_delete(uid, pid, cid)
+    be_delete(pid, cid)
 
     if cid is not None:
         flash('Comment has been deleted', 'success')
@@ -229,7 +229,7 @@ def delete_post(username, pid, cid=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<int:pid>/unsubscribe')
+@app.route('/<username>/<pid>/unsubscribe')
 @login_required
 def unsubscribe(username, pid):
     """

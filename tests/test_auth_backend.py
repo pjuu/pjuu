@@ -56,35 +56,36 @@ class BackendTests(BackendTestCase):
         they are all there. We will also try and signup with invalid
         credentials and with details we have already inserted.
 
-        This also in turn tests check_username() and check_email()
+        This also in turn tests check_username(), check_username_pattern(),
+        check_email(), check_email_pattern(), get_username() and get_email()
         """
         # Account creation
         # Get the new user uid
-        user1 = create_user('test', 'test@pjuu.com', 'Password')
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Duplicate username
-        self.assertIsNone(create_user('test', 'testx@pjuu.com', 'Password'))
+        self.assertIsNone(create_user('user1', 'userX@pjuu.com', 'Password'))
         # Duplicate email
-        self.assertIsNone(create_user('testx', 'test@pjuu.com', 'Password'))
+        self.assertIsNone(create_user('userX', 'user1@pjuu.com', 'Password'))
         # Invalid username
-        self.assertIsNone(create_user('t', 'testx@pjuu.com', 'Password'))
+        self.assertIsNone(create_user('u', 'userX@pjuu.com', 'Password'))
         # Invalid email
-        self.assertIsNone(create_user('testx', 'test', 'Password'))
+        self.assertIsNone(create_user('userX', 'userX', 'Password'))
         # Reserved username
-        self.assertIsNone(create_user('help', 'testx@pjuu.com', 'Password'))
+        self.assertIsNone(create_user('help', 'userX@pjuu.com', 'Password'))
         # Check lookup keys exist
-        self.assertEqual(get_uid('test'), user1)
-        self.assertEqual(get_uid('test@pjuu.com'), user1)
+        self.assertEqual(get_uid('user1'), user1)
+        self.assertEqual(get_uid('user1@pjuu.com'), user1)
         # Make sure get_user with no valid user returns None
         self.assertIsNone(get_user(K.NIL_VALUE))
         # Make sure getting the user returns a dict
         self.assertIsNotNone(get_user(user1))
         # Check other user functions
         # get_username()
-        self.assertEqual(get_username(user1), 'test')
+        self.assertEqual(get_username(user1), 'user1')
         self.assertIsNone(get_username(K.NIL_VALUE))
         # get_email()
-        self.assertEqual(get_email(user1), 'test@pjuu.com')
+        self.assertEqual(get_email(user1), 'user1@pjuu.com')
         self.assertIsNone(get_email(K.NIL_VALUE))
 
         # Test other helpers function
@@ -94,9 +95,29 @@ class BackendTests(BackendTestCase):
 
         # Ensure that the TTL is set for all 3 keys which are created.
         # Username and e-mail look up keys and also the user account itself
-        self.assertNotEqual(r.ttl(K.UID_USERNAME.format('test')), -1)
-        self.assertNotEqual(r.ttl(K.UID_EMAIL.format('test@pjuu.com')), -1)
+        self.assertNotEqual(r.ttl(K.UID_USERNAME.format('user1')), -1)
+        self.assertNotEqual(r.ttl(K.UID_EMAIL.format('user1@pjuu.com')), -1)
         self.assertNotEqual(r.ttl(K.USER.format(user1)), -1)
+
+        # Test getting the user object and ensure all aspects of it are there.
+        user1_hash = get_user(user1)
+        # Check all the default values which we know up front
+        # REMEMBER, everything comes out of Redis as a string
+        self.assertIsNotNone(user1_hash)
+        self.assertEqual(user1_hash.get('uid'), user1)
+        self.assertEqual(user1_hash.get('username'), 'user1')
+        self.assertEqual(user1_hash.get('email'), 'user1@pjuu.com')
+        self.assertEqual(user1_hash.get('last_login'), '-1')
+        self.assertEqual(user1_hash.get('active'), '0')
+        self.assertEqual(user1_hash.get('banned'), '0')
+        self.assertEqual(user1_hash.get('op'), '0')
+        self.assertEqual(user1_hash.get('muted'), '0')
+        self.assertEqual(user1_hash.get('about'), '')
+        self.assertEqual(user1_hash.get('score'), '0')
+        self.assertEqual(user1_hash.get('alerts_last_checked'), '0')
+        # Check the values which are generated are not none
+        self.assertIsNotNone(user1_hash.get('password'))
+        self.assertIsNotNone(user1_hash.get('created'))
 
     def test_userflags(self):
         """
@@ -346,13 +367,13 @@ class BackendTests(BackendTestCase):
         self.assertTrue(follow_user(user1, user2))
         self.assertTrue(follow_user(user2, user1))
         # Ensure the uid's are in the relevant sorted sets
-        self.assertIn(user2, r.zrange(K.USER_FOLLOWERS % 1, 0, -1))
-        self.assertIn(user2, r.zrange(K.USER_FOLLOWING % 1, 0, -1))
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWERS % 2, 0, -1))
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWING % 2, 0, -1))
+        self.assertIn(user2, r.zrange(K.USER_FOLLOWERS.format(user1), 0, -1))
+        self.assertIn(user2, r.zrange(K.USER_FOLLOWING.format(user1), 0, -1))
+        self.assertIn(user1, r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
+        self.assertIn(user1, r.zrange(K.USER_FOLLOWING.format(user2), 0, -1))
 
         # Delete test account 1
-        delete_account(1)
+        delete_account(user1)
 
         # Ensure the lists are empty
         self.assertNotIn(user2, r.zrange(K.USER_FOLLOWERS.format(user1),
@@ -372,15 +393,15 @@ class BackendTests(BackendTestCase):
         Remember that ALL data coming out of Redis is a string. We are not
         going to convert each type. EVERYTHING IS A STRING
         """
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
 
         # Dump the account so that we can test :D
-        data = dump_account(1)
+        data = dump_account(user1)
 
         # Check we got some data
         self.assertIsNotNone(data)
         # Ensure that we can see the data in the 'user' key
-        self.assertEqual('test', data['user']['username'])
+        self.assertEqual('user1', data['user']['username'])
         self.assertEqual('0', data['user']['active'])
         # Check that uid and password have been scrubbed
         self.assertEqual('<UID>', data['user']['uid'])
@@ -390,11 +411,11 @@ class BackendTests(BackendTestCase):
         self.assertEqual([], data['comments'])
 
         # Create some posts as the user and check they are in the dumps
-        self.assertEqual(create_post(1, 'Post 1'), 1)
-        self.assertEqual(create_post(1, 'Post 2'), 2)
-        self.assertEqual(create_post(1, 'Post 3'), 3)
+        post1 = create_post(user1, 'Post 1')
+        post2 = create_post(user1, 'Post 2')
+        post3 = create_post(user1, 'Post 3')
 
-        data = dump_account(1)
+        data = dump_account(user1)
         self.assertIsNotNone(data)
         # Ensure that the posts are there
         self.assertNotEqual([], data['posts'])
@@ -405,13 +426,13 @@ class BackendTests(BackendTestCase):
         self.assertEqual('<UID>', data['posts'][0]['uid'])
 
         # Create some comments on the above posts and re-dump
-        self.assertEqual(create_comment(1, 1, 'Comment 1'), 1)
-        self.assertEqual(create_comment(1, 1, 'Comment 2'), 2)
-        self.assertEqual(create_comment(1, 2, 'Comment 3'), 3)
-        self.assertEqual(create_comment(1, 3, 'Comment 4'), 4)
+        comment1 = create_comment(user1, post1, 'Comment 1')
+        comment2 = create_comment(user1, post1, 'Comment 2')
+        comment3 = create_comment(user1, post2, 'Comment 3')
+        comment4 = create_comment(user1, post3, 'Comment 4')
 
-        # Re-dumo the database
-        data = dump_account(1)
+        # Re-dump the database
+        data = dump_account(user1)
         self.assertNotEqual([], data['comments'])
         # Check that all 4 comments have been dumped
 
@@ -421,6 +442,6 @@ class BackendTests(BackendTestCase):
         self.assertEqual('Comment 4', data['comments'][0]['body'])
 
         # Testing running dump account with a non-existant user
-        self.assertIsNone(dump_account(1000))
+        self.assertIsNone(dump_account(K.NIL_VALUE))
 
         # This is a very basic test. May need expanding in the future

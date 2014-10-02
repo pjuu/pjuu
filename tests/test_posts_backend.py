@@ -28,7 +28,7 @@ from pjuu import redis as r
 from pjuu.auth.backend import create_user, activate, get_user, mute
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
-from pjuu.users.backend import follow_user, get_alerts
+from pjuu.users.backend import get_alerts
 # Tests imports
 from tests.helpers import BackendTestCase, FrontendTestCase
 
@@ -43,44 +43,65 @@ class BackendTests(BackendTestCase):
         Tests creating a post
         """
         # Create a user to test creating post
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Create post
-        self.assertEqual(create_post(1, 'Test post'), 1)
-        # Check the post was created by looking at the pid
-        self.assertEqual(int(get_post(1).get('pid', None)), 1)
+        post1 = create_post(user1, 'Test post')
+        # Check the post actually exists
+        self.assertIsNotNone(post1)
+
+        # Check that all the hash members are what we expect
+        post1_hash = get_post(post1)
+        self.assertIsNotNone(post1_hash)
+        self.assertEqual(post1_hash.get('pid'), post1)
+        self.assertEqual(post1_hash.get('uid'), user1)
+        self.assertEqual(post1_hash.get('body'), 'Test post')
+        self.assertEqual(post1_hash.get('score'), '0')
+        # Check the memebers we don't know the answer to
+        self.assertIsNotNone(post1_hash.get('created'))
+
         # Ensure the post gets added to the users 'posts' list
         # Remember redis returns everything as a string
-        self.assertIn(u'1', r.lrange(K.USER_POSTS % 1, 0, -1))
+        self.assertIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
         # Ensure this post is the users feed (populate_feed)
-        self.assertIn(u'1', r.lrange(K.USER_FEED % 1, 0, -1))
+        self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
 
     def test_create_comment(self):
         """
         Tests that a comment can be created on a post
         """
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         # Create a second test user to test commenting on someone else post
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
         # Create post
-        self.assertEqual(create_post(1, 'Test post'), 1)
+        post1 = create_post(user1, 'Test post')
         # Create comment
-        self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+        comment1 = create_comment(user1, post1, 'Test comment')
         # Check the comment was created
-        self.assertEqual(int(get_comment(1).get('cid', None)), 1)
+        self.assertIsNotNone(get_comment(comment1))
         # Create a comment by the second user
-        self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
+        comment2 = create_comment(user2, post1, 'Test comment')
         # Check the comment was created
-        self.assertEqual(int(get_comment(2).get('cid', None)), 2)
-        # Ensure the comment is the posts 'comment' list
-        # Remember redis returns everything as a string
-        # This will fail if decode response is not enabled
-        self.assertIn(u'1', r.lrange(K.POST_COMMENTS % 1, 0, -1))
+        self.assertIsNotNone(get_comment(comment2))
+        # Ensure the comment is the posts 'comment' list and that the comment
+        # is in the users 'comment' list
+        self.assertIn(comment1, r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
         # Ensure the comment is also in the users 'comments' list
-        self.assertIn(u'1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+        self.assertIn(comment1, r.lrange(K.USER_COMMENTS.format(user1), 0, -1))
         # Ensure the same applies for the second users post
-        self.assertIn(u'2', r.lrange(K.POST_COMMENTS % 1, 0, -1))
+        self.assertIn(comment2, r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
         # Ensure the comment is also in the users 'comments' list
-        self.assertIn(u'2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
+        self.assertIn(comment2, r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
+
+        # Check the comment hash has the data we expect, we will do this with
+        # comment1
+        comment1_hash = get_comment(comment1)
+        self.assertIsNotNone(comment1_hash)
+        self.assertEqual(comment1_hash.get('cid'), comment1)
+        self.assertEqual(comment1_hash.get('uid'), user1)
+        self.assertEqual(comment1_hash.get('pid'), post1)
+        self.assertEqual(comment1_hash.get('body'), 'Test comment')
+        self.assertEqual(comment1_hash.get('score'), '0')
+        self.assertIsNotNone(comment1_hash.get('created'))
 
     def test_check_post(self):
         """
@@ -90,87 +111,27 @@ class BackendTests(BackendTestCase):
         Note: Bare with this one it is quite tedious.
         """
         # Create two test users
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
         # Create a post
-        self.assertEqual(create_post(1, 'Test post'), 1)
+        post1 = create_post(user1, 'Test post')
         # check_post should be True when user 1 creates post 1
-        self.assertTrue(check_post(1, 1))
+        self.assertTrue(check_post(user1, post1))
         # check_post should be false, user 2 didn't create post 1
-        self.assertFalse(check_post(2, 1))
+        self.assertFalse(check_post(user2, post1))
         # Create a couple of comments
-        self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
-        self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
+        comment1 = create_comment(user1, post1, 'Test comment')
+        comment2 = create_comment(user2, post1, 'Test comment')
+
         # Ensure the check_post is fine for all
-        self.assertTrue(check_post(1, 1, 1))
+        self.assertTrue(check_post(user1, post1, comment1))
         # This does not look correct but is. See backend.py@check_post
-        self.assertTrue(check_post(1, 1, 2))
+        self.assertTrue(check_post(user1, post1, comment1))
+
         # Ensure the function isn't broken on comments
-        self.assertFalse(check_post(2, 1, 1))
-        self.assertFalse(check_post(1, 2, 1))
-        self.assertFalse(check_post(2, 2, 2))
-
-    def test_get_post_get_comment(self):
-        """
-        Will test that the get_post() and get_comment() functions of the posts
-        system.
-
-        These should return a representation of the post/comment including all
-        the data needed to display these on the site. If they can not build
-        this repr then they should return None. This will allow the lists to
-        clean them selves when they encounter this.
-        """
-        # Create test user
-        self.assertEqual(create_user('test', 'test@pjuu.com', 'Password'), 1)
-        # Create test post
-        self.assertEqual(create_post(1, 'Test post'), 1)
-        # Attempt to get the repesentation
-        post = get_post(1)
-        self.assertIsNotNone(post)
-        # Check the representation has all the correct fields
-        self.assertEqual(post['uid'], '1')
-        self.assertEqual(post['pid'], '1')
-        self.assertEqual(post['body'], 'Test post')
-        self.assertEqual(post['score'], '0')
-        self.assertEqual(post['user_username'], 'test')
-        self.assertEqual(post['user_email'], 'test@pjuu.com')
-        self.assertEqual(post['comment_count'], 0)
-        # Attempt to get a non existant post
-        self.assertIsNone(get_post(2))
-        # Attempt to get a post but one where the user is deleted.
-        self.assertEqual(create_post(2, 'Test post'), 2)
-        # Attempt to get the repesentation
-        post = get_post(2)
-        self.assertIsNone(post)
-
-        # Create a comment and ensure the repr is updated and that we can
-        # Get a comment repr
-        self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
-        # Attempt to get the repesentation
-        post = get_post(1)
-        self.assertIsNotNone(post)
-        # Check the comment count for the post
-        self.assertEqual(post['comment_count'], 1)
-
-        # Lets start testing comments, we will use the one above
-        comment = get_comment(1)
-        self.assertEqual(comment['uid'], '1')
-        self.assertEqual(comment['pid'], '1')
-        self.assertEqual(comment['cid'], '1')
-        self.assertEqual(comment['body'], 'Test comment')
-        self.assertEqual(comment['score'], '0')
-        self.assertEqual(comment['user_username'], 'test')
-        self.assertEqual(comment['user_email'], 'test@pjuu.com')
-        # Attempt to get the post author. Remember this is a username as the
-        # only use for it is to generate a URL /<username>/<pid>/<cid>/*
-        self.assertEqual(comment['post_author'], 'test')
-        # Attempt to get a non existant comment
-        self.assertIsNone(get_comment(2))
-        # Attempt to get a comment where the user is deleted
-        self.assertEqual(create_comment(2, 1, 'Test comment'), 2)
-        # Attempt to get the representation
-        comment = get_comment(2)
-        self.assertIsNone(comment)
+        self.assertFalse(check_post(user2, post1, comment1))
+        self.assertFalse(check_post(user1, K.NIL_VALUE, comment1))
+        self.assertFalse(check_post(user2, K.NIL_VALUE, comment2))
 
     def test_votes(self):
         """
@@ -178,72 +139,71 @@ class BackendTests(BackendTestCase):
         on users, posts and comments, etc...
         """
         # Create three test users
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
-        self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+
         # Create a post by user 1
-        self.assertEqual(create_post(1, 'Test post'), 1)
+        post1 = create_post(user1, 'Test post')
 
         # Get user 3 to downvote, this will test that the user can not go
         # negative yet the post can
-        self.assertTrue(vote(3, 1, amount=-1))
+        self.assertTrue(vote(user3, post1, amount=-1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(1)['score'], '-1')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')
+        self.assertEqual(get_post(post1).get('score'), '-1')
+        # Ensure user score has NOT been adjusted
+        self.assertEqual(get_user(user1).get('score'), '0')
 
         # Get user 2 to upvote
-        self.assertTrue(vote(2, 1))
+        self.assertTrue(vote(user2, post1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(1)['score'], '0')
+        self.assertEqual(get_post(post1).get('score'), '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
-        # Ensure user 1 can not vote on there own comment
-        self.assertFalse(vote(1, 1))
-        # Ensure the score didn't adjust (may be a code bug some day)
-        # Ensure post score has been adjusted
-        self.assertEqual(get_post(1)['score'], '0')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
-        # Check to see if a user can vote twice on a comment
-        self.assertFalse(vote(2, 1))
-        # Ensure the score didn't adjust (may be a code bug some day)
-        # Ensure post score has been adjusted
-        self.assertEqual(get_post(1)['score'], '0')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
+        self.assertEqual(get_user(user1).get('score'), '1')
+
+        # Ensure user 1 can not vote on there own post
+        self.assertFalse(vote(user1, post1))
+        # Ensure the scores have not been adjusted
+        self.assertEqual(get_post(post1).get('score'), '0')
+        self.assertEqual(get_user(user1).get('score'), '1')
+
+        # Check to see if a user can vote twice on a post
+        self.assertFalse(vote(user2, post1))
+        # Ensure the scores have not been adjusted
+        self.assertEqual(get_post(post1).get('score'), '0')
+        self.assertEqual(get_user(user1).get('score'), '1')
 
         # Repeat the same tests on a comment
         # Create a comment by user 1
-        self.assertEqual(create_comment(1, 1, 'Test comment'), 1)
+        comment1 = create_comment(user1, post1, 'Test comment')
 
         # Get user 3 to downvote
-        self.assertTrue(vote(3, 1, 1, amount=-1))
+        self.assertTrue(vote(user3, post1, comment1, amount=-1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '-1')
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '0')
+        self.assertEqual(get_comment(comment1)['score'], '-1')
+        # Ensure user score has NOT been adjusted
+        self.assertEqual(get_user(user1)['score'], '0')
 
         # Get user 2 to upvote
-        self.assertTrue(vote(2, 1, 1))
+        self.assertTrue(vote(user2, post1, comment1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '0')
+        self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
+        self.assertEqual(get_user(user1).get('score'), '1')
+
         # Ensure user 1 can not vote on there own comment
-        self.assertFalse(vote(1, 1, 1))
-        # Ensure the score didn't adjust (may be a code bug some day)
+        self.assertFalse(vote(user1, post1, comment1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '0')
+        self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
+        self.assertEqual(get_user(user1).get('score'), '1')
+
         # Check to see if a user can vote twice on a comment
-        self.assertFalse(vote(2, 1, 1))
-        # Ensure the score didn't adjust (may be a code bug some day)
+        self.assertFalse(vote(user2, post1, comment1))
         # Ensure post score has been adjusted
-        self.assertEqual(get_comment(1)['score'], '0')
+        self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(1)['score'], '1')
+        self.assertEqual(get_user(user1).get('score'), '1')
 
     def test_delete(self):
         """
@@ -252,44 +212,53 @@ class BackendTests(BackendTestCase):
         a post is deleted.
         """
         # Create three test users
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+
         # Create a post
-        self.assertEqual(create_post(1, 'Test post'), 1)
+        post1 = create_post(user1, 'Test post')
         # Create multiple comments
-        self.assertEqual(create_comment(1, 1, 'Test comment 1'), 1)
-        self.assertEqual(create_comment(2, 1, 'Test comment 2'), 2)
-        self.assertEqual(create_comment(1, 1, 'Test comment 3'), 3)
-        self.assertEqual(create_comment(2, 1, 'Test comment 4'), 4)
+        comment1 = create_comment(user1, post1, 'Test comment 1')
+        comment2 = create_comment(user2, post1, 'Test comment 2')
+        comment3 = create_comment(user1, post1, 'Test comment 3')
+        comment4 = create_comment(user2, post1, 'Test comment 4')
+
         # Test deleting one comment
         # This function does not actually test to see if the user has the
         # the rights to delete the post. This should be tested in the frontend
         # Check a comment can be deleted
-        self.assertTrue(delete(2, 1, 4))
+        self.assertTrue(delete(post1, comment4))
         # Check that getting the comment returns None
-        self.assertIsNone(get_comment(4))
+        self.assertIsNone(get_comment(comment4))
         # Ensure the comment is no longer in the posts comment list and no
-        # longer in the users comment list
-        self.assertNotIn('4', r.lrange(K.POST_COMMENTS % 4, 0, -1))
-        self.assertNotIn('4', r.lrange(K.USER_COMMENTS % 4, 0, -1))
+        # longer in the users comment list (that comment was by user2)
+        self.assertNotIn(comment4,
+                         r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
+        self.assertNotIn(comment4,
+                         r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
+
         # Just ensure that the previous comment is in user 2's comment list
         # and inside the post list
-        self.assertNotIn('2', r.lrange(K.POST_COMMENTS % 4, 0, -1))
-        self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 4, 0, -1))
+        self.assertIn(comment2, r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
+        self.assertIn(comment2, r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
+
         # Delete the post. This should delete all the comments, we will check
-        self.assertTrue(delete(2, 1))
+        self.assertTrue(delete(post1))
         # Check that the post does not exist
-        self.assertIsNone(get_post(1))
+        self.assertIsNone(get_post(post1))
         # Check that non of the comments exist
-        self.assertIsNone(get_comment(1))
-        self.assertIsNone(get_comment(2))
-        self.assertIsNone(get_comment(3))
+        self.assertIsNone(get_comment(comment1))
+        self.assertIsNone(get_comment(comment2))
+        self.assertIsNone(get_comment(comment3))
         # Ensure that the posts comment list has been deleted
-        self.assertFalse(r.exists(K.POST_COMMENTS % 1))
+        self.assertFalse(r.exists(K.POST_COMMENTS.format(post1)))
         # Ensure that non of the comments appear in the users comments lists
-        self.assertNotIn('1', r.lrange(K.USER_COMMENTS % 1, 0, -1))
-        self.assertNotIn('2', r.lrange(K.USER_COMMENTS % 2, 0, -1))
-        self.assertNotIn('3', r.lrange(K.USER_COMMENTS % 1, 0, -1))
+        self.assertNotIn(comment1,
+                         r.lrange(K.USER_COMMENTS.format(user1), 0, -1))
+        self.assertNotIn(comment2,
+                         r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
+        self.assertNotIn(comment3,
+                         r.lrange(K.USER_COMMENTS.format(user1), 0, -1))
 
     def test_subscriptions(self):
         """
@@ -301,79 +270,82 @@ class BackendTests(BackendTestCase):
         tagging.
         """
         # Create a couple of test accounts
-        self.assertEqual(create_user('test1', 'test1@pjuu.com', 'Password'), 1)
-        self.assertEqual(create_user('test2', 'test2@pjuu.com', 'Password'), 2)
-        self.assertEqual(create_user('test3', 'test3@pjuu.com', 'Password'), 3)
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
 
         # Post as user 1 and ensure user 1 exists in Redis
-        self.assertEqual(create_post(1, 'Test post 1'), 1)
-        self.assertIsNotNone(r.zrank(K.POST_SUBSCRIBERS % 1, 1))
+        post1 = create_post(user1, 'Test post 1')
+        self.assertIsNotNone(r.zrank(K.POST_SUBSCRIBERS.format(post1), user1))
 
         # Even though it is exactly the same as the above ensure that
         # is_subscribed() returns True
-        self.assertTrue(is_subscribed(1, 1))
-        # Lets ensure this actually fails! And see if user two is a subscriber
-        self.assertFalse(is_subscribed(2, 1))
+        self.assertTrue(is_subscribed(user1, post1))
+        # Lets ensure this actually fails! And see if user2 is a subscriber
+        self.assertFalse(is_subscribed(user2, post1))
 
         # Ensure that the REASON (zset score) is set to the correct value
-        # This should be 1
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 1)
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post1), user1),
+                         SubscriptionReasons.POSTER)
 
         # Post a comment as user 1 and ensure the reason does NOT changes
-        self.assertEqual(create_comment(1, 1, 'Test comment 1'), 1)
+        comment1 = create_comment(user1, post1, 'Test comment')
 
         # Ensure our reason did not change
-        # If we were not subscribed we would be given reason 2 (COMMENTOR)
-        self.assertNotEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 2)
+        # If we were not subscribed we would be given reason 2 (COMMENTER)
+        self.assertNotEqual(r.zscore(K.POST_SUBSCRIBERS.format(post1), user1),
+                            SubscriptionReasons.COMMENTER)
 
         # Test unsubscribe
-        self.assertTrue(unsubscribe(1, 1))
+        self.assertTrue(unsubscribe(user1, post1))
         # Ensure that is_subscribed shows correct
-        self.assertFalse(is_subscribed(1, 1))
+        self.assertFalse(is_subscribed(user1, post1))
         # Test that if we unsubscribe again we get a False result
-        self.assertFalse(unsubscribe(1, 1))
+        self.assertFalse(unsubscribe(user1, post1))
         # Check that unsubscribing some that was never subscribed returns false
-        self.assertFalse(unsubscribe(2, 1))
+        self.assertFalse(unsubscribe(user2, post1))
 
         # Let's test that commenting subscribes us to the post with the correct
         # reason
-        self.assertEqual(create_comment(1, 1, 'Test comment 2'), 2)
+        comment2 = create_comment(user1, post1, 'Test comment')
 
         # Ensure we are subscribed
-        self.assertTrue(is_subscribed(1, 1))
+        self.assertTrue(is_subscribed(user1, post1))
 
         # Check that our reason HAS changed
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 1), 2)
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post1), user1),
+                         SubscriptionReasons.COMMENTER)
 
         # Create a comment as test2 and ensure this user becomes subscribed for
         # the same reason
-        self.assertEqual(create_comment(2, 1, 'Test comment 3'), 3)
-        self.assertTrue(is_subscribed(2, 1))
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 1, 2), 2)
+        comment3 = create_comment(user2, post1, 'Test comment')
+        self.assertTrue(is_subscribed(user2, post1))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post1), user2),
+                         SubscriptionReasons.COMMENTER)
 
         # Create a new post as test1 and tag test2 and test3 in it
         # ensure all 3 are subscribed and test2 and test3 have the correct
         # reason
-        self.assertEqual(create_post(1, 'Test post 2: @test2 @test3'), 2)
-        self.assertTrue(is_subscribed(2, 2))
-        self.assertTrue(is_subscribed(3, 2))
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 2), 3)
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
+        post2 = create_post(user1, 'Test post @user2 @user3')
+        self.assertTrue(is_subscribed(user2, post2))
+        self.assertTrue(is_subscribed(user3, post2))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post2), user2),
+                         SubscriptionReasons.TAGEE)
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post2), user3),
+                         SubscriptionReasons.TAGEE)
 
-        # Unsubscribe test2 and test3
-        self.assertTrue(unsubscribe(2, 2))
-        self.assertFalse(is_subscribed(2, 2))
-        self.assertTrue(unsubscribe(3, 2))
-        self.assertFalse(is_subscribed(3, 2))
+        # Test tagging user 3 in a comment on post1. This ensures that tags
+        # in comments do work.
+        comment3 = create_comment(user2, post1, 'Test comment @user3')
+        self.assertTrue(is_subscribed(user3, post1))
+        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post1), user3),
+                         SubscriptionReasons.TAGEE)
 
-        # Create a comment as test1 and ensure tagging in a comment subscribes
-        # users which are tagged
-        self.assertEqual(create_comment(1, 2, 'Test post 2: @test2 @test3'), 4)
-        self.assertTrue(is_subscribed(2, 2))
-        self.assertTrue(is_subscribed(3, 2))
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 2), 3)
-        self.assertEqual(r.zscore(K.POST_SUBSCRIBERS % 2, 3), 3)
-        # Done for now
+        # Unsubscribe user2 and user3
+        self.assertTrue(unsubscribe(user2, post2))
+        self.assertFalse(is_subscribed(user2, post2))
+        self.assertTrue(unsubscribe(user3, post2))
+        self.assertFalse(is_subscribed(user3, post2))
 
     def test_alerts(self):
         """
@@ -382,41 +354,48 @@ class BackendTests(BackendTestCase):
         situation
         """
         # Create 3 test users
-        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
-        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
-        user3 = create_user('test3', 'test3@pjuu.com', 'Password')
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
         # No need to activate the accounts
 
         # User1 tag user2 in a post
-        post1 = create_post(user1, 'Hello @test2')
+        post1 = create_post(user1, 'Hello @user2')
 
         # Get alerts for test2 and check that it is correct
-        alerts = get_alerts(user2).items
-        alert = alerts[0]
+        alert = get_alerts(user2).items[0]
         self.assertTrue(isinstance(alert, TaggingAlert))
-        self.assertEqual(alert.get_username(), 'test1')
-        self.assertEqual(alert.get_email(), 'test1@pjuu.com')
+        self.assertEqual(alert.get_username(), 'user1')
+        self.assertEqual(alert.get_email(), 'user1@pjuu.com')
         self.assertIn('tagged you in a', alert.prettify())
 
         # Have user2 tag user3 in a comment
-        create_comment(user2, post1, 'And you @test3')
+        create_comment(user2, post1, 'And you @user3')
         # Check the alerts again
-        alerts = get_alerts(user3).items
-        alert = alerts[0]
+        alert = get_alerts(user3).items[0]
         self.assertTrue(isinstance(alert, TaggingAlert))
-        self.assertEqual(alert.get_username(), 'test2')
-        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        self.assertEqual(alert.get_username(), 'user2')
+        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
         self.assertIn('tagged you in a', alert.prettify())
 
         # User 1 should now have a commenting alert from user2
-        alerts = get_alerts(user1).items
-        alert = alerts[0]
+        alert = get_alerts(user1).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
-        self.assertEqual(alert.get_username(), 'test2')
-        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        self.assertEqual(alert.get_username(), 'user2')
+        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
         # Please remember that prettify requires a uid to format it too in the
         # case of a commenting alert
         self.assertIn('commented on a', alert.prettify(user1))
         self.assertIn('you posted', alert.prettify(user1))
+
+        # Check that if user1 posts a comment user2 get a tagging alert
+        create_comment(user1, post1, 'Hello')
+        # Check alerts for user2 and user3
+        alert = get_alerts(user2).items[0]
+        self.assertTrue(isinstance(alert, CommentingAlert))
+        self.assertIn('you were tagged in', alert.prettify(user2))
+        alert = get_alerts(user3).items[0]
+        self.assertTrue(isinstance(alert, CommentingAlert))
+        self.assertIn('you were tagged in', alert.prettify(user2))
 
         # Done for now

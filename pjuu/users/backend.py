@@ -38,6 +38,11 @@ from pjuu.lib.pagination import Pagination
 from pjuu.posts.backend import get_comment, get_post
 
 
+# Regular expressions
+SEARCH_PATTERN = r'[^\w]'
+SEARCH_RE = re.compile(SEARCH_PATTERN)
+
+
 class FollowAlert(BaseAlert):
     """
     Form for a FollowAlert, very simple, pretty much a lib.alerts.BaseAlert
@@ -78,7 +83,7 @@ def get_feed(uid, page=1):
             posts.append(post)
         else:
             # Self cleaning lists
-            r.lrem(K.USER_FEED.formatI(uid), 1, pid)
+            r.lrem(K.USER_FEED.format(uid), 1, pid)
             total = r.llen(K.USER_FEED.format(uid))
 
     return Pagination(posts, total, page, per_page)
@@ -132,8 +137,10 @@ def follow_user(who_uid, whom_uid):
     """
     Add whom to who's following set and who to whom's followers set
     """
+    # Check that we are not already following the user
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return False
+
     # Follow user
     # Score is based on UTC epoch time
     r.zadd(K.USER_FOLLOWING.format(who_uid), timestamp(), whom_uid)
@@ -151,11 +158,14 @@ def unfollow_user(who_uid, whom_uid):
     Remove whom from whos following set and remove who from whoms
     followers set
     """
+    # Check that we are actually following the users
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is None:
         return False
+
     # Delete uid from who following and whom followers
     r.zrem(K.USER_FOLLOWING.format(who_uid), whom_uid)
     r.zrem(K.USER_FOLLOWERS.format(whom_uid), who_uid)
+
     return True
 
 
@@ -223,7 +233,7 @@ def search(query):
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     # Clean up query string
     query = query.lower()
-    query = USERNAME_RE.sub('', query)
+    query = SEARCH_RE.sub('', query)
     # Lets find and get the users
     if len(query) > 0:
         # We will concatenate the glob pattern to the query

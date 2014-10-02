@@ -276,7 +276,8 @@ def create_user(username, email, password):
                 'op': 0,
                 'muted': 0,
                 'about': "",
-                'score': 0
+                'score': 0,
+                'alerts_last_checked': 0
             }
             r.hmset(K.USER.format(uid), user)
             # Set the TTL for the user account
@@ -445,8 +446,6 @@ def change_password(uid, password):
     """ WRITE
     Changes uid's password. Checking of the old password _MUST_ be done
     before this.
-
-    Can only be tested 'is not None'.
     """
     password = generate_password(password)
     return r.hset(K.USER.format(uid), 'password', password)

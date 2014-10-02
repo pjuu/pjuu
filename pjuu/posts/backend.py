@@ -42,13 +42,16 @@ tag_re = re.compile('(?:^|(?<=[^\w]))@'
                     '(\w{3,16})(?:$|(?=[\.\;\,\:\ \t]))')
 
 
-# Subscription reasons
-# You are the original poster
-POSTER = 1
-# You commented on the post
-COMMENTER = 2
-# You have been tagged in the post
-TAGEE = 3
+class SubscriptionReasons(object):
+    """
+    Class for storing constants to keep them pretty
+    """
+    # You are the original poster
+    POSTER = 1
+    # You commented on the post
+    COMMENTER = 2
+    # You have been tagged in the post
+    TAGEE = 3
 
 
 class PostingAlert(BaseAlert):
@@ -94,11 +97,11 @@ class CommentingAlert(PostingAlert):
         # Let's try and work out why this user is being notified of a comment
         reason = subscription_reason(for_uid, self.pid)
 
-        if reason == POSTER:
+        if reason == SubscriptionReasons.POSTER:
             sr = 'posted'
-        elif reason == COMMENTER:
+        elif reason == SubscriptionReasons.COMMENTER:
             sr = 'commented on'
-        elif reason == TAGEE:
+        elif reason == SubscriptionReasons.TAGEE:
             sr = 'were tagged in'
         else:
             # This should never really happen but let's play ball eh?
@@ -201,7 +204,7 @@ def create_post(uid, body):
     populate_feeds(uid, pid)
 
     # Subscribe the poster to there post
-    subscribe(uid, pid, POSTER)
+    subscribe(uid, pid, SubscriptionReasons.POSTER)
 
     # TAGGING
 
@@ -215,7 +218,7 @@ def create_post(uid, body):
         # Don't allow tagging yourself
         if tagee[0] != uid:
             # Subscribe the tagee to the alert
-            subscribe(tagee[0], pid, TAGEE)
+            subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
             # Add the tagee's uid to the list to alert them
             tagees_to_alert.append(tagee[0])
 
@@ -270,7 +273,7 @@ def create_comment(uid, pid, body):
 
     # Subscribe the user to the post, will not change anything if they are
     # already subscribed
-    subscribe(uid, pid, COMMENTER)
+    subscribe(uid, pid, SubscriptionReasons.COMMENTER)
 
     # TAGGING
 
@@ -283,7 +286,7 @@ def create_comment(uid, pid, body):
     for tagee in tagees:
         # Don't allow tagging yourself
         if tagee[0] != uid:
-            subscribe(tagee[0], pid, TAGEE)
+            subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
             tagees_to_alert.append(tagee[0])
 
     # Get an alert manager to notify all tagees
@@ -303,30 +306,21 @@ def check_post(uid, pid, cid=None):
              has to be a comment of PID. This for checking the urls not for
              checking who wrote CID
     """
-    try:
-        uid = uid
-        pid = pid
+    # Check if cid is a comment of post pid
+    if cid:
+        pid_check = r.hget(K.COMMENT.format(cid), 'pid')
 
-        # Check if cid is a comment of post pid
-        if cid:
-            cid = cid
-            pid_check = r.hget(K.COMMENT.format(cid), 'pid')
-
-            if pid_check != pid:
-                # No it isn't
-                return False
-
-        # Check that post was written by uid
-        uid_check = r.hget(K.POST.format(pid), 'uid')
-        if uid_check != uid:
+        if pid_check != pid:
+            # No it isn't
             return False
 
-        # All was good
-        return True
-
-    except (TypeError, ValueError):
-        # Something went wrong
+    # Check that post was written by uid
+    uid_check = r.hget(K.POST.format(pid), 'uid')
+    if uid_check != uid:
         return False
+
+    # All was good
+    return True
 
 
 def get_post(pid):
@@ -363,7 +357,7 @@ def get_comment(cid):
         try:
             # Look up user and add data to the repr
             uid = comment['uid']
-            user_dict = r.hgetall(K.USER % uid)
+            user_dict = r.hgetall(K.USER.format(uid))
 
             comment['user_username'] = user_dict['username']
             comment['user_email'] = user_dict['email']
@@ -485,7 +479,7 @@ def delete(pid, cid=None):
         # Delete the comment and remove from the posts list
         r.delete(K.COMMENT.format(cid))
         r.delete(K.COMMENT_VOTES.format(cid))
-        r.lrem(K.POST_COMMENTS.format(cid), 0, cid)
+        r.lrem(K.POST_COMMENTS.format(pid), 0, cid)
         # Delete the comment from the users comment list
         r.lrem(K.USER_COMMENTS.format(author_id), 0, cid)
         return True

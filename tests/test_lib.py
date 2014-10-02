@@ -45,7 +45,7 @@ class AlertTests(BackendTestCase):
         AlertManager can't be broken.
         """
         # Check that an alert will not work with a non-existant get_user
-        alert = BaseAlert(1000)
+        alert = BaseAlert(K.NIL_VALUE)
         # Check that there is a timestamp
         self.assertGreater(alert.timestamp, 0)
         # We should get nothing back for alerts when it comes to our
@@ -59,10 +59,10 @@ class AlertTests(BackendTestCase):
         self.assertRaises(NotImplementedError, lambda: alert.prettify())
 
         # Create a user an check that at least get_username and get_email work
-        user = create_user('test', 'test@pjuu.com', 'Password')
-        alert = BaseAlert(user)
-        self.assertEqual(alert.get_username(), 'test')
-        self.assertEqual(alert.get_email(), 'test@pjuu.com')
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        alert = BaseAlert(user1)
+        self.assertEqual(alert.get_username(), 'user1')
+        self.assertEqual(alert.get_email(), 'user1@pjuu.com')
         self.assertTrue(alert.verify())
         # Done with BaseAlert :)
 
@@ -77,23 +77,23 @@ class AlertTests(BackendTestCase):
         am = AlertManager()
 
         # Try and load a non-existant alert
-        self.assertIsNone(am.get(123))
+        self.assertIsNone(am.get(K.NIL_VALUE))
 
         # Try and alert on something which is not an alert
-        self.assertRaises(ValueError, lambda: am.alert('ALERT', [1, 2, 3]))
+        self.assertRaises(ValueError, lambda: am.alert('ALERT', K.NIL_VALUE))
 
         # Test that alerting a single users does not work, they need to be
         # iterable
         # Create an alert
-        alert = BaseAlert(1)
+        alert = BaseAlert(K.NIL_VALUE)
         self.assertRaises(TypeError, lambda: am.alert(alert, 1))
 
         # Create a couple of users
-        user1 = create_user('test1', 'test1@pjuu.com', 'Password')
-        user2 = create_user('test2', 'test2@pjuu.com', 'Password')
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
 
         # Ensure the length of user1's alert feed is 0
-        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 0)
+        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 0)
 
         # Create an alert from user2
         alert = BaseAlert(user2)
@@ -101,15 +101,15 @@ class AlertTests(BackendTestCase):
         am.alert(alert, [user1])
 
         # Ensure the length of user1's alert feed is 1
-        self.assertEqual(r.zcard(K.USER_ALERTS % user1), 1)
+        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 1)
 
         # Get alerts for user1, user Redis directly
-        alerts = r.zrange(K.USER_ALERTS % user1, 0, 0)
+        alerts = r.zrange(K.USER_ALERTS.format(user1), 0, 0)
         # Get the alert from alerts
         alert = am.get(alerts[0])
         self.assertIsNotNone(alert)
-        self.assertEqual(alert.get_username(), 'test2')
-        self.assertEqual(alert.get_email(), 'test2@pjuu.com')
+        self.assertEqual(alert.get_username(), 'user2')
+        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
 
         # Delete test2 and ensure getting the alert returns None
         delete_account(user2)
