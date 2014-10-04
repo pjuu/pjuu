@@ -3,7 +3,7 @@
 #### WE ARE CURRENTLY REFACTORING THE CODE BASE FOR 0.5
 #### PLEASE SEE BRANCH 0.4 IF YOU WISH TO USE PJUU
 
-[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu=master) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg?branch=master)](https://coveralls.io/r/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu=master) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg?branch=master)](https://coveralls.io/r/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html) [![Hipchat](http://img.shields.io/badge/chat-hipchat-blue.svg)](http://www.hipchat.com/gpbvQy6JF)
 
 An open-source social networking application which runs https://pjuu.com.
 
