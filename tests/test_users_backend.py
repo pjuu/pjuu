@@ -30,8 +30,8 @@ from pjuu import redis as r
 from pjuu.auth.backend import create_user, delete_account, activate
 from pjuu.lib import keys as K, timestamp
 from pjuu.lib.alerts import AlertManager
-from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
-                                CommentingAlert)
+from pjuu.posts.backend import (create_post, create_comment, delete_post,
+                                delete_comment, TaggingAlert, CommentingAlert)
 from pjuu.users.backend import *
 # Test imports
 from tests.helpers import BackendTestCase, FrontendTestCase
@@ -130,13 +130,43 @@ class BackendTests(BackendTestCase):
         # Ensure the users post list is empty
         self.assertEqual(len(get_posts(user1).items), 0)
 
-        # Create a test post, ensure it appears in the users list
-        post1 = create_post(user1, 'Test post')
+        # Create a few test posts, ensure they appears in the users list
+        post1 = create_post(user1, 'Test post 1')
+        post2 = create_post(user1, 'Test post 2')
+        post3 = create_post(user1, 'Test post 3')
+        self.assertEqual(len(get_posts(user1).items), 3)
+        self.assertEqual(get_posts(user1).total, 3)
+
+        # Ensure the post ids are in the Redis list
+        self.assertIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+
+        # Delete one of the posts and ensure that it does not appear in the
+        # list.
+        delete_post(post1)
+
+        # Ensure the above is now correct with post1 missing
+        self.assertEqual(len(get_posts(user1).items), 2)
+        self.assertEqual(get_posts(user1).total, 2)
+
+        # Ensure the post ids are in the Redis list and post1 is NOT
+        self.assertNotIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+
+        # Delete a post from inside Redis. This will trigger the self cleaning
+        # list feature. We call these orphaned pids
+        r.delete(K.POST.format(post2))
+        # Ensure the above is now correct with post2 missing
         self.assertEqual(len(get_posts(user1).items), 1)
         self.assertEqual(get_posts(user1).total, 1)
 
-        # Ensure the post id is in the Redis list
-        self.assertIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        # Ensure the post ids are not in the Redis list and post1 is NOT
+        self.assertNotIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertNotIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
+
         # Done
 
     def test_get_comments(self):
@@ -163,11 +193,29 @@ class BackendTests(BackendTestCase):
         self.assertEqual(get_comments(post1).total, 2)
         self.assertEqual(get_comments(post2).total, 2)
         # Ensure the ids are in the Redis lists
-        self.assertIn(comment1, r.lrange(K.USER_COMMENTS.format(user1), 0, -1))
-        self.assertIn(comment2, r.lrange(K.USER_COMMENTS.format(user1), 0, -1))
-        self.assertIn(comment3, r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
-        self.assertIn(comment4, r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
-        # Done
+        self.assertIn(comment1, r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
+        self.assertIn(comment2, r.lrange(K.POST_COMMENTS.format(post2), 0, -1))
+        self.assertIn(comment3, r.lrange(K.POST_COMMENTS.format(post1), 0, -1))
+        self.assertIn(comment4, r.lrange(K.POST_COMMENTS.format(post2), 0, -1))
+
+        # Delete 1 comment from post1 and ensure it does not exist
+        delete_comment(comment1)
+        # Check that is has gone
+        self.assertEqual(len(get_comments(post1).items), 1)
+        self.assertEqual(get_comments(post1).total, 1)
+        # Ensure it is missing from Redis
+        self.assertNotIn(comment1,
+                         r.lrange(K.POST_COMMENTS.format(user1), 0, -1))
+
+        # Delete a comment from inside Redis. This will trigger the self
+        # cleaning list feature. We call these orphaned cids.
+        r.delete(K.COMMENT.format(comment2))
+        # Check that it has gone when get_comments is called
+        self.assertEqual(len(get_comments(post2).items), 1)
+        self.assertEqual(get_comments(post2).total, 1)
+        # Ensure it is missing from Redis
+        self.assertNotIn(comment2,
+                         r.lrange(K.POST_COMMENTS.format(user1), 0, -1))
 
     def test_follow_unfollow_get_followers_following_is_following(self):
         """

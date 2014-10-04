@@ -132,6 +132,7 @@ def signup():
             # User successfully signed up, create an account
             uid = create_user(form.username.data, form.email.data,
                               form.password.data)
+
             # Lets check the account was created
             if uid:
                 token = generate_token(SIGNER_ACTIVATE, {'uid': uid})
@@ -147,8 +148,13 @@ def signup():
                 flash('Yay! You\'ve signed up<br/>Please check your e-mails '
                       'to activate your account', 'success')
                 return redirect(url_for('signin'))
-        # This will fire if the form is invalid
-        flash('Oh no! There are errors in your form', 'error')
+
+        # This will fire if the form is invalid or if there is a race
+        # condition with 2 users trying to enter the same username or password
+        # at exactly the same time.
+        flash('Oh no! There are errors in your form. Please try again.',
+              'error')
+
     return render_template('signup.html', form=form)
 
 

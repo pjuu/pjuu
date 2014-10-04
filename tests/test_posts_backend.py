@@ -148,27 +148,27 @@ class BackendTests(BackendTestCase):
 
         # Get user 3 to downvote, this will test that the user can not go
         # negative yet the post can
-        self.assertTrue(vote(user3, post1, amount=-1))
+        self.assertIsNone(vote_post(user3, post1, amount=-1))
         # Ensure post score has been adjusted
         self.assertEqual(get_post(post1).get('score'), '-1')
         # Ensure user score has NOT been adjusted
         self.assertEqual(get_user(user1).get('score'), '0')
 
         # Get user 2 to upvote
-        self.assertTrue(vote(user2, post1))
+        self.assertIsNone(vote_post(user2, post1))
         # Ensure post score has been adjusted
         self.assertEqual(get_post(post1).get('score'), '0')
         # Ensure user score has been adjusted
         self.assertEqual(get_user(user1).get('score'), '1')
 
         # Ensure user 1 can not vote on there own post
-        self.assertFalse(vote(user1, post1))
+        self.assertRaises(CantVoteOnOwn, lambda: vote_post(user1, post1))
         # Ensure the scores have not been adjusted
         self.assertEqual(get_post(post1).get('score'), '0')
         self.assertEqual(get_user(user1).get('score'), '1')
 
         # Check to see if a user can vote twice on a post
-        self.assertFalse(vote(user2, post1))
+        self.assertRaises(AlreadyVoted, lambda: vote_post(user2, post1))
         # Ensure the scores have not been adjusted
         self.assertEqual(get_post(post1).get('score'), '0')
         self.assertEqual(get_user(user1).get('score'), '1')
@@ -178,28 +178,29 @@ class BackendTests(BackendTestCase):
         comment1 = create_comment(user1, post1, 'Test comment')
 
         # Get user 3 to downvote
-        self.assertTrue(vote(user3, post1, comment1, amount=-1))
+        self.assertIsNone(vote_comment(user3, comment1,
+                                                             amount=-1))
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(comment1)['score'], '-1')
         # Ensure user score has NOT been adjusted
         self.assertEqual(get_user(user1)['score'], '0')
 
         # Get user 2 to upvote
-        self.assertTrue(vote(user2, post1, comment1))
+        self.assertIsNone(vote_comment(user2, comment1))
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
         self.assertEqual(get_user(user1).get('score'), '1')
 
         # Ensure user 1 can not vote on there own comment
-        self.assertFalse(vote(user1, post1, comment1))
+        self.assertRaises(CantVoteOnOwn, lambda: vote_comment(user1, comment1))
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
         self.assertEqual(get_user(user1).get('score'), '1')
 
         # Check to see if a user can vote twice on a comment
-        self.assertFalse(vote(user2, post1, comment1))
+        self.assertRaises(AlreadyVoted, lambda: vote_comment(user2, comment1))
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(comment1).get('score'), '0')
         # Ensure user score has been adjusted
@@ -227,7 +228,7 @@ class BackendTests(BackendTestCase):
         # This function does not actually test to see if the user has the
         # the rights to delete the post. This should be tested in the frontend
         # Check a comment can be deleted
-        self.assertTrue(delete(post1, comment4))
+        self.assertIsNone(delete_comment(comment4))
         # Check that getting the comment returns None
         self.assertIsNone(get_comment(comment4))
         # Ensure the comment is no longer in the posts comment list and no
@@ -243,7 +244,7 @@ class BackendTests(BackendTestCase):
         self.assertIn(comment2, r.lrange(K.USER_COMMENTS.format(user2), 0, -1))
 
         # Delete the post. This should delete all the comments, we will check
-        self.assertTrue(delete(post1))
+        self.assertIsNone(delete_post(post1))
         # Check that the post does not exist
         self.assertIsNone(get_post(post1))
         # Check that non of the comments exist

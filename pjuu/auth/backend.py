@@ -120,6 +120,47 @@ def inject_token_header(response):
     return response
 
 
+def create_user(username, email, password):
+    """ READ/WRITE
+    Creates a user account
+    """
+    username = username.lower()
+    email = email.lower()
+    if check_username(username) and check_email(email) and \
+       check_username_pattern(username) and check_email_pattern(email):
+        # Create the user lookup keys. This LUA script ensures
+        # that the name can not be taken at the same time causing a race
+        # condition. This is also passed a UUID and will only return it if
+        # successful
+        uid = L.create_user(keys=[K.UID_USERNAME.format(username),
+                                  K.UID_EMAIL.format(email)],
+                            args=[get_uuid()])
+        # Create user dictionary ready for HMSET only if uid is not None
+        if uid is not None:
+            user = {
+                'uid': uid,
+                'username': username,
+                'email': email,
+                'password': generate_password(password),
+                'created': timestamp(),
+                'last_login': -1,
+                'active': 0,
+                'banned': 0,
+                'op': 0,
+                'muted': 0,
+                'about': "",
+                'score': 0,
+                'alerts_last_checked': 0
+            }
+            r.hmset(K.USER.format(uid), user)
+            # Set the TTL for the user account
+            r.expire(K.USER.format(uid), K.EXPIRE_24HRS)
+            return uid
+
+    # If none of this worked return nothing
+    return None
+
+
 def get_uid_username(username):
     """ Get the uid for user with username.
 
@@ -214,20 +255,15 @@ def check_username(username):
     Used to check for username availability inside the signup form.
     Returns true if the name is free, false otherwise
     """
-    username = username.lower()
-
     return username not in RESERVED_NAMES and \
-        not r.exists(K.UID_USERNAME.format(username))
+        not r.exists(K.UID_USERNAME.format(username.lower()))
 
 
 def check_email_pattern(email):
     """ N/A
     Used to check an e-mail addresses matches the REGEX pattern.
     """
-    email = email.lower()
-
-    # Check the email is valid
-    return bool(EMAIL_RE.match(email))
+    return bool(EMAIL_RE.match(email.lower()))
 
 
 def check_email(email):
@@ -235,9 +271,7 @@ def check_email(email):
     Used to check an e-mail addresses availability.
     Return true if free and false otherwise.
     """
-    email = email.lower()
-
-    return not r.exists(K.UID_EMAIL.format(email))
+    return not r.exists(K.UID_EMAIL.format(email.lower()))
 
 
 def user_exists(uid):
@@ -245,47 +279,6 @@ def user_exists(uid):
     Helper function to check that a user exists or not.
     """
     return r.exists(K.USER.format(uid))
-
-
-def create_user(username, email, password):
-    """ READ/WRITE
-    Creates a user account
-    """
-    username = username.lower()
-    email = email.lower()
-    if check_username(username) and check_email(email) and \
-       check_username_pattern(username) and check_email_pattern(email):
-        # Create the user lookup keys. This LUA script ensures
-        # that the name can not be taken at the same time causing a race
-        # condition. This is also passed a UUID and will only return it if
-        # successful
-        uid = L.create_user(keys=[K.UID_USERNAME.format(username),
-                                  K.UID_EMAIL.format(email)],
-                            args=[get_uuid()])
-        # Create user dictionary ready for HMSET only if uid is not None
-        if uid is not None:
-            user = {
-                'uid': uid,
-                'username': username,
-                'email': email,
-                'password': generate_password(password),
-                'created': timestamp(),
-                'last_login': -1,
-                'active': 0,
-                'banned': 0,
-                'op': 0,
-                'muted': 0,
-                'about': "",
-                'score': 0,
-                'alerts_last_checked': 0
-            }
-            r.hmset(K.USER.format(uid), user)
-            # Set the TTL for the user account
-            r.expire(K.USER.format(uid), K.EXPIRE_24HRS)
-            return uid
-
-    # If none of this worked return nothing
-    return None
 
 
 def is_active(uid):
@@ -376,18 +369,15 @@ def activate(uid, action=True):
     We will check if the user exists before, otherwise this would consume the
     ID and creates a user hash with simply {'active':1}
     """
-    try:
-        if user_exists(uid):
-            action = int(action)
-            r.hset(K.USER.format(uid), 'active', action)
-            # Remove the TTL on the user keys
-            r.persist(K.USER.format(uid))
-            r.persist(K.UID_USERNAME.format(get_username(uid)))
-            r.persist(K.UID_EMAIL.format(get_email(uid)))
-            return True
-        else:
-            return False
-    except (TypeError, ValueError):
+    if user_exists(uid):
+        action = int(action)
+        r.hset(K.USER.format(uid), 'active', action)
+        # Remove the TTL on the user keys
+        r.persist(K.USER.format(uid))
+        r.persist(K.UID_USERNAME.format(get_username(uid)))
+        r.persist(K.UID_EMAIL.format(get_email(uid)))
+        return True
+    else:
         return False
 
 
@@ -397,14 +387,11 @@ def ban(uid, action=True):
 
     By passing False as action this will unban the user
     """
-    try:
-        if user_exists(uid):
-            action = int(action)
-            r.hset(K.USER.format(uid), 'banned', action)
-            return True
-        else:
-            return False
-    except (TypeError, ValueError):
+    if user_exists(uid):
+        action = int(action)
+        r.hset(K.USER.format(uid), 'banned', action)
+        return True
+    else:
         return False
 
 
@@ -414,14 +401,11 @@ def bite(uid, action=True):
 
     By passing False as action this will unbite the user
     """
-    try:
-        if user_exists(uid):
-            action = int(action)
-            r.hset(K.USER.format(uid), 'op', action)
-            return True
-        else:
-            return False
-    except (TypeError, ValueError):
+    if user_exists(uid):
+        action = int(action)
+        r.hset(K.USER.format(uid), 'op', action)
+        return True
+    else:
         return False
 
 
@@ -431,14 +415,11 @@ def mute(uid, action=True):
 
     By passing False as action this will un-mute the user
     """
-    try:
-        if user_exists(uid):
-            action = int(action)
-            r.hset(K.USER.format(uid), 'muted', action)
-            return True
-        else:
-            return False
-    except (TypeError, ValueError):
+    if user_exists(uid):
+        action = int(action)
+        r.hset(K.USER.format(uid), 'muted', action)
+        return True
+    else:
         return False
 
 

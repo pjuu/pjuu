@@ -35,7 +35,8 @@ from pjuu.auth.backend import get_user, USERNAME_RE
 from pjuu.lib import keys as K, lua as L, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.posts.backend import get_comment, get_post
+from pjuu.posts.backend import (get_comment, get_post, delete_comment,
+                                delete_post)
 
 
 # Regular expressions
@@ -105,7 +106,7 @@ def get_posts(uid, page=1):
             posts.append(post)
         else:
             # Self cleaning lists
-            r.lrem(K.USER_POSTS.format(uid), 1, pid)
+            r.lrem(K.USER_POSTS.format(uid), 0, pid)
             total = r.llen(K.USER_POSTS.format(uid))
 
     return Pagination(posts, total, page, per_page)
@@ -127,7 +128,7 @@ def get_comments(pid, page=1):
             comments.append(comment)
         else:
             # Self cleaning lists
-            r.lrem(K.POST_COMMENTS.format(pid), 1, cid)
+            r.lrem(K.POST_COMMENTS.format(pid), 0, cid)
             total = r.llen(K.POST_COMMENTS.format(cid))
 
     return Pagination(comments, total, page, per_page)

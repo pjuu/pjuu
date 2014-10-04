@@ -28,30 +28,28 @@ from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid, is_mute
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
-from .backend import (create_post, create_comment, check_post, vote as be_vote,
-                      has_voted, get_comment_author, delete as be_delete,
-                      is_subscribed, unsubscribe as be_unsubscribe)
+from .backend import (create_post, create_comment, check_post, has_voted,
+                      get_comment_author, is_subscribed, vote_post,
+                      vote_comment, delete_post as be_delete_post,
+                      delete_comment as be_delete_comment,
+                      unsubscribe as be_unsubscribe, CantVoteOnOwn,
+                      AlreadyVoted)
 from .forms import PostForm
 
 
 @app.template_filter('voted')
-def voted_filter(pid, cid=None):
+def voted_filter(xid, comment=False):
     """
     Checks to see if current_user has voted on the post pid.
 
     To check a post simply:
-        post.pid|voted
+        item.pid|voted
     To check a comment it is a little different:
-        comment.pid|voted(comment.cid)
+        item.cid|voted(True)
 
     These may be reffered to as items.X in lists.
     """
-    vote = has_voted(current_user['uid'], pid, cid=cid)
-    if vote is not None:
-        vote = int(vote)
-        if vote > 0:
-            vote = "+" + str(vote)
-    return vote
+    return has_voted(current_user['uid'], xid, comment=comment)
 
 
 @app.template_filter('subscribed')
@@ -71,6 +69,8 @@ def post(redirect_url=None):
     This view accepts GET and POST yet only acts on a POST. This is so that the
     Werkzeug router does not treat this like a profile lookup
     """
+    # Rather than just 404 if someone tries to GET this URL which is default
+    # if we don't specify it we will throw a 405.
     if request.method == 'GET':
         return abort(405)
 
@@ -95,12 +95,17 @@ def post(redirect_url=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<pid>/comment', methods=['POST'])
+@app.route('/<username>/<pid>/comment', methods=['GET', 'POST'])
 @login_required
 def comment(username, pid):
     """
     current_user creates a comment of post 'pid' with the author 'username'
     """
+    # Rather than just 404 if someone tries to GET this URL which is default
+    # if we don't specify it we will throw a 405.
+    if request.method == 'GET':
+        return abort(405)
+
     redirect_url = handle_next(request, url_for('view_post',
                                username=username, pid=pid))
 
@@ -139,16 +144,15 @@ def upvote(username, pid=-1, cid=None):
     if not check_post(uid, pid, cid):
         return abort(404)
 
-    # Don't allow a user to vote twice or vote on own post
-    if not has_voted(current_user['uid'], pid, cid):
+    try:
         if cid:
-            result = be_vote(current_user['uid'], pid, cid, amount=1)
+            result = vote_comment(current_user['uid'], cid, amount=1)
         else:
-            result = be_vote(current_user['uid'], pid, amount=1)
-        if not result:
-            flash('You can not vote on your own posts', 'information')
-    else:
+            result = vote_post(current_user['uid'], pid, amount=1)
+    except AlreadyVoted:
         flash('You have already voted on this post', 'information')
+    except CantVoteOnOwn:
+        flash('You can not vote on your own posts', 'information')
 
     return redirect(redirect_url)
 
@@ -170,16 +174,15 @@ def downvote(username, pid=-1, cid=None):
     if not check_post(uid, pid, cid):
         return abort(404)
 
-    # Don't allow a user to vote twice or vote on own post
-    if not has_voted(current_user['uid'], pid, cid):
+    try:
         if cid:
-            result = be_vote(current_user['uid'], pid, cid, amount=-1)
+            result = vote_comment(current_user['uid'], cid, amount=1)
         else:
-            result = be_vote(current_user['uid'], pid, amount=-1)
-        if not result:
-            flash('You can not vote on your own posts', 'information')
-    else:
+            result = vote_post(current_user['uid'], pid, amount=1)
+    except AlreadyVoted:
         flash('You have already voted on this post', 'information')
+    except CantVoteOnOwn:
+        flash('You can not vote on your own posts', 'information')
 
     return redirect(redirect_url)
 
@@ -216,14 +219,11 @@ def delete_post(username, pid, cid=None):
         if uid != current_user['uid']:
             return abort(403)
 
-    # If you have made it here you can delete the post/comment
-    # be_delete _WILL_ delete all the comments under a post if a post
-    # is being deleted.
-    be_delete(pid, cid)
-
     if cid is not None:
+        be_delete_comment(cid)
         flash('Comment has been deleted', 'success')
     else:
+        be_delete_post(pid)
         flash('Post has been deleted along with all comments', 'success')
 
     return redirect(redirect_url)
