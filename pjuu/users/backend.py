@@ -45,8 +45,8 @@ SEARCH_RE = re.compile(SEARCH_PATTERN)
 
 
 class FollowAlert(BaseAlert):
-    """
-    Form for a FollowAlert, very simple, pretty much a lib.alerts.BaseAlert
+    """A following alert
+
     """
 
     def prettify(self, for_uid=None):
@@ -55,8 +55,8 @@ class FollowAlert(BaseAlert):
                        do_capitalize(self.get_username()))
 
 def get_profile(uid):
-    """
-    Returns a users profile as Dict.
+    """Returns a user dict with add post_count, follow_count and following.
+
     """
     profile = r.hgetall(K.USER.format(uid))
 
@@ -69,8 +69,8 @@ def get_profile(uid):
 
 
 def get_feed(uid, page=1):
-    """
-    Returns a users feed as a Pagination.
+    """Returns a users feed as a pagination object.
+
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
     total = r.llen(K.USER_FEED.format(uid))
@@ -91,8 +91,8 @@ def get_feed(uid, page=1):
 
 
 def get_posts(uid, page=1):
-    """
-    Returns a users posts as a Pagination.
+    """Returns a users posts as a pagination object.
+
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.llen(K.USER_POSTS.format(uid))
@@ -113,8 +113,7 @@ def get_posts(uid, page=1):
 
 
 def get_comments(pid, page=1):
-    """
-    Returns a pagination of a posts comments
+    """Returns all a posts comments as a pagination object.
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.llen(K.POST_COMMENTS.format(pid))
@@ -135,8 +134,9 @@ def get_comments(pid, page=1):
 
 
 def follow_user(who_uid, whom_uid):
-    """
-    Add whom to who's following set and who to whom's followers set
+    """Add whom to who's following zset and who to whom's followers zset.
+    Generate an alert for this action.
+
     """
     # Check that we are not already following the user
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
@@ -155,9 +155,8 @@ def follow_user(who_uid, whom_uid):
 
 
 def unfollow_user(who_uid, whom_uid):
-    """
-    Remove whom from whos following set and remove who from whoms
-    followers set
+    """Remove whom from who's following zset and who to whom's followers zset
+
     """
     # Check that we are actually following the users
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is None:
@@ -171,8 +170,8 @@ def unfollow_user(who_uid, whom_uid):
 
 
 def get_following(uid, page=1):
-    """
-    Returns a list of users uid is following as a Pagination.
+    """Returns a list of users uid is following as a pagination object.
+
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.zcard(K.USER_FOLLOWING.format(uid))
@@ -187,14 +186,14 @@ def get_following(uid, page=1):
         else:
             # Self cleaning sorted sets
             r.zrem(K.USER_FOLLOWING.format(uid), fid)
-            total = r.zcard(K.USER_FOLLOWING % uid)
+            total = r.zcard(K.USER_FOLLOWING.format(id))
 
     return Pagination(users, total, page, per_page)
 
 
 def get_followers(uid, page=1):
-    """
-    Returns a list of users whom follow uid as a Pagination.
+    """Returns a list of users who follow user with uid as a pagination object.
+
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.zcard(K.USER_FOLLOWERS.format(uid))
@@ -215,8 +214,8 @@ def get_followers(uid, page=1):
 
 
 def is_following(who_uid, whom_uid):
-    """
-    Check to see if who is following whom. These need to be uids
+    """Check to see if who is following whom.
+
     """
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return True
@@ -225,11 +224,9 @@ def is_following(who_uid, whom_uid):
 
 # TODO Fix this!
 def search(query):
-    """
-    Handles searching for users. This is inefficient; O(n) it will
-    not scale to full production.
+    """Search for users. Will return a list as a pagination object.
+    Please note that this will block redis whilst it runs.
 
-    This will also BLOCK Redis why it runs
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     # Clean up query string
@@ -242,7 +239,7 @@ def search(query):
     else:
         keys = []
 
-    # Get results from the keys, only show a maximum of per_page is a search.
+    # Get results from the keys, only show a maximum of per_page in a search.
     # It could change too much between pages to be stable
     # We will simply trim the keys list to this value, it's easier :)
     keys = keys[:per_page]
@@ -250,29 +247,26 @@ def search(query):
     for key in keys:
         user = get_user(r.get(key))
         # Ensure the user exists before adding to the list and is not
-        # a deleted accoumt remnant
+        # a deleted accoumt remnant, it shouldn't be!
         if user:
             results.append(user)
 
+    # Get the total number of users being returned
     total = len(results)
 
     return Pagination(results, total, 1, per_page)
 
 
 def set_about(uid, about):
-    """
-    Set a users about message on their profile.
+    """Set a users about message.
 
-    This is a simple Redis operation but is here so all Redis actions are in
-    the backends
     """
-    # Set the about message for the user in their hash
-    r.hset(K.USER.format(uid), 'about', about)
+    return r.hset(K.USER.format(uid), 'about', about)
 
 
 def get_alerts(uid, page=1):
-    """
-    Return a paginated list of alert objects.
+    """Return a list of alert objects as a pagination.
+
     """
     # Update the last time the user checked there alerts
     # This will allow us to alert a user too new alerts with the /i-has-alerts
@@ -307,19 +301,16 @@ def get_alerts(uid, page=1):
 
 
 def delete_alert(uid, aid):
-    """
-    Removes an alert with aid from user with uid's alert feed.
+    """Removes an alert with aid from user with uid's alert feed. This does not
+    delete the alert object, it may be on other users feeds.
 
-    Note: THIS DOES NOT REMOVE THE ALERT ITSELF, THIS SAME ALERT COULD BE USED
-          BY SOMEONE ELSE.
     """
     return bool(r.zrem(K.USER_ALERTS.format(uid), aid))
 
 
 def i_has_alerts(uid):
-    """
-    Checks too see if user has any new alerts since they last visited the
-    /alerts endoint
+    """Checks too see if user has any new alerts since they last got the them.
+
     """
     # Get the stamp since last check from Redis
     # If this has not been called before make it 0

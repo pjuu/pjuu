@@ -34,13 +34,13 @@ from tests.helpers import BackendTestCase, FrontendTestCase
 
 
 class BackendTests(BackendTestCase):
-    """
-    This case will test ALL post backend functions.
+    """This case will test ALL post backend functions.
+
     """
 
     def test_create_post(self):
-        """
-        Tests creating a post
+        """Tests creating and getting a post
+
         """
         # Create a user to test creating post
         user1 = create_user('user1', 'user1@pjuu.com', 'Password')
@@ -64,6 +64,10 @@ class BackendTests(BackendTestCase):
         self.assertIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
         # Ensure this post is the users feed (populate_feed)
         self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
+
+        # Testing getting post with invalid arguments
+        # Test getting a post that does not exist
+        self.assertIsNone(get_post(K.NIL_VALUE))
 
     def test_create_comment(self):
         """
@@ -177,9 +181,12 @@ class BackendTests(BackendTestCase):
         # Create a comment by user 1
         comment1 = create_comment(user1, post1, 'Test comment')
 
+        # Let's cheat and set user1's score back to 0 so we can check it will
+        # not be lowered in the user3 downvote
+        r.hset(K.USER.format(user1), 'score', 0)
+
         # Get user 3 to downvote
-        self.assertIsNone(vote_comment(user3, comment1,
-                                                             amount=-1))
+        self.assertIsNone(vote_comment(user3, comment1, amount=-1))
         # Ensure post score has been adjusted
         self.assertEqual(get_comment(comment1)['score'], '-1')
         # Ensure user score has NOT been adjusted
@@ -348,6 +355,10 @@ class BackendTests(BackendTestCase):
         self.assertTrue(unsubscribe(user3, post2))
         self.assertFalse(is_subscribed(user3, post2))
 
+        # Ensure that subscribe doe not happen when it is not a valid post
+        self.assertFalse(subscribe(user1, K.NIL_VALUE,
+                                   SubscriptionReasons.POSTER))
+
     def test_alerts(self):
         """
         Unlike the test_alerts() definition in the users package this just
@@ -370,33 +381,38 @@ class BackendTests(BackendTestCase):
         self.assertEqual(alert.get_email(), 'user1@pjuu.com')
         self.assertIn('tagged you in a', alert.prettify())
 
-        # Have user2 tag user3 in a comment
-        create_comment(user2, post1, 'And you @user3')
-        # Check the alerts again
-        alert = get_alerts(user3).items[0]
-        self.assertTrue(isinstance(alert, TaggingAlert))
-        self.assertEqual(alert.get_username(), 'user2')
-        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
-        self.assertIn('tagged you in a', alert.prettify())
-
+        # Have user2 comment on a the post and check that user1 has the alert
+        create_comment(user2, post1, 'Hello')
         # User 1 should now have a commenting alert from user2
         alert = get_alerts(user1).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
         self.assertEqual(alert.get_username(), 'user2')
         self.assertEqual(alert.get_email(), 'user2@pjuu.com')
-        # Please remember that prettify requires a uid to format it too in the
-        # case of a commenting alert
+        # Please remember that prettify requires a uid to format it too
         self.assertIn('commented on a', alert.prettify(user1))
         self.assertIn('you posted', alert.prettify(user1))
 
+        # Create a comment as user3 so they become subscribed
+        create_comment(user3, post1, 'Hello')
+
         # Check that if user1 posts a comment user2 get a tagging alert
         create_comment(user1, post1, 'Hello')
-        # Check alerts for user2 and user3
+        # Check alerts for user2
         alert = get_alerts(user2).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
         self.assertIn('you were tagged in', alert.prettify(user2))
+        # Check alerts for user3
         alert = get_alerts(user3).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
-        self.assertIn('you were tagged in', alert.prettify(user2))
+        self.assertIn('you commented on', alert.prettify(user3))
+
+        # To check that an invalid subscription reason returns the generic
+        # reason. This should not happen on the site.
+        # Manually change the score in Redis to a high number
+        r.zincrby(K.POST_SUBSCRIBERS.format(post1), user3, 100)
+        # Check the new prettify message
+        alert = get_alerts(user3).items[0]
+        self.assertTrue(isinstance(alert, CommentingAlert))
+        self.assertIn('you are subscribed too', alert.prettify(user3))
 
         # Done for now

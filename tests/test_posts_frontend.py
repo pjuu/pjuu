@@ -181,6 +181,17 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('You have been silenced!', resp.data)
         self.assertIn('Muting test', resp.data)
 
+        # Try and post to many characters
+        resp = self.client.post(url_for('post', next=url_for('feed')), data={
+            'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttest')
+        }, follow_redirects=True)
+        self.assertIn('Posts can not be larger than 255 characters', resp.data)
+
         # Done for now
 
     def test_comment(self):
@@ -278,9 +289,17 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('You have been silenced!', resp.data)
         self.assertIn('Muting test', resp.data)
 
-        # Lets signout
-        resp = self.client.get(url_for('signout'))
-        self.assertEqual(resp.status_code, 302)
+        # Try and post to many characters
+        resp = self.client.post(url_for('comment', username='user1',
+                                        pid=post1), data={
+            'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                    'testtesttesttesttest')
+        }, follow_redirects=True)
+        self.assertIn('Posts can not be larger than 255 characters', resp.data)
 
         # Done for now
 
@@ -291,9 +310,11 @@ class FrontendTests(FrontendTestCase):
         # Create two users to test this. This is what we need to check this.
         user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
         # Activate the accounts
         activate(user1)
         activate(user2)
+        activate(user3)
 
         # Create a post as the first user
         post1 = create_post(user1, 'Post user 1')
@@ -328,6 +349,7 @@ class FrontendTests(FrontendTestCase):
                                follow_redirects=True)
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
+        self.assertIn('You upvoted the post', resp.data)
         # Now that we have voted we should only see the arrow pointing to what
         # we voted. Check for up_arrow and ensure down_arrow is not there
         self.assertIn('up_arrow.png', resp.data)
@@ -355,6 +377,7 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('downvote', username='user1', pid=post1,
                                        cid=comment1),
                                follow_redirects=True)
+        self.assertIn('You downvoted the post', resp.data)
         self.assertIn('down_arrow.png', resp.data)
         self.assertNotIn('up_arrow.png', resp.data)
 
@@ -412,9 +435,25 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('downvote', username='user1', pid=post3,
                                cid=comment2), follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Log in as user3 and try and catch some situations which are missing
+        # from coverage.
+        resp = self.client.post(url_for('signin'), data={
+            'username': 'user3',
+            'password': 'Password'
+        }, follow_redirects=True)
+        # Downvote user1's post
+        resp = self.client.get(url_for('downvote', username='user1',
+                                       pid=post1), follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        # Create a post and try and downvote it
+        post4 = create_post(user3, 'Test post')
+        resp = self.client.get(url_for('downvote', username='user3',
+                                       pid=post4), follow_redirects=True)
+        self.assertIn('You can not vote on your own posts', resp.data)
         # Done for now
 
-    def test_delete_post(self):
+    def test_delete_post_comment(self):
         """
         Let's test the ability to delete posts and comments
         """
@@ -447,7 +486,7 @@ class FrontendTests(FrontendTestCase):
                                        pid=post2))
         self.assertNotIn('<div class="delete">X</div>', resp.data)
 
-        # Try and delete user two's comment this should fail
+        # Try and delete user two's post this should fail
         resp = self.client.get(url_for('delete_post', username='user2',
                                        pid=post2))
         self.assertEqual(resp.status_code, 403)
@@ -455,6 +494,11 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('view_post', username='user2',
                                        pid=post2))
         self.assertIn('Test post, user 2', resp.data)
+
+        # Try and delete a non-existant post
+        resp = self.client.get(url_for('delete_post', username=K.NIL_VALUE,
+                                       pid=K.NIL_VALUE))
+        self.assertEqual(resp.status_code, 404)
 
         # Let's delete our own post
         resp = self.client.get(url_for('delete_post', username='user1',
@@ -511,6 +555,11 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('view_post', username='user2',
                                        pid=post2))
         self.assertIn('Test comment, user 2', resp.data)
+
+        # Try and delete a non-existant comment
+        resp = self.client.get(url_for('delete_post', username=K.NIL_VALUE,
+                                       pid=K.NIL_VALUE, cid=K.NIL_VALUE))
+        self.assertEqual(resp.status_code, 404)
 
         # Log out as user 1
         self.client.get(url_for('signout'))
@@ -603,6 +652,12 @@ class FrontendTests(FrontendTestCase):
                                        pid=post1))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<div class="action-button unsubscribe">', resp.data)
+
+        # Check that unsubscribing from a non-existant (wont pass check post)
+        # post will raise a 404
+        resp = self.client.get(url_for('unsubscribe', username=K.NIL_VALUE,
+                                       pid=K.NIL_VALUE))
+        self.assertEqual(resp.status_code, 404)
 
         # Log out aster user2
         self.client.get(url_for('signout'))

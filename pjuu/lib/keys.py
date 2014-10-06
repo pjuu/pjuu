@@ -105,3 +105,10 @@ COMMENT_VOTES = "{{comment:{0}}}:votes"
 
 # Return: hash
 ALERT = "{{alert:{0}}}"
+
+
+# Other keys
+
+# Authentication tokens
+# Return: str
+TOKEN = "{{token:{0}}}"

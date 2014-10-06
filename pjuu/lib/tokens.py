@@ -23,39 +23,61 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib imports
-from base64 import (urlsafe_b64encode as b64encode,
-                    urlsafe_b64decode as b64decode)
 # 3rd party imports
 from flask import current_app as app, g
-from itsdangerous import SignatureExpired, BadSignature
+import jsonpickle
+import re
 # Pjuu imports
-from . import timestamp
+from pjuu import redis as r
+from pjuu.lib import get_uuid
 import pjuu.lib.keys as K
 
 
-def generate_token(signer, data):
-    """
-    Generates a token using the signer passed in.
-    """
-    try:
-        token = b64encode(signer.dumps(data).encode('ascii'))
-        if app.testing:
-            g.token = token
-    except (TypeError, ValueError):
-        return None
-    return token
+TOKEN_RE = re.compile(r'[0-9a-f]+')
 
 
-def check_token(signer, token):
+def generate_token(data):
+    """Create a new auth token. Stores the data in Redis and returns a UUID.
+
     """
-    Checks a token against the passed in signer.
-    If it fails returns None if it works the data from the
-    original token will me passed back.
+    # Get out token id, this is just a hex string so can be used in a URL
+    tid = get_uuid()
+    # Convert the data to a JSON pickle, you can store anything you want.
+    data = jsonpickle.encode(data)
+    # Set the token to JSON pickle value and place a 24HR timeout
+    r.setex(K.TOKEN.format(tid), K.EXPIRE_24HRS, data)
+
+    # For testing if a token is generated add it as a HTTP Header for us to
+    # check with the test client.
+    if app.testing: 
+        g.token = tid
+
+    return tid
+
+
+def check_token(tid, preserve=False):
+    """Look up token with tid and return the data which was stored or None.
+
     """
-    try:
-        data = signer.loads(b64decode(token.encode('ascii')),
-                            max_age=K.EXPIRE_24HRS)
-    except (TypeError, ValueError, SignatureExpired, BadSignature):
+    # Stop malformed tokens making calls to Redis
+    if not TOKEN_RE.match(tid):
         return None
-    return data
+
+    # Get the pickled data from Redis
+    data = r.get(K.TOKEN.format(tid))
+
+    if data:
+        try:
+            # Attempt to get the pickled object back
+            data = jsonpickle.decode(data)
+            return data
+        except (TypeError, ValueError):
+            # There was a problem pulling the data out of Redis.
+            return None
+        finally:
+            if not preserve:
+                # Delete the token if preserve is False
+                r.delete(K.TOKEN.format(tid))
+
+    # If we didn't get data in the first place no need to delete.
+    return None

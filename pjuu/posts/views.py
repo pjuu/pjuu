@@ -92,6 +92,9 @@ def post(redirect_url=None):
         # Can't recreate the issue
         if len(form.body.errors) > 0:
             flash(form.body.errors[0], 'error')
+        else:
+            flash('Oh no! There are errors in your post.',
+                  'error') # pragma: no cover
     return redirect(redirect_url)
 
 
@@ -124,6 +127,9 @@ def comment(username, pid):
         # Can't recreate the issue
         if len(form.body.errors) > 0:
             flash(form.body.errors[0], 'error')
+        else:
+            flash('Oh no! There are errors in your comment.',
+                  'error') # pragma: no cover
     return redirect(redirect_url)
 
 
@@ -150,9 +156,11 @@ def upvote(username, pid=-1, cid=None):
         else:
             result = vote_post(current_user['uid'], pid, amount=1)
     except AlreadyVoted:
-        flash('You have already voted on this post', 'information')
+        flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
-        flash('You can not vote on your own posts', 'information')
+        flash('You can not vote on your own posts', 'error')
+    else:
+        flash('You upvoted the post', 'success')
 
     return redirect(redirect_url)
 
@@ -180,9 +188,11 @@ def downvote(username, pid=-1, cid=None):
         else:
             result = vote_post(current_user['uid'], pid, amount=1)
     except AlreadyVoted:
-        flash('You have already voted on this post', 'information')
+        flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
-        flash('You can not vote on your own posts', 'information')
+        flash('You can not vote on your own posts', 'error')
+    else:
+        flash('You downvoted the post', 'success')
 
     return redirect(redirect_url)
 

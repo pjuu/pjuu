@@ -29,21 +29,30 @@ from math import ceil
 
 
 class Pagination(object):
-    """
-    Pagination object. Every page which supports the 'page' should
+    """Pagination object. Every page which supports the 'page' should
     use this to provide a consistency.
+
     """
 
     def __init__(self, items, total, page=1, per_page=50):
         self.items = items
         self.total = total
         self.per_page = per_page
-        self.page = page
+        # Ensure page can not be lower than 1
+        if page < 1:
+            self.page = 1
+        # Ensure page can not be too high.
+        # TODO: Fix this
+        # This isn't very elagant
+        elif page > 4294967295:
+            self.page = 4294967295
+        else:
+            self.page = page
 
     @property
     def pages(self):
-        """
-        The total number of pages
+        """Calculate the total number of pages
+
         """
         if self.per_page == 0:
             pages = 0
@@ -56,38 +65,26 @@ class Pagination(object):
         return (self.page < self.pages) or (self.page > 1)
 
     @property
-    def prev_num(self):
-        # So nothing goes wrong if the page number is higher than
-        # the page count
-        if self.page > self.pages:
-            return self.pages
-        return self.page - 1
+    def prev_page(self):
+        if self.page > 1:
+            return self.page - 1
+        return None
 
     @property
-    def has_prev(self):
-        return self.page > 1
-
-    @property
-    def next_num(self):
-        return self.page + 1
-
-    @property
-    def has_next(self):
-        return self.page < self.pages
+    def next_page(self):
+        if self.page < self.pages:
+            return self.page + 1
+        return None
 
 
 def handle_page(request):
-    """
-    Will handle passing 'page' to an view and ensure it is safe
+    """Will handle passing 'page' to an view and ensure it is safe
+
     """
     page = request.args.get('page', None)
     # Ensure the page is a valid integer
     try:
         page = int(page)
-        # Hack fix to stop integers too large being sent to Redis
-        # TODO: Fix This
-        if page > 4294967295:
-            page = 4294967295
     except (TypeError, ValueError):
         page = 1
     return page

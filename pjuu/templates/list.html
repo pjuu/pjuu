@@ -7,25 +7,25 @@
 
 {% if pagination.has_pages %}
 <div id="pagination" class="clearfix">
-    {% if pagination.has_prev %}
+    {% if pagination.prev_page %}
     <a href="{{ request.path + "?page=1" }}">
     <div class="button active prev">
         |<
     </div>
     </a>
-    <a href="{{ request.path + "?page=%s" % pagination.prev_num }}">
+    <a href="{{ request.path + "?page=%s" % pagination.prev_page }}">
     <div class="button active prev">
         <<
     </div>
     </a>
     {% endif %}
-    {% if pagination.has_next %}
+    {% if pagination.next_page %}
     <a href="{{ request.path + "?page=%s" % pagination.pages }}">
     <div class="button active next">
         >|
     </div>
     </a>
-    <a href="{{ request.path + "?page=%s" % pagination.next_num }}">
+    <a href="{{ request.path + "?page=%s" % pagination.next_page }}">
     <div class="button active next">
         >>
     </div>

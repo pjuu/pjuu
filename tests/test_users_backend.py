@@ -252,39 +252,70 @@ class BackendTests(BackendTestCase):
         self.assertEqual(get_followers(user1).total, 1)
         self.assertEqual(get_following(user2).total, 1)
         self.assertEqual(get_followers(user2).total, 1)
+
         # Make sure is_following() returns correctly
         self.assertTrue(is_following(user1, user2))
         self.assertTrue(is_following(user2, user1))
+
         # User 1 unfollow user 2 and ensure the sorted sets are updated
         self.assertTrue(unfollow_user(user1, user2))
         self.assertNotIn(user2,
                          r.zrange(K.USER_FOLLOWING.format(user1), 0, -1))
         self.assertNotIn(user1,
                          r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
+
         # Ensure the user can't unfollow the user again
         self.assertFalse(unfollow_user(user1, user2))
-        # User 2 unfollow user 1 and ensure the sorted sets are updates
-        self.assertTrue(unfollow_user(user2, user1))
-        self.assertNotIn(user1,
-                         r.zrange(K.USER_FOLLOWING.format(user2), 0, -1))
-        self.assertNotIn(user2,
-                         r.zrange(K.USER_FOLLOWERS.format(user1), 0, -1))
-        # Let's make sure unfollow won't work... AGAIN
-        self.assertFalse(unfollow_user(user2, user1))
-        # Ensure get_followers and get_following return the correct value
-        self.assertEqual(len(get_following(user1).items), 0)
-        self.assertEqual(len(get_following(user1).items), 0)
-        self.assertEqual(len(get_following(user2).items), 0)
+        # Ensure is_following shows correctly
+        self.assertFalse(is_following(user1, user2))
+
+        # Test what happens when we delete an account.
+
+        # Ensure user 2 is still following user1
+        self.assertTrue(is_following(user2, user1))
+
+        # This should clean
+        delete_account(user1)
+
+        # Ensure this has cleaned user2 following list
+        self.assertFalse(is_following(user2, user1))
+
+        # Ensure get_followers and get_following return the correct value for
+        # user2
         self.assertEqual(len(get_following(user2).items), 0)
         # Ensure the totals are correct
-        self.assertEqual(get_following(user1).total, 0)
-        self.assertEqual(get_followers(user1).total, 0)
         self.assertEqual(get_following(user2).total, 0)
         self.assertEqual(get_followers(user2).total, 0)
         # Make sure is_following() returns correctly
         self.assertFalse(is_following(user1, user2))
         self.assertFalse(is_following(user2, user1))
-        # Done
+
+        # I don't want to play with the above testing to much. I am adding
+        # in a test for self cleaning lists. I am going to reset this test
+        # case by manually flushing Redis :)
+        r.flushall()
+        # Back to normal, I don't like artificially uping the number of tests.
+
+        # Test the self cleaning lists in case there is an issue with Redis
+        # during an account deletion. We need 2 new users.
+        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+
+        # Follow each other.
+        self.assertTrue(follow_user(user1, user2))
+        self.assertTrue(follow_user(user2, user1))
+
+        # Manually delete user1's hash inside Redis
+        r.delete(K.USER.format(user1))
+
+        # Ensure user1 appears in both user2's followers and following lists
+        self.assertIn(user1, r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
+        self.assertIn(user1, r.zrange(K.USER_FOLLOWING.format(user2), 0, -1))
+
+        # Ensure if we actuallt get the lists from the backend functions user1
+        # is not there
+        self.assertEqual(get_followers(user2).total, 0)
+        self.assertEqual(get_following(user2).total, 0)
 
     def test_search(self):
         """

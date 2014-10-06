@@ -33,15 +33,15 @@ from pjuu.auth.backend import (check_email, check_username, authenticate,
 
 
 class ForgotForm(Form):
-    """
-    Form for when you have forgotten your password
+    """Form for when you have forgotten your password
+
     """
     username = TextField('User name or E-Mail')
 
 
 class SignInForm(Form):
-    """
-    Form to allow users to login
+    """Form to allow users to login
+
     """
     username = TextField('User name or E-Mail', [Required()])
     password = PasswordField('Password', [Required()])
@@ -49,9 +49,8 @@ class SignInForm(Form):
 
 
 class ResetForm(Form):
-    """
-    Form to reset your password. This is only available one you have confirmed
-    your forgot e-mail
+    """Form to reset your password.
+
     """
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
@@ -62,8 +61,8 @@ class ResetForm(Form):
 
 
 class PasswordChangeForm(Form):
-    """
-    Allow users to change their own password
+    """Allow users to change their own password
+
     """
     password = PasswordField('Current password')
     new_password = PasswordField('New password', [
@@ -79,8 +78,8 @@ class PasswordChangeForm(Form):
 
 
 class ChangeEmailForm(Form):
-    """
-    Allow users to change their own e-mail address
+    """Allow users to change their own e-mail address
+
     """
     new_email = TextField('New e-mail address', [
         Regexp(EMAIL_PATTERN, message='Invalid email address'),
@@ -97,8 +96,8 @@ class ChangeEmailForm(Form):
 
 
 class SignUpForm(Form):
-    """
-    Allow users to signup.
+    """Allow users to signup.
+
     """
     username = TextField('User name', [
         Regexp(USERNAME_PATTERN,
@@ -124,16 +123,8 @@ class SignUpForm(Form):
             raise ValidationError('E-mail address already in use')
 
 
-class DeleteAccountForm(Form):
-    """
-    Allow users to delete their own account
+class ConfirmPasswordForm(Form):
+    """Allow users to delete their own account
+
     """
     password = PasswordField('Current password')
-
-
-class DumpAccountForm(DeleteAccountForm):
-    """
-    Its the same form as delete account, however I did not want to confuse
-    people with the same name.
-    """
-    pass

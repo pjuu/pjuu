@@ -33,9 +33,8 @@ from pjuu.auth import current_user
 
 
 def anonymous_required(func):
-    """
-    Will stop a user going to a page which requires a user to be
-    logged out (login, signup, etc...)
+    """Will stop a user going to a page which requires a user to be logged out
+
     """
     @wraps(func)
     def decorated_view(*args, **kwargs):
@@ -47,9 +46,8 @@ def anonymous_required(func):
 
 
 def login_required(func):
-    """
-    Will stop a user going to a page which requires a user to be
-    logged in (feed, profile, etc...)
+    """Will stop a user going to a page which requires a user to be logged in
+
     """
     @wraps(func)
     def decorated_view(*args, **kwargs):

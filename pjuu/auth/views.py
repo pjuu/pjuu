@@ -34,13 +34,12 @@ from pjuu.auth.backend import (authenticate, login, logout, create_user,
                                change_password as be_change_password,
                                change_email as be_change_email,
                                get_uid, is_active, is_banned, get_email,
-                               SIGNER_ACTIVATE, SIGNER_FORGOT, SIGNER_EMAIL,
                                delete_account as be_delete_account,
                                dump_account as be_dump_account)
 from pjuu.auth.decorators import anonymous_required, login_required
 from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                              ChangeEmailForm, PasswordChangeForm,
-                             DeleteAccountForm, DumpAccountForm)
+                             ConfirmPasswordForm)
 
 
 @app.context_processor
@@ -135,7 +134,7 @@ def signup():
 
             # Lets check the account was created
             if uid:
-                token = generate_token(SIGNER_ACTIVATE, {'uid': uid})
+                token = generate_token({'uid': uid})
                 # Send an e-mail to activate their account
                 send_mail(
                     'Pjuu Account Notification - Activation',
@@ -165,7 +164,7 @@ def activate(token):
     Activates the user account so long as the token is valid.
     """
     # Attempt to get the data from the token
-    data = check_token(SIGNER_ACTIVATE, token)
+    data = check_token(token)
     if data is not None:
         # Attempt to activate the users account
         uid = data.get('uid')
@@ -181,10 +180,6 @@ def activate(token):
                     html_body=render_template('emails/welcome.html')
                 )
                 flash('Your account has now been activated', 'success')
-                return redirect(url_for('signin'))
-            else:
-                # Inform the user their account has already been activated
-                flash('Your account has already been activated', 'information')
                 return redirect(url_for('signin'))
 
     # The token is either out of date or has been tampered with
@@ -207,7 +202,7 @@ def forgot():
         uid = get_uid(form.username.data)
         if uid:
             # Only send e-mails to user which exist.
-            token = generate_token(SIGNER_FORGOT, {'uid': uid})
+            token = generate_token({'uid': uid})
             send_mail(
                 'Pjuu Account Notification - Password Reset',
                 [get_email(uid)],
@@ -230,10 +225,16 @@ def reset(token):
     is valid.
     """
     form = ResetForm(request.form)
-    data = check_token(SIGNER_FORGOT, token)
+
+    # Check the token but do not delete it.
+    data = check_token(token, preserve=True)
+
     if data is not None:
         if request.method == 'POST':
             if form.validate():
+                # If the form was successful recheck the token but expire it.
+                check_token(token)
+                # Update the password and inform the users
                 be_change_password(data['uid'], form.password.data)
                 flash('Your password has now been reset', 'success')
                 return redirect(url_for('signin'))
@@ -259,7 +260,7 @@ def change_email():
         if form.validate():
             if authenticate(current_user['username'], form.password.data):
                 # Get an authentication token
-                token = generate_token(SIGNER_EMAIL, {
+                token = generate_token({
                     'uid': current_user['uid'],
                     'email': form.new_email.data}
                 )
@@ -291,7 +292,7 @@ def confirm_email(token):
     be sent to the new email address.
     """
     # Attempt to get the data from the token
-    data = check_token(SIGNER_EMAIL, token)
+    data = check_token(token)
     if data is not None:
         # Change the users e-mail
         uid = data['uid']
@@ -307,7 +308,7 @@ def confirm_email(token):
                 html_body=render_template('emails/confirm_email.html')
             )
             flash('We\'ve updated your e-mail address', 'success')
-            return redirect(url_for('signin'))
+            return redirect(url_for('change_email'))
 
     # The token is either out of date or has been tampered with
     flash('Invalid token', 'error')
@@ -353,7 +354,7 @@ def delete_account():
     there is no turning back. They will receive an e-mail to confirm the
     account deletion.
     """
-    form = DeleteAccountForm(request.form)
+    form = ConfirmPasswordForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             uid = current_user['uid']
@@ -385,7 +386,7 @@ def delete_account():
 def dump_account():
     """
     """
-    form = DumpAccountForm(request.form)
+    form = ConfirmPasswordForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             # Dump the users account

@@ -27,7 +27,7 @@ Licence:
 # Stdlib imports
 try:
     import cPickle as pickle
-except ImportError:
+except ImportError: # pragma: no cover
     import pickle
 from datetime import timedelta
 from uuid import uuid1
@@ -62,7 +62,7 @@ class RedisSessionInterface(SessionInterface):
     session_class = RedisSession
 
     def __init__(self, redis=None, prefix=''):
-        if redis is None:
+        if redis is None: # pragma: no cover
             redis = StrictRedis()
         self.redis = redis
         self.prefix = prefix
@@ -80,14 +80,21 @@ class RedisSessionInterface(SessionInterface):
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
+
+        # If there is no cookie identifying the session
         if not sid:
             sid = self.generate_sid()
             return self.session_class(sid=sid, new=True)
+
+        # If there is a session id try and get the data
         val = self.redis.get(self.prefix + sid)
         if val is not None:
             data = self.serializer.loads(val)
             return self.session_class(data, sid=sid)
-        return self.session_class(sid=sid, new=True)
+
+        # Create a new session if there is a sid but it holds nothing.
+        # Ensure we create a new sid so we can't get session fixation
+        return self.session_class(sid=self.generate_sid(), new=True)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)

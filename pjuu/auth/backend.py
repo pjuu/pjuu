@@ -28,7 +28,6 @@ Licence:
 import re
 # 3rd party imports
 from flask import current_app as app, _app_ctx_stack, session, g
-from itsdangerous import TimedSerializer
 from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
@@ -36,7 +35,7 @@ from pjuu import redis as r
 from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
 
 
-# Username & E-mail checker re patters
+# Username & E-mail checker re patterns
 USERNAME_PATTERN = r'^\w{3,16}$'
 EMAIL_PATTERN = r'^[^@%!/|`#&?]+@[^.@%!/|`#&?][^@%!/|`#&?]*\.[a-z]{2,10}$'
 # Usuable regular expression objects
@@ -44,17 +43,8 @@ USERNAME_RE = re.compile(USERNAME_PATTERN)
 EMAIL_RE = re.compile(EMAIL_PATTERN)
 
 
-# Token signers, These work along with lib/tokens.py
-SIGNER_ACTIVATE = TimedSerializer(app.config['TOKEN_KEY'],
-                                  app.config['TOKEN_SALT_ACTIVATE'])
-SIGNER_FORGOT = TimedSerializer(app.config['TOKEN_KEY'],
-                                app.config['TOKEN_SALT_FORGOT'])
-SIGNER_EMAIL = TimedSerializer(app.config['TOKEN_KEY'],
-                               app.config['TOKEN_SALT_EMAIL'])
-
-
+# TODO: Come up with a better solution for this.
 # Reserved names
-# TODO Come up with a better solution for this.
 # Before adding a name here ensure that no one is using it.
 # Names here DO NOT have to watch the pattern for usernames as these may change
 # in the future. We need to protect endpoints which we need and can not afford
@@ -88,12 +78,12 @@ RESERVED_NAMES = [
     'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
     'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
     'username', 'usage', 'video', 'videos', 'web', 'webmail', 'alerts',
-    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts']
+    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts', 'report']
 
 
 @app.before_request
 def _load_user():
-    """ Get the currently logged in user as a `dict` and store on the
+    """Get the currently logged in user as a `dict` and store on the
     application context. This will be `None` if the user is not logged in.
 
     """
@@ -108,11 +98,12 @@ def _load_user():
 
 @app.after_request
 def inject_token_header(response):
-    """ During testing will add an HTTP header (X-Pjuu-Token) containing any
+    """During testing will add an HTTP header (X-Pjuu-Token) containing any
     auth tokens so that we can test these from the frontend tests. Checks
     `g.token` for the token to add.
 
     """
+    # This only works in testing mode! Never allow this to happen on the site.
     if app.testing:
         token = g.get('token')
         if token:
@@ -121,8 +112,8 @@ def inject_token_header(response):
 
 
 def create_user(username, email, password):
-    """ READ/WRITE
-    Creates a user account
+    """Creates a user account
+
     """
     username = username.lower()
     email = email.lower()
@@ -162,7 +153,7 @@ def create_user(username, email, password):
 
 
 def get_uid_username(username):
-    """ Get the uid for user with username.
+    """Get the uid for user with username.
 
     :param username: The username to lookup
     :type username: str
@@ -181,7 +172,7 @@ def get_uid_username(username):
 
 
 def get_uid_email(email):
-    """  Returns the uid for user with email address.
+    """Get the uid for user with email.
 
     :param username: The email to lookup
     :type username: str
@@ -200,7 +191,7 @@ def get_uid_email(email):
 
 
 def get_uid(lookup_value):
-    """ Calls either `get_uid_username` or `get_uid_email` depending on the
+    """Calls either `get_uid_username` or `get_uid_email` depending on the
     the contents of `lookup_value`.
 
     :param lookup_value: The value to lookup
@@ -216,7 +207,7 @@ def get_uid(lookup_value):
 
 
 def get_user(uid):
-    """ Get user with UID as `dict`.
+    """Get user with UID as `dict`.
 
     :param uid: The UID to get
     :type uid: str
@@ -229,61 +220,59 @@ def get_user(uid):
 
 
 def get_username(uid):
-    """ READ
-    Get a users username by there uid
+    """Get a users username by there uid
+
     """
     return r.hget(K.USER.format(uid), 'username')
 
 
 def get_email(uid):
-    """ READ
-    Gets a users e-mail address from a uid
+    """Gets a users e-mail address from a uid
+
     """
     return r.hget(K.USER.format(uid), 'email')
 
 
 def check_username_pattern(username):
-    """ N/A
-    Used to check a username matches a REGEX pattern
+    """Check that username matches what we class as a username
+
     """
     # Check the username is valid
     return bool(USERNAME_RE.match(username.lower()))
 
 
 def check_username(username):
-    """ READ
-    Used to check for username availability inside the signup form.
-    Returns true if the name is free, false otherwise
+    """Used to check for username availability.
+
     """
     return username not in RESERVED_NAMES and \
         not r.exists(K.UID_USERNAME.format(username.lower()))
 
 
 def check_email_pattern(email):
-    """ N/A
-    Used to check an e-mail addresses matches the REGEX pattern.
+    """Checks that email matcheds what we class as an email address
+
     """
     return bool(EMAIL_RE.match(email.lower()))
 
 
 def check_email(email):
-    """ READ
-    Used to check an e-mail addresses availability.
-    Return true if free and false otherwise.
+    """Used to check an e-mail addresses availability
+
     """
     return not r.exists(K.UID_EMAIL.format(email.lower()))
 
 
 def user_exists(uid):
-    """ READ
-    Helper function to check that a user exists or not.
+    """Helper function to check that a user exists or not.
+
     """
     return r.exists(K.USER.format(uid))
 
 
 def is_active(uid):
-    """ READ
-    Checks to see if a user account has been activated
+    """Checks to see if a user account has been activated
+
     """
     # Catch the exception if Redis returns Nones
     try:
@@ -294,8 +283,8 @@ def is_active(uid):
 
 
 def is_banned(uid):
-    """ READ
-    Checks to see if a user account has been banned
+    """Checks to see if a user account has been banned
+
     """
     # Catch the exception if Redis returns Nones
     try:
@@ -306,8 +295,8 @@ def is_banned(uid):
 
 
 def is_op(uid):
-    """ READ
-    Checks to see if a user account is over powered
+    """Checks to see if a user account is over powered
+
     """
     # Catch the exception if Redis returns Nones
     try:
@@ -318,8 +307,8 @@ def is_op(uid):
 
 
 def is_mute(uid):
-    """ READ
-    Checks to see if a user account has been muted
+    """Checks to see if a user account has been muted
+
     """
     # Catch the exception if Redis returns Nones
     try:
@@ -330,9 +319,8 @@ def is_mute(uid):
 
 
 def authenticate(username, password):
-    """ READ
-    Will authenticate a username/password combination.
-    If successful will return a uid else will return None.
+    """Authenticate a username/password combination.
+
     """
     uid = get_uid(username)
 
@@ -345,9 +333,8 @@ def authenticate(username, password):
 
 
 def login(uid):
-    """ WRITE
-    Logs the user in. Will add user_id to session.
-    Will also update the users last_login time.
+    """Logs the user with uid in by adding the uid to the session.
+
     """
     session['uid'] = uid
     # update last login
@@ -355,24 +342,22 @@ def login(uid):
 
 
 def logout():
-    """ N/A
-    Removes the user id from the session. If it isn't there then
-    nothing bad happens.
+    """Removes the user id from the session.
+
     """
     session.pop('uid', None)
 
 
 def activate(uid, action=True):
-    """ READ/WRITE
-    Activates a user after signup.
+    """Activates a user account.
 
-    We will check if the user exists before, otherwise this would consume the
-    ID and creates a user hash with simply {'active':1}
     """
     if user_exists(uid):
+        # Cast the boolean to an int
         action = int(action)
         r.hset(K.USER.format(uid), 'active', action)
-        # Remove the TTL on the user keys
+        # Remove the TTL on the user keys which are set at signup to stop
+        # usernames being harvested
         r.persist(K.USER.format(uid))
         r.persist(K.UID_USERNAME.format(get_username(uid)))
         r.persist(K.UID_EMAIL.format(get_email(uid)))
@@ -424,20 +409,20 @@ def mute(uid, action=True):
 
 
 def change_password(uid, password):
-    """ WRITE
-    Changes uid's password. Checking of the old password _MUST_ be done
-    before this.
+    """ Changes uid's password.
+
+    Checking of the old password _MUST_ be done before this.
+
     """
     password = generate_password(password)
     return r.hset(K.USER.format(uid), 'password', password)
 
 
 def change_email(uid, new_email):
-    """ WRITE
-    Changes the user with uid's e-mail address.
-    Has to remove old lookup index and add the new one
+    """Changes the user with uid's e-mail address.
 
-    Note: You NEED to check the e-mails before this happens
+    Clears the old email key so that it can't be used and sets it to expire.
+
     """
     new_email = new_email.lower()
     # Get the previous e-mail address for the user
@@ -459,13 +444,13 @@ def change_email(uid, new_email):
 
 
 def delete_account(uid):
-    """ READ/WRITE
-    Will delete a users account. This should remove _ALL_ details,
-    comments, posts.
+    """Will delete a users account.
 
-    Ensure the user has authenticated this request. Backends don't care!
+    This _MUST_ _REMOVE_ _ALL_ details, comments, posts, etc.
 
-    This is going to be the most _expensive_ task in Pjuu. Be warned.
+    Note: Ensure the user has authenticated this request.
+          This is going to be the most _expensive_ task in Pjuu, be warned.
+
     """
     # Get some information from the hashes to delete lookup keys
     username = r.hget(K.USER.format(uid), 'username')
@@ -560,13 +545,11 @@ def delete_account(uid):
     r.delete(K.USER_ALERTS.format(uid))
 
     # All done. This code may need making safer in case there are issues
-    # elsewhere in the code base
+    # elsewhere in the code base.
 
 
 def dump_account(uid):
-    """ READ
-    Will dump ALL of the users data as a dictionary ready for JSONify in the
-    front end :)
+    """Dump a users entire account; details, posts and comments to a dict.
 
     This WILL dump everything about the user. There is SOME caveats to this.
     It will not list all voters on posts or comments as this is just meta data
@@ -581,6 +564,7 @@ def dump_account(uid):
 
     At the moment this WILL just dump account, posts and comments. ALL you have
     not deleted
+
     """
     # Attempt to get the users account
     user = r.hgetall(K.USER.format(uid))

@@ -316,13 +316,13 @@ def check_post(uid, pid, cid=None):
     if cid:
         pid_check = r.hget(K.COMMENT.format(cid), 'pid')
 
-        if pid_check != pid:
+        if pid_check is None or pid_check != pid:
             # No it isn't
             return False
 
     # Check that post was written by uid
     uid_check = r.hget(K.POST.format(pid), 'uid')
-    if uid_check != uid:
+    if uid_check is None or uid_check != uid:
         return False
 
     # All was good
@@ -336,20 +336,17 @@ def get_post(pid):
     post = r.hgetall(K.POST.format(pid))
 
     if post:
-        try:
-            # Look up user and add data to the repr
-            uid = post['uid']
-            user_dict = r.hgetall(K.USER.format(uid))
+        # Look up user and add data to the repr
+        user = r.hgetall(K.USER.format(post.get('uid')))
 
-            post['user_username'] = user_dict['username']
-            post['user_email'] = user_dict['email']
-            post['user_score'] = user_dict['score']
+        if user is not None:
+            post['user_username'] = user.get('username')
+            post['user_email'] = user.get('email')
+            post['user_score'] = user.get('score')
             post['comment_count'] = r.llen(K.POST_COMMENTS.format(pid))
-        except (KeyError, ValueError):
-            return None
-        else:
             return post
-    # We never got a post
+
+    # We never got a post or never got a user
     return None
 
 
@@ -360,27 +357,23 @@ def get_comment(cid):
     comment = r.hgetall(K.COMMENT.format(cid))
 
     if comment:
-        try:
-            # Look up user and add data to the repr
-            uid = comment['uid']
-            user_dict = r.hgetall(K.USER.format(uid))
+        # Look up user and add data to the repr
+        user = r.hgetall(K.USER.format(comment.get('uid')))
 
-            comment['user_username'] = user_dict['username']
-            comment['user_email'] = user_dict['email']
-            comment['user_score'] = user_dict['score']
+        if user is not None:
+            comment['user_username'] = user.get('username')
+            comment['user_email'] = user.get('email')
+            comment['user_score'] = user.get('score')
 
             # We need the username from the parent pid to construct a URL
-            pid = comment['pid']
-            author_uid = r.hget(K.POST.format(pid), 'uid')
-            # Although this key is called post_autor it is actually a username
-            # and not a uid. get_post_author returns the authors uid.
-            comment['post_author'] = r.hget(K.USER.format(author_uid),
-                                            'username')
-        except (KeyError, ValueError):
-            return None
-        else:
-            return comment
-    # We never got a comment
+            post_author_uid = r.hget(K.POST.format(comment.get('pid')), 'uid')
+            post_author = r.hget(K.USER.format(post_author_uid), 'username')
+
+            if post_author is not None:
+                # Only return the comment if we got all the data we needed
+                return comment
+
+    # We never got a comment or never got a user
     return None
 
 
@@ -428,13 +421,10 @@ def vote_post(uid, pid, amount=1):
             # Get the score of the author
             cur_user_score = r.hget(K.USER.format(author_uid), 'score')
             # Stop users scores going lower than 0
-            try:
-                cur_user_score = int(cur_user_score)
-                if cur_user_score <= 0 and amount < 0:
-                    amount = 0
-            except (ValueError, TypeError):
-                # If we can not convert the score to an Int ignore it.
-                pass
+            cur_user_score = int(cur_user_score)
+            if cur_user_score <= 0 and amount < 0:
+                amount = 0
+
             # Increment the users score
             r.hincrby(K.USER.format(author_uid), 'score', amount=amount)
         else:
@@ -459,13 +449,10 @@ def vote_comment(uid, cid, amount=1):
             # Get the score of the author
             cur_user_score = r.hget(K.USER.format(author_uid), 'score')
             # Stop users scores going lower than 0
-            try:
-                cur_user_score = int(cur_user_score)
-                if cur_user_score <= 0 and amount < 0:
-                    amount = 0
-            except (ValueError, TypeError):
-                # If we can not convert the score to an Int ignore it.
-                pass
+            cur_user_score = int(cur_user_score)
+            if cur_user_score <= 0 and amount < 0:
+                amount = 0
+
             # Increment the users score
             r.hincrby(K.USER.format(author_uid), 'score', amount=amount)
         else:

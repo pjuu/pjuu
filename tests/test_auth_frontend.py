@@ -25,8 +25,9 @@ Licence:
 import json
 # 3rd party imports
 from flask import current_app as app, request, session, url_for, g
+from werkzeug.http import parse_cookie
 # Pjuu imports
-from pjuu import redis as r
+from pjuu import redis as r, redis_sessions as r_s
 from pjuu.auth import current_user
 from pjuu.auth.backend import *
 from pjuu.lib import keys as K
@@ -81,6 +82,17 @@ class FrontendTests(FrontendTestCase):
 
         # Activate account
         self.assertTrue(activate(user1))
+
+        resp = self.client.post(url_for('signin'), data={
+            'username': 'user1',
+            'password': 'Password',
+            'keep_signed_in': True
+        })
+        # Check we are redirected
+        self.assertEqual(resp.status_code, 302)
+
+        # Log back out
+        self.client.get(url_for('signout'))
 
         # Test that the correct warning is shown if the user is banned
         self.assertTrue(ban(user1))
@@ -162,6 +174,32 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid user name or password', resp.data)
 
+        # Log in with user1 and remove the session part way through
+        resp = self.client.post(url_for('signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Find the Set-Cookie header so we can parse it
+        for header in resp.headers:
+            if header[0] == 'Set-Cookie':
+                session_id = parse_cookie(header[1])['session']
+
+        # Manually remove the session from Redis
+        r_s.delete(session_id)
+
+        resp = self.client.get(url_for('profile', username='user3'),
+                               follow_redirects=True)
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Find the Set-Cookie header so we can parse it and check the session
+        # identifier has been updated
+        for header in resp.headers:
+            if header[0] == 'Set-Cookie':
+                self.assertNotEqual(session_id,
+                                    parse_cookie(header[1])['session'])
+
     def test_signup_activate(self):
         """
         Tests the signup and activate endpoint inside Pjuu.
@@ -200,7 +238,7 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('activate', token=token),
                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Your account has already been activated', resp.data)
+        self.assertIn('Invalid token', resp.data)
 
         # Try and signup with the same user and ensure we get the correct resp
         # and error codes. We will also put mismatch passwords in just to test
@@ -303,21 +341,6 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('reset', token=token))
         self.assertEqual(resp.status_code, 200)
 
-        # Lets post to the view
-        resp = self.client.post(url_for('reset', token=token), data={
-            'password': 'NewPassword',
-            'password2': 'NewPassword'
-        }, follow_redirects=True)
-        # This should redirect us back to the signin view as well as have
-        # changed out password
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn('Your password has now been reset', resp.data)
-        # We will just check we can log in with the new Password not password
-        self.assertTrue(authenticate('user1', 'NewPassword'))
-        # I know, I know this is tested in the backend buts let's make sure
-        # we can't auth with the old password
-        self.assertFalse(authenticate('test', 'Password'))
-
         # Lets make sure the form tells us when we have filled it in wrong
         # Attempt to set a mis matching password
         resp = self.client.post(url_for('reset', token=token), data={
@@ -337,6 +360,22 @@ class FrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Invalid token', resp.data)
+
+        # Lets post to the view and change the password.
+        # This also confirms the preservation of the auth tokens
+        resp = self.client.post(url_for('reset', token=token), data={
+            'password': 'NewPassword',
+            'password2': 'NewPassword'
+        }, follow_redirects=True)
+        # This should redirect us back to the signin view as well as have
+        # changed out password
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Your password has now been reset', resp.data)
+        # We will just check we can log in with the new Password not password
+        self.assertTrue(authenticate('user1', 'NewPassword'))
+        # I know, I know this is tested in the backend buts let's make sure
+        # we can't auth with the old password
+        self.assertFalse(authenticate('test', 'Password'))
 
     def test_change_confirm_email(self):
         """
