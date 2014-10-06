@@ -134,7 +134,7 @@ def signup():
 
             # Lets check the account was created
             if uid:
-                token = generate_token({'uid': uid})
+                token = generate_token({'action': 'activate', 'uid': uid})
                 # Send an e-mail to activate their account
                 send_mail(
                     'Pjuu Account Notification - Activation',
@@ -165,7 +165,7 @@ def activate(token):
     """
     # Attempt to get the data from the token
     data = check_token(token)
-    if data is not None:
+    if data is not None and data.get('action') == 'activate':
         # Attempt to activate the users account
         uid = data.get('uid')
         if uid and get_user(uid):
@@ -202,7 +202,7 @@ def forgot():
         uid = get_uid(form.username.data)
         if uid:
             # Only send e-mails to user which exist.
-            token = generate_token({'uid': uid})
+            token = generate_token({'action': 'reset', 'uid': uid})
             send_mail(
                 'Pjuu Account Notification - Password Reset',
                 [get_email(uid)],
@@ -229,7 +229,7 @@ def reset(token):
     # Check the token but do not delete it.
     data = check_token(token, preserve=True)
 
-    if data is not None:
+    if data is not None and data.get('action') == 'reset':
         if request.method == 'POST':
             if form.validate():
                 # If the form was successful recheck the token but expire it.
@@ -261,6 +261,7 @@ def change_email():
             if authenticate(current_user['username'], form.password.data):
                 # Get an authentication token
                 token = generate_token({
+                    'action': 'change_email',
                     'uid': current_user['uid'],
                     'email': form.new_email.data}
                 )
@@ -293,13 +294,13 @@ def confirm_email(token):
     """
     # Attempt to get the data from the token
     data = check_token(token)
-    if data is not None:
+    if data is not None and data.get('action') == 'change_email':
         # Change the users e-mail
-        uid = data['uid']
+        uid = data.get('uid')
         # We will email the address stored in the token. This may help us
         # identify if there is any miss match
-        email = data['email']
-        if uid:
+        email = data.get('email')
+        if uid and email:
             be_change_email(uid, email)
             send_mail(
                 'Pjuu Account Notification - Email Address Changed',
