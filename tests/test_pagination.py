@@ -54,6 +54,10 @@ class PaginationTests(BackendTestCase):
         # Pages is the total number of pages in the entire list
         self.assertEqual(p.pages, 1000 / p.per_page)
 
+        # Check the pages resolve correct
+        self.assertIsNone(p.prev_page)
+        self.assertIsNotNone(p.next_page)
+
         # We are on page 1 ensure prev_page is also 1
         self.assertIsNone(p.prev_page)
         # Ensure the next page is page 2
@@ -75,5 +79,35 @@ class PaginationTests(BackendTestCase):
         # Try creating a pagination object with a page larger than
         p = Pagination(l[:50], len(l), 4294967296, 50)
         self.assertEqual(p.page, 4294967295)
+        self.assertIsNone(p.next_page)
+        self.assertIsNotNone(p.prev_page)
 
         # Done for now
+
+    def test_handle_page(self):
+        """Check the handle_page function, this is important as it stops Redis
+        going crazy if the index is too high on a list or sorted set.
+
+        """
+        # Create a mock request object so that this functon does not require
+        # a request. It gets a request object passed in.
+        class Request(object):
+            args = {}
+        request = Request()
+
+        # Check a couple of values
+        self.assertEqual(handle_page(request), 1)
+        request.args['page'] = 1000000
+        self.assertEqual(handle_page(request), 1000000)
+        # Ensure our minimum value can't be broken
+        request.args['page'] = -1
+        self.assertEqual(handle_page(request), 1)
+        # Ensure the maximum value (4294967295) can't be broken
+        request.args['page'] = 1000000000000
+        self.assertEqual(handle_page(request), 4294967295)
+
+        # Ensure it does not brake with invalid types
+        request.args['page'] = None
+        self.assertEqual(handle_page(request), 1)
+        request.args['page'] = {}
+        self.assertEqual(handle_page(request), 1)

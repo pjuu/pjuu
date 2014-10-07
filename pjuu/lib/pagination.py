@@ -67,6 +67,8 @@ class Pagination(object):
     @property
     def prev_page(self):
         if self.page > 1:
+            if self.page > self.pages:
+                return self.pages
             return self.page - 1
         return None
 
@@ -85,6 +87,14 @@ def handle_page(request):
     # Ensure the page is a valid integer
     try:
         page = int(page)
+        # Catch this twice as this value is also used with Redis to get
+        # the relevant ranges from lists and sorted sets
+        if page > 4294967295:
+            page = 4294967295
+        # Pages can't be lower than one
+        if page < 1:
+            page = 1
     except (TypeError, ValueError):
+        # If there was a problem presume the page is 1
         page = 1
     return page
