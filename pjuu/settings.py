@@ -16,7 +16,7 @@ DEBUG = True
 # you can find them in Headers as X-Pjuu-Token on the return from a function.
 # Note: It will be attached to the 302 is most cases so ensure you check the
 # correct response to find this
-TESTING = True
+# TESTING = True
 
 # In the case of testing we need a server name, so here's one:
 # SERVER_NAME = 'localhost'
@@ -60,14 +60,6 @@ WTF_CSRF_SESSION_KEY = SECRET_KEY
 FEED_ITEMS_PER_PAGE = 25
 PROFILE_ITEMS_PER_PAGE = 25
 ALERT_ITEMS_PER_PAGE = 50
-
-# Signer Keys
-# Please see pjuu.auth.backend for details
-# You can change the TOKEN_KEY for extra security
-TOKEN_KEY = SECRET_KEY
-TOKEN_SALT_ACTIVATE = 'ACTIVATE'
-TOKEN_SALT_FORGOT = 'FORGOT'
-TOKEN_SALT_EMAIL = 'EMAIL'
 
 # Sentry settings
 # If you do not add a Sentry DSN you will not receive any logging information
