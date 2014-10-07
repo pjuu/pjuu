@@ -292,8 +292,8 @@ class BackendTests(BackendTestCase):
 
         # I don't want to play with the above testing to much. I am adding
         # in a test for self cleaning lists. I am going to reset this test
-        # case by manually flushing Redis :)
-        r.flushall()
+        # case by manually flushing the Redis database :)
+        r.flushdb()
         # Back to normal, I don't like artificially uping the number of tests.
 
         # Test the self cleaning lists in case there is an issue with Redis
