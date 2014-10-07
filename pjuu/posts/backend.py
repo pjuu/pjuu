@@ -31,7 +31,7 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.auth.backend import get_uid_username
+from pjuu.auth.backend import get_uid_username, get_username
 from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 
@@ -366,10 +366,13 @@ def get_comment(cid):
             comment['user_score'] = user.get('score')
 
             # We need the username from the parent pid to construct a URL
-            post_author_uid = r.hget(K.POST.format(comment.get('pid')), 'uid')
-            post_author = r.hget(K.USER.format(post_author_uid), 'username')
+            # Get the uid from the post
+            post_author_uid = \
+                r.hget(K.POST.format(comment.get('pid')), 'uid')
+            # Look up the uid for the username
+            comment['post_author'] = get_username(post_author_uid)
 
-            if post_author is not None:
+            if comment.get('post_author') is not None:
                 # Only return the comment if we got all the data we needed
                 return comment
 

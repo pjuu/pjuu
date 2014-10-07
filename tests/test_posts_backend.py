@@ -105,6 +105,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(comment1_hash.get('pid'), post1)
         self.assertEqual(comment1_hash.get('body'), 'Test comment')
         self.assertEqual(comment1_hash.get('score'), '0')
+        self.assertEqual(comment1_hash.get('post_author'), 'user1')
         self.assertIsNotNone(comment1_hash.get('created'))
 
     def test_check_post(self):

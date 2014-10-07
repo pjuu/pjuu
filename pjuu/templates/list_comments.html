@@ -36,7 +36,7 @@
     <div class="panel clearfix">
         <ul class="voting clearfix">
             <li class="voting-item first">
-                {{ item['score']|millify }}
+                {{ item.score|millify }}
             </li>
             {% if item.user_username != current_user.username %}
             {% if item.cid|voted(True) %}
