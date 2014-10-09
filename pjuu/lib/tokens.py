@@ -4,7 +4,7 @@
 Description:
     Our implementation of auth tokens.
 
-    These are signer agnostic and a itsdangerous signer needs to be passed in.
+    These are incredibly simply they 
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -25,11 +25,12 @@ Licence:
 
 # 3rd party imports
 from flask import current_app as app, g
+from hashlib import sha1
 import jsonpickle
 import re
+from uuid import uuid4
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.lib import get_uuid
 import pjuu.lib.keys as K
 
 
@@ -40,16 +41,19 @@ def generate_token(data):
     """Create a new auth token. Stores the data in Redis and returns a UUID.
 
     """
-    # Get out token id, this is just a hex string so can be used in a URL
-    tid = get_uuid()
     # Convert the data to a JSON pickle, you can store anything you want.
     data = jsonpickle.encode(data)
+    # Get our token id.
+    # This is a random UUID (uuid4) and the data in a sha1 hash.
+    # May need making more secure.
+    tid = sha1(uuid4().hex + data).hexdigest()
     # Set the token to JSON pickle value and place a 24HR timeout
     r.setex(K.TOKEN.format(tid), K.EXPIRE_24HRS, data)
 
     # For testing if a token is generated add it as a HTTP Header for us to
     # check with the test client.
-    if app.testing: 
+    # Only ever do this in testing mode
+    if app.testing:  # pragma: no branch
         g.token = tid
 
     return tid
@@ -75,9 +79,14 @@ def check_token(tid, preserve=False):
             # There was a problem pulling the data out of Redis.
             return None
         finally:
+            # What the actual fuck coverage? It says this is a partial yet
+            # there is a specific test for this. Must be something to do with
+            # the finally block. The else is POINTLESS but works.
             if not preserve:
                 # Delete the token if preserve is False
                 r.delete(K.TOKEN.format(tid))
+            else:
+                pass
 
     # If we didn't get data in the first place no need to delete.
     return None

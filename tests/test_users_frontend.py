@@ -469,6 +469,11 @@ class FrontendTests(FrontendTestCase):
         # Get the alert id from the backend function
         aid = get_alerts(user1).items[0].aid
 
+        # Check that we don't get a message if there was no alert to delete
+        resp = self.client.get(url_for('delete_alert', aid=K.NIL_VALUE),
+                               follow_redirects=True)
+        self.assertNotIn('Alert has been removed', resp.data)
+
         resp = self.client.get(url_for('delete_alert', aid=aid),
                                follow_redirects=True)
         self.assertIn('Alert has been removed', resp.data)

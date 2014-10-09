@@ -411,6 +411,15 @@ class AuthFrontendTests(FrontendTestCase):
         # change our password.
         resp = self.client.get(url_for('change_email'))
         self.assertEqual(resp.status_code, 200)
+
+        # Try and change the e-mail address with an invalid password
+        resp = self.client.post(url_for('change_email'), data={
+            'password': '',
+            'new_email': 'user1_new@pjuu.com'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Oh no! There are errors in your form', resp.data)
+
         # Attempt to change our e-mail
         resp = self.client.post(url_for('change_email'), data={
             'password': 'Password',

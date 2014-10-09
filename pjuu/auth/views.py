@@ -38,7 +38,7 @@ from pjuu.auth.backend import (authenticate, login, logout, create_user,
                                dump_account as be_dump_account)
 from pjuu.auth.decorators import anonymous_required, login_required
 from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
-                             ChangeEmailForm, PasswordChangeForm,
+                             ChangeEmailForm, ChangePasswordForm,
                              ConfirmPasswordForm)
 
 
@@ -133,7 +133,8 @@ def signup():
                               form.password.data)
 
             # Lets check the account was created
-            if uid:
+            # This would only fail in the event of a race condition
+            if uid:  # pragma: no branch
                 token = generate_token({'action': 'activate', 'uid': uid})
                 # Send an e-mail to activate their account
                 send_mail(
@@ -168,19 +169,21 @@ def activate(token):
     if data is not None and data.get('action') == 'activate':
         # Attempt to activate the users account
         uid = data.get('uid')
-        if uid and get_user(uid):
-            # Don't keep sending e-mails to activated users
-            if not is_active(uid):
-                be_activate(uid)
-                # If we have got to this point. Send a welcome e-mail :)
-                send_mail(
-                    'Pjuu Account Notifcation - Welcome!',
-                    [get_email(uid)],
-                    text_body=render_template('emails/welcome.txt'),
-                    html_body=render_template('emails/welcome.html')
-                )
-                flash('Your account has now been activated', 'success')
-                return redirect(url_for('signin'))
+        # This should be impossible to happen. The user would have to live a
+        # millisecond longer than the auth token they are sent to activate
+        # there account and at the very last nano-second try and activate.
+        # Not going to get.
+        if uid and get_user(uid):  # pragma: no branch
+            be_activate(uid)
+            # If we have got to this point. Send a welcome e-mail :)
+            send_mail(
+                'Pjuu Account Notifcation - Welcome!',
+                [get_email(uid)],
+                text_body=render_template('emails/welcome.txt'),
+                html_body=render_template('emails/welcome.html')
+            )
+            flash('Your account has now been activated', 'success')
+            return redirect(url_for('signin'))
 
     # The token is either out of date or has been tampered with
     flash('Invalid token', 'error')
@@ -258,24 +261,24 @@ def change_email():
     form = ChangeEmailForm(request.form)
     if request.method == 'POST':
         if form.validate():
-            if authenticate(current_user['username'], form.password.data):
-                # Get an authentication token
-                token = generate_token({
-                    'action': 'change_email',
-                    'uid': current_user['uid'],
-                    'email': form.new_email.data}
-                )
-                # Send a confirmation to the new email address
-                send_mail(
-                    'Pjuu Account Notification - Confirm Email Change',
-                    [form.new_email.data],
-                    text_body=render_template('emails/email_change.txt',
-                                              token=token),
-                    html_body=render_template('emails/email_change.html',
-                                              token=token)
-                )
-                flash('We\'ve sent you an email, please confirm this',
-                      'success')
+            # User validates in the form
+            # Get an authentication token
+            token = generate_token({
+                'action': 'change_email',
+                'uid': current_user['uid'],
+                'email': form.new_email.data}
+            )
+            # Send a confirmation to the new email address
+            send_mail(
+                'Pjuu Account Notification - Confirm Email Change',
+                [form.new_email.data],
+                text_body=render_template('emails/email_change.txt',
+                                          token=token),
+                html_body=render_template('emails/email_change.html',
+                                          token=token)
+            )
+            flash('We\'ve sent you an email, please confirm this',
+                  'success')
         else:
             flash('Oh no! There are errors in your form', 'error')
 
@@ -300,7 +303,9 @@ def confirm_email(token):
         # We will email the address stored in the token. This may help us
         # identify if there is any miss match
         email = data.get('email')
-        if uid and email:
+        # This could only happen if the user deletes there account then presses
+        # the confirm email link that is sent to them.
+        if uid and email:  # pragma: no branch
             be_change_email(uid, email)
             send_mail(
                 'Pjuu Account Notification - Email Address Changed',
@@ -325,20 +330,20 @@ def change_password():
     This will change their password straight away once they have authenticated,
     it will then send them a confirmation e-mail.
     """
-    form = PasswordChangeForm(request.form)
+    form = ChangePasswordForm(request.form)
     if request.method == 'POST':
         if form.validate():
-            if authenticate(current_user['username'], form.password.data):
-                # Update the users password!
-                be_change_password(current_user['uid'], form.new_password.data)
-                flash('We\'ve updated your password', 'success')
-                # Inform the user via e-mail that their password has changed
-                send_mail(
-                    'Pjuu Account Notification - Password Changed',
-                    [current_user['email']],
-                    text_body=render_template('emails/password_change.txt'),
-                    html_body=render_template('emails/password_change.html')
-                )
+            # User authenticates in the form
+            # Update the users password!
+            be_change_password(current_user['uid'], form.new_password.data)
+            flash('We\'ve updated your password', 'success')
+            # Inform the user via e-mail that their password has changed
+            send_mail(
+                'Pjuu Account Notification - Password Changed',
+                [current_user['email']],
+                text_body=render_template('emails/password_change.txt'),
+                html_body=render_template('emails/password_change.html')
+            )
         else:
             flash('Oh no! There are errors in your form', 'error')
 

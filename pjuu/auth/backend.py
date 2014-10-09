@@ -104,7 +104,9 @@ def inject_token_header(response):
 
     """
     # This only works in testing mode! Never allow this to happen on the site.
-    if app.testing:
+    # We won't check this with 'branch' as it won't ever branch the other way
+    # or we atleast don't want it too.
+    if app.testing:  # pragma: no branch
         token = g.get('token')
         if token:
             response.headers['X-Pjuu-Token'] = token
@@ -127,7 +129,9 @@ def create_user(username, email, password):
                                   K.UID_EMAIL.format(email)],
                             args=[get_uuid()])
         # Create user dictionary ready for HMSET only if uid is not None
-        if uid is not None:
+        # This will only be None in the event of a race condition which we cant
+        # really test for.
+        if uid is not None: # pragma: no branch
             user = {
                 'uid': uid,
                 'username': username,
@@ -221,6 +225,11 @@ def get_user(uid):
 
 def get_username(uid):
     """Get a users username by there uid
+
+    :param uid: The UID to get the username of
+    :type uid: str
+    :returns: The username for the uid
+    :rtype: str or None
 
     """
     return r.hget(K.USER.format(uid), 'username')
@@ -585,7 +594,8 @@ def dump_account(uid):
     for pid in r.lrange(K.USER_POSTS.format(uid), 0, -1):
         post = r.hgetall(K.POST.format(pid))
         # Don't add a post that does not exist
-        if post:
+        # This should not really happen as we clean up along the way
+        if post: # pragma: no branch
             post['uid'] = '<UID>'
             post['created'] = int(float(post['created']))
             posts.append(post)
@@ -594,7 +604,9 @@ def dump_account(uid):
     comments = []
     for cid in r.lrange(K.USER_COMMENTS.format(uid), 0, -1):
         comment = r.hgetall(K.COMMENT.format(cid))
-        if comment:
+        # Don't add a comment that does not exist
+        # This should not really happen as we clean up along the way
+        if comment: # pragma: no branch
             comment['uid'] = '<UID>'
             comment['created'] = int(float(comment['created']))
             comments.append(comment)

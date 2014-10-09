@@ -60,7 +60,7 @@ class ResetForm(Form):
     password2 = PasswordField('Confirm password')
 
 
-class PasswordChangeForm(Form):
+class ChangePasswordForm(Form):
     """Allow users to change their own password
 
     """

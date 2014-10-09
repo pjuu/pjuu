@@ -315,8 +315,8 @@ class PostBackendTests(BackendTestCase):
         self.assertFalse(unsubscribe(user2, post1))
 
         # Let's test that commenting subscribes us to the post with the correct
-        # reason
-        comment2 = create_comment(user1, post1, 'Test comment')
+        # reason. Try tag yourself at the same time
+        comment2 = create_comment(user1, post1, 'Test comment @user1')
 
         # Ensure we are subscribed
         self.assertTrue(is_subscribed(user1, post1))
@@ -334,8 +334,10 @@ class PostBackendTests(BackendTestCase):
 
         # Create a new post as test1 and tag test2 and test3 in it
         # ensure all 3 are subscribed and test2 and test3 have the correct
-        # reason
-        post2 = create_post(user1, 'Test post @user2 @user3')
+        # reason.
+        # Also try and tag ourselves this should have no affect
+        # Try tagging someone that does not even exist
+        post2 = create_post(user1, 'Test post @user1 @user2 @user3 @user4')
         self.assertTrue(is_subscribed(user2, post2))
         self.assertTrue(is_subscribed(user3, post2))
         self.assertEqual(r.zscore(K.POST_SUBSCRIBERS.format(post2), user2),

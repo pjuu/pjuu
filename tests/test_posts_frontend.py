@@ -615,8 +615,9 @@ class PostFrontendTests(FrontendTestCase):
         activate(user3)
 
         # Create a test post as user1 and tag user2 in it this way be can
-        # see if they are also subscribed
-        post1 = create_post(user1, 'Test post, hello @user2')
+        # see if they are also subscribed. Tag someone twice (user2) and
+        # someone who doesn't exist
+        post1 = create_post(user1, 'Test post, hello @user2 @user2 @test4')
 
         # Login as test1
         # Don't bother testing this AGAIN
@@ -675,6 +676,17 @@ class PostFrontendTests(FrontendTestCase):
                                        pid=post1))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<div class="action-button unsubscribe">', resp.data)
+
+        # Create a post as user1 which we will not be subscribed too and ensure
+        # that no message is shown
+        post2 = create_post(user1, "Test post, for cant unsubscribe")
+        resp = self.client.get(url_for('unsubscribe', username='user1',
+                               pid=post2), follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn('You have been unsubscribed from this post',
+                         resp.data)
+        # Ensure we have gone to that post
+        self.assertIn("Test post, for cant unsubscribe", resp.data)
 
     def test_template_filters(self):
         """

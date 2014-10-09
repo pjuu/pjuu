@@ -73,4 +73,10 @@ class TokenTests(BackendTestCase):
         r.set(K.TOKEN.format(token1), "{token: 1}")
         self.assertIsNone(check_token(token1))
         # That will have raised our ValueError, I don't know how to trigger a
-        # TypeError from Redis and everything is a string
+        # TypeError from Redis as everything is a string
+
+        # Check that preserve on works on tokens
+        token1 = generate_token("token1")
+        self.assertEqual(check_token(token1, preserve=True), 'token1')
+        self.assertEqual(check_token(token1), 'token1')
+        self.assertIsNone(check_token(token1))

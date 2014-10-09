@@ -339,7 +339,9 @@ def get_post(pid):
         # Look up user and add data to the repr
         user = r.hgetall(K.USER.format(post.get('uid')))
 
-        if user is not None:
+        # This should never happen unless something really really bad has
+        # happen
+        if user is not None:  # pragma: no branch
             post['user_username'] = user.get('username')
             post['user_email'] = user.get('email')
             post['user_score'] = user.get('score')
@@ -360,7 +362,9 @@ def get_comment(cid):
         # Look up user and add data to the repr
         user = r.hgetall(K.USER.format(comment.get('uid')))
 
-        if user is not None:
+        # This should never happen unless something really really bad has
+        # happen
+        if user is not None:  # pragma: no branch
             comment['user_username'] = user.get('username')
             comment['user_email'] = user.get('email')
             comment['user_score'] = user.get('score')
@@ -372,7 +376,8 @@ def get_comment(cid):
             # Look up the uid for the username
             comment['post_author'] = get_username(post_author_uid)
 
-            if comment.get('post_author') is not None:
+            # This should also not happen it is a worst-case scenario.
+            if comment.get('post_author') is not None:  # pragma: no branch
                 # Only return the comment if we got all the data we needed
                 return comment
 
