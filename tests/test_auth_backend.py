@@ -33,7 +33,7 @@ from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post, create_comment
 from pjuu.users.backend import follow_user
 # Test imports
-from tests.helpers import BackendTestCase, FrontendTestCase
+from tests import BackendTestCase
 
 
 ###############################################################################
@@ -41,7 +41,7 @@ from tests.helpers import BackendTestCase, FrontendTestCase
 ###############################################################################
 
 
-class BackendTests(BackendTestCase):
+class AuthBackendTests(BackendTestCase):
     """
     This case will test ALL auth backend functions.
 

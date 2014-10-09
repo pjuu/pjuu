@@ -34,10 +34,10 @@ from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post, create_comment
 from pjuu.users.backend import follow_user
 # Test imports
-from tests.helpers import FrontendTestCase
+from tests import FrontendTestCase
 
 
-class FrontendTests(FrontendTestCase):
+class AuthFrontendTests(FrontendTestCase):
     """
     This test case will test all the auth subpackages views, decorators
     and forms

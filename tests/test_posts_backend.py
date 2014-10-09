@@ -30,10 +30,10 @@ from pjuu.lib import keys as K
 from pjuu.posts.backend import *
 from pjuu.users.backend import get_alerts
 # Tests imports
-from tests.helpers import BackendTestCase, FrontendTestCase
+from tests import BackendTestCase
 
 
-class BackendTests(BackendTestCase):
+class PostBackendTests(BackendTestCase):
     """This case will test ALL post backend functions.
 
     """

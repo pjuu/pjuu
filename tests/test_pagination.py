@@ -25,7 +25,7 @@ Licence:
 from pjuu.lib import keys as K
 from pjuu.lib.pagination import *
 # Test imports
-from tests.helpers import BackendTestCase
+from tests import BackendTestCase
 
 
 class PaginationTests(BackendTestCase):

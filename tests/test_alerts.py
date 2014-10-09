@@ -30,7 +30,7 @@ from pjuu.auth.backend import create_user, delete_account
 from pjuu.lib import keys as K
 from pjuu.lib.alerts import *
 # Test imports
-from tests.helpers import BackendTestCase
+from tests import BackendTestCase
 
 
 class AlertTests(BackendTestCase):

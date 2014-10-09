@@ -34,7 +34,7 @@ from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
                                 CommentingAlert)
 from pjuu.users.backend import *
 # Test imports
-from tests.helpers import BackendTestCase, FrontendTestCase
+from tests import FrontendTestCase
 
 
 class FrontendTests(FrontendTestCase):

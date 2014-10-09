@@ -31,10 +31,10 @@ from pjuu.posts.backend import *
 from pjuu.users.backend import follow_user, get_alerts
 from pjuu.users.views import millify_filter, timeify_filter
 # Tests imports
-from tests.helpers import BackendTestCase, FrontendTestCase
+from tests import FrontendTestCase
 
 
-class FrontendTests(FrontendTestCase):
+class PostFrontendTests(FrontendTestCase):
     """
     This test case will test all the posts subpackages; views, decorators
     and forms
