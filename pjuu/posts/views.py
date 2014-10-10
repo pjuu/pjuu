@@ -184,9 +184,9 @@ def downvote(username, pid=-1, cid=None):
 
     try:
         if cid:
-            result = vote_comment(current_user['uid'], cid, amount=1)
+            result = vote_comment(current_user['uid'], cid, amount=-1)
         else:
-            result = vote_post(current_user['uid'], pid, amount=1)
+            result = vote_post(current_user['uid'], pid, amount=-1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:

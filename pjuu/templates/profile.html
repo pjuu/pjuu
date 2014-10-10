@@ -9,13 +9,13 @@
         <div class="details clearfix">
                 <div class="username">
                     {{ profile['username']|capitalize }}
-                    <span class="user-score">{{ profile['score']|millify }}</span>
                 </div>
             <div class="body">{{profile['about']}}</div>
         </div>
     </div>
     <div class="panel clearfix">
         <ul class="clearfix">
+            <li>Points: {{ profile['score']|millify }}</li>
             <a class="first" href="{{ url_for('profile', username=profile['username']) }}">
                 <li class="link">Posts: {{ profile['post_count']|millify }}</li>
             </a>

@@ -23,7 +23,6 @@
                 <a href="{{ url_for('profile', username=item.user_username) }}">
                     {{ item.user_username|capitalize }}
                 </a>
-                <span class="user-score">{{ item.user_score|millify }}</span>
             </div>
             <div class="body">
                 {% autoescape false %}
@@ -41,7 +40,7 @@
             {% if item.user_username != current_user.username %}
             {% if item.cid|voted(True) %}
             <li class="voting-item last">
-                {% if item.cid|voted(True) > 1 %}
+                {% if item.cid|voted(True) > 0 %}
                 <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
                 {% else %}
                 <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>

@@ -162,7 +162,7 @@ input[type=submit] {
 
 #auth .form {
     background-color: #FFF;
-    border: 1px solid #680;
+    border: 1px solid #333;
     border-radius: 3px;
     margin: 0 auto;
     padding: 1em;
@@ -170,7 +170,7 @@ input[type=submit] {
 
 #auth .link {
     background-color: #FFF;
-    border: 1px solid #680;
+    border: 1px solid #333;
     border-radius: 3px;
     margin: 1em auto;
     padding: 0.75em;
