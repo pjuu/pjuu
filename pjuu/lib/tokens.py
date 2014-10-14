@@ -27,8 +27,8 @@ Licence:
 from flask import current_app as app, g
 from hashlib import sha1
 import jsonpickle
+from os import urandom
 import re
-from uuid import uuid4
 # Pjuu imports
 from pjuu import redis as r
 import pjuu.lib.keys as K
@@ -44,9 +44,7 @@ def generate_token(data):
     # Convert the data to a JSON pickle, you can store anything you want.
     data = jsonpickle.encode(data)
     # Get our token id.
-    # This is a random UUID (uuid4) and the data in a sha1 hash.
-    # May need making more secure.
-    tid = sha1(uuid4().hex + data).hexdigest()
+    tid = sha1(urandom(32) + data).hexdigest()
     # Set the token to JSON pickle value and place a 24HR timeout
     r.setex(K.TOKEN.format(tid), K.EXPIRE_24HRS, data)
 
