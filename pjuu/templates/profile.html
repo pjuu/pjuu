@@ -4,9 +4,9 @@
 
 {% block main %}
 <div id="profile" class="block clearfix">
-    <div class="top-section">
+    <div class="top clearfix">
         <img class="avatar" src="{{ profile['email']|avatar(48) }}"/>
-        <div class="details clearfix">
+        <div class="content clearfix">
                 <div class="username">
                     {{ profile['username']|capitalize }}
                 </div>
@@ -15,40 +15,51 @@
     </div>
     <div class="panel clearfix">
         <ul class="clearfix">
-            <li>Points: {{ profile['score']|millify }}</li>
-            <a class="first" href="{{ url_for('profile', username=profile['username']) }}">
-                <li class="link">Posts: {{ profile['post_count']|millify }}</li>
-            </a>
-            <a href="{{ url_for('followers', username=profile['username']) }}">
-                <li class="link">Followers: {{ profile['followers_count']|millify }}</li>
-            </a>
-            <a href="{{ url_for('following', username=profile['username']) }}">
-                <li class="link last">Following: {{ profile['following_count']|millify }}</li>
-            </a>
+            <li>
+                <i class="fa fa-trophy fa-lg"></i> <b>{{ profile['score']|millify }}</b>
+            </li>
+            <li>
+                {% if config.TESTING %}
+                <!-- posts:{{ profile.post_count }} -->
+                {% endif %}
+                <a class="first" href="{{ url_for('profile', username=profile['username']) }}">
+                    Posts: <b>{{ profile.post_count|millify }}</b>
+                </a>
+            </li>
+            <li>
+                {% if config.TESTING %}
+                <!-- followers:{{ profile.followers_count }} -->
+                {% endif %}
+                <a href="{{ url_for('followers', username=profile['username']) }}">
+                    Followers: <b>{{ profile.followers_count|millify }}</b>
+                </a>
+            </li>
+            <li>
+                {% if config.TESTING %}
+                <!-- following:{{ profile.following_count }} -->
+                {% endif %}
+                <a href="{{ url_for('following', username=profile['username']) }}">
+                    Following: <b>{{ profile.following_count|millify }}</b>
+                </a>
+            </li>
         </ul>
-        {% if profile['uid'] != current_user['uid'] %}
-        {% if profile|following %}
+        {% if profile.uid == current_user.uid %}
+        <a href="{{ url_for('settings_profile') }}">
+            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action-button you">You</div>
+        </a>
+        {% elif profile|following %}
         <a href="{{ url_for('unfollow', username=profile['username'], next=request.path) }}">
-            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
-                 class="action-button unfollow">Following
-            </div>
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
         </a>
         {% else %}
         <a href="{{ url_for('follow', username=profile['username'], next=request.path) }}">
             <div class="action-button follow">Follow</div>
         </a>
         {% endif %}
-        {% else %}
-        <a href="{{ url_for('settings_profile') }}">
-            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'"
-                 class="action-button you">You
-            </div>
-        </a>
-        {% endif %}
     </div>
 </div>
 
-{% if profile['uid'] == current_user['uid'] and request.endpoint == 'profile' %}
+{% if profile.uid == current_user.uid %}
     {% include 'author_post.html' %}
 {% endif %}
 

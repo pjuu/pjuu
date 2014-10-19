@@ -8,31 +8,31 @@
         <ul class="menu">
             {% if current_user %}
             <a href="{{ url_for('feed') }}"><li>
-                <img src="{{ url_for('static', filename='img/glyphicons/feed.png') }}"/>
+                <i class="fa fa-bars fa-fw fa-lg"></i>
                 <span class="no-mobile">Feed</span>
             </li></a>
             <a href="{{ url_for('profile', username=current_user.username) }}"><li>
-                <img src="{{ url_for('static', filename='img/glyphicons/user.png') }}"/>
+                <i class="fa fa-user fa-lg fa-fw"></i>
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
             </li></a>
             <a href="{{ url_for('alerts') }}"><li>
                 {% if current_user.uid|has_alerts %}
-                <img id="alert-button" src="{{ url_for('static', filename='img/glyphicons/new_alerts.png') }}"/>
+                <i id="alert" class="fa fa-bell fa-fw fa-lg alert"></i>
                 {% else %}
-                <img id="alert-button" src="{{ url_for('static', filename='img/glyphicons/alerts.png') }}"/>
+                <i id="alert" class="fa fa-bell fa-fw fa-lg"></i>
                 {% endif %}
                 <span class="no-mobile">Alerts</span>
             </li></a>
             <a href="{{ url_for('search') }}"><li>
-                <img src="{{ url_for('static', filename='img/glyphicons/search.png') }}"/>
+                <i class="fa fa-search fa-fw fa-lg"></i>
                 <span class="no-mobile">Search</span>
             </li></a>
             <a href="{{ url_for('settings_profile') }}"><li>
-                <img src="{{ url_for('static', filename='img/glyphicons/settings.png') }}"/>
+                <i class="fa fa-cog fa-fw fa-lg"></i>
                 <span class="no-mobile">Settings</span>
             </li></a>
             <a href="{{ url_for('signout') }}"><li></span>
-                <img src="{{ url_for('static', filename='img/glyphicons/signout.png') }}"/>
+                <i class="fa fa-sign-out fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Out</span>
             </li></a>
             {% else %}

@@ -48,8 +48,10 @@ def voted_filter(xid, comment=False):
         item.cid|voted(True)
 
     These may be reffered to as items.X in lists.
+
+    Will return 1 on upvote, -1 on downvote and 0 if not voted
     """
-    return has_voted(current_user['uid'], xid, comment=comment)
+    return has_voted(current_user['uid'], xid, comment=comment) or 0
 
 
 @app.template_filter('subscribed')

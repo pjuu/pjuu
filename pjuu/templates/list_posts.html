@@ -6,64 +6,72 @@
 {% if config.TESTING %}
 <!-- list:post:{{item.pid}} -->
 {% endif %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
-    <div class="top-section">
-        <img class="avatar" src="{{ item.user_email|avatar(24) }}"/>
-        <div class="control">
-            {% if item.user_username == current_user.username %}
-            <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid, next=request.path) }}">
-                <div class="delete">X</div>
-            </a>
-            {% endif %}
+<li class="item{% if loop.last %} last{% endif %} clearfix">
+    <img class="avatar" src="{{ item.user_email|avatar(32) }}"/>
+    <div class="control">
+        {% if item.uid == current_user.uid %}
+        {% if config.TESTING %}
+        <!-- delete_post:{{ item.pid }} -->
+        {% endif %}
+        <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+        {% endif %}
+    </div>
+    <div class="content post clearfix">
+        <div class="username">
+            <a href="{{ url_for('profile', username=item.user_username) }}">{{ item.user_username|capitalize }}</a>
+            <span class="created">{{ item.created|timeify }}</span>
         </div>
-        <div class="details-post clearfix">
-            <div class="username">
-                <a href="{{ url_for('profile', username=item.user_username) }}">
-                    {{ item.user_username|capitalize }}
+        <div class="body">
+            {% autoescape false %}
+            {{ item.body|e|urlize|nameify }}
+            {% endautoescape %}
+        </div>
+        <div class="panel clearfix">
+            <ul class="left">
+                <li>
+                    <i class="fa fa-trophy fa-lg"></i>
+                    {{ item['score']|millify }}
+                </li>
+                {% if item.uid != current_user.uid %}
+                <li>
+                    {% if item.pid|voted > 0 %}
+                    {% if config.TESTING %}
+                    <!-- action:upvoted -->
+                    {% endif %}
+                    <i class="fa fa-arrow-up fa-lg upvoted"></i>
+                    {% elif item.pid|voted < 0 %}
+                    <i class="fa fa-arrow-up fa-lg inactive"></i>
+                    {% else %}
+                    {% if config.TESTING %}
+                    <!-- action:upvote -->
+                    {% endif %}
+                    <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    {% endif %}
+                </li>
+                <li>
+                    {% if item.pid|voted < 0 %}
+                    {% if config.TESTING %}
+                    <!-- action:downvoted -->
+                    {% endif %}
+                    <i class="fa fa-arrow-down fa-lg downvoted"></i>
+                    {% elif item.pid|voted > 0 %}
+                    <i class="fa fa-arrow-down fa-lg inactive"></i>
+                    {% else %}
+                    {% if config.TESTING %}
+                    <!-- action:downvote -->
+                    {% endif %}
+                    <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    {% endif %}
+                </li>
+                {% endif %}
+            </ul>
+            <div class="right">
+                <a href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}" class="link comments">
+                    <i class="fa fa-comments fa-lg"></i>
+                    {{ item.comment_count|millify }}
                 </a>
             </div>
-            <div class="body">
-                {% autoescape false %}
-                {{ item.body|e|urlize|nameify }}
-                {% endautoescape %}
-            </div>
-            <div class="created">{{ item.created|timeify }} GMT</div>
         </div>
-    </div>
-    <div class="panel clearfix">
-        <ul class="voting clearfix">
-            <li class="voting-item first">
-                {{ item['score']|millify }}
-            </li>
-            {% if item.user_username != current_user.username %}
-            {% if item.pid|voted %}
-            <li class="voting-item">
-                {% if item.pid|voted > 0 %}
-                <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
-                {% else %}
-                <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
-                {% endif %}
-            </li>
-            {% else %}
-            <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path + '?' + request.query_string) }}">
-               <li class="voting-item link">
-                    <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
-                </li>
-            </a>
-            <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path + '?' + request.query_string) }}">
-                <li class="voting-item link">
-                    <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
-                </li>
-            </a>
-            {% endif %}
-            {% endif %}
-        </ul>
-        <a href="{{ url_for('view_post', username=item.user_username, pid=item.pid) }}">
-            <div class="comment-count link">
-                <img src="{{ url_for('static', filename='img/glyphicons/comments.png') }}" width="16" height="16"/>
-                {{ item.comment_count|millify }}
-            </div>
-        </a>
     </div>
 </li>
 {% endfor %}
