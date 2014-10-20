@@ -95,6 +95,21 @@ input[type=submit] {
     padding: 0.5em 1em;
 }
 
+button {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    font-weight: 700;
+    float: right;
+    padding: 0.25em 1em;
+}
+
+button:hover {
+    border: 1px solid #333;
+    color: #333;
+}
+
 /* FLASH MESSAGES ========================================================= */
 .message {
     border-radius: 6px;
@@ -172,6 +187,7 @@ input[type=submit] {
     background-color: #FFF;
     border: 1px solid #666;
     border-radius: 3px;
+    color: #000;
     margin: 1em auto;
     padding: 0.75em;
     text-align: center;
@@ -253,18 +269,6 @@ input[type=submit] {
 }
 
 /* ACTION BUTTON ========================================================== */
-.action-button {
-    color: #680;
-    background-color: #EEE;
-    border-radius: 3px;
-    font-weight: 700;
-    float: right;
-    margin: 0.25em;
-    padding: 0.25em 0;
-    text-align: center;
-    width: 100px;
-}
-
 .you {
     background-color: #39F;
     color: #1A4C80;
@@ -406,7 +410,7 @@ input[type=submit] {
 }
 
 #profile .panel a {
-    color: #999;
+    color: #666;
 }
 
 #profile .panel a:hover {
@@ -424,6 +428,16 @@ input[type=submit] {
     list-style: none;
     margin: 0;
     padding: 0.5em 1em;
+}
+
+#profile .action {
+    border-radius: 3px;
+    font-weight: 700;
+    float: right;
+    margin: 0.25em;
+    padding: 0.25em 0;
+    text-align: center;
+    width: 100px;
 }
 
 /* POST =================================================================== */
@@ -523,20 +537,10 @@ input[type=submit] {
     resize: vertical;
 }
 
-#author button {
-    background-color: #FFF;
-    border: 1px solid #333;
+#author input[type="text"] {
+    border: 1px solid #666;
     border-radius: 3px;
-    color: #333;
-    font-weight: 700;
-    float: right;
-    padding: 0.25em;
-    text-align: center;
-    width: 100px;
-}
-
-#author button:hover {
-    color: #C00;
+    margin: 0 0 0.5em 0;
 }
 
 #author #count {
@@ -613,16 +617,25 @@ input[type=submit] {
 }
 
 #list .content.alert {
-    margin: -1em 2em 0 4em;
+    margin: 0 2em 0 3em;
+    vertical-align: middle;
 }
 
 #list .username {
     font-size: 1.25em;
 }
 
-.body {
+#list .body {
     margin: 0.75em 0 1em;
     word-wrap: break-word;
+}
+
+#list .user .body{
+    margin: 0.75em 0 0;
+}
+
+#list .alert .body {
+    margin: 0;
 }
 
 #list .created {
@@ -666,6 +679,15 @@ input[type=submit] {
 #list .panel li {
     float: left;
     margin: 0 1em 0 0;
+}
+
+#list .action {
+    border-radius: 3px;
+    font-weight: 700;
+    float: right;
+    padding: 0.25em 0;
+    text-align: center;
+    width: 100px;
 }
 
 /* PAGINATION ============================================================= */
@@ -712,12 +734,7 @@ input[type=submit] {
     padding: 0;
 }
 
-#settings-menu .last {
-    border: 0;
-}
-
 #settings-menu li {
-    border-right: 1px solid #BBB;
     color: #666;
     float: left;
     font-weight: 700;
@@ -731,13 +748,14 @@ input[type=submit] {
 }
 
 #setting {
-    margin: 1em auto;
-    padding: 0;
+    margin: 0 auto;
+    padding: 0.5em;
     min-width: 300px;
     max-width: 380px;
 }
 
 #setting .details {
+    margin: 0;
     padding: 0;
 }
 
@@ -756,20 +774,28 @@ input[type=submit] {
 
 /* FOOTER ================================================================= */
 #footer {
-    color: #680;
-    font-size: 0.75em;
     margin: 2em 0 0.5em 0;
     text-align: center;
-    bottom: 0;
 }
 
 #footer a {
+    color: #333;
+    font-weight: 400;
+}
+
+#footer a:hover {
     color: #000;
     text-decoration: underline;
 }
 
-#footer a:hover {
-    color: #36F;
+#footer .links {
+    font-size: 1em;
+    margin: 0 0 0.5em 0;
+}
+
+#footer .copyright {
+    color: #666;
+    font-size: 0.75em;
 }
 
 /* ERRORS ================================================================= */
@@ -834,11 +860,6 @@ input[type=submit] {
     }
 
     /* ACTION BUTTON ======================================================= */
-    .action-button {
-        width: auto;
-        float: none;
-        padding: 0.5em 0;
-    }
 
     /* PROFILE ============================================================= */
     #profile .avatar {
@@ -873,10 +894,15 @@ input[type=submit] {
         padding: 0.5em 1em;
     }
 
+    #profile .action {
+        width: auto;
+        float: none;
+        padding: 0.5em 0;
+    }
+
     /* SETTINGS ============================================================ */
     #settings-menu li {
         border: 0;
-        border-bottom: 1px solid #BBB;
         float: none;
         padding: 0.5em 1em;
     }

@@ -36,8 +36,14 @@
                 <span class="no-mobile">Sign Out</span>
             </li></a>
             {% else %}
-            <a href="{{ url_for('signin') }}"><li>Sign In</li></a>
-            <a href="{{ url_for('signup') }}"><li>Sign Up</li></a>
+            <a href="{{ url_for('signin') }}"><li></span>
+                <i class="fa fa-sign-in fa-fw fa-lg"></i>
+                <span class="no-mobile">Sign In</span>
+            </li></a>
+            <a href="{{ url_for('signup') }}"><li></span>
+                <i class="fa fa-sign-out fa-fw fa-lg"></i>
+                <span class="no-mobile">Sign Up</span>
+            </li></a>
             {% endif %}
         </ul>
     </div>

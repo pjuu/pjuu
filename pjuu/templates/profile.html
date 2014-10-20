@@ -45,15 +45,15 @@
         </ul>
         {% if profile.uid == current_user.uid %}
         <a href="{{ url_for('settings_profile') }}">
-            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action-button you">You</div>
+            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
         </a>
         {% elif profile|following %}
-        <a href="{{ url_for('unfollow', username=profile['username'], next=request.path) }}">
-            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action-button unfollow">Following</div>
+        <a href="{{ url_for('unfollow', username=profile.username, next=request.path) }}">
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action unfollow">Following</div>
         </a>
         {% else %}
-        <a href="{{ url_for('follow', username=profile['username'], next=request.path) }}">
-            <div class="action-button follow">Follow</div>
+        <a href="{{ url_for('follow', username=profile.username, next=request.path) }}">
+            <div class="action follow">Follow</div>
         </a>
         {% endif %}
     </div>

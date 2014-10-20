@@ -333,7 +333,7 @@ class FrontendTests(FrontendTestCase):
         # Let's check we see the correct thing on the search page when there
         # is no search
         resp = self.client.get(url_for('search'))
-        self.assertIn('<h1>Search for users</h1>', resp.data)
+        self.assertIn('<!-- author search -->', resp.data)
         self.assertNotIn('<h1>Results:', resp.data)
 
         # Lets search for ourselves

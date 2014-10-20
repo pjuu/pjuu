@@ -6,16 +6,14 @@
 {% if config.TESTING %}
 <!-- list:alert:{{ item.aid }} -->
 {% endif %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} post clearfix">
-    <img class="avatar" src="{{ item.get_email()|avatar(16) }}"/>
+<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} alert clearfix">
+    <img class="avatar" src="{{ item.get_email()|avatar(24) }}"/>
     <div class="control">
-        <a href="{{ url_for('delete_alert', aid=item.aid, next=request.path) }}">
-            <div class="delete">X</div>
-        </a>
+        <a href="{{ url_for('delete_alert', aid=item.aid, next=request.path + '?' + request.query_string) }}" class="fa fa-eye-slash fa-lg delete"></a>
     </div>
-    <div class="details-alert clearfix">
+    <div class="content alert clearfix">
         <div class="body">{{ item.prettify(current_user.uid)|safe }}</div>
-        <div class="created">{{ item.timestamp|timeify }} GMT</div>
+        <div class="created">{{ item.timestamp|timeify }}</div>
     </div>
 </li>
 {% endfor %}

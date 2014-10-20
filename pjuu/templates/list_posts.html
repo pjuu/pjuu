@@ -45,7 +45,7 @@
                     {% if config.TESTING %}
                     <!-- action:upvote -->
                     {% endif %}
-                    <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <a href="{{ url_for('upvote', username=item.user_username, pid=item.pid, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
                 <li>
@@ -60,7 +60,7 @@
                     {% if config.TESTING %}
                     <!-- action:downvote -->
                     {% endif %}
-                    <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <a href="{{ url_for('downvote', username=item.user_username, pid=item.pid, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
                     {% endif %}
                 </li>
                 {% endif %}
