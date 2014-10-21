@@ -7,6 +7,7 @@
         </a>
         <ul class="menu">
             {% if current_user %}
+            <!-- menu: logged in -->
             <a href="{{ url_for('feed') }}"><li>
                 <i class="fa fa-bars fa-fw fa-lg"></i>
                 <span class="no-mobile">Feed</span>
@@ -36,12 +37,13 @@
                 <span class="no-mobile">Sign Out</span>
             </li></a>
             {% else %}
+            <!-- menu: not logged in -->
             <a href="{{ url_for('signin') }}"><li></span>
                 <i class="fa fa-sign-in fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign In</span>
             </li></a>
             <a href="{{ url_for('signup') }}"><li></span>
-                <i class="fa fa-sign-out fa-fw fa-lg"></i>
+                <i class="fa fa-smile-o fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Up</span>
             </li></a>
             {% endif %}

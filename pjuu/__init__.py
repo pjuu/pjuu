@@ -101,6 +101,7 @@ def create_app(config_filename='settings.py', config_dict=None):
         # Load Redis LUA scripts, this will also load the scripts into Redis
         import pjuu.lib.lua
         # Endpoints
+        import pjuu.pages
         import pjuu.auth.views
         import pjuu.users.views
         import pjuu.posts.views
