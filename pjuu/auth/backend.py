@@ -78,7 +78,10 @@ RESERVED_NAMES = [
     'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
     'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
     'username', 'usage', 'video', 'videos', 'web', 'webmail', 'alerts',
-    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts', 'report']
+    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts', 'report', 'terms',
+    'privacy', 'aboutus', 'about_us', 'privacypolicy', 'privacy_policy',
+    'termsandconditions', 'termsofservice', 'terms_and_conditions',
+    'terms_of_service', 'alert']
 
 
 @app.before_request
