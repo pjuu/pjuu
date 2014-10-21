@@ -604,6 +604,10 @@ button:hover {
     margin: 0 0 0.5em;
 }
 
+#list .new {
+    color: #F00;
+}
+
 #list .avatar {
     float: left;
 }

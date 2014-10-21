@@ -411,7 +411,7 @@ def delete_alert(aid):
     redirect_url = handle_next(request, url_for('alerts'))
 
     if be_delete_alert(uid, aid):
-        flash('Alert has been removed', 'success')
+        flash('Alert has been hidden', 'success')
 
     return redirect(redirect_url)
 

@@ -421,4 +421,24 @@ class BackendTests(BackendTestCase):
         self.assertEqual(len(get_alerts(user3).items), 0)
         self.assertEqual(r.zcard(K.USER_ALERTS.format(user3)), 0)
 
+        # Unfollow the user3 and then follow them again
+        unfollow_user(user1, user3)
+        follow_user(user1, user3)
+
+        alert = get_alerts(user3).items[0]
+        self.assertIn('has started following you', alert.prettify())
+
+        # Manually delete the alert
+        r.delete(K.ALERT.format(alert.aid))
+
+        # Get the alerts again and ensure the length is 0
+        # Ensure that the alert is not pulled down
+        alerts = get_alerts(user3)
+        self.assertEqual(len(alerts.items), 0)
+
+        # Get alerts for a non-existant user
+        # This will not fail but will have an empty pagination
+        alerts = get_alerts(K.NIL_VALUE)
+        self.assertEqual(len(alerts.items), 0)
+
         # Done for now

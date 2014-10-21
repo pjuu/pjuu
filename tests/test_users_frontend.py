@@ -473,11 +473,11 @@ class FrontendTests(FrontendTestCase):
         # Check that we don't get a message if there was no alert to delete
         resp = self.client.get(url_for('delete_alert', aid=K.NIL_VALUE),
                                follow_redirects=True)
-        self.assertNotIn('Alert has been removed', resp.data)
+        self.assertNotIn('Alert has been hidden', resp.data)
 
         resp = self.client.get(url_for('delete_alert', aid=aid),
                                follow_redirects=True)
-        self.assertIn('Alert has been removed', resp.data)
+        self.assertIn('Alert has been hidden', resp.data)
         # Check that there are also no alerts now
         self.assertIn('Empty', resp.data)
 

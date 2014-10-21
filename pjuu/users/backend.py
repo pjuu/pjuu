@@ -268,12 +268,15 @@ def get_alerts(uid, page=1):
     """Return a list of alert objects as a pagination.
 
     """
-    # Update the last time the user checked there alerts
-    # This will allow us to alert a user too new alerts with the /i-has-alerts
-    # url
-    r.hset(K.USER.format(uid), 'alerts_last_checked', timestamp())
-
     per_page = app.config.get('ALERT_ITEMS_PER_PAGE')
+
+    # Get the last time the users checked the alerts
+    # Try and cast the value to an int so we can boolean compare them
+    try:
+        alerts_last_checked = \
+            int(float(r.hget(K.USER.format(uid), 'alerts_last_checked')))
+    except (TypeError, ValueError):
+        alerts_last_checked = 0
 
     # Get total number of elements in the sorted set
     total = r.zcard(K.USER_ALERTS.format(uid))
@@ -288,6 +291,12 @@ def get_alerts(uid, page=1):
         # Load the alert in to the alert manager
         alert = am.get(aid)
         if alert:
+            # Check to see if the alert is newer than the time we last checked.
+            # This allows us to highlight in the template
+            # This will assign a new property to the object: `new`
+            if int(alert.timestamp) > alerts_last_checked:
+                alert.new = True
+
             # Add the entire alert from the manager on the list
             alerts.append(alert)
         else:
@@ -296,6 +305,11 @@ def get_alerts(uid, page=1):
             total = r.zcard(K.USER_ALERTS.format(uid))
             # May as well delete the alert if there is one
             r.delete(K.ALERT.format(aid))
+
+    # Update the last time the user checked there alerts
+    # This will allow us to alert a user too new alerts with the /i-has-alerts
+    # url
+    r.hset(K.USER.format(uid), 'alerts_last_checked', timestamp())
 
     return Pagination(alerts, total, page, per_page)
 
