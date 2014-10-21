@@ -7,36 +7,29 @@
 <!-- list:user:{{item.uid}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
-    <div class="top-section">
-        <img class="avatar" src="{{ item.email|avatar(24) }}"/>
-        <div class="control">
-            {% if item.uid != current_user['uid'] %}
-            {% if item|following %}
-            <a href="{{ url_for('unfollow', username=item.username, next=request.path + '?' + request.query_string) }}">
-                <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'"
-                     class="action-button unfollow">Following
-                </div>
+    <img class="avatar" src="{{ item.email|avatar(24) }}"/>
+    <div class="control">
+        {% if item.uid == current_user.uid %}
+        <a href="{{ url_for('settings_profile') }}">
+            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
+        </a>
+        {% elif item|following %}
+        <a href="{{ url_for('unfollow', username=item.username, next=request.path + '?' + request.query_string) }}">
+            <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action unfollow">Following</div>
+        </a>
+        {% else %}
+        <a href="{{ url_for('follow', username=item.username, next=request.path + '?' + request.query_string) }}">
+            <div class="action follow">Follow</div>
+        </a>
+        {% endif %}
+    </div>
+    <div class="content user clearfix">
+        <div class="username">
+            <a href="{{ url_for('profile', username=item.username) }}">
+                {{ item.username|capitalize }}
             </a>
-            {% else %}
-            <a href="{{ url_for('follow', username=item.username, next=request.path + '?' + request.query_string) }}">
-                <div class="action-button follow">Follow</div>
-            </a>
-            {% endif %}
-            {% else %}
-            <a href="{{ url_for('settings_profile') }}">
-                <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'"
-                     class="action-button you">You
-                </div>
-            </a>
-            {% endif %}
         </div>
-        <div class="details-user clearfix">
-            <div class="username">
-                <a href="{{ url_for('profile', username=item.username) }}">
-                    {{ item.username|capitalize }}
-                </a>
-            <div class="body">{{ item.about|urlize|nameify }}</div>
-        </div>
+        <div class="body">{{ item.about|urlize|nameify }}</div>
     </div>
 </li>
 {% endfor %}

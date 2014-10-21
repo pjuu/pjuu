@@ -8,28 +8,24 @@
 {% if pagination.has_pages %}
 <div id="pagination" class="clearfix">
     {% if pagination.prev_page %}
-    <a href="{{ request.path + "?page=1" }}">
-    <div class="button active prev">
-        |<
+    <div class="newer">
+        {% if config.TESTING %}
+        <!-- pagination:newer -->
+        {% endif %}
+        <a href="{{ request.path + "?page=%s" % pagination.prev_page }}">
+            <i class="fa fa-chevron-left"></i> Newer
+        </a>
     </div>
-    </a>
-    <a href="{{ request.path + "?page=%s" % pagination.prev_page }}">
-    <div class="button active prev">
-        <<
-    </div>
-    </a>
     {% endif %}
     {% if pagination.next_page %}
-    <a href="{{ request.path + "?page=%s" % pagination.pages }}">
-    <div class="button active next">
-        >|
+    <div class="older">
+        {% if config.TESTING %}
+        <!-- pagination:older -->
+        {% endif %}
+        <a href="{{ request.path + "?page=%s" % pagination.next_page }}">
+            Older <i class="fa fa-chevron-right"></i>
+        </a>
     </div>
-    </a>
-    <a href="{{ request.path + "?page=%s" % pagination.next_page }}">
-    <div class="button active next">
-        >>
-    </div>
-    </a>
     {% endif %}
 </div>
 {% endif %}

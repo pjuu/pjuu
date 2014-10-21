@@ -7,64 +7,74 @@
 <!-- view:post:{{post.pid}} -->
 {% endif %}
 <div id="post" class="block clearfix">
-    <div class="top-section">
-        <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
+    <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
 
-        <div class="control">
-            {% if post.user_username == current_user.username %}
-            <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid) }}"><div class="delete">X</div></a>
-            {% endif %}
-        </div>
-
-        <div class="details clearfix">
-            <div class="username">
-                <a href="{{ url_for('profile', username=post.user_username) }}">
-                    {{ post.user_username|capitalize }}
-                </a>
-            </div>
-            <div class="body">
-                {% autoescape false %}
-                {{ post.body|e|urlize|nameify }}
-                {% endautoescape %}
-            </div>
-            <div class="created">{{ post.created|timeify }} GMT</div>
-        </div>
+    <div class="control">
+        {% if post.uid == current_user.uid %}
+        {% if config.TESTING %}
+        <!-- delete_post:{{ post.pid }} -->
+        {% endif %}
+        <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+        {% endif %}
     </div>
-    <div class="panel clearfix">
-        <ul class="voting clearfix">
-            <li class="voting-item first">
-                {{ post['score']|millify }}
-            </li>
-            {% if post.user_username != current_user.username %}
-            {% if post.pid|voted %}
-                <li class="voting-item">
+
+    <div class="content clearfix">
+        <div class="username">
+            <a href="{{ url_for('profile', username=post.user_username) }}">{{ post.user_username|capitalize }}</a>
+            <span class="created">{{ post.created|timeify }}</span>
+        </div>
+        <div class="body">
+            {% autoescape false %}
+            {{ post.body|e|urlize|nameify }}
+            {% endautoescape %}
+        </div>
+        <div class="panel clearfix">
+            <ul>
+                <li>
+                    <i class="fa fa-trophy fa-lg"></i> {{ post['score']|millify }}
+                </li>
+                {% if post.uid != current_user.uid %}
+                <li>
                     {% if post.pid|voted > 0 %}
-                    <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                    {% if config.TESTING %}
+                    <!-- action:upvoted -->
+                    {% endif %}
+                    <i class="fa fa-arrow-up fa-lg upvoted"></i>
+                    {% elif post.pid|voted < 0 %}
+                    <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
-                    <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
+                    {% if config.TESTING %}
+                    <!-- action:upvote -->
+                    {% endif %}
+                    <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
-            {% else %}
-            <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid, next=request.url) }}">
-                <li class="voting-item link">
-                    <img src="{{ url_for('static', filename='img/glyphicons/up_arrow.png') }}" width="16" height="16"/>
+                <li>
+                    {% if post.pid|voted < 0 %}
+                    {% if config.TESTING %}
+                    <!-- action:downvoted -->
+                    {% endif %}
+                    <i class="fa fa-arrow-down fa-lg downvoted"></i>
+                    {% elif post.pid|voted > 0 %}
+                    <i class="fa fa-arrow-down fa-lg inactive"></i>
+                    {% else %}
+                    {% if config.TESTING %}
+                    <!-- action:downvote -->
+                    {% endif %}
+                    <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    {% endif %}
                 </li>
-            </a>
-            <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid, next=request.url) }}">
-                <li class="voting-item link">
-                    <img src="{{ url_for('static', filename='img/glyphicons/down_arrow.png') }}" width="16" height="16"/>
-                </li>
-            </a>
-            {% endif %}
-            {% endif %}
-        </ul>
-        {% if post.pid|subscribed %}
-        <a href="{{ url_for('unsubscribe', username=post.user_username, pid=post.pid, next=request.path + '?' + request.query_string) }}">
-            <div class="action-button unsubscribe">
-                Unsubscribe
+                {% endif %}
+            </ul>
+            {% if post.pid|subscribed %}
+            <div class="right">
+                {% if config.TESTING %}
+                <!-- unsubscribe:{{ post.pid }} -->
+                {% endif %}
+                <a href="{{ url_for('unsubscribe', username=post.user_username, pid=post.pid, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
             </div>
-        </a>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 

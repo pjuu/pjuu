@@ -10,7 +10,7 @@ function has_alerts() {
         // Do we have alerts?
         if (data.result == true) {
             // We have alerts so change the image in the menu
-            $("#alert-button").attr("src", "/static/img/glyphicons/new_alerts.png")
+            $("#alert").addClass('alert');
             // Don't bother looking for alerts again. It can only go red once
         } else {
             // We will not check that we don't have alerts and try and reset

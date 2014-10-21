@@ -3,17 +3,19 @@
 {% block title %}Search{% endblock %}
 
 {% block main %}
+{% if config.TESTING %}
+<!-- author search -->
+{% endif %}
 <div id="author" class="block search clearfix">
-    <h1>Search for users</h1>
     <form action="{{ url_for('search') }}" method="GET">
-        {{ form.query }}
-        <input type="submit" value="Search"/>
+        {{ form.query(placeholder='Search for a user...') }}
+        <button type="submit"><i class="fa fa-search"></i> Search</button>
     </form>
 </div>
 
 {% if query %}
 <div id="content" class="clearfix">
-    <h1>Results: {{ query }}</h1>
+    <h1>Search results: {{ query }}</h1>
     {% include 'list_users.html' %}
 </div>
 {% endif %}

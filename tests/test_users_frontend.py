@@ -33,6 +33,7 @@ from pjuu.lib.alerts import AlertManager
 from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
                                 CommentingAlert)
 from pjuu.users.backend import *
+from pjuu.users.views import timeify_filter
 # Test imports
 from tests import FrontendTestCase
 
@@ -86,8 +87,8 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 1, Post 1!', resp.data)
         self.assertNotIn('User 2, Post 1!', resp.data)
         # Check the pagination button for next is there are not prev
-        self.assertIn('<div class="button active next">', resp.data)
-        self.assertNotIn('<div class="button active prev">', resp.data)
+        self.assertIn('<!-- pagination:older -->', resp.data)
+        self.assertNotIn('<!-- pagination:newer -->', resp.data)
 
         # Let's go to page 2 in the pagination and check there are posts there
         resp = self.client.get(url_for('feed', page=2))
@@ -98,8 +99,8 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 1, Post 10!', resp.data)
         self.assertNotIn('User 2, Post 5!', resp.data)
         # Check that both pagination buttons are there
-        self.assertIn('<div class="button active next">', resp.data)
-        self.assertIn('<div class="button active prev">', resp.data)
+        self.assertIn('<!-- pagination:older -->', resp.data)
+        self.assertIn('<!-- pagination:newer -->', resp.data)
 
         # Let's go back to the first page
         resp = self.client.get(url_for('feed'))
@@ -107,7 +108,7 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('User 1, Post 50!', resp.data)
         # We won't check that the delete button belong to the above post
         # put we will check that there is atleast one delete button
-        self.assertIn('<div class="delete">X</div>', resp.data)
+        self.assertIn('<!-- delete_post:', resp.data)
         # Delete the post
         resp = self.client.get(url_for('delete_post', username='user1',
                                pid=posts[100], next=url_for('feed')),
@@ -157,7 +158,7 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
         self.assertIn('Test post', resp.data)
         # Ensure the comment form is present
-        self.assertIn('Make a comment', resp.data)
+        self.assertIn('<!-- author comment -->', resp.data)
 
         # Create a comment on the post
         comment1 = create_comment(user1, post1, 'Test comment 1')
@@ -251,7 +252,7 @@ class FrontendTests(FrontendTestCase):
 
         # Visit test2 and ensure followers count is 0
         resp = self.client.get(url_for('followers', username='user2'))
-        self.assertIn('Followers: 0', resp.data)
+        self.assertIn('<!-- followers:0 -->', resp.data)
 
         # Follow test2
         # Ensure we pass a next variable to come back to test2's followers page
@@ -261,7 +262,7 @@ class FrontendTests(FrontendTestCase):
         # Ensure the flash message has informed use we are following
         self.assertIn('You have started following user2', resp.data)
         # Ensure test2's followers count has been incremented
-        self.assertIn('Followers: 1', resp.data)
+        self.assertIn('<!-- followers:1 -->', resp.data)
         # This should match inside a link (Test1 due to capitalization)
         # Not the best test but it works for now
         self.assertIn('<!-- list:user:%s -->' % user1, resp.data)
@@ -273,7 +274,7 @@ class FrontendTests(FrontendTestCase):
         # Check we got no confirmation
         self.assertNotIn('You have started following test2', resp.data)
         # Check that the followers count has not incremented
-        self.assertIn('Followers: 1', resp.data)
+        self.assertIn('<!-- followers:1 -->', resp.data)
 
         # Ensure test2 is in from YOUR (test1s) following page
         resp = self.client.get(url_for('following', username='user1'))
@@ -285,7 +286,7 @@ class FrontendTests(FrontendTestCase):
                                next=url_for('followers', username='user2')),
                                follow_redirects=True)
         self.assertIn('You are no longer following user2', resp.data)
-        self.assertIn('Followers: 0', resp.data)
+        self.assertIn('<!-- followers:0 -->', resp.data)
         # Check the list testing tag has gone
         self.assertNotIn('<!-- list:user:test1 -->', resp.data)
 
@@ -294,7 +295,7 @@ class FrontendTests(FrontendTestCase):
                                next=url_for('followers', username='user2')),
                                follow_redirects=True)
         self.assertNotIn('You are no longer following user2', resp.data)
-        self.assertIn('Followers: 0', resp.data)
+        self.assertIn('<!-- followers:0 -->', resp.data)
 
         # Ensure test2 is missing from YOUR (test1s) following page
         resp = self.client.get(url_for('following', username='user1'))
@@ -332,7 +333,7 @@ class FrontendTests(FrontendTestCase):
         # Let's check we see the correct thing on the search page when there
         # is no search
         resp = self.client.get(url_for('search'))
-        self.assertIn('<h1>Search for users</h1>', resp.data)
+        self.assertIn('<!-- author search -->', resp.data)
         self.assertNotIn('<h1>Results:', resp.data)
 
         # Lets search for ourselves
@@ -481,3 +482,18 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('Empty', resp.data)
 
         # Done for now
+
+    def test_timeify_filter(self):
+        """Test the timeify filter
+
+        """
+        self.assertEqual(timeify_filter(timestamp()), 'Less than a second ago')
+        # Check one year ago
+        time_yearago = timestamp() - 31536000
+        self.assertEqual(timeify_filter(time_yearago), '1 year ago')
+        # Check two months ago
+        time_yearago = timestamp() - 5184000
+        self.assertEqual(timeify_filter(time_yearago), '2 months ago')
+        # Check 3 weeks ago
+        time_yearago = timestamp() - 1814400
+        self.assertEqual(timeify_filter(time_yearago), '3 weeks ago')

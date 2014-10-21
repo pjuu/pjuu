@@ -1,7 +1,7 @@
 /* GLOBAL ================================================================= */
 
 html, body {
-    background-color: #EFB;
+    background-color: #F5FAE6;
     font-family: Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 400;
@@ -95,9 +95,24 @@ input[type=submit] {
     padding: 0.5em 1em;
 }
 
+button {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    font-weight: 700;
+    float: right;
+    padding: 0.25em 1em;
+}
+
+button:hover {
+    border: 1px solid #333;
+    color: #333;
+}
+
 /* FLASH MESSAGES ========================================================= */
 .message {
-    border-radius: 3px;
+    border-radius: 6px;
     font-weight: 700;
     margin: 0 0 1em;
     padding: 0.5em;
@@ -162,7 +177,7 @@ input[type=submit] {
 
 #auth .form {
     background-color: #FFF;
-    border: 1px solid #333;
+    border: 1px solid #666;
     border-radius: 3px;
     margin: 0 auto;
     padding: 1em;
@@ -170,8 +185,9 @@ input[type=submit] {
 
 #auth .link {
     background-color: #FFF;
-    border: 1px solid #333;
+    border: 1px solid #666;
     border-radius: 3px;
+    color: #000;
     margin: 1em auto;
     padding: 0.75em;
     text-align: center;
@@ -210,7 +226,6 @@ input[type=submit] {
 }
 
 #header .menu {
-    color: #FFF;
     float: right;
     font-size: 1em;
     font-weight: 700;
@@ -218,15 +233,8 @@ input[type=submit] {
     padding: 0 0.5em;
 }
 
-#header .menu img {
-    height: 16px;
-    margin: 0 0.5em 0 0;
-    width: 16px;
-    vertical-align: middle;
-}
-
 #header .menu a {
-    color: #000;
+    color: #340;
     text-decoration: none;
 }
 
@@ -240,8 +248,8 @@ input[type=submit] {
     padding: 0 1em;
 }
 
-#header .menu li:hover {
-    background-color: #680;
+#header .menu .alert {
+    color: #F00;
 }
 
 /* MAIN =================================================================== */
@@ -258,60 +266,109 @@ input[type=submit] {
 
 #main .block {
     margin: 0 0 1em;
-    border: 1px solid #666;
-    border-radius: 3px;
 }
 
 /* ACTION BUTTON ========================================================== */
-.action-button {
-    color: #680;
-    background-color: #EEE;
-    border-radius: 3px;
-    font-weight: 700;
-    float: right;
-    margin: 0.25em;
-    padding: 0.25em 0;
-    text-align: center;
-    width: 100px
+.you {
+    background-color: #39F;
+    color: #1A4C80;
+    content: "You";
 }
 
-.you {
-    color: #69F;
-    background-color: #9CF;
+.you:hover {
+    content: "Edit";
+}
+
+.follow {
+    background-color: #FFF;
+    border: 1px solid #3C3;
+    color: #3C3;
 }
 
 .follow:hover {
-    color: #FFF;
     background-color: #3C3;
+    color: #FFF;
 }
 
 .unfollow {
-    color: #FFF;
     background-color: #3C3;
+    border: 1px solid #3C3;
+    color: #FFF;
+    content: "Following";
 }
 
 .unfollow:hover {
     background-color: #C00;
+    border: 1px solid #C00;
+    content: "Unfollow";
 }
 
-.unsubscribe {
-    color: #555;
-    background-color: #BBB;
+.username a {
+    color: #333;
+}
+
+.username a:hover {
+    text-decoration: underline;
+}
+
+/* ICONS =================================================================== */
+.inactive {
+    color: #DDD;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.link {
+    color: #999;
+}
+
+.upvote:hover {
+    color: #0C0;
+}
+
+.upvoted {
+    color: #0C0;
+}
+
+.downvote:hover {
+    color: #C00;
+}
+
+.downvoted {
+    color: #C00;
+}
+
+.delete {
+    color: #999;
+}
+
+.delete:hover {
+    color: #C00;
+}
+
+.comments:hover {
+    color: #33C;
 }
 
 .unsubscribe:hover {
-    color: #FFF;
-    background-color: #F00;
+    color: #333;
 }
 
 /* PROFILE =============================================================== */
 #profile {
     background-color: #FFF;
-    color: #333;
+    border: 1px solid #666;
+    border-radius: 6px;
     padding: 0;
 }
 
-#profile .top-section {
+#profile .top {
     padding: 0.5em;
 }
 
@@ -321,7 +378,7 @@ input[type=submit] {
     margin: 0;
 }
 
-#profile .details {
+#profile .content {
     margin: 0 0 0 60px;
     padding: 0;
 }
@@ -345,15 +402,19 @@ input[type=submit] {
 }
 
 #profile .panel {
-    color: #666;
     background-color: #EEE;
-    border-top: 1px solid #BBB;
-    border-radius: 0 0 3px 3px;
+    border-top: 1px solid #DDD;
+    border-radius: 0 0 6px 6px;
+    color: #999;
     margin: 1em 0 0;
 }
 
-#profile .panel img {
-    vertical-align: middle;
+#profile .panel a {
+    color: #666;
+}
+
+#profile .panel a:hover {
+    color: #333;
 }
 
 #profile ul {
@@ -362,32 +423,28 @@ input[type=submit] {
     padding: 0;
 }
 
-#profile ul .link {
-    color: #666;
-}
-
-#profile ul .link:hover {
-    color: #333;
-}
-
 #profile li {
-    border-right: 1px solid #BBB;
-    color: #333;
     float: left;
-    font-weight: 700;
     list-style: none;
     margin: 0;
     padding: 0.5em 1em;
 }
 
+#profile .action {
+    border-radius: 3px;
+    font-weight: 700;
+    float: right;
+    margin: 0.25em;
+    padding: 0.25em 0;
+    text-align: center;
+    width: 100px;
+}
+
 /* POST =================================================================== */
 #post {
     background-color: #FFF;
-    color: #333;
-    padding: 0;
-}
-
-#post .top-section {
+    border: 1px solid #666;
+    border-radius: 6px;
     padding: 0.5em;
 }
 
@@ -397,8 +454,8 @@ input[type=submit] {
     margin: 0;
 }
 
-#post .details {
-    margin: 0 0 0 60px;
+#post .content {
+    margin: 0 3em 0 5em;
     padding: 0;
 }
 
@@ -407,16 +464,8 @@ input[type=submit] {
     line-height: 1em;
 }
 
-#post .user-score {
-    background-color: #EEE;
-    border: 1px solid #BBB;
-    border-radius: 3px;
-    padding: 0 0.25em;
-    margin: 0 0 0 0.25em;
-}
-
 #post .body {
-    margin: 1em 2em 0 0;
+    margin: 1em 0 1em;
     word-wrap: break-word;
 }
 
@@ -444,70 +493,59 @@ input[type=submit] {
 }
 
 #post .panel {
-    background-color: #EEE;
-    border-top: 1px solid #BBB;
-    border-radius: 0 0 3px 3px;
+    color: #999;
+    border-radius: 0 0 6px 6px;
+    margin: 0.5em 0 0;
+    padding: 0.5em 0;
 }
 
-#post .panel img {
-    vertical-align: middle;
-}
-
-#post ul {
-    color: #000;
+#post .panel ul {
     float: left;
     text-align: center;
     margin: 0;
     padding: 0;
 }
 
-#post li {
-    border-right: 1px solid #BBB;
-    color: #333;
+#post .panel li {
     float: left;
     font-weight: 700;
     list-style: none;
-    margin: 0;
-    padding: 0.5em 1em;
-}
-
-#post .link:hover {
-    color: #FFF;
-}
-
-#post .last {
-    border: 0;
+    margin: 0 1em 0 0;
+    padding: 0;
 }
 
 /* AUTHOR ================================================================= */
 #author {
-    border: 1px solid #333;
-    border-radius: 3px;
+    border: 1px solid #666;
+    border-radius: 6px;
     padding: 0.5em;
 }
 
-.author-comment {
-    background-color: #0DF;
+#author.comment {
+    background-color: #9CF;
 }
 
-.author-post {
-    background-color: #FD0;
+#author.post {
+    background-color: #FE6;
 }
 
-#author h1 {
-    color: #000;
-    font-size: 1em;
-    margin: 0;
-    padding: 0 0.25em 0.25em 0.25em;    
-    text-align: center;
+#author textarea {
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+    resize: vertical;
 }
 
-#author .character-count {
+#author input[type="text"] {
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin: 0 0 0.5em 0;
+}
+
+#author #count {
     float: left;
-}
-
-#character-count {
-    float: left;
+    padding: 0.25em;
 }
 
 /* SEARCH ================================================================= */
@@ -518,16 +556,21 @@ input[type=submit] {
 /* CONTENT ================================================================ */
 #content {
     background-color: #FFF;
-    border: 1px solid #333;
-    border-radius: 3px;
-    padding: 0.5em;
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 0;
 }
 
 #content h1 {
+    background-color: #EEE;
+    border-bottom: 1px solid #666;
+    border-radius: 6px 6px 0 0;
     color: #666;
-    font-size: 1.25em;
-    margin: 0 0 1em 0;
-    padding: 0;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+    vertical-align: middle;
 }
 
 #content h2 {
@@ -550,60 +593,49 @@ input[type=submit] {
 }
 
 #list .item {
-    background-color: #FFF;
-    border-bottom: 1px solid #999;
+    border-bottom: 1px solid #DDD;
     list-style: none;
-    margin: 0 0 1em 0;
+    margin: 0 0 0.5em 0;
     padding: 0.5em;
 }
 
-#list .post {
-    border: 0;
-}
-
 #list .last {
-    border: 0;
+    border-bottom: 0;
+    margin: 0 0 0.5em;
 }
-
-/* stub, used in profile, not formatting
-#list .top-section {
-}
-*/
 
 #list .avatar {
     float: left;
-    height: 3em;
-    margin: 0 1em 0 0;
-    width: 3em;
 }
 
-#list .details-post {
+#list .content.post {
     margin: 0 2em 0 4em;
 }
 
-#list .details-user {
+#list .content.user {
     margin: 0 9em 0 4em;
 }
 
-#list .details-alert {
-    margin: -1em 2em 0 4em;
+#list .content.alert {
+    margin: 0 2em 0 3em;
+    vertical-align: middle;
 }
 
 #list .username {
-    font-size: 1em;
-}
-
-#list .user-score {
-    background-color: #EEE;
-    border: 1px solid #BBB;
-    border-radius: 3px;
-    padding: 0.1em 0.25em;
-    margin: 0 0 0 0.5em;
+    font-size: 1.25em;
 }
 
 #list .body {
-    margin: 1em 0 0;
+    margin: 0.75em 0 1em;
     word-wrap: break-word;
+}
+
+#list .user .body{
+    margin: 0.75em 0 0;
+}
+
+#list .alert .body {
+    margin: 0;
 }
 
 #list .created {
@@ -615,6 +647,7 @@ input[type=submit] {
 
 #list .control {
     float: right;
+    margin: 0;
 }
 
 #list .button {
@@ -623,30 +656,10 @@ input[type=submit] {
     text-align: center;
 }
 
-#list .comment-count {
-    border-left: 1px solid #BBB;
-    color: #333;
-    float: right;
-    margin: 0;
-    padding: 0.25em 1em;
-}
-
 #list .post .action {
     float: right;
     height: 24px;
     width: 24px;
-}
-
-#list .control .delete {
-    color: #CCC;
-    border-radius: 5px;
-    font-weight: 700;
-    text-align: center;
-    padding: 0.25em 0.5em;
-}
-
-#list .control .delete:hover {
-    color: #F00;
 }
 
 #list .user .action {
@@ -654,66 +667,60 @@ input[type=submit] {
 }
 
 #list .panel {
-    background-color: #EEE;
-    border: 1px solid #BBB;
-    border-radius: 3px;
-    color: #333;
+    color: #999;
     font-weight: 700;
 }
 
-#list .panel img {
-    vertical-align: middle;
-}
-
-#list .voting {
-    float: left;
-    text-align: center;
-    margin: 0;
+#list .panel ul {
+    list-style: none;
     padding: 0;
 }
 
-#list .voting-item {
-    border-right: 1px solid #BBB;
-    color: #333;
-    float: left;
-    list-style: none;
-    margin: 0;
-    padding: 0.25em 1em;
-}
-
-#list .link:hover {
-    background-color: #BBB;
-}
-
-/* PAGINATION ============================================================= */
-#pagination {
-    font-size: 13px;
-    font-weight: 700;
-    padding: 0 0.5em 0.5em;
-}
-
-#pagination a {
-    color: #333;
-}
-
-#pagination .button {
-    background-color: #EEE;
-    border: 1px solid #BBB;
-    border-radius: 3px;
-    color: #333;
-    padding: 0.25em 0;
-    text-align: center;
-    width: 4em;
-}
-
-#pagination .prev {
+#list .panel li {
     float: left;
     margin: 0 1em 0 0;
 }
 
-#pagination .next {
+#list .action {
+    border-radius: 3px;
+    font-weight: 700;
     float: right;
-    margin: 0 0 0 1em;
+    padding: 0.25em 0;
+    text-align: center;
+    width: 100px;
+}
+
+/* PAGINATION ============================================================= */
+#pagination {
+    background-color: #EEE;
+    border-top: 1px solid #666;
+    border-radius: 0 0 6px 6px;
+    color: #666;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 0;
+    padding: 0.5em;
+    vertical-align: middle;
+}
+
+#pagination a {
+    color: #666;
+}
+
+#pagination .newer {
+    border-radius: 0 0 0 3px;
+    float: left;
+    text-align: left;
+}
+
+#pagination .older {
+    border-radius: 0 0 3px 0;
+    float: right;
+    text-align: right;
+}
+
+#pagination *:hover {
+    color: #333;
 }
 
 /* SETTINGS ================================================================ */
@@ -727,12 +734,7 @@ input[type=submit] {
     padding: 0;
 }
 
-#settings-menu .last {
-    border: 0;
-}
-
 #settings-menu li {
-    border-right: 1px solid #BBB;
     color: #666;
     float: left;
     font-weight: 700;
@@ -746,13 +748,14 @@ input[type=submit] {
 }
 
 #setting {
-    margin: 1em auto;
-    padding: 0;
+    margin: 0 auto;
+    padding: 0.5em;
     min-width: 300px;
     max-width: 380px;
 }
 
 #setting .details {
+    margin: 0;
     padding: 0;
 }
 
@@ -771,20 +774,28 @@ input[type=submit] {
 
 /* FOOTER ================================================================= */
 #footer {
-    color: #680;
-    font-size: 0.75em;
     margin: 2em 0 0.5em 0;
     text-align: center;
-    bottom: 0;
 }
 
 #footer a {
+    color: #333;
+    font-weight: 400;
+}
+
+#footer a:hover {
     color: #000;
     text-decoration: underline;
 }
 
-#footer a:hover {
-    color: #36F;
+#footer .links {
+    font-size: 1em;
+    margin: 0 0 0.5em 0;
+}
+
+#footer .copyright {
+    color: #666;
+    font-size: 0.75em;
 }
 
 /* ERRORS ================================================================= */
@@ -820,6 +831,7 @@ input[type=submit] {
         display: none;
     }
 
+    /* AUTH ================================================================ */
     #auth .container {
         width: 98%;
     }
@@ -831,46 +843,66 @@ input[type=submit] {
         width: 40%;
     }
 
+    /* HEADER ============================================================== */
     #header .container {
         margin: 0;
         width: 100%;
-    }
-
-    #header .menu {
-        font-size: 0.75em;
-    }
-
-    #header .menu img {
-        margin: 0 0.5em;
     }
 
     #header .menu li {
         padding: 0 0.5em;
     }
 
+    /* MAIN ================================================================ */
     #main .container {
         padding: 0;
         width: 98%;
+    }
+
+    /* ACTION BUTTON ======================================================= */
+
+    /* PROFILE ============================================================= */
+    #profile .avatar {
+        height: 24px;
+        width: 24px;
+    }
+
+    #profile .content {
+        margin: 0 0 0 44px;
+    }
+
+    #profile .username {
+        line-height: 1em;
+        margin-top: 3px;
+        vertical-align: middle;
     }
 
     #profile .body {
         display: none;
     }
 
-    #profile ul {
+    #profile .panel {
+        margin: 0;
+    }
+
+    #profile .panel ul {
         float: none;
     }
 
-    #profile li {
-        border: 0;
-        border-bottom: 1px solid #BBB;
+    #profile .panel li {
         float: none;
         padding: 0.5em 1em;
     }
 
+    #profile .action {
+        width: auto;
+        float: none;
+        padding: 0.5em 0;
+    }
+
+    /* SETTINGS ============================================================ */
     #settings-menu li {
         border: 0;
-        border-bottom: 1px solid #BBB;
         float: none;
         padding: 0.5em 1em;
     }

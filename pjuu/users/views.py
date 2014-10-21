@@ -34,7 +34,7 @@ from pjuu.auth import current_user
 from pjuu.auth.backend import (get_uid, get_uid_email, get_uid_username,
                                USERNAME_RE)
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next
+from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import check_post, get_post, parse_tags
 from pjuu.posts.forms import PostForm
@@ -136,9 +136,35 @@ def timeify_filter(time):
         # precision. We don't really need this when displaying it to the users
         # however.
         # Time can't be coverted directly to a int as it is a float point repr
-        time = int(float(time))
-        return strftime("%a %d %b %Y %H:%M:%S", gmtime(time))
-    except (TypeError, ValueError):
+        time = int(timestamp() - float(time))
+
+        multiples = [
+            (31536000, 'year'),
+            (2592000, 'month'),
+            (604800, 'week'),
+            (86400, 'day'),
+            (3600, 'hour'),
+            (60, 'minute'),
+            (1, 'second')
+        ]
+
+        # Find the closest time multiple since this post was posted
+        # Work out the number of these multiples and return the string
+        for multiple in multiples:
+            if time < multiple[0]:
+                continue;
+            number_of = math.floor(time / multiple[0])
+            if number_of > 1:
+                time_frame = multiple[1] + 's'
+            else:
+                time_frame = multiple[1]
+
+            return "{0} {1} ago".format(int(number_of), time_frame)
+
+        # Default return means that this was checked less than a second ago
+        return "Less than a second ago"
+
+    except (TypeError, ValueError) as e:
         return "Err"
 
 
