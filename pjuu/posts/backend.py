@@ -90,7 +90,7 @@ class PostingAlert(BaseAlert):
 
         """
         return r.exists(K.USER.format(self.uid)) and \
-               r.exists(K.POST.format(self.pid))
+            r.exists(K.POST.format(self.pid))
 
 
 class TaggingAlert(PostingAlert):

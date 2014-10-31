@@ -184,11 +184,11 @@ class PostFrontendTests(FrontendTestCase):
         # Try and post to many characters
         resp = self.client.post(url_for('post', next=url_for('feed')), data={
             'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttest')
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttest')
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than 255 characters', resp.data)
 
@@ -293,11 +293,11 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('comment', username='user1',
                                         pid=post1), data={
             'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                    'testtesttesttesttest')
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
+                     'testtesttesttesttest')
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than 255 characters', resp.data)
 
@@ -440,7 +440,7 @@ class PostFrontendTests(FrontendTestCase):
                                cid=comment2), follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
-        # Log in as user3 and try and catch some situations which are missing
+        # Log in as user3 and try and catch some situations which are missing
         # from coverage.
         resp = self.client.post(url_for('signin'), data={
             'username': 'user3',

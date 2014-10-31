@@ -134,7 +134,7 @@ def create_user(username, email, password):
         # Create user dictionary ready for HMSET only if uid is not None
         # This will only be None in the event of a race condition which we cant
         # really test for.
-        if uid is not None: # pragma: no branch
+        if uid is not None:  # pragma: no branch
             user = {
                 'uid': uid,
                 'username': username,
@@ -598,7 +598,7 @@ def dump_account(uid):
         post = r.hgetall(K.POST.format(pid))
         # Don't add a post that does not exist
         # This should not really happen as we clean up along the way
-        if post: # pragma: no branch
+        if post:  # pragma: no branch
             post['uid'] = '<UID>'
             post['created'] = int(float(post['created']))
             posts.append(post)
@@ -609,7 +609,7 @@ def dump_account(uid):
         comment = r.hgetall(K.COMMENT.format(cid))
         # Don't add a comment that does not exist
         # This should not really happen as we clean up along the way
-        if comment: # pragma: no branch
+        if comment:  # pragma: no branch
             comment['uid'] = '<UID>'
             comment['created'] = int(float(comment['created']))
             comments.append(comment)

@@ -152,7 +152,7 @@ def timeify_filter(time):
         # Work out the number of these multiples and return the string
         for multiple in multiples:
             if time < multiple[0]:
-                continue;
+                continue
             number_of = math.floor(time / multiple[0])
             if number_of > 1:
                 time_frame = multiple[1] + 's'
@@ -358,7 +358,7 @@ def search():
 
     # Get the query string. If its not there return an empty string
     query = request.args.get('query', '')
-    
+
     _results = be_search(query)
     return render_template('search.html', form=form, query=query,
                            pagination=_results)

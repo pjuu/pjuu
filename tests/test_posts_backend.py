@@ -183,7 +183,7 @@ class PostBackendTests(BackendTestCase):
         comment1 = create_comment(user1, post1, 'Test comment')
 
         # Let's cheat and set user1's score back to 0 so we can check it will
-        # not be lowered in the user3 downvote
+        # not be lowered in the user3 downvote
         r.hset(K.USER.format(user1), 'score', 0)
 
         # Get user 3 to downvote

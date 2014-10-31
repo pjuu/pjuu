@@ -96,7 +96,7 @@ def post(redirect_url=None):
             flash(form.body.errors[0], 'error')
         else:
             flash('Oh no! There are errors in your post.',
-                  'error') # pragma: no cover
+                  'error')  # pragma: no cover
     return redirect(redirect_url)
 
 
@@ -131,7 +131,7 @@ def comment(username, pid):
             flash(form.body.errors[0], 'error')
         else:
             flash('Oh no! There are errors in your comment.',
-                  'error') # pragma: no cover
+                  'error')  # pragma: no cover
     return redirect(redirect_url)
 
 

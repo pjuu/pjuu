@@ -61,7 +61,7 @@ def create_app(config_filename='settings.py', config_dict=None):
     """
     # Pylint has suggested I dont set config_dict to a empty dict, we now have
     # to check if it is None and then assign an empty dict
-    if config_dict is None: # pragma: no cover
+    if config_dict is None:  # pragma: no cover
         config_dict = {}
 
     # Create application
@@ -81,7 +81,7 @@ def create_app(config_filename='settings.py', config_dict=None):
     # We now only use Sentry for logging all our in application errors
     # We do not need it if debug is True as we expect there could be errors
     # and we get full visibility.
-    if not app.debug: # pragma: no cover
+    if not app.debug:  # pragma: no cover
         sentry.init_app(app)
 
     # This is the _MAIN_ redis client. ONLY STORE DATA HERE

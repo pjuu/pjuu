@@ -244,10 +244,10 @@ class FrontendTests(FrontendTestCase):
 
         # Try follow and unfollow yourself
         resp = self.client.get(url_for('follow', username='user1'),
-                                       follow_redirects=True)
+                               follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
         resp = self.client.get(url_for('unfollow', username='user1'),
-                                       follow_redirects=True)
+                               follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
 
         # Visit test2 and ensure followers count is 0

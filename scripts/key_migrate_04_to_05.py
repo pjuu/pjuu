@@ -102,25 +102,25 @@ if __name__ == "__main__":
             print "Migrating user key"
             if r.exists(key):
                 r.rename(key,
-                    USER.format(user.groups(1)[0]))
+                         USER.format(user.groups(1)[0]))
             if r.exists(key + ":feed"):
                 r.rename(key + ":feed",
-                    USER_FEED.format(user.groups(1)[0]))
+                         USER_FEED.format(user.groups(1)[0]))
             if r.exists(key + ":posts"):
                 r.rename(key + ":posts",
-                    USER_POSTS.format(user.groups(1)[0]))
+                         USER_POSTS.format(user.groups(1)[0]))
             if r.exists(key + ":comments"):
                 r.rename(key + ":comments",
-                    USER_COMMENTS.format(user.groups(1)[0]))
+                         USER_COMMENTS.format(user.groups(1)[0]))
             if r.exists(key + ":followers"):
                 r.rename(key + ":followers",
-                    USER_FOLLOWERS.format(user.groups(1)[0]))
+                         USER_FOLLOWERS.format(user.groups(1)[0]))
             if r.exists(key + ":following"):
                 r.rename(key + ":following",
-                    USER_FOLLOWING.format(user.groups(1)[0]))
+                         USER_FOLLOWING.format(user.groups(1)[0]))
             if r.exists(key + ":alerts"):
                 r.rename(key + ":alerts",
-                    USER_ALERTS.format(user.groups(1)[0]))
+                         USER_ALERTS.format(user.groups(1)[0]))
             continue
         #######################################################################
         # Posts
@@ -130,16 +130,16 @@ if __name__ == "__main__":
             print "Migrating post key"
             if r.exists(key):
                 r.rename(key,
-                    POST.format(post.groups(1)[0]))
+                         POST.format(post.groups(1)[0]))
             if r.exists(key + ":votes"):
                 r.rename(key + ":votes",
-                    POST_VOTES.format(post.groups(1)[0]))
+                         POST_VOTES.format(post.groups(1)[0]))
             if r.exists(key + ":comments"):
                 r.rename(key + ":comments",
-                    POST_COMMENTS.format(post.groups(1)[0]))
+                         POST_COMMENTS.format(post.groups(1)[0]))
             if r.exists(key + ":subscribers"):
                 r.rename(key + ":subscribers",
-                    POST_SUBSCRIBERS.format(post.groups(1)[0]))
+                         POST_SUBSCRIBERS.format(post.groups(1)[0]))
             continue
         #######################################################################
         # Comments
@@ -149,11 +149,11 @@ if __name__ == "__main__":
             print "Migrating comment key"
             if r.exists(key):
                 r.rename(key,
-                    COMMENT.format(comment.groups(1)[0]))
+                         COMMENT.format(comment.groups(1)[0]))
             if r.exists(key + ":votes"):
                 r.rename(key + ":votes",
-                    COMMENT_VOTES.format(comment.groups(1)[0]))
-	    continue
+                         COMMENT_VOTES.format(comment.groups(1)[0]))
+            continue
         #######################################################################
         # Alerts
         #######################################################################

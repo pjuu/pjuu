@@ -4,7 +4,7 @@
 Description:
     Our implementation of auth tokens.
 
-    These are incredibly simply they 
+    These are incredibly simply they
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>

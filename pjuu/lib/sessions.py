@@ -27,7 +27,7 @@ Licence:
 # Stdlib imports
 try:
     import cPickle as pickle
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     import pickle
 from datetime import timedelta
 from uuid import uuid1
@@ -62,7 +62,7 @@ class RedisSessionInterface(SessionInterface):
     session_class = RedisSession
 
     def __init__(self, redis=None, prefix=''):
-        if redis is None: # pragma: no cover
+        if redis is None:  # pragma: no cover
             redis = StrictRedis()
         self.redis = redis
         self.prefix = prefix

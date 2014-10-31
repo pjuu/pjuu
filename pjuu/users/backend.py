@@ -54,6 +54,7 @@ class FollowAlert(BaseAlert):
                .format(url_for('profile', username=self.get_username()),
                        do_capitalize(self.get_username()))
 
+
 def get_profile(uid):
     """Returns a user dict with add post_count, follow_count and following.
 

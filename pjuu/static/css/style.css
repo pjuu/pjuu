@@ -829,6 +829,43 @@ button:hover {
     color: #36F;
 }
 
+/* ERRORS ================================================================= */
+#pages {
+    margin: 0.5em 1em;
+}
+
+#pages h1 {
+    background-color: #FFF;
+    border: 0;
+    border-bottom: 1px solid #333;
+    color: #333;
+    font-size: 1.5em;
+    margin: 1em 0;
+    padding: 0 0 0.25em 0;
+}
+
+#pages h2 {
+    background-color: #FFF;
+    border: 0;
+    color: #666;
+    font-size: 1.25em;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+}
+
+#pages img {
+    margin: 0.5em 1em 0.5em 0.5em;
+}
+
+#pages ul {
+    list-style: none
+}
+
+#pages li {
+    margin: 0 0 1em 0;
+}
+
 /* MEDIA QUERIES ========================================================== */
 @media only screen and (max-width: 650px) {
     .no-mobile {
