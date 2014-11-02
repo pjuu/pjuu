@@ -5,7 +5,7 @@ Pjuu is under very active development at this early stage in its life. A lot
 may change between versions until we are happy with it :)
 ```
 
-[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu=master) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg?branch=master)](https://coveralls.io/r/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html) [![Hipchat](http://img.shields.io/badge/chat-hipchat-blue.svg)](http://www.hipchat.com/gpbvQy6JF)
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=0.5)](https://travis-ci.org/pjuu/pjuu=0.5) [![Coverage Status](https://img.shields.io/coveralls/pjuu/pjuu.svg?branch=0.5)](https://coveralls.io/r/pjuu/pjuu?branch=0.5) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=0.5)](https://requires.io/github/pjuu/pjuu/requirements/?branch=0.5) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html) [![Hipchat](http://img.shields.io/badge/chat-hipchat-blue.svg)](http://www.hipchat.com/gpbvQy6JF)
 
 An open-source social networking application which runs https://pjuu.com.
 
