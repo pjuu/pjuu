@@ -23,20 +23,17 @@ Licence:
 """
 
 # Stdlib imports
-from time import gmtime
-from calendar import timegm
 import re
 # 3rd party imports
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.auth.backend import get_user, USERNAME_RE
-from pjuu.lib import keys as K, lua as L, timestamp
+from pjuu import mongo as m, redis as r
+from pjuu.auth.backend import get_user
+from pjuu.lib import keys as K, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.posts.backend import (get_comment, get_post, delete_comment,
-                                delete_post)
+from pjuu.posts.backend import get_comment, get_post
 
 
 # Regular expressions
@@ -51,8 +48,8 @@ class FollowAlert(BaseAlert):
 
     def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> has started following you' \
-               .format(url_for('profile', username=self.get_username()),
-                       do_capitalize(self.get_username()))
+               .format(url_for('profile', username=self.user.get('username')),
+                       do_capitalize(self.user.get('username')))
 
 
 def get_profile(uid):
@@ -62,7 +59,9 @@ def get_profile(uid):
     profile = r.hgetall(K.USER.format(uid))
 
     if profile:
-        profile['post_count'] = r.llen(K.USER_POSTS.format(uid))
+        # Count the users posts in MongoDB
+        profile['post_count'] = m.db.posts.count({'uid': uid})
+        # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(K.USER_FOLLOWERS.format(uid))
         profile['following_count'] = r.zcard(K.USER_FOLLOWING.format(uid))
 

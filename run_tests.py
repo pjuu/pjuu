@@ -55,6 +55,8 @@ if __name__ == '__main__':
         'SERVER_NAME': 'localhost',
         # This just stops us getting through forms if True
         'WTF_CSRF_ENABLED': False,
+        # MognoDB settings for tests
+        'MONGO_DBNAME': 'pjuu-testing',
         # Change the Redis database numbers so that we do not overwrite
         # our data each time we run the tests
         'REDIS_DB': 2,
@@ -68,7 +70,7 @@ if __name__ == '__main__':
         # Prepare for testing
         test_loader = unittest.defaultTestLoader
         test_runner = unittest.TextTestRunner()
-        test_suite = test_loader.discover('tests', pattern='test_*.py')
+        test_suite = test_loader.discover('tests', pattern='test_auth_backend.py')
 
         # Run all located tests and save the returns
         test_results = test_runner.run(test_suite)

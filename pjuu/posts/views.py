@@ -25,7 +25,7 @@ Licence:
 from flask import current_app as app, abort, flash, redirect, request, url_for
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import get_uid, is_mute
+from pjuu.auth.backend import get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from .backend import (create_post, create_comment, check_post, has_voted,
@@ -80,13 +80,13 @@ def post(redirect_url=None):
                                username=current_user['username']))
 
     # Stop muted users from creating posts
-    if is_mute(current_user['uid']):
+    if current_user.get('muted', False):
         flash('You have been silenced!', 'warning')
         return redirect(redirect_url)
 
     form = PostForm(request.form)
     if form.validate():
-        pid = create_post(current_user['uid'], form.body.data)
+        create_post(current_user['_id'], form.body.data)
         flash('Your post has been added', 'success')
     else:
         # This flash can handle only 1 form error
@@ -115,13 +115,13 @@ def comment(username, pid):
                                username=username, pid=pid))
 
     # Stop muted users from commenting
-    if is_mute(current_user['uid']):
+    if current_user.get('muted'):
         flash('You have been silenced!', 'warning')
         return redirect(redirect_url)
 
     form = PostForm(request.form)
     if form.validate():
-        cid = create_comment(current_user['uid'], pid, form.body.data)
+        create_comment(current_user['uid'], pid, form.body.data)
         flash('Your comment has been added', 'success')
     else:
         # This flash can handle only 1 form error
@@ -154,9 +154,9 @@ def upvote(username, pid=-1, cid=None):
 
     try:
         if cid:
-            result = vote_comment(current_user['uid'], cid, amount=1)
+            vote_comment(current_user['_id'], cid, amount=1)
         else:
-            result = vote_post(current_user['uid'], pid, amount=1)
+            vote_post(current_user['_id'], pid, amount=1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
@@ -186,9 +186,9 @@ def downvote(username, pid=-1, cid=None):
 
     try:
         if cid:
-            result = vote_comment(current_user['uid'], cid, amount=-1)
+            vote_comment(current_user['_id'], cid, amount=-1)
         else:
-            result = vote_post(current_user['uid'], pid, amount=-1)
+            vote_post(current_user['_id'], pid, amount=-1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
@@ -220,15 +220,16 @@ def delete_post(username, pid, cid=None):
         return abort(404)
 
     if cid is not None:
+        # TODO Refactor this. It looks to confusing
         author_uid = get_comment_author(cid)
         # Allow not only the comment author to remove the comment but also
         # allow the post author to do so!
-        if author_uid != current_user['uid'] and \
-           uid != current_user['uid']:
+        if author_uid != current_user['_id'] and \
+           uid != current_user['_id']:
             return abort(403)
     else:
         # If this is a post ONLY allow the post author to delete
-        if uid != current_user['uid']:
+        if uid != current_user['_id']:
             return abort(403)
 
     if cid is not None:
@@ -257,7 +258,7 @@ def unsubscribe(username, pid):
 
     # Unsubscribe the user from the post, only show them a message if they
     # were actually unsubscribed
-    if be_unsubscribe(current_user['uid'], pid):
+    if be_unsubscribe(current_user['_id'], pid):
         flash('You have been unsubscribed from this post', 'success')
 
     return redirect(redirect_url)

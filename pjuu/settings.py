@@ -25,6 +25,10 @@ TESTING = True
 # Ensure you change this!
 SECRET_KEY = 'Development Key'
 
+# MongoDB Settings
+MONGO_HOST = 'localhost'
+MONGO_DBNAME = 'pjuu'
+
 # Redis settings (this is just the datastore, not sessions)
 REDIS_HOST = 'localhost'
 REDIS_DB = 0

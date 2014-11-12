@@ -33,16 +33,18 @@ from collections import Iterable
 from uuid import uuid1
 # 3rd party imports
 import jsonpickle
+from werkzeug.utils import cached_property
 # Pjuu imports
-from pjuu import redis as r
+from pjuu import mongo as m, redis as r
+from pjuu.auth.backend import get_user as be_get_user
 from pjuu.lib import keys as K, lua as L, timestamp
 
 
 class BaseAlert(object):
-    """
-    Base form for all alerts within Pjuu.
+    """Base form for all alerts within Pjuu.
 
     Note: This should not be used directly but subclassed.
+
     """
 
     def __init__(self, uid):
@@ -50,30 +52,26 @@ class BaseAlert(object):
         self.timestamp = timestamp()
         self.uid = uid
 
-    def get_username(self):
-        """
-        Helper; Get the username of the user who caused this.
-        """
-        return r.hget(K.USER.format(self.uid), 'username')
+    @cached_property
+    def user(self):
+        """Helper; Get the user object of the user who caused the alert.
+        This value is cached in the interpretter so it doesn't go to the
+        database each time this is called.
 
-    def get_email(self):
         """
-        Helper; Get the e-mail address of the user who caused this.
-        """
-        return r.hget(K.USER.format(self.uid), 'email')
+        return be_get_user(self.uid)
 
     def verify(self):
-        """
-        Check the alert is valid. You may need to overwrite this if you add
+        """Check the alert is valid. You may need to overwrite this if you add
         anything to base alerts. See posts.backends.PostingAlert for more
         details on how to implement this.
+
         """
         # Simple implementation, check the user exists
-        return r.exists(K.USER.format(self.uid))
+        return bool(m.db.users.find(self.uid).limit(1))
 
     def prettify(self, for_uid=None):
-        """
-        Overwrite to show how the alert will be presented to the user.
+        """Overwrite to show how the alert will be presented to the user.
 
         For example:
 
@@ -82,18 +80,19 @@ class BaseAlert(object):
         Feel free to use all functions you need to help make this happen.
         You may have to import some from Jinja2 and use url_for to get what we
         are looking for.
+
         """
         raise NotImplementedError
 
 
 class AlertManager(object):
-    """
-    Handles storing, loading and dishing out alerts.
+    """Handles storing, loading and dishing out alerts.
+
     """
 
     def get(self, aid):
-        """
-        Attempts to load an Alert from Redis and unpickle it
+        """Attempts to load an Alert from Redis and unpickle it.
+
         """
         # Try the unpickling process
         try:
@@ -114,15 +113,15 @@ class AlertManager(object):
             return None
 
     def alert(self, alert, uids):
-        """
-        Will attempt to alert the user with uid to the alert being managed.
+        """Will attempt to alert the user with uid to the alert being managed.
 
         This will call the alerts before_alert() method, which allows you to
         change the alert per user. It's not needed though.
+
         """
         # Check that the manager actually has an alert
         if not isinstance(alert, BaseAlert):
-            raise ValueError('AlertManager requires an alert to alert')
+            raise ValueError('alert must be a BaseAlert object')
 
         # Ensure uids is iterable
         # Stopped strings being passed in

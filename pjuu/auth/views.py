@@ -23,7 +23,7 @@ Licence:
 
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
-                   request, url_for, session, g, jsonify)
+                   request, url_for, session, jsonify)
 # Pjuu imports
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
@@ -32,8 +32,7 @@ from pjuu.auth import current_user
 from pjuu.auth.backend import (authenticate, login, logout, create_user,
                                activate as be_activate, get_user,
                                change_password as be_change_password,
-                               change_email as be_change_email,
-                               get_uid, is_active, is_banned, get_email,
+                               change_email as be_change_email, get_uid,
                                delete_account as be_delete_account,
                                dump_account as be_dump_account)
 from pjuu.auth.decorators import anonymous_required, login_required
@@ -59,19 +58,19 @@ def kick_banned_user():
     before they are informed that they are banned. This fucntion will just
     ensure they are kicked out
     """
-    if 'uid' in session:
-        if is_banned(session['uid']):
-            session.pop('uid', None)
-            flash('You\'re a very naughty boy!', 'error')
+    if current_user and current_user.get('banned', False):
+        session.pop('uid', None)
+        flash('You\'re a very naughty boy!', 'error')
 
 
 @app.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
-    """
-    Logs a user in.
+    """Logs a user in.
+
     Will authenticate username/password, check account activation and
     if the user is banned or not before setting user_id in session.
+
     """
     form = SignInForm(request.form)
     if request.method == 'POST':
@@ -80,21 +79,21 @@ def signin():
 
         if form.validate():
             # Calls authenticate from backend.py
-            uid = authenticate(form.username.data, form.password.data)
-            if uid:
+            user = authenticate(form.username.data, form.password.data)
+            if user:
                 # Ensure the user is active
-                if not is_active(uid):
+                if not user.get('active', False):
                     flash('Please activate your account<br />'
                           'Check your e-mail', 'information')
                 # Ensure the user is not banned
-                elif is_banned(uid):
+                elif user.get('banned', False):
                     flash('You\'re a very naughty boy!', 'error')
                 # All OK log the user in
                 else:
                     # We will also make the session permanent if the user
                     # has requested too
                     session.permanent = form.keep_signed_in.data
-                    login(uid)
+                    login(user.get('_id'))
                     return redirect(redirect_url)
             else:
                 flash('Invalid user name or password', 'error')
@@ -149,9 +148,6 @@ def signup():
                       'to activate your account', 'success')
                 return redirect(url_for('signin'))
 
-        # This will fire if the form is invalid or if there is a race
-        # condition with 2 users trying to enter the same username or password
-        # at exactly the same time.
         flash('Oh no! There are errors in your form. Please try again.',
               'error')
 
@@ -168,17 +164,16 @@ def activate(token):
     data = check_token(token)
     if data is not None and data.get('action') == 'activate':
         # Attempt to activate the users account
-        uid = data.get('uid')
-        # This should be impossible to happen. The user would have to live a
-        # millisecond longer than the auth token they are sent to activate
-        # there account and at the very last nano-second try and activate.
-        # Not going to get.
-        if uid and get_user(uid):  # pragma: no branch
-            be_activate(uid)
+        user = get_user(data.get('uid'))
+        # This does not need a branching check as it should never fail!
+        # The check is there for safety. An auth token can not live longer
+        # than a newly created user.
+        if user is not None:  # pragma: no branch
+            be_activate(user.get('_id'))
             # If we have got to this point. Send a welcome e-mail :)
             send_mail(
                 'Pjuu Account Notifcation - Welcome!',
-                [get_email(uid)],
+                [user.get('email')],
                 text_body=render_template('emails/welcome.txt'),
                 html_body=render_template('emails/welcome.html')
             )
@@ -202,13 +197,13 @@ def forgot():
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
-        uid = get_uid(form.username.data)
-        if uid:
+        user = get_user(form.username.data)
+        if user is not None:
             # Only send e-mails to user which exist.
-            token = generate_token({'action': 'reset', 'uid': uid})
+            token = generate_token({'action': 'reset', '_id': user.get('_id')})
             send_mail(
                 'Pjuu Account Notification - Password Reset',
-                [get_email(uid)],
+                [user.get('email')],
                 text_body=render_template('emails/forgot.txt',
                                           token=token),
                 html_body=render_template('emails/forgot.html',
@@ -265,7 +260,7 @@ def change_email():
             # Get an authentication token
             token = generate_token({
                 'action': 'change_email',
-                'uid': current_user['uid'],
+                'uid': current_user['_id'],
                 'email': form.new_email.data}
             )
             # Send a confirmation to the new email address
@@ -335,7 +330,7 @@ def change_password():
         if form.validate():
             # User authenticates in the form
             # Update the users password!
-            be_change_password(current_user['uid'], form.new_password.data)
+            be_change_password(current_user['_id'], form.new_password.data)
             flash('We\'ve updated your password', 'success')
             # Inform the user via e-mail that their password has changed
             send_mail(
@@ -363,14 +358,14 @@ def delete_account():
     form = ConfirmPasswordForm(request.form)
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
-            uid = current_user['uid']
+            uid = current_user['_id']
             email = current_user['email']
             # Log the current user out
             logout()
             # Delete the account
             be_delete_account(uid)
             # Inform the user that the account has/is being deleted
-            flash('Your account has been deleted<br />Thanks for using us',
+            flash('Your account is being deleted<br />Thanks for using us',
                   'information')
             # Send the user their last ever email on Pjuu
             send_mail(
@@ -396,7 +391,7 @@ def dump_account():
     if request.method == 'POST':
         if authenticate(current_user['username'], form.password.data):
             # Dump the users account
-            data = be_dump_account(current_user['uid'])
+            data = be_dump_account(current_user['_id'])
             # JSONify the data and display it to the user :) simple
             return jsonify(data)
         else:

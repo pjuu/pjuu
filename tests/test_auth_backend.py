@@ -21,13 +21,10 @@ Licence:
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Stdlib import
-import json
 # 3rd party imports
-from flask import current_app as app, request, session, url_for, g
+from flask import current_app as app, session
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.auth import current_user
+from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import *
 from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post, create_comment
@@ -80,41 +77,36 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNone(get_user(K.NIL_VALUE))
         # Make sure getting the user returns a dict
         self.assertIsNotNone(get_user(user1))
-        # Check other user functions
-        # get_username()
-        self.assertEqual(get_username(user1), 'user1')
-        self.assertIsNone(get_username(K.NIL_VALUE))
-        # get_email()
-        self.assertEqual(get_email(user1), 'user1@pjuu.com')
-        self.assertIsNone(get_email(K.NIL_VALUE))
+        # Test get_user()
+        self.assertIsNotNone(type(get_user(user1)))
+        self.assertEqual(type(get_user(user1)), dict)
+        self.assertEqual(get_user(user1).get('username'), 'user1')
+        self.assertEqual(get_user(user1).get('email'), 'user1@pjuu.com')
+
+        # CHeck that it DOESN'T work wuth an invalu user
+        self.assertIsNone(get_user(K.NIL_VALUE))
 
         # Test other helpers function
         # Check get_uid_* with invalid entries
         self.assertIsNone(get_uid_username('testymctest'))
         self.assertIsNone(get_uid_email('testymctest@pjuu.com'))
 
-        # Ensure that the TTL is set for all 3 keys which are created.
-        # Username and e-mail look up keys and also the user account itself
-        self.assertNotEqual(r.ttl(K.UID_USERNAME.format('user1')), -1)
-        self.assertNotEqual(r.ttl(K.UID_EMAIL.format('user1@pjuu.com')), -1)
-        self.assertNotEqual(r.ttl(K.USER.format(user1)), -1)
-
         # Test getting the user object and ensure all aspects of it are there.
         user1_hash = get_user(user1)
         # Check all the default values which we know up front
         # REMEMBER, everything comes out of Redis as a string
         self.assertIsNotNone(user1_hash)
-        self.assertEqual(user1_hash.get('uid'), user1)
+        self.assertEqual(user1_hash.get('_id'), user1)
         self.assertEqual(user1_hash.get('username'), 'user1')
         self.assertEqual(user1_hash.get('email'), 'user1@pjuu.com')
         self.assertEqual(user1_hash.get('last_login'), '-1')
-        self.assertEqual(user1_hash.get('active'), '0')
-        self.assertEqual(user1_hash.get('banned'), '0')
-        self.assertEqual(user1_hash.get('op'), '0')
-        self.assertEqual(user1_hash.get('muted'), '0')
+        self.assertFalse(user1_hash.get('active'), '0')
+        self.assertFalse(user1_hash.get('banned'), '0')
+        self.assertFalse(user1_hash.get('op'), '0')
+        self.assertFalse(user1_hash.get('muted'))
         self.assertEqual(user1_hash.get('about'), '')
         self.assertEqual(user1_hash.get('score'), '0')
-        self.assertEqual(user1_hash.get('alerts_last_checked'), '0')
+        self.assertEqual(user1_hash.get('alerts_last_checked'), '-1')
         # Check the values which are generated are not none
         self.assertIsNotNone(user1_hash.get('password'))
         self.assertIsNotNone(user1_hash.get('created'))
@@ -132,15 +124,9 @@ class AuthBackendTests(BackendTestCase):
         self.assertTrue(activate(user1))
         self.assertTrue(is_active(user1))
 
-        # Ensure that the TTL is removed from all 3 keys related to creating
-        # a new user
-        self.assertEqual(r.ttl(K.UID_USERNAME.format('user1')), -1)
-        self.assertEqual(r.ttl(K.UID_EMAIL.format('user1@pjuu.com')), -1)
-        self.assertEqual(r.ttl(K.USER.format(user1)), -1)
-
         # Deactivate
         self.assertTrue(activate(user1, False))
-        self.assertFalse(is_active(user1), False)
+        self.assertFalse(get_user(user1).get('active'), False)
         # Test invalid is active
         self.assertFalse(is_active(K.NIL_VALUE))
 
@@ -331,10 +317,10 @@ class AuthBackendTests(BackendTestCase):
         # Create multiple comments on both posts
         # Post 1
         comment1 = create_comment(user1, post1, "Test comment")
-        comment2 = create_comment(user1, post1, "Test comment")
+        create_comment(user1, post1, "Test comment")
         # Post 2
-        comment3 = create_comment(user1, post2, "Test comment")
-        comment4 = create_comment(user1, post2, "Test comment")
+        create_comment(user1, post2, "Test comment")
+        create_comment(user1, post2, "Test comment")
 
         # Delete the account
         delete_account(user1)
@@ -426,10 +412,10 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('<UID>', data['posts'][0]['uid'])
 
         # Create some comments on the above posts and re-dump
-        comment1 = create_comment(user1, post1, 'Comment 1')
-        comment2 = create_comment(user1, post1, 'Comment 2')
-        comment3 = create_comment(user1, post2, 'Comment 3')
-        comment4 = create_comment(user1, post3, 'Comment 4')
+        create_comment(user1, post1, 'Comment 1')
+        create_comment(user1, post1, 'Comment 2')
+        create_comment(user1, post2, 'Comment 3')
+        create_comment(user1, post3, 'Comment 4')
 
         # Re-dump the database
         data = dump_account(user1)

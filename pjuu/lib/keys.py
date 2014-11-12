@@ -44,23 +44,14 @@ NIL_VALUE = str(None)
 
 # Usage example:
 #
-#   USER.format('aaebdfeb479c11e4ad966003089579ee')
+#   USER_FEED.format('aaebdfeb479c11e4ad966003089579ee')
 #
 # Will return the user identified by hex uuid repr
 
-# Keys to get all user information
-
-# Returns: hash
-USER = "{{user:{0}}}"
+# User related keys
 
 # Returns: list
 USER_FEED = "{{user:{0}}}:feed"
-
-# Returns: list
-USER_POSTS = "{{user:{0}}}:posts"
-
-# Returns: list
-USER_COMMENTS = "{{user:{0}}}:comments"
 
 # Returns: zset
 USER_FOLLOWERS = "{{user:{0}}}:followers"
@@ -71,32 +62,15 @@ USER_FOLLOWING = "{{user:{0}}}:following"
 # Returns: zset
 USER_ALERTS = "{{user:{0}}}:alerts"
 
-# Look-up keys
-
-# Returns: uid(str)
-UID_EMAIL = "uid:email:{0}"
-
-# Returns: uid(str)
-UID_USERNAME = "uid:username:{0}"
-
 # Post related keys
-
-# Returns: hash
-POST = "{{post:{0}}}"
 
 # Returns: zset
 POST_VOTES = "{{post:{0}}}:votes"
-
-# Returns: list
-POST_COMMENTS = "{{post:{0}}}:comments"
 
 # Returns: zset
 POST_SUBSCRIBERS = "{{post:{0}}}:subscribers"
 
 # Comment related keys
-
-# Returns: hash
-COMMENT = "{{comment:{0}}}"
 
 # Returns: zset
 COMMENT_VOTES = "{{comment:{0}}}:votes"
@@ -105,7 +79,6 @@ COMMENT_VOTES = "{{comment:{0}}}:votes"
 
 # Return: hash
 ALERT = "{{alert:{0}}}"
-
 
 # Other keys
 

@@ -32,7 +32,6 @@ except ImportError:  # pragma: no cover
 from datetime import timedelta
 from uuid import uuid1
 # 3rd party imports
-from redis import Redis
 from werkzeug.datastructures import CallbackDict
 from flask.sessions import SessionInterface, SessionMixin
 
@@ -61,9 +60,7 @@ class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis=None, prefix=''):
-        if redis is None:  # pragma: no cover
-            redis = StrictRedis()
+    def __init__(self, redis, prefix=''):
         self.redis = redis
         self.prefix = prefix
 

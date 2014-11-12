@@ -27,11 +27,12 @@ Licence:
 # Stdlib
 import re
 # 3rd party imports
-from flask import current_app as app, url_for
+from bson.objectid import ObjectId
+from flask import url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.auth.backend import get_uid_username, get_username
+from pjuu import mongo as m, redis as r
+from pjuu.auth.backend import get_uid_username, get_user
 from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 
@@ -77,20 +78,28 @@ class PostingAlert(BaseAlert):
         # Call the BaseAlert __init__ method
         super(PostingAlert, self).__init__(uid)
         self.pid = pid
-        self.author_uid = r.hget(K.POST.format(pid), 'uid')
 
-    def author_username(self):
-        """Get the username of the user which triggered this alert
+    def url(self):
+        """Get the user object or the original author for the post.
+
+        Eg. Bob may have tagged you in the post but Brian posted the original
+            post. This is needed to generate the URL.
 
         """
-        return r.hget(K.USER.format(self.author_uid), 'username')
+        # Get the author of the posts username so that we can build the URL
+        author_uid = m.db.posts.find_one({'_id': self.pid},
+                                         {'uid': True, '_id': False})
+        author_username = m.db.users.find_one({'_id': author_uid},
+                                              {'username': True, '_id': False})
+        # Return the username or None
+        return author_username.get('username')
 
     def verify(self):
-        """ Overwrites the verify() of BaseAlert to check the post exists
+        """Overwrites the verify() of BaseAlert to check the post exists
 
         """
-        return r.exists(K.USER.format(self.uid)) and \
-            r.exists(K.POST.format(self.pid))
+        return m.db.users.find({'_id': self.uid}).limit(1) and \
+            m.db.posts.find({'_id': self.pid}).limit(1)
 
 
 class TaggingAlert(PostingAlert):
@@ -100,10 +109,8 @@ class TaggingAlert(PostingAlert):
 
     def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
-               .format(url_for('profile', username=self.get_username()),
-                       do_capitalize(self.get_username()),
-                       url_for('view_post', username=self.author_username(),
-                               pid=self.pid))
+               .format(url_for('profile', username=self.user.get('username')),
+                       do_capitalize(self.user.get('username')), self.url)
 
 
 class CommentingAlert(PostingAlert):
@@ -127,11 +134,8 @@ class CommentingAlert(PostingAlert):
 
         return '<a href="{0}">{1}</a> ' \
                'commented on a <a href="{2}">post</a> you {3}' \
-               .format(url_for('profile', username=self.get_username()),
-                       do_capitalize(self.get_username()),
-                       url_for('view_post', username=self.author_username(),
-                               pid=self.pid),
-                       sr)
+               .format(url_for('profile', username=self.user.get('username')),
+                       do_capitalize(self.user.get('username')), self.url, sr)
 
 
 def create_post(uid, body):
@@ -139,12 +143,12 @@ def create_post(uid, body):
 
     """
     # Get a new UUID for the pid
-    pid = get_uuid()
+    pid = ObjectId()
 
     # Hash form for posts
     # TODO this needs expanding to include some form of image upload hook
     post = {
-        'pid': pid,
+        '_id': pid,
         'uid': uid,
         'body': body,
         'created': timestamp(),
@@ -371,10 +375,9 @@ def get_comment(cid):
 
             # We need the username from the parent pid to construct a URL
             # Get the uid from the post
-            post_author_uid = \
-                r.hget(K.POST.format(comment.get('pid')), 'uid')
+            post_author_uid = get_post(comment.get('pid'))
             # Look up the uid for the username
-            comment['post_author'] = get_username(post_author_uid)
+            comment['post_author'] = get_user(post_author_uid).get('username')
 
             # This should also not happen it is a worst-case scenario.
             if comment.get('post_author') is not None:  # pragma: no branch

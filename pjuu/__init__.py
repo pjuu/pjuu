@@ -27,6 +27,7 @@ Licence:
 # 3rd party imports
 from flask import Flask
 from flask_mail import Mail
+from flask_pymongo import PyMongo
 from flask_redis import Redis
 from raven.contrib.flask import Sentry
 # Pjuu imports
@@ -40,6 +41,8 @@ __version__ = '0.4'
 
 # Global Flask-Mail object
 mail = Mail()
+# Global MongoDB objet
+mongo = PyMongo()
 # Global Redis objects
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
@@ -83,6 +86,9 @@ def create_app(config_filename='settings.py', config_dict=None):
     # and we get full visibility.
     if not app.debug:  # pragma: no cover
         sentry.init_app(app)
+
+    # Initialize the PyMongo client
+    mongo.init_app(app)
 
     # This is the _MAIN_ redis client. ONLY STORE DATA HERE
     redis.init_app(app)
