@@ -27,14 +27,13 @@ Licence:
 # Stdlib imports
 import re
 # 3rd party imports
-from bson import ObjectId
 from flask import current_app as app, _app_ctx_stack, session, g
 from pymongo.errors import DuplicateKeyError
 from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.lib import keys as K, timestamp
+from pjuu.lib import keys as K, timestamp, get_uuid
 
 
 # Username & E-mail checker re patterns
@@ -54,7 +53,7 @@ EMAIL_RE = re.compile(EMAIL_PATTERN)
 RESERVED_NAMES = [
     'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
     'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
-    'recover', 'forgot', 'api', 'app', 'apps', 'archive', 'auth',
+    'recover', 'api', 'app', 'apps', 'archive', 'auth',
     'authentication', 'avatar', 'bin', 'billing', 'blog', 'blogs', 'chat',
     'cache', 'calendar', 'careers', 'cgi', 'client', 'code', 'config',
     'connect', 'contact', 'contest', 'create', 'code', 'css', 'dashboard',
@@ -129,7 +128,7 @@ def create_user(username, email, password):
     :param password: The new users password un-hashed
     :type password: str
     :returns: The UID of the new user
-    :rtype: ObjectId or None
+    :rtype: str or None
 
     """
     username = username.lower()
@@ -137,8 +136,9 @@ def create_user(username, email, password):
     try:
         if check_username(username) and check_username_pattern(username) and \
                 check_email(email) and check_email_pattern(email):
-            # Create a new BSON ObjectId
-            uid = ObjectId()
+
+            # Get a new UUID for the user
+            uid = get_uuid()
 
             user = {
                 '_id': uid,
@@ -157,7 +157,7 @@ def create_user(username, email, password):
             }
 
             # Insert the new user in to Mongo. If this fails a None will be
-            # returned otherwise the string repr of the ObjectId uid
+            # returned
             result = m.db.users.insert(user)
             return uid if result else None
     except DuplicateKeyError:
@@ -173,7 +173,7 @@ def get_uid_username(username):
     :param username: The username to lookup
     :type username: str
     :returns: The users UID
-    :rtype: ObjectId or None
+    :rtype: str or None
 
     """
     # Look up the username inside mongo. The empty selector means that only the
@@ -195,7 +195,7 @@ def get_uid_email(email):
     :param username: The email to lookup
     :type username: str
     :returns: The users UID
-    :rtype: ObjectId or None
+    :rtype: str or None
 
     """
     # Look up the email inside mongo
@@ -214,7 +214,7 @@ def get_uid(lookup_value):
     :param lookup_value: The value to lookup
     :type lookup_value: str
     :returns: The users UID
-    :rtype: ObjectId or None
+    :rtype: str or None
 
     """
     if '@' in lookup_value:
@@ -327,7 +327,7 @@ def activate(uid, action=True):
     """Activates a user account.
 
     """
-    return m.db.users.update({'_id': ObjectId(uid)},
+    return m.db.users.update({'_id': uid},
                              {'$set': {'active': action}}) \
         .get('updatedExisting')
 

@@ -37,7 +37,7 @@ from werkzeug.utils import cached_property
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_user as be_get_user
-from pjuu.lib import keys as K, lua as L, timestamp
+from pjuu.lib import keys as K, timestamp
 
 
 class BaseAlert(object):

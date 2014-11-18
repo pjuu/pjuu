@@ -27,7 +27,6 @@ Licence:
 # Stdlib
 import re
 # 3rd party imports
-from bson.objectid import ObjectId
 from flask import url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
@@ -143,7 +142,7 @@ def create_post(uid, body):
 
     """
     # Get a new UUID for the pid
-    pid = ObjectId()
+    pid = get_uuid()
 
     # Hash form for posts
     # TODO this needs expanding to include some form of image upload hook
@@ -530,7 +529,7 @@ def subscribe(uid, pid, reason):
 
     """
     # Check that pid exsits if not do nothing
-    if not r.exists(K.POST.format(pid)):
+    if not m.db.posts.find_one({'_id': uid}, {}):
         return False
 
     # Only subscribe the user if the user is not already subscribed

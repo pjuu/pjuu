@@ -30,9 +30,9 @@ from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth import current_user
 from pjuu.auth.backend import (authenticate, login, logout, create_user,
-                               activate as be_activate, get_user,
+                               activate as be_activate, get_user, get_uid,
                                change_password as be_change_password,
-                               change_email as be_change_email, get_uid,
+                               change_email as be_change_email,
                                delete_account as be_delete_account,
                                dump_account as be_dump_account)
 from pjuu.auth.decorators import anonymous_required, login_required
@@ -197,10 +197,10 @@ def forgot():
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
-        user = get_user(form.username.data)
+        user = get_user(get_uid(form.username.data))
         if user is not None:
             # Only send e-mails to user which exist.
-            token = generate_token({'action': 'reset', '_id': user.get('_id')})
+            token = generate_token({'action': 'reset', 'uid': user.get('_id')})
             send_mail(
                 'Pjuu Account Notification - Password Reset',
                 [user.get('email')],

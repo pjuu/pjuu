@@ -308,10 +308,10 @@ class AuthBackendTests(BackendTestCase):
         delete_account(user1)
 
         # Ensure the Post, its comment list and votes has gone
-        self.assertNone(m.db.posts.find_one({'_id': post1}))
-        self.assertNone(m.db.comments.find_one({'pid': post1}))
+        self.assertIsNone(m.db.posts.find_one({'_id': post1}))
+        self.assertIsNone(m.db.comments.find_one({'pid': post1}))
         # Ensure the Comment is gone (same as above but different lookup)
-        self.assertNone(m.db.comments.find_one({'_id': comment1}))
+        self.assertIsNone(m.db.comments.find_one({'_id': comment1}))
         # Assert feed is empty
         self.assertFalse(r.lrange(K.USER_FEED.format(user1), 0, -1))
 

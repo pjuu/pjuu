@@ -23,16 +23,13 @@ Licence:
 
 # Stdlib import
 import json
+from time import sleep
 # 3rd party imports
-from flask import current_app as app, request, session, url_for, g
+from flask import url_for
 from werkzeug.http import parse_cookie
 # Pjuu imports
-from pjuu import redis as r, redis_sessions as r_s
-from pjuu.auth import current_user
+from pjuu import redis_sessions as rs
 from pjuu.auth.backend import *
-from pjuu.lib import keys as K
-from pjuu.posts.backend import create_post, create_comment
-from pjuu.users.backend import follow_user
 # Test imports
 from tests import FrontendTestCase
 
@@ -187,7 +184,7 @@ class AuthFrontendTests(FrontendTestCase):
                 session_id = parse_cookie(header[1])['session']
 
         # Manually remove the session from Redis
-        r_s.delete(session_id)
+        rs.delete(session_id)
 
         resp = self.client.get(url_for('profile', username='user3'),
                                follow_redirects=True)
@@ -580,7 +577,7 @@ class AuthFrontendTests(FrontendTestCase):
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Your account has been deleted', resp.data)
+        self.assertIn('Your account is being deleted', resp.data)
 
         # We are now back at signin. Let's check we can't login
         resp = self.client.post(url_for('signin'), data={
