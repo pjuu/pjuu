@@ -25,6 +25,7 @@ Licence:
 # Stdlib imports
 import re
 # 3rd party imports
+from bson.objectid import ObjectId
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
@@ -138,6 +139,9 @@ def follow_user(who_uid, whom_uid):
     Generate an alert for this action.
 
     """
+    # Ensure who and whom uid's are strings not ObjectId's to store in Redis
+    who_uid = str(who_uid)
+    whom_uid = str(whom_uid)
     # Check that we are not already following the user
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return False
@@ -158,6 +162,9 @@ def unfollow_user(who_uid, whom_uid):
     """Remove whom from who's following zset and who to whom's followers zset
 
     """
+    # Ensure who and whom uid's are strings not ObjectId's to store in Redis
+    who_uid = str(who_uid)
+    whom_uid = str(whom_uid)
     # Check that we are actually following the users
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is None:
         return False
@@ -179,8 +186,8 @@ def get_following(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
-        # Get user
-        user = get_user(fid)
+        # Get user, ensure the id is converted back to a string
+        user = get_user(ObjectId(fid))
         if user:
             users.append(user)
         else:
@@ -201,8 +208,8 @@ def get_followers(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
-        # Get user
-        user = get_user(fid)
+        # Get user, ensure the id is converted back to an ObjectId
+        user = get_user(ObjectId(fid))
         if user:
             users.append(user)
         else:
@@ -273,8 +280,8 @@ def get_alerts(uid, page=1):
     # Get the last time the users checked the alerts
     # Try and cast the value to an int so we can boolean compare them
     try:
-        alerts_last_checked = \
-            int(float(r.hget(K.USER.format(uid), 'alerts_last_checked')))
+        alerts_last_checked = m.db.users.find_one(
+            {'_id': uid}, {'alerts_last_checked'}).get('alerts_last_checked')
     except (TypeError, ValueError):
         alerts_last_checked = 0
 
@@ -309,7 +316,8 @@ def get_alerts(uid, page=1):
     # Update the last time the user checked there alerts
     # This will allow us to alert a user too new alerts with the /i-has-alerts
     # url
-    r.hset(K.USER.format(uid), 'alerts_last_checked', timestamp())
+    m.db.users.update({'_id': 'uid'},
+                      {'$set': {'alerts_last_checked': timestamp()}})
 
     return Pagination(alerts, total, page, per_page)
 
@@ -328,8 +336,9 @@ def i_has_alerts(uid):
     """
     # Get the stamp since last check from Redis
     # If this has not been called before make it 0
-    alerts_last_checked = \
-        r.hget(K.USER.format(uid), 'alerts_last_checked') or 0
+    alerts_last_checked = m.db.users.find_one({'_id': uid},
+                                              {'alerts_last_checked'}) \
+        .get('alerts_last_checked')
 
     # Do the check. This will just see if there is anything returned from the
     # sorted set newer than the last_checked timestamp, SIMPLES.

@@ -26,7 +26,8 @@ import unittest
 # 3rd party imports
 from flask import current_app as app, g
 # Pjuu imports
-from pjuu import redis as r
+from pjuu import mongo as m, redis as r
+from pjuu.lib.indexes import create_indexes
 
 
 class BackendTestCase(unittest.TestCase):
@@ -35,17 +36,17 @@ class BackendTestCase(unittest.TestCase):
     """
 
     def setUp(self):
+        """Recreate our indexes inside MongoDB
+
         """
-        Simply flush the database, we do not want any data already in redis
-        changing the outcome of the tests
-        """
-        r.flushdb()
+        create_indexes()
 
     def tearDown(self):
         """
         Simply flush the database. Keep it clean for other tests
         """
         r.flushdb()
+        m.db.connection.drop_database('pjuu_testing')
 
 
 class FrontendTestCase(unittest.TestCase):
@@ -59,7 +60,6 @@ class FrontendTestCase(unittest.TestCase):
         Flush the database and create a test client so that we can check all
         end points.
         """
-        r.flushdb()
         # Get our test client
         self.client = app.test_client()
         # Push a request context
@@ -74,3 +74,4 @@ class FrontendTestCase(unittest.TestCase):
         """
         self.ctx.pop()
         r.flushdb()
+        m.db.connection.drop_database('pjuu_testing')

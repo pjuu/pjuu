@@ -136,5 +136,4 @@ class AlertManager(object):
 
         for uid in uids:
             # Only add the zset if the user still exists
-            L.zadd_keyx(keys=(K.USER_ALERTS.format(uid), K.USER.format(uid)),
-                        args=(alert.timestamp, alert.aid))
+            r.zadd(K.USER_ALERTS.format(uid), alert.timestamp, alert.aid)

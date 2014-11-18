@@ -2,6 +2,7 @@ CherryPy==3.6.0
 Flask==0.10.1
 Flask-And-Redis==0.5
 Flask-Mail==0.9.1
+Flask-PyMongo==0.3.0
 Flask-WTF==0.10.2
 Jinja2==2.7.3
 MarkupSafe==0.23
@@ -15,7 +16,6 @@ gunicorn==19.1.1
 hiredis==0.1.5
 itsdangerous==0.24
 jsonpickle==0.8.0
-pymongo==2.7.2
 python-coveralls==2.4.3
 raven==5.1.1
 redis==2.10.3

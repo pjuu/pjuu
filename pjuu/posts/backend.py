@@ -155,41 +155,44 @@ def create_post(uid, body):
         'score': 0
     }
 
-    # Add post
-    r.hmset(K.POST.format(pid), post)
-    # Add post to users post list
-    r.lpush(K.USER_POSTS.format(uid), pid)
-    # Add post to authors feed
-    r.lpush(K.USER_FEED.format(uid), pid)
-    # Ensure the feed does not grow to large
-    r.ltrim(K.USER_FEED.format(uid), 0, 999)
+    # Attempt to dd post to MongoDB
+    result = m.db.posts.insert(post)
+    # Only carry out the rest of the actions if the insert was successful
+    if result:
+        # Add post to authors feed
+        r.lpush(K.USER_FEED.format(uid), pid)
+        # Ensure the feed does not grow to large
+        r.ltrim(K.USER_FEED.format(uid), 0, 999)
 
-    # Append to all followers feeds
-    populate_feeds(uid, pid)
+        # Append to all followers feeds
+        populate_feeds(uid, pid)
 
-    # Subscribe the poster to there post
-    subscribe(uid, pid, SubscriptionReasons.POSTER)
+        # Subscribe the poster to there post
+        subscribe(uid, pid, SubscriptionReasons.POSTER)
 
-    # TAGGING
+        # TAGGING
 
-    # Create alert manager and alert
-    alert = TaggingAlert(uid, pid)
-    # Alert tagees
-    tagees = parse_tags(body)
-    # Store a list of uids which need to alerted to the tagging
-    tagees_to_alert = []
-    for tagee in tagees:
-        # Don't allow tagging yourself
-        if tagee[0] != uid:
-            # Subscribe the tagee to the alert
-            subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
-            # Add the tagee's uid to the list to alert them
-            tagees_to_alert.append(tagee[0])
+        # Create alert manager and alert
+        alert = TaggingAlert(uid, pid)
+        # Alert tagees
+        tagees = parse_tags(body)
+        # Store a list of uids which need to alerted to the tagging
+        tagees_to_alert = []
+        for tagee in tagees:
+            # Don't allow tagging yourself
+            if tagee[0] != uid:
+                # Subscribe the tagee to the alert
+                subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
+                # Add the tagee's uid to the list to alert them
+                tagees_to_alert.append(tagee[0])
 
-    # Alert the required tagees
-    AlertManager().alert(alert, tagees_to_alert)
+        # Alert the required tagees
+        AlertManager().alert(alert, tagees_to_alert)
 
-    return pid
+        return pid
+
+    # If there was a problem putting the post in to Mongo we will return None
+    return None
 
 
 def create_comment(uid, pid, body):
@@ -209,54 +212,51 @@ def create_comment(uid, pid, body):
         'score': 0
     }
 
-    # Add comment
-    r.hmset(K.COMMENT.format(cid), comment)
-    # Add comment to posts comment list
-    r.lpush(K.POST_COMMENTS.format(pid), cid)
-    # Add comment to users comment list
-    # This may seem redundant but it allows for perfect account deletion
-    # Please see Issue #3 on Github
-    r.lpush(K.USER_COMMENTS.format(uid), cid)
+    # Attempt to add the comment to Mongo
+    result = m.db.comments.insert(comment)
+    if result:
+        # COMMENT ALERTING
 
-    # COMMENT ALERTING
+        # Alert all subscribers to the post that a new comment has been added.
+        # We do this before subscribing anyone new
+        # Create alert manager and alert
+        alert = CommentingAlert(uid, pid)
 
-    # Alert all subscribers to the post that a new comment has been added.
-    # We do this before subscribing anyone new
-    # Create alert manager and alert
-    alert = CommentingAlert(uid, pid)
+        subscribers = []
+        # Iterate through subscribers and let them know about the comment
+        for subscriber in get_subscribers(pid):
+            # Ensure we don't get alerted for our own comments
+            if subscriber != uid:
+                subscribers.append(subscriber)
 
-    subscribers = []
-    # Iterate through subscribers and let them know about the comment
-    for subscriber in get_subscribers(pid):
-        # Ensure we don't get alerted for our own comments
-        if subscriber != uid:
-            subscribers.append(subscriber)
+        # Push the comment alert out to all subscribers
+        AlertManager().alert(alert, subscribers)
 
-    # Push the comment alert out to all subscribers
-    AlertManager().alert(alert, subscribers)
+        # Subscribe the user to the post, will not change anything if they are
+        # already subscribed
+        subscribe(uid, pid, SubscriptionReasons.COMMENTER)
 
-    # Subscribe the user to the post, will not change anything if they are
-    # already subscribed
-    subscribe(uid, pid, SubscriptionReasons.COMMENTER)
+        # TAGGING
 
-    # TAGGING
+        # Create alert
+        alert = TaggingAlert(uid, pid)
 
-    # Create alert
-    alert = TaggingAlert(uid, pid)
+        # Subscribe tagees
+        tagees = parse_tags(body)
+        tagees_to_alert = []
+        for tagee in tagees:
+            # Don't allow tagging yourself
+            if tagee[0] != uid:
+                subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
+                tagees_to_alert.append(tagee[0])
 
-    # Subscribe tagees
-    tagees = parse_tags(body)
-    tagees_to_alert = []
-    for tagee in tagees:
-        # Don't allow tagging yourself
-        if tagee[0] != uid:
-            subscribe(tagee[0], pid, SubscriptionReasons.TAGEE)
-            tagees_to_alert.append(tagee[0])
+        # Get an alert manager to notify all tagees
+        AlertManager().alert(alert, tagees_to_alert)
 
-    # Get an alert manager to notify all tagees
-    AlertManager().alert(alert, tagees_to_alert)
+        return cid
 
-    return cid
+    # If the insert failed return None
+    return None
 
 
 def parse_tags(body, deduplicate=False):
@@ -360,11 +360,11 @@ def get_comment(cid):
     """Returns a representation of a comment along with data on the user
 
     """
-    comment = r.hgetall(K.COMMENT.format(cid))
+    comment = m.db.comments.find_one({'_id': cid})
 
     if comment:
         # Look up user and add data to the repr
-        user = r.hgetall(K.USER.format(comment.get('uid')))
+        user = m.db.users.find_one({'_id': comment.get('uid')})
 
         # This should never happen unless something really really bad has
         # happen

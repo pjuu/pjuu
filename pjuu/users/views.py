@@ -24,15 +24,12 @@ Licence:
 # Stdlib imports
 from hashlib import md5
 import math
-import re
-from time import gmtime, strftime
 # 3rd party imports
 from flask import (current_app as app, abort, flash, redirect, render_template,
                    request, url_for, jsonify)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import (get_uid, get_uid_email, get_uid_username,
-                               USERNAME_RE)
+from pjuu.auth.backend import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page
@@ -164,7 +161,7 @@ def timeify_filter(time):
         # Default return means that this was checked less than a second ago
         return "Less than a second ago"
 
-    except (TypeError, ValueError) as e:
+    except (TypeError, ValueError):
         return "Err"
 
 

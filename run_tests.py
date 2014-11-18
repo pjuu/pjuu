@@ -56,7 +56,7 @@ if __name__ == '__main__':
         # This just stops us getting through forms if True
         'WTF_CSRF_ENABLED': False,
         # MognoDB settings for tests
-        'MONGO_DBNAME': 'pjuu-testing',
+        'MONGO_DBNAME': 'pjuu_testing',
         # Change the Redis database numbers so that we do not overwrite
         # our data each time we run the tests
         'REDIS_DB': 2,

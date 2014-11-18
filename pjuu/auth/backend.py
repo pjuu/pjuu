@@ -132,29 +132,34 @@ def create_user(username, email, password):
     :rtype: ObjectId or None
 
     """
+    username = username.lower()
+    email = email.lower()
     try:
-        # Create a new BSON ObjectId
-        uid = str(ObjectId())
+        if check_username(username) and check_username_pattern(username) and \
+                check_email(email) and check_email_pattern(email):
+            # Create a new BSON ObjectId
+            uid = ObjectId()
 
-        user = {
-            '_id': ObjectId(uid),
-            'username': username.lower(),
-            'email': email.lower(),
-            'password': generate_password(password),
-            'created': timestamp(),
-            'last_login': -1,
-            'active': False,
-            'banned': False,
-            'op': False,
-            'muted': False,
-            'about': "",
-            'score': 0,
-            'alerts_last_checked': -1,
-        }
+            user = {
+                '_id': uid,
+                'username': username.lower(),
+                'email': email.lower(),
+                'password': generate_password(password),
+                'created': timestamp(),
+                'last_login': -1,
+                'active': False,
+                'banned': False,
+                'op': False,
+                'muted': False,
+                'about': "",
+                'score': 0,
+                'alerts_last_checked': -1,
+            }
 
-        # Insert the new user in to Mongo. If this fails a None will be
-        # returned otherwise the string repr of the ObjectId uid
-        return uid if m.db.users.insert(user) else None
+            # Insert the new user in to Mongo. If this fails a None will be
+            # returned otherwise the string repr of the ObjectId uid
+            result = m.db.users.insert(user)
+            return uid if result else None
     except DuplicateKeyError:
         # Oh no something went wrong. Pass over it. A None will be returned.
         pass
@@ -253,7 +258,7 @@ def check_username(username):
 
     """
     return username not in RESERVED_NAMES and \
-        not bool(m.db.users.find({'username': username.lower()}, {}))
+        not bool(m.db.users.find_one({'username': username.lower()}, {}))
 
 
 def check_email_pattern(email):
@@ -323,34 +328,36 @@ def activate(uid, action=True):
 
     """
     return m.db.users.update({'_id': ObjectId(uid)},
-                             {'$set': {'active': action}})
+                             {'$set': {'active': action}}) \
+        .get('updatedExisting')
 
 
 def ban(uid, action=True):
-    """ READ/WRITE
-    Ban a user.
+    """Ban a user.
 
     By passing False as action this will unban the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'banned': action}})
+    return m.db.users.update({'_id': uid}, {'$set': {'banned': action}}) \
+        .get('updatedExisting')
 
 
 def bite(uid, action=True):
-    """ READ/WRITE
-    Bite a user (think spideman), makes them op
+    """Bite a user (think spideman), makes them op
 
     By passing False as action this will unbite the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'op': action}})
+    return m.db.users.update({'_id': uid}, {'$set': {'op': action}}) \
+        .get('updatedExisting')
 
 
 def mute(uid, action=True):
-    """ READ/WRITE
-    Mutes a user, this stops them from posting, commenting or following users
+    """Mutes a user, this stops them from posting, commenting or following
+    users.
 
     By passing False as action this will un-mute the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'muted': action}})
+    return m.db.users.update({'_id': uid}, {'$set': {'muted': action}}) \
+        .get('updatedExisting')
 
 
 def change_password(uid, password):
