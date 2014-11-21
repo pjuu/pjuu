@@ -2,7 +2,7 @@
 
 """
 Description:
-    The actual Flask endpoints for the posts system.
+    The Flask endpoints for the posts system.
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -22,25 +22,60 @@ Licence:
 """
 
 # 3rd party imports
-from flask import current_app as app, abort, flash, redirect, request, url_for
+from flask import (current_app as app, abort, flash, redirect, request,
+                   url_for, render_template)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
-from .backend import (create_post, create_comment, check_post, has_voted,
-                      get_comment_author, is_subscribed, vote_post,
-                      vote_comment, delete_post as be_delete_post,
-                      delete_comment as be_delete_comment,
-                      unsubscribe as be_unsubscribe, CantVoteOnOwn,
-                      AlreadyVoted)
+from pjuu.lib.pagination import handle_page
+from .backend import (create_post, check_post, has_voted, is_subscribed,
+                      vote_post, get_post, delete_post as be_delete_post,
+                      get_comments, unsubscribe as be_unsubscribe,
+                      CantVoteOnOwn, AlreadyVoted, parse_tags)
 from .forms import PostForm
 
 
-@app.template_filter('voted')
-def voted_filter(xid, comment=False):
+@app.template_filter('nameify')
+def nameify_filter(body):
     """
-    Checks to see if current_user has voted on the post pid.
+    Will highlight user names inside a post. This is done after urlize.
+
+    These uses the same parse_tags() function as to identify tags for
+    alerts
+
+    TODO This may be overkill.
+    This requires manual escaping of the post|comment|about messages. In
+    Jinja2 you have to do to the following to get the posts to show as we
+    want:
+
+    {% autoescape false %}
+    post.body|e|urlize|nameify
+    {% endautoescape %}
+
+    The 'e' filter is needed as we have had to turn auto escape off.
+    """
+    tags = parse_tags(body, deduplicate=True)
+    offset = 0
+    for tag in tags:
+        # Calculate the left and right hand sides of the tag
+        # These add offset as we go, we are changing the length of the string
+        # each time!
+        left = tag[3][0] + offset
+        right = tag[3][1] + offset
+        # Build the link
+        link = '<a href=\"/{0}\">{1}</a>'.format(tag[1], tag[2])
+        # Calculate the offset to adjust rest of tag boundries
+        offset += len(link) - len(tag[2])
+        # Add the link in place of the '@' tag
+        body = (body[:left] + link + body[right:])
+    return body
+
+
+@app.template_filter('voted')
+def voted_filter(pid):
+    """Checks to see if current_user has voted on the post pid.
 
     To check a post simply:
         item.pid|voted
@@ -50,34 +85,63 @@ def voted_filter(xid, comment=False):
     These may be reffered to as items.X in lists.
 
     Will return 1 on upvote, -1 on downvote and 0 if not voted
+
     """
-    return has_voted(current_user['uid'], xid, comment=comment) or 0
+    return has_voted(current_user['uid'], pid) or 0
 
 
 @app.template_filter('subscribed')
 def subscribed_filter(pid):
-    """
-    A simple filter to check if the current user is subscribed to a post
+    """A simple filter to check if the current user is subscribed to a post
+
     """
     return is_subscribed(current_user['uid'], pid)
 
 
-@app.route('/post', methods=['GET', 'POST'])
+@app.route('/<username>/<post_id>', methods=['GET'])
 @login_required
-def post(redirect_url=None):
+def view_post(username, post_id):
     """
-    current_user creates a new post on Pjuu :)
+    Displays a post along with its comments paginated. I am not sure if this
+    should be here or in the 'posts' app.
+    """
+    if not check_post(get_uid(username), post_id):
+        return abort(404)
+
+    # Pagination
+    page = handle_page(request)
+
+    # Get post and comments for the current page
+    post = get_post(post_id)
+    pagination = get_comments(post_id, page)
+
+    post_form = PostForm()
+    return render_template('view_post.html', post=post,
+                           pagination=pagination, post_form=post_form)
+
+
+@app.route('/post', methods=['GET', 'POST'])
+@app.route('/<username>/<reply_to>/comment', methods=['GET', 'POST'])
+@login_required
+def post(username=None, reply_to=None):
+    """Enabled current_user to create a new post on Pjuu :)
 
     This view accepts GET and POST yet only acts on a POST. This is so that the
-    Werkzeug router does not treat this like a profile lookup
+    Werkzeug router does not treat this like a profile lookup.
+
     """
-    # Rather than just 404 if someone tries to GET this URL which is default
-    # if we don't specify it we will throw a 405.
+    # Rather than just 404 if someone tries to GET this URL which is default,
+    # we will throw a 405.
     if request.method == 'GET':
         return abort(405)
 
-    redirect_url = handle_next(request, url_for('profile',
-                               username=current_user['username']))
+    # Set the default redirect URLs depending on type of post it is
+    if reply_to is None:
+        redirect_url = handle_next(request, url_for('profile',
+                                   username=current_user['username']))
+    else:
+        redirect_url = handle_next(request, url_for('view_post',
+                                   username=username, pid=reply_to))
 
     # Stop muted users from creating posts
     if current_user.get('muted', False):
@@ -86,8 +150,11 @@ def post(redirect_url=None):
 
     form = PostForm(request.form)
     if form.validate():
-        create_post(current_user['_id'], form.body.data)
-        flash('Your post has been added', 'success')
+        # Create the post
+        if create_post(current_user['_id'], current_user['username'],
+                       form.body.data, reply_to):
+            # Inform the user we have created the post
+            flash('Your post has been added', 'success')
     else:
         # This flash can handle only 1 form error
         # There is an odd issue where are error is thrown with no errors
@@ -100,63 +167,22 @@ def post(redirect_url=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<pid>/comment', methods=['GET', 'POST'])
+@app.route('/<username>/<post_id>/upvote', methods=['GET'])
+@app.route('/<username>/<post_id>/<reply_id>/upvote', methods=['GET'])
 @login_required
-def comment(username, pid):
-    """
-    current_user creates a comment of post 'pid' with the author 'username'
-    """
-    # Rather than just 404 if someone tries to GET this URL which is default
-    # if we don't specify it we will throw a 405.
-    if request.method == 'GET':
-        return abort(405)
+def upvote(username, post_id, reply_id=None):
+    """Upvotes a post.
 
-    redirect_url = handle_next(request, url_for('view_post',
-                               username=username, pid=pid))
-
-    # Stop muted users from commenting
-    if current_user.get('muted'):
-        flash('You have been silenced!', 'warning')
-        return redirect(redirect_url)
-
-    form = PostForm(request.form)
-    if form.validate():
-        create_comment(current_user['uid'], pid, form.body.data)
-        flash('Your comment has been added', 'success')
-    else:
-        # This flash can handle only 1 form error
-        # There is an odd issue where are error is thrown with no errors
-        # Can't recreate the issue
-        if len(form.body.errors) > 0:
-            flash(form.body.errors[0], 'error')
-        else:
-            flash('Oh no! There are errors in your comment.',
-                  'error')  # pragma: no cover
-    return redirect(redirect_url)
-
-
-@app.route('/<username>/<pid>/upvote', methods=['GET'])
-@app.route('/<username>/<pid>/<cid>/upvote', methods=['GET'])
-@login_required
-def upvote(username, pid=-1, cid=None):
-    """
-    Upvotes a post or comment.
-    If this is a comment it _WILL_ update the comments authros score.
-    The 'username' may seem a little confusing but the comment is on the
-    'pid' which was created by 'username'.
     """
     redirect_url = handle_next(request, url_for('view_post',
-                               username=username, pid=pid))
+                               username=username, post_id=post_id))
 
-    uid = get_uid(username)
-    if not check_post(uid, pid, cid):
+    user_id = get_uid(username)
+    if not check_post(user_id, post_id, reply_id):
         return abort(404)
 
     try:
-        if cid:
-            vote_comment(current_user['_id'], cid, amount=1)
-        else:
-            vote_post(current_user['_id'], pid, amount=1)
+        vote_post(current_user['_id'], post_id, amount=1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
@@ -167,98 +193,83 @@ def upvote(username, pid=-1, cid=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<pid>/downvote', methods=['GET'])
-@app.route('/<username>/<pid>/<cid>/downvote', methods=['GET'])
+@app.route('/<username>/<post_id>/downvote', methods=['GET'])
+@app.route('/<username>/<post_id>/<reply_id>/downvote', methods=['GET'])
 @login_required
-def downvote(username, pid=-1, cid=None):
-    """
-    Downvotes a post or comment.
-    If this is a comment it _WILL_ update the comments authros score.
-    The 'username' may seem a little confusing but the comment is on the
-    'pid' which was created by 'username'.
+def downvote(username, post_id, reply_id=None):
+    """Downvotes a post.
+
     """
     redirect_url = handle_next(request, url_for('view_post',
-                               username=username, pid=pid))
+                               username=username, post_id=post_id))
 
-    uid = get_uid(username)
-    if not check_post(uid, pid, cid):
+    user_id = get_uid(username)
+    if not check_post(user_id, post_id, reply_id):
         return abort(404)
 
     try:
-        if cid:
-            vote_comment(current_user['_id'], cid, amount=-1)
-        else:
-            vote_post(current_user['_id'], pid, amount=-1)
+        vote_post(current_user['_id'], post_id, amount=-1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You downvoted the post', 'success')
+        flash('You upvoted the post', 'success')
 
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<pid>/delete', methods=['GET'])
-@app.route('/<username>/<pid>/<cid>/delete', methods=['GET'])
+@app.route('/<username>/<post_id>/delete', methods=['GET'])
+@app.route('/<username>/<post_id>/<reply_id>/delete', methods=['GET'])
 @login_required
-def delete_post(username, pid, cid=None):
-    """
-    Deletes posts and comments.
+def delete_post(username, post_id, reply_id=None):
+    """Deletes posts.
+
     """
     # The default redirect is different for a post/comment deletion
     # Comment deletion keeps you on the page and post deletion takes you
     # to your feed
-    if cid is not None:
+    if reply_id is not None:
         redirect_url = handle_next(request, url_for('view_post',
-                                   username=username, pid=pid))
+                                   username=username, pid=post_id))
     else:
         redirect_url = handle_next(request, url_for('feed'))
 
-    uid = get_uid(username)
-    if not check_post(uid, pid, cid):
+    user_id = get_uid(username)
+    if not check_post(user_id, post_id, reply_id):
         return abort(404)
 
-    if cid is not None:
-        # TODO Refactor this. It looks to confusing
-        author_uid = get_comment_author(cid)
-        # Allow not only the comment author to remove the comment but also
-        # allow the post author to do so!
-        if author_uid != current_user['_id'] and \
-           uid != current_user['_id']:
-            return abort(403)
+    if reply_id is not None:
+        post = get_post(reply_id)
     else:
-        # If this is a post ONLY allow the post author to delete
-        if uid != current_user['_id']:
-            return abort(403)
+        post = get_post(post_id)
 
-    if cid is not None:
-        be_delete_comment(cid)
-        flash('Comment has been deleted', 'success')
-    else:
-        be_delete_post(pid)
-        flash('Post has been deleted along with all comments', 'success')
+    if post.get('username') == current_user['username'] or \
+            post.get('username') == username:
+        be_delete_post(post.get('_id'))
+
+        flash('Post has been deleted', 'success')
 
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<pid>/unsubscribe')
+@app.route('/<username>/<post_id>/unsubscribe')
 @login_required
-def unsubscribe(username, pid):
-    """
-    Unsubscribes a user from a post
+def unsubscribe(username, post_id):
+    """Unsubscribes a user from a post
+
     """
     # The default URL is to go back to the posts view
     redirect_url = handle_next(request, url_for('view_post',
-                               username=username, pid=pid))
+                               username=username, pid=post_id))
 
-    uid = get_uid(username)
-    if not check_post(uid, pid):
+    user_id = get_uid(username)
+    if not check_post(user_id, post_id):
         return abort(404)
 
     # Unsubscribe the user from the post, only show them a message if they
     # were actually unsubscribed
-    if be_unsubscribe(current_user['_id'], pid):
+    if be_unsubscribe(current_user['_id'], post_id):
         flash('You have been unsubscribed from this post', 'success')
 
     return redirect(redirect_url)

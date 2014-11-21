@@ -26,13 +26,17 @@ from flask_wtf import Form
 from wtforms import TextAreaField
 from wtforms.validators import Required, Length
 
+# Pjuu imports
+from pjuu import app
+
 
 class PostForm(Form):
-    """
-    This is the form used for Posts and Comments at the momment.
+    """Handle the input from the web for posts and replies.
+
     """
     body = TextAreaField('Post', [
         Required(),
-        Length(max=255,
-               message='Posts can not be larger than 255 characters')
+        Length(max=app.config['MAX_POST_LENGTH'],
+               message='Posts can not be larger than '
+                       '{} characters'.format(app.config['MAX_POST_LENGTH']))
     ])

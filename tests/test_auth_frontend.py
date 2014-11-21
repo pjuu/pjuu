@@ -23,7 +23,6 @@ Licence:
 
 # Stdlib import
 import json
-from time import sleep
 # 3rd party imports
 from flask import url_for
 from werkzeug.http import parse_cookie

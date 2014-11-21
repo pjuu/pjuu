@@ -2,7 +2,7 @@
 
 """
 Description:
-    Pjuu base test cases
+    Pjuu base test cases. All test cases should subclass these for consistancy.
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -27,39 +27,40 @@ import unittest
 from flask import current_app as app, g
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.lib.indexes import create_indexes
+from pjuu.lib.indexes import ensure_indexes
 
 
 class BackendTestCase(unittest.TestCase):
-    """
-    This case will test ALL post backend functions.
+    """This case will test ALL post backend functions.
+
     """
 
     def setUp(self):
         """Recreate our indexes inside MongoDB
 
         """
-        create_indexes()
+        ensure_indexes()
 
     def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
+        """Flush the Redis database and drop the Mongo database
+
         """
         r.flushdb()
         m.db.connection.drop_database('pjuu_testing')
 
 
 class FrontendTestCase(unittest.TestCase):
-    """
-    This test case will test all the posts subpackages; views, decorators
-    and forms
+    """Test case for all "frontend" testing. This is not an end-to-end test it
+    simply allows us to call the endpoints.
+
     """
 
     def setUp(self):
+        """Ensure the MongoDB indexes are present and set up our test client
+        and request context. Also clear 'g' as this may be holding data.
+
         """
-        Flush the database and create a test client so that we can check all
-        end points.
-        """
+        ensure_indexes()
         # Get our test client
         self.client = app.test_client()
         # Push a request context
@@ -69,8 +70,8 @@ class FrontendTestCase(unittest.TestCase):
         g.token = None
 
     def tearDown(self):
-        """
-        Simply flush the database. Keep it clean for other tests
+        """Flush the Redis database and drop the Mongo database
+
         """
         self.ctx.pop()
         r.flushdb()

@@ -68,7 +68,7 @@ class BaseAlert(object):
 
         """
         # Simple implementation, check the user exists
-        return bool(m.db.users.find(self.uid).limit(1))
+        return bool(m.db.users.find_one({'_id': self.uid}, {}))
 
     def prettify(self, for_uid=None):
         """Overwrite to show how the alert will be presented to the user.

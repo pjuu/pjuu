@@ -28,6 +28,10 @@ Licence:
 from math import ceil
 
 
+# Max number of pages (don't worry thats a lot of posts/followers)
+MAX_PAGES = 4294967295
+
+
 class Pagination(object):
     """Pagination object. Every page which supports the 'page' should
     use this to provide a consistency.
@@ -41,11 +45,10 @@ class Pagination(object):
         # Ensure page can not be lower than 1
         if page < 1:
             self.page = 1
-        # Ensure page can not be too high.
-        # TODO: Fix this
-        # This isn't very elagant
-        elif page > 4294967295:
-            self.page = 4294967295
+        # Ensure page can not be above a maximum value.
+        # Causes issues inside Redis
+        elif page > MAX_PAGES:
+            self.page = MAX_PAGES
         else:
             self.page = page
 
@@ -89,8 +92,8 @@ def handle_page(request):
         page = int(page)
         # Catch this twice as this value is also used with Redis to get
         # the relevant ranges from lists and sorted sets
-        if page > 4294967295:
-            page = 4294967295
+        if page > MAX_PAGES:
+            page = MAX_PAGES
         # Pages can't be lower than one
         if page < 1:
             page = 1

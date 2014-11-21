@@ -31,12 +31,13 @@ from flask_pymongo import PyMongo
 from flask_redis import Redis
 from raven.contrib.flask import Sentry
 # Pjuu imports
-from .lib.sessions import RedisSessionInterface
+from pjuu.lib.celery import make_celery
+from pjuu.lib.sessions import RedisSessionInterface
 
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.4'
+__version__ = '0.6'
 
 
 # Global Flask-Mail object
@@ -49,6 +50,9 @@ redis = Redis()
 redis_sessions = Redis()
 # Raven global Sentry object for Flask
 sentry = Sentry()
+# Global celery object. This is none to start with but will be initialized
+# inside with the create_app function below
+celery = None
 
 
 def create_app(config_filename='settings.py', config_dict=None):
@@ -101,6 +105,9 @@ def create_app(config_filename='settings.py', config_dict=None):
 
     # Set session handler to Redis
     app.session_interface = RedisSessionInterface(redis=redis_sessions)
+
+    # Initialize the global celery object
+    celery = make_celery(app)
 
     with app.app_context():
         # Import all Pjuu stuffs

@@ -28,7 +28,7 @@ import pymongo
 from pjuu import mongo as m
 
 
-def create_indexes():
+def ensure_indexes():
     """Creates all our MongoDB indexes.
 
     Please note that _id fields are already indexed by MongoDB. If you need to
@@ -46,9 +46,5 @@ def create_indexes():
     # Post indexes
     # Allow us to see all posts made by a user
     m.db.posts.ensure_index([('uid', pymongo.DESCENDING)])
-
-    # Comment indexes
-    # Allow us to look up all comments by a user (deleting and dumping acc's)
-    m.db.comments.ensure_index([('uid', pymongo.DESCENDING)])
-    # Allow us to find all the comments on a certain post
-    m.db.comments.ensure_index([('pid', pymongo.DESCENDING)])
+    # Allow us to find all replies on a post
+    m.db.posts.ensure_index([('reply_to', pymongo.DESCENDING)], spatial=True)

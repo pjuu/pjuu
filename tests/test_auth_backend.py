@@ -22,7 +22,6 @@ Licence:
 """
 
 # 3rd party imports
-from bson import ObjectId
 from flask import current_app as app, session
 # Pjuu imports
 from pjuu import redis as r
@@ -133,7 +132,7 @@ class AuthBackendTests(BackendTestCase):
         # Invalid type
         self.assertFalse(activate(None))
         # Non-existant user
-        self.assertFalse(activate(ObjectId()))
+        self.assertFalse(activate(K.NIL_VALUE))
 
         # Account should not be banned
         self.assertFalse(get_user(user1).get('banned'))
@@ -148,7 +147,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertFalse(get_user(user1).get('banned'))
         # Broken ban
         self.assertFalse(ban(None))
-        self.assertFalse(ban(ObjectId()))
+        self.assertFalse(ban(K.NIL_VALUE))
 
         # Account should not be op
         self.assertFalse(get_user(user1).get('op'))
@@ -163,7 +162,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertFalse(get_user(user1).get('op'))
         # Broken bite
         self.assertFalse(bite(None))
-        self.assertFalse(bite(ObjectId()))
+        self.assertFalse(bite(K.NIL_VALUE))
 
         # Account should not be muted
         self.assertFalse(get_user(user1).get('muted'))
@@ -178,7 +177,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertFalse(get_user(user1).get('muted'))
         # Broken mute
         self.assertFalse(mute(None))
-        self.assertFalse(mute(ObjectId()))
+        self.assertFalse(mute(K.NIL_VALUE))
 
     def test_authenticate(self):
         """
@@ -294,15 +293,15 @@ class AuthBackendTests(BackendTestCase):
         # Second user to test deletion from user:1:comments
         user2 = create_user('user2', 'user2@pjuu.com', 'Password')
         # Create a post as both users
-        post1 = create_post(user1, "Test post")
-        post2 = create_post(user2, "Test post")
+        post1 = create_post(user1, 'user1', 'Test post')
+        post2 = create_post(user2, 'user2', 'Test post')
         # Create multiple comments on both posts
         # Post 1
         comment1 = create_comment(user1, post1, "Test comment")
-        create_comment(user1, post1, "Test comment")
+        create_comment(user1, 'user1', post1, "Test comment")
         # Post 2
-        create_comment(user1, post2, "Test comment")
-        create_comment(user1, post2, "Test comment")
+        create_comment(user1, 'user1', post2, "Test comment")
+        create_comment(user1, 'user1', post2, "Test comment")
 
         # Delete the account
         delete_account(user1)
@@ -378,9 +377,9 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual([], data['comments'])
 
         # Create some posts as the user and check they are in the dumps
-        post1 = create_post(user1, 'Post 1')
-        post2 = create_post(user1, 'Post 2')
-        post3 = create_post(user1, 'Post 3')
+        post1 = create_post(user1, 'user1', 'Post 1')
+        post2 = create_post(user1, 'user1', 'Post 2')
+        post3 = create_post(user1, 'user1', 'Post 3')
 
         data = dump_account(user1)
         self.assertIsNotNone(data)
@@ -393,10 +392,10 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('<UID>', data['posts'][0]['uid'])
 
         # Create some comments on the above posts and re-dump
-        create_comment(user1, post1, 'Comment 1')
-        create_comment(user1, post1, 'Comment 2')
-        create_comment(user1, post2, 'Comment 3')
-        create_comment(user1, post3, 'Comment 4')
+        create_comment(user1, 'user1', post1, 'Comment 1')
+        create_comment(user1, 'user1', post1, 'Comment 2')
+        create_comment(user1, 'user1', post2, 'Comment 3')
+        create_comment(user1, 'user1', post3, 'Comment 4')
 
         # Re-dump the database
         data = dump_account(user1)

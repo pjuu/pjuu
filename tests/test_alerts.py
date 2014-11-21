@@ -36,13 +36,12 @@ from tests import BackendTestCase
 class AlertTests(BackendTestCase):
 
     def test_basealert(self):
-        """
-        Simple test for alerts.
+        """Simple test for alerts.
 
         Ensure that they do what we want them too do out of the box.
 
-        Ensure get_username and get_email work. Also check that the
-        AlertManager can't be broken.
+        Ensure user() works. Also check that the AlertManager can't be broken.
+
         """
         # Check that an alert will not work with a non-existant get_user
         alert = BaseAlert(K.NIL_VALUE)
@@ -50,8 +49,7 @@ class AlertTests(BackendTestCase):
         self.assertGreater(alert.timestamp, 0)
         # We should get nothing back for alerts when it comes to our
         # existant user
-        self.assertIsNone(alert.get_username())
-        self.assertIsNone(alert.get_email())
+        self.assertIsNone(alert.user)
         # Check that the alert does NOT verify
         self.assertFalse(alert.verify())
         # Use lambda to test the exception comes out.
@@ -61,8 +59,8 @@ class AlertTests(BackendTestCase):
         # Create a user an check that at least get_username and get_email work
         user1 = create_user('user1', 'user1@pjuu.com', 'Password')
         alert = BaseAlert(user1)
-        self.assertEqual(alert.get_username(), 'user1')
-        self.assertEqual(alert.get_email(), 'user1@pjuu.com')
+        self.assertEqual(alert.user.get('username'), 'user1')
+        self.assertEqual(alert.user.get('email'), 'user1@pjuu.com')
         self.assertTrue(alert.verify())
         # Done with BaseAlert :)
 
@@ -108,8 +106,8 @@ class AlertTests(BackendTestCase):
         # Get the alert from alerts
         alert = am.get(alerts[0])
         self.assertIsNotNone(alert)
-        self.assertEqual(alert.get_username(), 'user2')
-        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
+        self.assertEqual(alert.user.get('username'), 'user2')
+        self.assertEqual(alert.user.get('email'), 'user2@pjuu.com')
 
         # Delete test2 and ensure getting the alert returns None
         delete_account(user2)

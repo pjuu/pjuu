@@ -25,7 +25,6 @@ Licence:
 # Stdlib imports
 import re
 # 3rd party imports
-from bson.objectid import ObjectId
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
@@ -34,7 +33,7 @@ from pjuu.auth.backend import get_user
 from pjuu.lib import keys as K, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.posts.backend import get_comment, get_post
+from pjuu.posts.backend import get_post
 
 
 # Regular expressions
@@ -57,11 +56,11 @@ def get_profile(uid):
     """Returns a user dict with add post_count, follow_count and following.
 
     """
-    profile = r.hgetall(K.USER.format(uid))
+    profile = m.db.users.find_one({'_id': uid})
 
     if profile:
         # Count the users posts in MongoDB
-        profile['post_count'] = m.db.posts.count({'uid': uid})
+        profile['post_count'] = m.db.posts.find({'uid': uid}).count()
         # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(K.USER_FOLLOWERS.format(uid))
         profile['following_count'] = r.zcard(K.USER_FOLLOWING.format(uid))
@@ -71,6 +70,9 @@ def get_profile(uid):
 
 def get_feed(uid, page=1):
     """Returns a users feed as a pagination object.
+
+    Please note that the feed is stored inside Redis still as this requires
+    fan-out to update all the users who are following you.
 
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
@@ -96,40 +98,29 @@ def get_posts(uid, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = r.llen(K.USER_POSTS.format(uid))
-    pids = r.lrange(K.USER_POSTS.format(uid), (page - 1) * per_page,
-                    page * per_page)
+    total = m.db.posts.find({'uid': uid}).count()
+    cursor = m.db.comments.find({'uid': uid}) \
+        .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
+
     posts = []
-    for pid in pids:
-        # Get the post
-        post = get_post(pid)
-        if post:
-            posts.append(post)
-        else:
-            # Self cleaning lists
-            r.lrem(K.USER_POSTS.format(uid), 0, pid)
-            total = r.llen(K.USER_POSTS.format(uid))
+    for post in cursor:
+        posts.append(post)
 
     return Pagination(posts, total, page, per_page)
 
 
 def get_comments(pid, page=1):
     """Returns all a posts comments as a pagination object.
+
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = r.llen(K.POST_COMMENTS.format(pid))
-    cids = r.lrange(K.POST_COMMENTS.format(pid), (page - 1) * per_page,
-                    (page * per_page) - 1)
+    total = m.db.comments.find({'pid': pid}).count()
+    cursor = m.db.comments.find({'pid': pid}) \
+        .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
+
     comments = []
-    for cid in cids:
-        # Get the comment
-        comment = get_comment(cid)
-        if comment is not None:
-            comments.append(comment)
-        else:
-            # Self cleaning lists
-            r.lrem(K.POST_COMMENTS.format(pid), 0, cid)
-            total = r.llen(K.POST_COMMENTS.format(cid))
+    for comment in cursor:
+        comments.append(comment)
 
     return Pagination(comments, total, page, per_page)
 
@@ -139,9 +130,8 @@ def follow_user(who_uid, whom_uid):
     Generate an alert for this action.
 
     """
-    # Ensure who and whom uid's are strings not ObjectId's to store in Redis
-    who_uid = str(who_uid)
-    whom_uid = str(whom_uid)
+    who_uid = who_uid
+    whom_uid = whom_uid
     # Check that we are not already following the user
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return False
@@ -162,9 +152,8 @@ def unfollow_user(who_uid, whom_uid):
     """Remove whom from who's following zset and who to whom's followers zset
 
     """
-    # Ensure who and whom uid's are strings not ObjectId's to store in Redis
-    who_uid = str(who_uid)
-    whom_uid = str(whom_uid)
+    who_uid = who_uid
+    whom_uid = whom_uid
     # Check that we are actually following the users
     if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is None:
         return False
@@ -186,8 +175,7 @@ def get_following(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
-        # Get user, ensure the id is converted back to a string
-        user = get_user(ObjectId(fid))
+        user = get_user(fid)
         if user:
             users.append(user)
         else:
@@ -208,8 +196,7 @@ def get_followers(uid, page=1):
                     (page * per_page) - 1)
     users = []
     for fid in fids:
-        # Get user, ensure the id is converted back to an ObjectId
-        user = get_user(ObjectId(fid))
+        user = get_user(fid)
         if user:
             users.append(user)
         else:
@@ -236,31 +223,30 @@ def search(query):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+
     # Clean up query string
     query = query.lower()
     query = SEARCH_RE.sub('', query)
-    # Lets find and get the users
+
+    # Lets try and find some users
     if len(query) > 0:
         # We will concatenate the glob pattern to the query
-        keys = r.keys(K.UID_USERNAME.format(query + '*'))
-    else:
-        keys = []
+        cursor = m.db.users.find(
+            {'username': {'$regex': '^{}'.format(query)}}).limit(per_page)
 
-    # Get results from the keys, only show a maximum of per_page in a search.
-    # It could change too much between pages to be stable
-    # We will simply trim the keys list to this value, it's easier :)
-    keys = keys[:per_page]
-    results = []
-    for key in keys:
-        user = get_user(r.get(key))
-        # Ensure the user exists before adding to the list and is not
-        # a deleted accoumt remnant, it shouldn't be!
-        if user:
+        # Get the total number of documents returned
+        total = 0
+        results = []
+        for user in cursor:
+            total += 1
             results.append(user)
 
-    # Get the total number of users being returned
-    total = len(results)
+    else:
+        # If there was not query to search for 0 off everything
+        results = []
+        total = 0
 
+    # Return our pagination object
     return Pagination(results, total, 1, per_page)
 
 
@@ -268,7 +254,8 @@ def set_about(uid, about):
     """Set a users about message.
 
     """
-    return r.hset(K.USER.format(uid), 'about', about)
+    return m.db.users.update({'_id': uid},
+                             {'$set': {'about': about}})
 
 
 def get_alerts(uid, page=1):
