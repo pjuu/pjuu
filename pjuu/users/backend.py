@@ -68,7 +68,7 @@ def get_profile(uid):
     return profile if profile else None
 
 
-def get_feed(uid, page=1):
+def get_feed(user_id, page=1):
     """Returns a users feed as a pagination object.
 
     Please note that the feed is stored inside Redis still as this requires
@@ -76,53 +76,22 @@ def get_feed(uid, page=1):
 
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
-    total = r.llen(K.USER_FEED.format(uid))
-    pids = r.lrange(K.USER_FEED.format(uid), (page - 1) * per_page,
+    total = r.llen(K.USER_FEED.format(user_id))
+    pids = r.lrange(K.USER_FEED.format(user_id), (page - 1) * per_page,
                     (page * per_page) - 1)
     posts = []
     for pid in pids:
         # Get the post
+        print pid
         post = get_post(pid)
         if post:
             posts.append(post)
         else:
             # Self cleaning lists
-            r.lrem(K.USER_FEED.format(uid), 1, pid)
-            total = r.llen(K.USER_FEED.format(uid))
+            r.lrem(K.USER_FEED.format(user_id), 1, pid)
+            total = r.llen(K.USER_FEED.format(user_id))
 
     return Pagination(posts, total, page, per_page)
-
-
-def get_posts(uid, page=1):
-    """Returns a users posts as a pagination object.
-
-    """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.posts.find({'uid': uid}).count()
-    cursor = m.db.comments.find({'uid': uid}) \
-        .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
-
-    posts = []
-    for post in cursor:
-        posts.append(post)
-
-    return Pagination(posts, total, page, per_page)
-
-
-def get_comments(pid, page=1):
-    """Returns all a posts comments as a pagination object.
-
-    """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.comments.find({'pid': pid}).count()
-    cursor = m.db.comments.find({'pid': pid}) \
-        .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
-
-    comments = []
-    for comment in cursor:
-        comments.append(comment)
-
-    return Pagination(comments, total, page, per_page)
 
 
 def follow_user(who_uid, whom_uid):
@@ -207,11 +176,11 @@ def get_followers(uid, page=1):
     return Pagination(users, total, page, per_page)
 
 
-def is_following(who_uid, whom_uid):
+def is_following(who_id, whom_id):
     """Check to see if who is following whom.
 
     """
-    if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
+    if r.zrank(K.USER_FOLLOWING.format(who_id), whom_id) is not None:
         return True
     return False
 
@@ -267,9 +236,9 @@ def get_alerts(uid, page=1):
     # Get the last time the users checked the alerts
     # Try and cast the value to an int so we can boolean compare them
     try:
-        alerts_last_checked = m.db.users.find_one(
-            {'_id': uid}, {'alerts_last_checked'}).get('alerts_last_checked')
-    except (TypeError, ValueError):
+        alerts_last_checked = m.db.users.find_one({'_id': uid}) \
+            .get('alerts_last_checked')
+    except (AttributeError, TypeError, ValueError):
         alerts_last_checked = 0
 
     # Get total number of elements in the sorted set
@@ -317,19 +286,17 @@ def delete_alert(uid, aid):
     return bool(r.zrem(K.USER_ALERTS.format(uid), aid))
 
 
-def i_has_alerts(uid):
+def i_has_alerts(user_id):
     """Checks too see if user has any new alerts since they last got the them.
 
     """
     # Get the stamp since last check from Redis
     # If this has not been called before make it 0
-    alerts_last_checked = m.db.users.find_one({'_id': uid},
-                                              {'alerts_last_checked'}) \
-        .get('alerts_last_checked')
+    alerts_last_checked = get_user(user_id).get('alerts_last_checked')
 
     # Do the check. This will just see if there is anything returned from the
     # sorted set newer than the last_checked timestamp, SIMPLES.
     #
     # Note: zrevrangebyscore has max and min the wrong way round :P
-    return bool(r.zrevrangebyscore(K.USER_ALERTS.format(uid), '+inf',
+    return bool(r.zrevrangebyscore(K.USER_ALERTS.format(user_id), '+inf',
                 alerts_last_checked, start=0, num=1))

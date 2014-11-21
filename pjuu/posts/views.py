@@ -32,7 +32,7 @@ from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page
 from .backend import (create_post, check_post, has_voted, is_subscribed,
                       vote_post, get_post, delete_post as be_delete_post,
-                      get_comments, unsubscribe as be_unsubscribe,
+                      get_replies, unsubscribe as be_unsubscribe,
                       CantVoteOnOwn, AlreadyVoted, parse_tags)
 from .forms import PostForm
 
@@ -87,7 +87,7 @@ def voted_filter(pid):
     Will return 1 on upvote, -1 on downvote and 0 if not voted
 
     """
-    return has_voted(current_user['uid'], pid) or 0
+    return has_voted(current_user.get('_id'), pid) or 0
 
 
 @app.template_filter('subscribed')
@@ -113,7 +113,7 @@ def view_post(username, post_id):
 
     # Get post and comments for the current page
     post = get_post(post_id)
-    pagination = get_comments(post_id, page)
+    pagination = get_replies(post_id, page)
 
     post_form = PostForm()
     return render_template('view_post.html', post=post,

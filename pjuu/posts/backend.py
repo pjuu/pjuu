@@ -32,11 +32,16 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 
 # Pjuu imports
-from pjuu import celery, mongo as m, redis as r
+from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_uid_username
 from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
+from pjuu.lib.tasks import make_celery
+
+
+# Create a celery object for this file
+celery = make_celery(app)
 
 
 # Used to match '@' tags in a post
@@ -311,6 +316,7 @@ def populate_followers_feeds(user_id, post_id):
     This can be run on a worker to speed the process up.
 
     """
+    print "POPULATE_FOLLOWERS_FEEDS"
     # Get a list of ALL users who are following a user
     followers = r.zrange(K.USER_FOLLOWERS.format(user_id), 0, -1)
     # This is not transactional as to not hold Redis up.
@@ -334,13 +340,13 @@ def check_post(user_id, post_id, reply_id=None):
     # Check if cid is a comment of post pid
     if reply_id:
         # Get the reply_to field of the reply object and check it matches
-        reply = m.db.posts.find_one({'_id': reply_id}, {'reply_to': 1})
+        reply = m.db.posts.find_one({'_id': reply_id}, {'reply_to': True})
         if reply.get('reply_to') != post_id:
             return False
 
     # Get the user_id for post with post_id to verify
-    post = m.db.posts.find_one({'_id': post_id}, {'user_id': 1})
-    if post.get('user_to') != user_id:
+    post = m.db.posts.find_one({'_id': post_id}, {'user_id': True})
+    if post.get('user_id') != user_id:
         return False
 
     # The post was valid!!!
@@ -370,7 +376,7 @@ def get_posts(user_id, page=1):
     return Pagination(posts, total, page, per_page)
 
 
-def get_comments(post_id, page=1):
+def get_replies(post_id, page=1):
     """Returns all a posts comments as a pagination object.
 
     """
@@ -393,7 +399,7 @@ def has_voted(user_id, post_id):
     return r.zscore(K.POST_VOTES.format(post_id), user_id)
 
 
-def vote(uid, pid, amount=1):
+def vote_post(uid, pid, amount=1):
     """Handles voting on posts
 
     """

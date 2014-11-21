@@ -49,7 +49,7 @@ def following_filter(profile):
     """
     Checks if current user is following the user with id piped to filter
     """
-    return is_following(current_user.get('uid'), profile.get('uid'))
+    return is_following(current_user.get('_id'), profile.get('_id'))
 
 
 @app.template_filter('avatar')
@@ -153,7 +153,7 @@ def feed():
     # Pagination
     page = handle_page(request)
     # Get feed pagination
-    pagination = get_feed(current_user.get('uid'), page)
+    pagination = get_feed(current_user.get('_id'), page)
 
     # Post form
     post_form = PostForm()
@@ -245,15 +245,15 @@ def follow(username):
     redirect_url = handle_next(request, url_for('following',
                                username=current_user.get('username')))
 
-    uid = get_uid(username)
+    user_id = get_uid(username)
 
     # If we don't get a uid from the username the page doesn't exist
-    if uid is None:
+    if user_id is None:
         abort(404)
 
     # Unfollow user, ensure the user doesn't unfollow themself
-    if uid != current_user.get('uid'):
-        if follow_user(current_user.get('uid'), uid):
+    if user_id != current_user.get('_id'):
+        if follow_user(current_user.get('_id'), user_id):
             flash('You have started following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')
@@ -270,15 +270,15 @@ def unfollow(username):
     redirect_url = handle_next(request, url_for('following',
                                username=current_user.get('username')))
 
-    uid = get_uid(username)
+    user_id = get_uid(username)
 
     # If we don't get a uid from the username the page doesn't exist
-    if uid is None:
+    if user_id is None:
         abort(404)
 
     # Unfollow user, ensure the user doesn't unfollow themself
-    if uid != current_user.get('uid'):
-        if unfollow_user(current_user.get('uid'), uid):
+    if user_id != current_user.get('_id'):
+        if unfollow_user(current_user.get('_id'), user_id):
             flash('You are no longer following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')

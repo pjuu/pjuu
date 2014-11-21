@@ -22,12 +22,10 @@ Licence:
 """
 
 # 3rd party imports
+from flask import current_app as app
 from flask_wtf import Form
 from wtforms import TextAreaField
 from wtforms.validators import Required, Length
-
-# Pjuu imports
-from pjuu import app
 
 
 class PostForm(Form):
