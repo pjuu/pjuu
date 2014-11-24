@@ -50,22 +50,21 @@ TAG_RE = re.compile('(?:^|(?<=[^\w]))@'
 
 
 class CantVoteOnOwn(Exception):
-    """Raised when a user tries to vote on a post or comment they authored
+    """Raised when a user tries to vote on a post they authored
 
     """
     pass
 
 
 class AlreadyVoted(Exception):
-    """Raised when a user tries to vote on a post or comment they have already
-    voted on
+    """Raised when a user tries to vote on a post they have already voted on
 
     """
     pass
 
 
 class SubscriptionReasons(object):
-    """Constants describing subscriptions to post
+    """Constants describing subscriptions to a post
 
     """
     # You are the original poster
@@ -81,10 +80,10 @@ class PostingAlert(BaseAlert):
 
     """
 
-    def __init__(self, uid, pid):
+    def __init__(self, user_id, post_id):
         # Call the BaseAlert __init__ method
-        super(PostingAlert, self).__init__(uid)
-        self.pid = pid
+        super(PostingAlert, self).__init__(user_id)
+        self.post_id = post_id
 
     def url(self):
         """Get the user object or the original author for the post.
@@ -94,19 +93,17 @@ class PostingAlert(BaseAlert):
 
         """
         # Get the author of the posts username so that we can build the URL
-        author_uid = m.db.posts.find_one({'_id': self.pid},
-                                         {'uid': True, '_id': False})
-        author_username = m.db.users.find_one({'_id': author_uid},
-                                              {'username': True, '_id': False})
+        author = m.db.posts.find_one({'_id': self.post_id},
+                                     {'username': True, '_id': False})
         # Return the username or None
-        return author_username.get('username')
+        return author.get('username')
 
     def verify(self):
         """Overwrites the verify() of BaseAlert to check the post exists
 
         """
-        return m.db.users.find({'_id': self.uid}).limit(1) and \
-            m.db.posts.find({'_id': self.pid}).limit(1)
+        return m.db.users.find({'_id': self.user_id}).limit(1) and \
+            m.db.posts.find({'_id': self.post_id}).limit(1)
 
 
 class TaggingAlert(PostingAlert):
@@ -381,8 +378,8 @@ def get_replies(post_id, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.comments.find({'pid': post_id}).count()
-    cursor = m.db.comments.find({'pid': post_id}) \
+    total = m.db.posts.find({'_id': post_id}).count()
+    cursor = m.db.posts.find({'reply_to': post_id}) \
         .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 
     comments = []

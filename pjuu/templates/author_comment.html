@@ -2,7 +2,7 @@
 <!-- author comment -->
 {% endif %}
 <div id="author" class="block comment clearfix">
-    <form action="{{ url_for('comment', username=post.user_username, pid=post.pid, next=request.path) }}" method="post">
+    <form action="{{ url_for('reply', username=post.username, reply_to=post._id, next=request.path) }}" method="post">
         {{ post_form.body(rows=2, maxlength=255, placeholder="Leave a comment...") }}
         {{ post_form.csrf_token }}
         <div id="count">0 / 255</div>

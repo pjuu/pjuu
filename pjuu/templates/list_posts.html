@@ -28,21 +28,21 @@
                 </li>
                 {% if item.user_id != current_user._id %}
                 <li>
-                    {% if item.post_id|voted > 0 %}
+                    {% if item._id|voted > 0 %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
-                    {% elif item.post_id|voted < 0 %}
+                    {% elif item._id|voted < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     <a href="{{ url_for('upvote', username=item.username, post_id=item._id, reply_to=item.reply_to, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
                 <li>
-                    {% if item.pid|voted < 0 %}
+                    {% if item._id|voted < 0 %}
                     {% if config.TESTING %}
                     <!-- action:downvoted -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
-                    {% elif item.pid|voted > 0 %}
+                    {% elif item._id|voted > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}

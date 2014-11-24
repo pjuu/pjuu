@@ -4,23 +4,23 @@
 
 {% block main %}
 {% if config.TESTING %}
-<!-- view:post:{{post.pid}} -->
+<!-- view:post:{{ post._id }} -->
 {% endif %}
 <div id="post" class="block clearfix">
-    <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
+    <img class="avatar" src="" />
 
     <div class="control">
         {% if post.uid == current_user.uid %}
         {% if config.TESTING %}
-        <!-- delete_post:{{ post.pid }} -->
+        <!-- delete_post:{{ post._id }} -->
         {% endif %}
-        <a href="{{ url_for('delete_post', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+        <a href="{{ url_for('delete_post', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
     </div>
 
     <div class="content clearfix">
         <div class="username">
-            <a href="{{ url_for('profile', username=post.user_username) }}">{{ post.user_username|capitalize }}</a>
+            <a href="{{ url_for('profile', username=post.username) }}">{{ post.username|capitalize }}</a>
             <span class="created">{{ post.created|timeify }}</span>
         </div>
         <div class="body">
@@ -31,37 +31,37 @@
         <div class="panel clearfix">
             <ul>
                 <li>
-                    <i class="fa fa-trophy fa-lg"></i> {{ post['score']|millify }}
+                    <i class="fa fa-trophy fa-lg"></i> {{ post.score|millify }}
                 </li>
-                {% if post.uid != current_user.uid %}
+                {% if post.user_id != current_user._id %}
                 <li>
-                    {% if post.pid|voted > 0 %}
+                    {% if post._id|voted > 0 %}
                     {% if config.TESTING %}
                     <!-- action:upvoted -->
                     {% endif %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
-                    {% elif post.pid|voted < 0 %}
+                    {% elif post._id|voted < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
                     <!-- action:upvote -->
                     {% endif %}
-                    <a href="{{ url_for('upvote', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <a href="{{ url_for('upvote', username=post.username, pid=post._id, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
                 <li>
-                    {% if post.pid|voted < 0 %}
+                    {% if post._id|voted < 0 %}
                     {% if config.TESTING %}
                     <!-- action:downvoted -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
-                    {% elif post.pid|voted > 0 %}
+                    {% elif post._id|voted > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
                     <!-- action:downvote -->
                     {% endif %}
-                    <a href="{{ url_for('downvote', username=post.user_username, pid=post.pid, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <a href="{{ url_for('downvote', username=post.username, pid=post._id, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
                     {% endif %}
                 </li>
                 {% endif %}
@@ -71,7 +71,7 @@
                 {% if config.TESTING %}
                 <!-- unsubscribe:{{ post.pid }} -->
                 {% endif %}
-                <a href="{{ url_for('unsubscribe', username=post.user_username, pid=post.pid, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
+                <a href="{{ url_for('unsubscribe', username=post.username, pid=post._id, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
             </div>
             {% endif %}
         </div>
@@ -82,6 +82,6 @@
 
 <div id="content" class="block clearfix">
     <h1>Comments</h1>
-    {% include 'list_comments.html' %}
+    {% include 'list_posts.html' %}
 </div>
 {% endblock %}

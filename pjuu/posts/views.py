@@ -74,28 +74,26 @@ def nameify_filter(body):
 
 
 @app.template_filter('voted')
-def voted_filter(pid):
+def voted_filter(post_id):
     """Checks to see if current_user has voted on the post pid.
 
     To check a post simply:
-        item.pid|voted
-    To check a comment it is a little different:
-        item.cid|voted(True)
+        item.post_id|voted
 
     These may be reffered to as items.X in lists.
 
     Will return 1 on upvote, -1 on downvote and 0 if not voted
 
     """
-    return has_voted(current_user.get('_id'), pid) or 0
+    return has_voted(current_user.get('_id'), post_id) or 0
 
 
 @app.template_filter('subscribed')
-def subscribed_filter(pid):
+def subscribed_filter(post_id):
     """A simple filter to check if the current user is subscribed to a post
 
     """
-    return is_subscribed(current_user['uid'], pid)
+    return is_subscribed(current_user.get('_id'), post_id)
 
 
 @app.route('/<username>/<post_id>', methods=['GET'])
@@ -121,7 +119,8 @@ def view_post(username, post_id):
 
 
 @app.route('/post', methods=['GET', 'POST'])
-@app.route('/<username>/<reply_to>/comment', methods=['GET', 'POST'])
+@app.route('/<username>/<reply_to>/post', methods=['GET', 'POST'],
+           endpoint="reply")
 @login_required
 def post(username=None, reply_to=None):
     """Enabled current_user to create a new post on Pjuu :)
@@ -130,7 +129,7 @@ def post(username=None, reply_to=None):
     Werkzeug router does not treat this like a profile lookup.
 
     """
-    # Rather than just 404 if someone tries to GET this URL which is default,
+    # Rather than just 404 if someone tries to GET this URL (which is default),
     # we will throw a 405.
     if request.method == 'GET':
         return abort(405)
@@ -141,7 +140,7 @@ def post(username=None, reply_to=None):
                                    username=current_user['username']))
     else:
         redirect_url = handle_next(request, url_for('view_post',
-                                   username=username, pid=reply_to))
+                                   username=username, post_id=reply_to))
 
     # Stop muted users from creating posts
     if current_user.get('muted', False):

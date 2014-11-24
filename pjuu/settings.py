@@ -56,7 +56,7 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Celery
 CELERY_BROKER_URL = 'amqp://guest@localhost:guest//'
-# Don't pass tasks down celery by default
+# Don't pass tasks down the broker by default
 CELERY_ALWAYS_EAGER = True
 
 # Flask-WTF (Cross site request forgery)
