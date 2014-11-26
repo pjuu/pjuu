@@ -37,7 +37,7 @@ from werkzeug.utils import cached_property
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_user as be_get_user
-from pjuu.lib import keys as K, timestamp
+from pjuu.lib import keys as k, timestamp
 
 
 class BaseAlert(object):
@@ -47,19 +47,19 @@ class BaseAlert(object):
 
     """
 
-    def __init__(self, uid):
-        self.aid = uuid1().int
+    def __init__(self, user_id):
+        self.alert_id = uuid1().int
         self.timestamp = timestamp()
-        self.uid = uid
+        self.user_id = user_id
 
     @cached_property
     def user(self):
         """Helper; Get the user object of the user who caused the alert.
-        This value is cached in the interpretter so it doesn't go to the
+        This value is cached in the interpreter so it doesn't go to the
         database each time this is called.
 
         """
-        return be_get_user(self.uid)
+        return be_get_user(self.user_id)
 
     def verify(self):
         """Check the alert is valid. You may need to overwrite this if you add
@@ -68,7 +68,7 @@ class BaseAlert(object):
 
         """
         # Simple implementation, check the user exists
-        return bool(m.db.users.find_one({'_id': self.uid}, {}))
+        return bool(m.db.users.find_one({'_id': self.user_id}, {}))
 
     def prettify(self, for_uid=None):
         """Overwrite to show how the alert will be presented to the user.
@@ -96,7 +96,7 @@ class AlertManager(object):
         """
         # Try the unpickling process
         try:
-            pickled_alert = r.get(K.ALERT.format(aid))
+            pickled_alert = r.get(k.ALERT.format(aid))
             alert = jsonpickle.decode(pickled_alert)
         except (TypeError, ValueError):
             # We failed to get an alert for whateva reason
@@ -109,10 +109,10 @@ class AlertManager(object):
         else:
             # If the alert did not verify delete it
             # This will stop this always being called
-            r.delete(K.ALERT.format(aid))
+            r.delete(k.ALERT.format(aid))
             return None
 
-    def alert(self, alert, uids):
+    def alert(self, alert, user_ids):
         """Will attempt to alert the user with uid to the alert being managed.
 
         This will call the alerts before_alert() method, which allows you to
@@ -125,15 +125,16 @@ class AlertManager(object):
 
         # Ensure uids is iterable
         # Stopped strings being passed in
-        if not isinstance(uids, Iterable) or isinstance(uids, str) or \
-           isinstance(uids, unicode):
-            raise TypeError('uids must be iterable')
+        if not isinstance(user_ids, Iterable) or isinstance(user_ids, str) or \
+           isinstance(user_ids, unicode):
+            raise TypeError('user_ids must be iterable')
 
         # Create the alert object
-        r.set(K.ALERT.format(alert.aid), jsonpickle.encode(alert))
+        r.set(k.ALERT.format(alert.alert_id), jsonpickle.encode(alert))
         # Set the 4WK timeout on it
-        r.expire(K.ALERT.format(alert.aid), K.EXPIRE_4WKS)
+        r.expire(k.ALERT.format(alert.alert_id), k.EXPIRE_4WKS)
 
-        for uid in uids:
+        for user_id in user_ids:
             # Only add the zset if the user still exists
-            r.zadd(K.USER_ALERTS.format(uid), alert.timestamp, alert.aid)
+            r.zadd(k.USER_ALERTS.format(user_id), alert.timestamp,
+                   alert.alert_id)

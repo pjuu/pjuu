@@ -34,19 +34,14 @@ from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_uid_username
-from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
+from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
+from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
-from pjuu.lib.tasks import make_celery
-
-
-# Create a celery object for this file
-celery = make_celery(app)
 
 
 # Used to match '@' tags in a post
-TAG_RE = re.compile('(?:^|(?<=[^\w]))@'
-                    '(\w{3,16})(?:$|(?=[\.\;\,\:\ \t]))')
+TAG_RE = re.compile('(?:^|(?<=[^\w]))@(\w{3,16})(?:$|(?=[.;,: \t]))')
 
 
 class CantVoteOnOwn(Exception):
@@ -122,9 +117,9 @@ class CommentingAlert(PostingAlert):
 
     """
 
-    def prettify(self, for_uid):
+    def prettify(self, for_uid=None):
         # Let's try and work out why this user is being notified of a comment
-        reason = subscription_reason(for_uid, self.pid)
+        reason = subscription_reason(for_uid, self.post_id)
 
         if reason == SubscriptionReasons.POSTER:
             sr = 'posted'
@@ -190,9 +185,9 @@ def create_post(user_id, username, body, reply_to=None):
             # Handle what Pjuu < v0.6 called a POST
 
             # Add post to authors feed
-            r.lpush(K.USER_FEED.format(user_id), post_id)
+            r.lpush(k.USER_FEED.format(user_id), post_id)
             # Ensure the feed does not grow to large
-            r.ltrim(K.USER_FEED.format(user_id), 0, 999)
+            r.ltrim(k.USER_FEED.format(user_id), 0, 999)
 
             # Subscribe the poster to there post
             subscribe(user_id, post_id, SubscriptionReasons.POSTER)
@@ -306,7 +301,6 @@ def parse_tags(body, deduplicate=False):
     return results
 
 
-@celery.task
 def populate_followers_feeds(user_id, post_id):
     """Fan out a pid to all the users followers.
 
@@ -314,14 +308,14 @@ def populate_followers_feeds(user_id, post_id):
 
     """
     # Get a list of ALL users who are following a user
-    followers = r.zrange(K.USER_FOLLOWERS.format(user_id), 0, -1)
+    followers = r.zrange(k.USER_FOLLOWERS.format(user_id), 0, -1)
     # This is not transactional as to not hold Redis up.
     for follower_id in followers:
         # Add the pid to the list
-        r.lpush(K.USER_FEED.format(follower_id), post_id)
+        r.lpush(k.USER_FEED.format(follower_id), post_id)
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
-        r.ltrim(K.USER_FEED.format(follower_id), 0, 999)
+        r.ltrim(k.USER_FEED.format(follower_id), 0, 999)
 
 
 def check_post(user_id, post_id, reply_id=None):
@@ -392,7 +386,7 @@ def has_voted(user_id, post_id):
     """Check if a user has voted on a post or a comment, if so return the vote.
 
     """
-    return r.zscore(K.POST_VOTES.format(post_id), user_id)
+    return r.zscore(k.POST_VOTES.format(post_id), user_id)
 
 
 def vote_post(uid, pid, amount=1):
@@ -404,7 +398,7 @@ def vote_post(uid, pid, amount=1):
 
     if not has_voted(uid, pid):
         if author_uid != uid:
-            r.zadd(K.POST_VOTES.format(pid), amount, uid)
+            r.zadd(k.POST_VOTES.format(pid), amount, uid)
             # Increment the score by amount (can be negative)
             # Post score can go lower than 0
             m.db.posts.update({'_id': pid},
@@ -434,9 +428,9 @@ def delete_post(post_id):
     post = get_post(post_id)
 
     # Delete votes and subscribers from Redis
-    r.delete(K.POST_VOTES.format(post.get('_id')))
+    r.delete(k.POST_VOTES.format(post.get('_id')))
     if post.get('reply_to'):
-        r.delete(K.POST_SUBSCRIBERS.format(post.get('_id')))
+        r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
 
     # Delete the post from MongoDB
     m.db.posts.remove({'_id': post_id})
@@ -446,7 +440,6 @@ def delete_post(post_id):
         delete_post_replies(post_id)
 
 
-@celery.task()
 def delete_post_replies(post_id):
     """Delete ALL comments on post with pid.
 
@@ -460,7 +453,7 @@ def delete_post_replies(post_id):
     # Iterate over the cursor and call delete comment on each one
     for reply in cur:
         # Delete votes and subscribers from Redis
-        r.delete(K.POST_VOTES.format(reply.get('_id')))
+        r.delete(k.POST_VOTES.format(reply.get('_id')))
 
         # Delete the comment itself from MongoDB
         m.db.posts.remove({'_id': post_id})
@@ -476,8 +469,8 @@ def subscribe(user_id, post_id, reason):
 
     # Only subscribe the user if the user is not already subscribed
     # this will mean the original reason is kept
-    return L.zadd_member_nx(keys=[K.POST_SUBSCRIBERS.format(post_id)],
-                            args=[reason, user_id])
+    return zadd_member_nx(keys=[k.POST_SUBSCRIBERS.format(post_id)],
+                          args=[reason, user_id])
 
 
 def unsubscribe(user_id, post_id):
@@ -485,25 +478,25 @@ def unsubscribe(user_id, post_id):
 
     """
     # Actually remove the uid from the subscribers list
-    return bool(r.zrem(K.POST_SUBSCRIBERS.format(post_id), user_id))
+    return bool(r.zrem(k.POST_SUBSCRIBERS.format(post_id), user_id))
 
 
 def get_subscribers(post_id):
     """Return a list of subscribers for a given post
 
     """
-    return r.zrange(K.POST_SUBSCRIBERS.format(post_id), 0, -1)
+    return r.zrange(k.POST_SUBSCRIBERS.format(post_id), 0, -1)
 
 
 def is_subscribed(user_id, post_id):
     """Returns a boolean to denote if a user is subscribed or not
 
     """
-    return r.zrank(K.POST_SUBSCRIBERS.format(post_id), user_id) is not None
+    return r.zrank(k.POST_SUBSCRIBERS.format(post_id), user_id) is not None
 
 
 def subscription_reason(user_id, post_id):
     """Returns the reason a user is subscribed to a post.
 
     """
-    return r.zscore(K.POST_SUBSCRIBERS.format(post_id), user_id)
+    return r.zscore(k.POST_SUBSCRIBERS.format(post_id), user_id)

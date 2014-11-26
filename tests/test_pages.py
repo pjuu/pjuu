@@ -39,19 +39,19 @@ class PagesTests(FrontendTestCase):
 
         """
         # Abouts
-        resp = self.client.get(url_for('about'))
+        resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: not logged in -->', resp.data)
         self.assertIn('<h1>About Us</h1>', resp.data)
 
         # Terms
-        resp = self.client.get(url_for('terms'))
+        resp = self.client.get(url_for('pages.terms'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: not logged in -->', resp.data)
         self.assertIn('<h1>Terms of Service</h1>', resp.data)
 
         # Privacy
-        resp = self.client.get(url_for('privacy'))
+        resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: not logged in -->', resp.data)
         self.assertIn('<h1>Privacy</h1>', resp.data)
@@ -65,25 +65,25 @@ class PagesTests(FrontendTestCase):
         # Activate the account
         self.assertTrue(activate(user1))
         # Log the user in
-        resp = self.client.post(url_for('signin'), data={
+        resp = self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
 
         # About
-        resp = self.client.get(url_for('about'))
+        resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: logged in -->', resp.data)
         self.assertIn('<h1>About Us</h1>', resp.data)
 
         # Terms
-        resp = self.client.get(url_for('terms'))
+        resp = self.client.get(url_for('pages.terms'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: logged in -->', resp.data)
         self.assertIn('<h1>Terms of Service</h1>', resp.data)
 
         # Privacy
-        resp = self.client.get(url_for('privacy'))
+        resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: logged in -->', resp.data)
         self.assertIn('<h1>Privacy</h1>', resp.data)

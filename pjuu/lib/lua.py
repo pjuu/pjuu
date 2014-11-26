@@ -26,26 +26,30 @@ Licence:
 from pjuu import redis as r
 
 
-# This script will only do a zadd on KEYS[1] if the member is not already there
-# Please note, unlike ZADD this can only add one member at a time
-lua_zadd_member_nx = """
-if not redis.call('ZRANK', KEYS[1], ARGV[2]) then
-    redis.call('SET', 'HERE', 1)
-    return redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
-else
-    return nil
-end
-"""
+def zadd_member_nx(*args, **kwargs):
+    """
+
+    """
+    func = r.register_script("""
+    if not redis.call('ZRANK', KEYS[1], ARGV[2]) then
+        redis.call('SET', 'HERE', 1)
+        return redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+    else
+        return nil
+    end
+    """)
+
+    return func(*args, **kwargs)
 
 
-# Only add a member to a sorted set at KEYS[1] if KEYS[2] exists.
-lua_zadd_keyx = """
-if redis.call('EXISTS', KEYS[2]) then
-    redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
-end
-"""
+def zadd_keyx(*args, **kwargs):
+    """
 
+    """
+    func = r.register_script("""
+    if redis.call('EXISTS', KEYS[2]) then
+        redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+    end
+    """)
 
-# Load the above scripts in to Redis object r
-zadd_member_nx = r.register_script(lua_zadd_member_nx)
-zadd_keyx = r.register_script(lua_zadd_keyx)
+    return func(*args, **kwargs)

@@ -112,7 +112,7 @@ def signin():
     form = SignInForm(request.form)
     if request.method == 'POST':
         # Handles the passing of the next argument to the login view
-        redirect_url = handle_next(request, url_for('feed'))
+        redirect_url = handle_next(request, url_for('users.feed'))
 
         if form.validate():
             # Calls authenticate from backend.py

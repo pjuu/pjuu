@@ -31,8 +31,6 @@ Licence:
 # Stdlib imports
 import sys
 import unittest
-# Pjuu imports
-from pjuu import create_app
 
 
 if __name__ == '__main__':
@@ -44,38 +42,15 @@ if __name__ == '__main__':
           a 1 please be careful. Tavis-CI may think the tests have passed
     Note: This may change to pytest or nosetest in the future.
     """
-    # Create our testing app with explicit test settings
-    # These are for our uses when deploying so that Travis-CI will run the
-    # the unittest's.
-    app = create_app(config_dict={
-        # Testing needs to be enabled so that we can get passed the
-        # in tests and also so Flask-Mail does not send mail
-        'TESTING': 'True',
-        # We need a SERVER_NAME so that we can use url_for()
-        'SERVER_NAME': 'localhost',
-        # This just stops us getting through forms if True
-        'WTF_CSRF_ENABLED': False,
-        # MognoDB settings for tests
-        'MONGO_DBNAME': 'pjuu_testing',
-        # Change the Redis database numbers so that we do not overwrite
-        # our data each time we run the tests
-        'REDIS_DB': 2,
-        'SESSION_REDIS_DB': 3
-    })
+    # Prepare for testing
+    test_loader = unittest.defaultTestLoader
+    test_runner = unittest.TextTestRunner()
+    test_suite = test_loader.discover('tests', pattern='test_pages.py')
 
-    # Create a request context to run all of the tests in.
-    # The FrontendTests in each module will create a test request context
-    # before each test and pop it afterwards
-    with app.app_context():
-        # Prepare for testing
-        test_loader = unittest.defaultTestLoader
-        test_runner = unittest.TextTestRunner()
-        test_suite = test_loader.discover('tests', pattern='test_*.py')
+    # Run all located tests and save the returns
+    test_results = test_runner.run(test_suite)
 
-        # Run all located tests and save the returns
-        test_results = test_runner.run(test_suite)
-
-        # If we have any test failures set the return code from script to 1
-        # This will allow Travis-CI to inform us that the build failed
-        if not test_results.wasSuccessful():
-            sys.exit(1)
+    # If we have any test failures set the return code from script to 1
+    # This will allow Travis-CI to inform us that the build failed
+    if not test_results.wasSuccessful():
+        sys.exit(1)

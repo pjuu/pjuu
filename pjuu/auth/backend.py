@@ -33,7 +33,7 @@ from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.lib import keys as K, timestamp, get_uuid
+from pjuu.lib import keys as k, timestamp, get_uuid
 
 
 # Username & E-mail checker re patterns
@@ -159,8 +159,8 @@ def get_uid_username(username):
 def get_uid_email(email):
     """Get the uid for user with email.
 
-    :param username: The email to lookup
-    :type username: str
+    :param email: The email to lookup
+    :type email: str
     :returns: The users UID
     :rtype: str or None
 
@@ -348,7 +348,7 @@ def change_email(uid, new_email):
     return m.db.users.update({'_id': uid}, {'$set': {'email': new_email}})
 
 
-def delete_account(uid):
+def delete_account(user_id):
     """Will delete a users account.
 
     This _MUST_ _REMOVE_ _ALL_ details, comments, posts, etc.
@@ -358,67 +358,68 @@ def delete_account(uid):
 
     """
     # Delete the user from MongoDB
-    m.db.users.remove({'_id': uid})
+    m.db.users.remove({'_id': user_id})
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.
-    posts_cursor = m.db.posts.find({'uid': uid})
+    posts_cursor = m.db.posts.find({'uid': user_id})
     for post in posts_cursor:
         # Get the posts id
-        pid = post.get('_id')
+        post_id = post.get('_id')
 
         # Delete the Redis stuff
         # Delete all the votes made on the post
-        r.delete(K.POST_VOTES.format(pid))
-        # Delete posts subscribers list
-        r.delete(K.POST_SUBSCRIBERS.format(pid))
+        r.delete(k.POST_VOTES.format(post_id))
 
-        comments_cursor = m.db.comments.find({'pid': pid})
-        for comment in comments_cursor:
-            # Get the comments id
-            cid = comment.get('_id')
-            # Delete comment votes
-            r.delete(K.COMMENT_VOTES.format(cid))
-            # Delete the comment itself
-            m.db.comments.remove({'_id': cid})
+        if 'reply_to' not in post:
+            # Delete posts subscribers list
+            r.delete(k.POST_SUBSCRIBERS.format(post_id))
+
+            replies_cursor = m.db.posts.find({'reply_to': post_id}, {})
+            for reply in replies_cursor:
+                # Get the comments id
+                reply_id = reply.get('_id')
+                # Delete comment votes
+                r.delete(k.POST_VOTES.format(reply_id))
+                # Delete the comment itself
+                m.db.posts.remove({'_id': reply_id})
 
         # Delete the post itself
-        m.db.posts.remove({'_id': pid})
-
-    # Delete all comments the user has ever made
-    m.db.comments.remove({'uid': uid})
+        m.db.posts.remove({'_id': post_id})
 
     # Remove all the following relationships from Redis
 
     # Delete all references to followers of the user.
     # This will remove the user from the other users following list
 
-    fids = r.zrange(K.USER_FOLLOWERS.format(uid), 0, -1)
+    # TODO Replace with ZSCAN
+    follower_cursor = r.zrange(k.USER_FOLLOWERS.format(user_id), 0, -1)
 
-    for fid in fids:
+    for follower_id in follower_cursor:
         # Clear the followers following list of the uid
-        r.zrem(K.USER_FOLLOWING.format(fid), uid)
+        r.zrem(k.USER_FOLLOWING.format(follower_id), user_id)
     # Delete the followers list
-    r.delete(K.USER_FOLLOWERS.format(uid))
+    r.delete(k.USER_FOLLOWERS.format(user_id))
 
     # Delete all references to the users the user is following
     # This will remove the user from the others users followers list
 
-    fids = r.zrange(K.USER_FOLLOWING.format(uid), 0, -1)
+    # TODO Replace with ZSCAN
+    followee_cursor = r.zrange(k.USER_FOLLOWING.format(user_id), 0, -1)
 
-    for fid in fids:
+    for followee_id in followee_cursor:
         # Clear the followers list of people uid is following
-        r.zrem(K.USER_FOLLOWERS.format(fid), uid)
+        r.zrem(k.USER_FOLLOWERS.format(followee_id), user_id)
     # Delete the following list
-    r.delete(K.USER_FOLLOWING.format(uid))
+    r.delete(k.USER_FOLLOWING.format(user_id))
 
     # Delete the users feed, this may have been added too during this process.
     # Probably not but let's be on the safe side
-    r.delete(K.USER_FEED.format(uid))
+    r.delete(k.USER_FEED.format(user_id))
 
     # Delete the users alert list
     # DO NOT DELETE ANY ALERTS AS THESE ARE GENERIC
-    r.delete(K.USER_ALERTS.format(uid))
+    r.delete(k.USER_ALERTS.format(user_id))
 
     # All done. This code may need making SAFER in case there are issues
     # elsewhere in the code base.

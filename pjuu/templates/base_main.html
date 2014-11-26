@@ -2,7 +2,7 @@
 {% block layout %}
 <div id="header" class="clearfix">
     <div class="container">
-        <a href="{{ url_for('feed') }}">
+        <a href="{{ url_for('users.feed') }}">
             <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}"/>
         </a>
         <ul class="menu">
@@ -28,7 +28,7 @@
                 <i class="fa fa-search fa-fw fa-lg"></i>
                 <span class="no-mobile">Search</span>
             </li></a>
-            <a href="{{ url_for('auth.settings_profile') }}"><li>
+            <a href="{{ url_for('users.settings_profile') }}"><li>
                 <i class="fa fa-cog fa-fw fa-lg"></i>
                 <span class="no-mobile">Settings</span>
             </li></a>

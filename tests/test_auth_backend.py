@@ -24,7 +24,6 @@ Licence:
 # 3rd party imports
 from flask import current_app as app, session
 # Pjuu imports
-from pjuu import redis as r
 from pjuu.auth.backend import *
 from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post, create_comment
