@@ -16,6 +16,6 @@
 </form>
 {% endblock %}
 {% block links %}
-<div class="link">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up for free</a></div>
-<div class="link">Forgotten your password? <a href="{{ url_for('forgot') }}">Recover it here</a></div>
+<div class="link">Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign Up for free</a></div>
+<div class="link">Forgotten your password? <a href="{{ url_for('auth.forgot') }}">Recover it here</a></div>
 {% endblock %}

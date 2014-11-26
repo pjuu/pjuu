@@ -106,11 +106,15 @@ def create_app(config_filename='settings.py', config_dict=None):
         # Import all Pjuu stuffs
         # Load Redis LUA scripts, this will also load the scripts into Redis
         import pjuu.lib.lua
-        # Endpoints
-        import pjuu.pages
-        import pjuu.auth.views
-        import pjuu.users.views
-        import pjuu.posts.views
+        # Load the blueprints
+        from pjuu.pages import pages_bp
+        app.register_blueprint(pages_bp)
+        from pjuu.auth.views import auth_bp
+        app.register_blueprint(auth_bp)
+        from pjuu.posts.views import posts_bp
+        app.register_blueprint(posts_bp)
+        from pjuu.users.views import users_bp
+        app.register_blueprint(users_bp)
 
     # Return a nice shiny new Pjuu WSGI application :)
     return app

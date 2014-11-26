@@ -25,8 +25,8 @@ Licence:
 from hashlib import md5
 import math
 # 3rd party imports
-from flask import (current_app as app, abort, flash, redirect, render_template,
-                   request, url_for, jsonify)
+from flask import (abort, flash, redirect, render_template, request, url_for,
+                   jsonify, Blueprint)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid, get_uid_username
@@ -44,7 +44,10 @@ from pjuu.users.backend import (follow_user, unfollow_user, get_profile,
                                 delete_alert as be_delete_alert)
 
 
-@app.template_filter('following')
+users_bp = Blueprint('users', __name__)
+
+
+@users_bp.app_template_filter('following')
 def following_filter(profile):
     """
     Checks if current user is following the user with id piped to filter
@@ -52,7 +55,7 @@ def following_filter(profile):
     return is_following(current_user.get('_id'), profile.get('_id'))
 
 
-@app.template_filter('avatar')
+@users_bp.app_template_filter('avatar')
 def avatar_filter(email, size=24):
     """
     Returns gravatar URL for a given email with the size size.
@@ -63,7 +66,7 @@ def avatar_filter(email, size=24):
            (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
 
 
-@app.template_filter('millify')
+@users_bp.app_template_filter('millify')
 def millify_filter(n):
     """
     Template filter to millify numbers, e.g. 1K, 2M, 1.25B
@@ -86,7 +89,7 @@ def millify_filter(n):
         return "Err"
 
 
-@app.template_filter('timeify')
+@users_bp.app_template_filter('timeify')
 def timeify_filter(time):
     """
     Takes integer epoch time and returns a DateTime string for display.
@@ -129,7 +132,7 @@ def timeify_filter(time):
         return "Err"
 
 
-@app.template_filter('has_alerts')
+@users_bp.app_template_filter('has_alerts')
 def has_alerts_filter(uid):
     """
     Check to see if the user has any alerts. Should only ever really be Used
@@ -140,7 +143,7 @@ def has_alerts_filter(uid):
     return be_i_has_alerts(uid)
 
 
-@app.route('/', methods=['GET'])
+@users_bp.route('/', methods=['GET'])
 # Do not place login_required on this method handled by view for prettiness
 def feed():
     """Displays the users feed or redirects the user to the signin if they are
@@ -148,7 +151,7 @@ def feed():
 
     """
     if not current_user:
-        return redirect(url_for('signin'))
+        return redirect(url_for('auth.signin'))
 
     # Pagination
     page = handle_page(request)
@@ -161,7 +164,7 @@ def feed():
                            post_form=post_form)
 
 
-@app.route('/<username>', methods=['GET'])
+@users_bp.route('/<username>', methods=['GET'])
 @login_required
 def profile(username):
     """This is refered to as Posts on the site. It will show the users posts.
@@ -186,7 +189,7 @@ def profile(username):
                            pagination=pagination, post_form=post_form)
 
 
-@app.route('/<username>/following', methods=['GET'])
+@users_bp.route('/<username>/following', methods=['GET'])
 @login_required
 def following(username):
     """
@@ -211,7 +214,7 @@ def following(username):
                            pagination=following, post_form=post_form)
 
 
-@app.route('/<username>/followers', methods=['GET'])
+@users_bp.route('/<username>/followers', methods=['GET'])
 @login_required
 def followers(username):
     """
@@ -236,7 +239,7 @@ def followers(username):
                            pagination=_followers, post_form=post_form)
 
 
-@app.route('/<username>/follow', methods=['GET'])
+@users_bp.route('/<username>/follow', methods=['GET'])
 @login_required
 def follow(username):
     """
@@ -261,7 +264,7 @@ def follow(username):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/unfollow', methods=['GET'])
+@users_bp.route('/<username>/unfollow', methods=['GET'])
 @login_required
 def unfollow(username):
     """
@@ -286,7 +289,7 @@ def unfollow(username):
     return redirect(redirect_url)
 
 
-@app.route('/search', methods=['GET'])
+@users_bp.route('/search', methods=['GET'])
 @login_required
 def search():
     """
@@ -303,8 +306,8 @@ def search():
                            pagination=_results)
 
 
-@app.route('/settings', methods=['GET', 'POST'])
-@app.route('/settings/profile', methods=['GET', 'POST'])
+@users_bp.route('/settings', methods=['GET', 'POST'])
+@users_bp.route('/settings/profile', methods=['GET', 'POST'])
 @login_required
 def settings_profile():
     """
@@ -324,7 +327,7 @@ def settings_profile():
     return render_template('settings_profile.html', form=form)
 
 
-@app.route('/alerts', methods=['GET'])
+@users_bp.route('/alerts', methods=['GET'])
 @login_required
 def alerts():
     """
@@ -339,7 +342,7 @@ def alerts():
     return render_template('alerts.html', pagination=_results)
 
 
-@app.route('/alerts/<aid>/delete', methods=['GET'])
+@users_bp.route('/alerts/<aid>/delete', methods=['GET'])
 @login_required
 def delete_alert(aid):
     """
@@ -355,7 +358,7 @@ def delete_alert(aid):
     return redirect(redirect_url)
 
 
-@app.route('/i-has-alerts', methods=['GET'])
+@users_bp.route('/i-has-alerts', methods=['GET'])
 def i_has_alerts():
     """
     Will return a simple JSON response to denote if the current user has any

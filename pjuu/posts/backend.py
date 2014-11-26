@@ -313,7 +313,6 @@ def populate_followers_feeds(user_id, post_id):
     This can be run on a worker to speed the process up.
 
     """
-    print "POPULATE_FOLLOWERS_FEEDS"
     # Get a list of ALL users who are following a user
     followers = r.zrange(K.USER_FOLLOWERS.format(user_id), 0, -1)
     # This is not transactional as to not hold Redis up.

@@ -22,8 +22,8 @@ Licence:
 """
 
 # 3rd party imports
-from flask import (current_app as app, abort, flash, redirect, request,
-                   url_for, render_template)
+from flask import (abort, flash, redirect, request, url_for, render_template,
+                   Blueprint)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.backend import get_uid
@@ -37,7 +37,10 @@ from .backend import (create_post, check_post, has_voted, is_subscribed,
 from .forms import PostForm
 
 
-@app.template_filter('nameify')
+posts_bp = Blueprint('posts', __name__)
+
+
+@posts_bp.app_template_filter('nameify')
 def nameify_filter(body):
     """
     Will highlight user names inside a post. This is done after urlize.
@@ -73,7 +76,7 @@ def nameify_filter(body):
     return body
 
 
-@app.template_filter('voted')
+@posts_bp.app_template_filter('voted')
 def voted_filter(post_id):
     """Checks to see if current_user has voted on the post pid.
 
@@ -88,7 +91,7 @@ def voted_filter(post_id):
     return has_voted(current_user.get('_id'), post_id) or 0
 
 
-@app.template_filter('subscribed')
+@posts_bp.app_template_filter('subscribed')
 def subscribed_filter(post_id):
     """A simple filter to check if the current user is subscribed to a post
 
@@ -96,7 +99,7 @@ def subscribed_filter(post_id):
     return is_subscribed(current_user.get('_id'), post_id)
 
 
-@app.route('/<username>/<post_id>', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>', methods=['GET'])
 @login_required
 def view_post(username, post_id):
     """
@@ -118,9 +121,9 @@ def view_post(username, post_id):
                            pagination=pagination, post_form=post_form)
 
 
-@app.route('/post', methods=['GET', 'POST'])
-@app.route('/<username>/<reply_to>/post', methods=['GET', 'POST'],
-           endpoint="reply")
+@posts_bp.route('/post', methods=['GET', 'POST'])
+@posts_bp.route('/<username>/<reply_to>/post', methods=['GET', 'POST'],
+                endpoint="reply")
 @login_required
 def post(username=None, reply_to=None):
     """Enabled current_user to create a new post on Pjuu :)
@@ -166,8 +169,8 @@ def post(username=None, reply_to=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<post_id>/upvote', methods=['GET'])
-@app.route('/<username>/<post_id>/<reply_id>/upvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/upvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/upvote', methods=['GET'])
 @login_required
 def upvote(username, post_id, reply_id=None):
     """Upvotes a post.
@@ -192,8 +195,8 @@ def upvote(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<post_id>/downvote', methods=['GET'])
-@app.route('/<username>/<post_id>/<reply_id>/downvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/downvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/downvote', methods=['GET'])
 @login_required
 def downvote(username, post_id, reply_id=None):
     """Downvotes a post.
@@ -218,8 +221,8 @@ def downvote(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<post_id>/delete', methods=['GET'])
-@app.route('/<username>/<post_id>/<reply_id>/delete', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/delete', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/delete', methods=['GET'])
 @login_required
 def delete_post(username, post_id, reply_id=None):
     """Deletes posts.
@@ -252,7 +255,7 @@ def delete_post(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@app.route('/<username>/<post_id>/unsubscribe')
+@posts_bp.route('/<username>/<post_id>/unsubscribe')
 @login_required
 def unsubscribe(username, post_id):
     """Unsubscribes a user from a post

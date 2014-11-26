@@ -23,7 +23,8 @@ Licence:
 
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
-                   request, url_for, session, jsonify)
+                   request, url_for, session, jsonify, Blueprint, g,
+                   _app_ctx_stack)
 # Pjuu imports
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
@@ -41,15 +42,26 @@ from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                              ConfirmPasswordForm)
 
 
-@app.context_processor
-def inject_user():
-    """
-    Injects `current_user` into the Jinja environment
-    """
-    return dict(current_user=current_user)
+auth_bp = Blueprint('auth', __name__)
 
 
-@app.before_request
+@auth_bp.before_app_request
+def _load_user():
+    """Get the currently logged in user as a `dict` and store on the
+    application context. This will be `None` if the user is not logged in.
+
+    """
+    user = None
+    if 'uid' in session:
+        # Fetch the user object from MongoDB
+        user = get_user(session.get('uid'))
+        # Remove the uid from the session if the user is not logged in
+        if not user:
+            session.pop('uid', None)
+    _app_ctx_stack.top.user = user
+
+
+@auth_bp.before_app_request
 def kick_banned_user():
     """
     This function will check too see if the user has been banned since login.
@@ -63,7 +75,32 @@ def kick_banned_user():
         flash('You\'re a very naughty boy!', 'error')
 
 
-@app.route('/signin', methods=['GET', 'POST'])
+@auth_bp.after_app_request
+def inject_token_header(response):
+    """During testing will add an HTTP header (X-Pjuu-Token) containing any
+    auth tokens so that we can test these from the frontend tests. Checks
+    `g.token` for the token to add.
+
+    """
+    # This only works in testing mode! Never allow this to happen on the site.
+    # We won't check this with 'branch' as it won't ever branch the other way
+    # or we atleast don't want it too.
+    if app.testing:  # pragma: no branch
+        token = g.get('token')
+        if token:
+            response.headers['X-Pjuu-Token'] = token
+    return response
+
+
+@auth_bp.app_context_processor
+def inject_user():
+    """
+    Injects `current_user` into the Jinja environment
+    """
+    return dict(current_user=current_user)
+
+
+@auth_bp.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
     """Logs a user in.
@@ -102,7 +139,7 @@ def signin():
     return render_template('signin.html', form=form)
 
 
-@app.route('/signout', methods=['GET'])
+@auth_bp.route('/signout', methods=['GET'])
 def signout():
     """
     Logs a user out.
@@ -115,7 +152,7 @@ def signout():
     return redirect(url_for('signin'))
 
 
-@app.route('/signup', methods=['GET', 'POST'])
+@auth_bp.route('/signup', methods=['GET', 'POST'])
 @anonymous_required
 def signup():
     """
@@ -154,7 +191,7 @@ def signup():
     return render_template('signup.html', form=form)
 
 
-@app.route('/activate/<token>', methods=['GET'])
+@auth_bp.route('/activate/<token>', methods=['GET'])
 @anonymous_required
 def activate(token):
     """
@@ -185,7 +222,7 @@ def activate(token):
     return redirect(url_for('signin'))
 
 
-@app.route('/forgot', methods=['GET', 'POST'])
+@auth_bp.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required
 def forgot():
     """
@@ -215,7 +252,7 @@ def forgot():
     return render_template('forgot.html', form=form)
 
 
-@app.route('/reset/<token>', methods=['GET', 'POST'])
+@auth_bp.route('/reset/<token>', methods=['GET', 'POST'])
 @anonymous_required
 def reset(token):
     """
@@ -244,7 +281,7 @@ def reset(token):
     return render_template('reset.html', form=form)
 
 
-@app.route('/settings/email', methods=['GET', 'POST'])
+@auth_bp.route('/settings/email', methods=['GET', 'POST'])
 @login_required
 def change_email():
     """
@@ -280,7 +317,7 @@ def change_email():
     return render_template('change_email.html', form=form)
 
 
-@app.route('/settings/email/<token>', methods=['GET'])
+@auth_bp.route('/settings/email/<token>', methods=['GET'])
 @login_required
 def confirm_email(token):
     """
@@ -316,7 +353,7 @@ def confirm_email(token):
     return redirect(url_for('change_email'))
 
 
-@app.route('/settings/password', methods=['GET', 'POST'])
+@auth_bp.route('/settings/password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     """
@@ -345,7 +382,7 @@ def change_password():
     return render_template('change_password.html', form=form)
 
 
-@app.route('/settings/delete', methods=['GET', 'POST'])
+@auth_bp.route('/settings/delete', methods=['GET', 'POST'])
 @login_required
 def delete_account():
     """
@@ -382,7 +419,7 @@ def delete_account():
     return render_template('delete_account.html', form=form)
 
 
-@app.route('/settings/dump', methods=['GET', 'POST'])
+@auth_bp.route('/settings/dump', methods=['GET', 'POST'])
 @login_required
 def dump_account():
     """

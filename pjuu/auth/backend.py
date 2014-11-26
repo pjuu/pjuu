@@ -27,7 +27,7 @@ Licence:
 # Stdlib imports
 import re
 # 3rd party imports
-from flask import current_app as app, _app_ctx_stack, session, g
+from flask import session
 from pymongo.errors import DuplicateKeyError
 from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
@@ -83,39 +83,6 @@ RESERVED_NAMES = [
     'privacy', 'aboutus', 'about_us', 'privacypolicy', 'privacy_policy',
     'termsandconditions', 'termsofservice', 'terms_and_conditions',
     'terms_of_service', 'alert']
-
-
-@app.before_request
-def _load_user():
-    """Get the currently logged in user as a `dict` and store on the
-    application context. This will be `None` if the user is not logged in.
-
-    """
-    user = None
-    if 'uid' in session:
-        # Fetch the user object from MongoDB
-        user = m.db.users.find_one({'_id': session.get('uid')})
-        # Remove the uid from the session if the user is not logged in
-        if not user:
-            session.pop('uid', None)
-    _app_ctx_stack.top.user = user
-
-
-@app.after_request
-def inject_token_header(response):
-    """During testing will add an HTTP header (X-Pjuu-Token) containing any
-    auth tokens so that we can test these from the frontend tests. Checks
-    `g.token` for the token to add.
-
-    """
-    # This only works in testing mode! Never allow this to happen on the site.
-    # We won't check this with 'branch' as it won't ever branch the other way
-    # or we atleast don't want it too.
-    if app.testing:  # pragma: no branch
-        token = g.get('token')
-        if token:
-            response.headers['X-Pjuu-Token'] = token
-    return response
 
 
 def create_user(username, email, password):
