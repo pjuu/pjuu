@@ -166,13 +166,14 @@ def create_post(user_id, username, body, reply_to=None):
         'body': body,               # Body of the post
         'created': timestamp(),     # Unix timestamp for this moment in time
         'score': 0,                 # Atomic score counter
-        'comment_count': 0          # Atomic comment counter (saves db call)
     }
 
-    # If this is a comment on a post then the reply_to parameter will be set
-    # add it too the post
     if reply_to is not None:
+        # If the is a reply it must have this property
         post['reply_to'] = reply_to
+    else:
+        # Replies don't need a comment count on posts
+        post['comment_count'] = 0
 
     # Add the post to the database
     # If the post isn't stored, result will be None
@@ -273,12 +274,14 @@ def parse_tags(body, deduplicate=False):
     post and by the 'nameify' template_filter also uses this to identify tags
     before it inserts the links. See nameify_filter() in posts.views
 
-    This returns a list of tuples (uid, username, tag, span)
-
-    'deduplicate' remove duplicate instances of a tag. Used by the alerting
-                  system to only send one alert to a user even if someone
-                  repeats the tag. Having this as false allows us to highlight
-                  all the tags in the nameify_filter
+    :type body: str
+    :param deduplicate: remove duplicate instances of a tag. Used by the
+                        alerting system to only send one alert to a user even
+                        if someone repeats the tag. Having this as false allows
+                        us to highlight all the tags in the nameify_filter.
+    :type deduplicate: bool
+    :returns: This returns a list of tuples (uid, username, tag, span)
+    :rtype: list
 
     """
     tags = TAG_RE.finditer(body)
@@ -322,9 +325,9 @@ def check_post(user_id, post_id, reply_id=None):
     """Ensure reply_id is a reply_to post_id and that post_id was created by
     user_id.
 
-    WARNING: Think before testing. user_id is the person wrote post_id,
-             reply_id if assigned has to have been a reply to post_id.
-             This for checking the urls not for checking who wrote reply_id
+    .. note:: Think before testing. user_id is the person wrote post_id,
+              reply_id if assigned has to have been a reply to post_id.
+              This for checking the urls not for checking who wrote reply_id
 
     """
     # Check if cid is a comment of post pid

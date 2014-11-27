@@ -39,7 +39,7 @@ from pjuu.lib import keys as k, timestamp, get_uuid
 # Username & E-mail checker re patterns
 USERNAME_PATTERN = r'^\w{3,16}$'
 EMAIL_PATTERN = r'^[^@%!/|`#&?]+@[^.@%!/|`#&?][^@%!/|`#&?]*\.[a-z]{2,10}$'
-# Usuable regular expression objects
+# Usable regular expression objects
 USERNAME_RE = re.compile(USERNAME_PATTERN)
 EMAIL_RE = re.compile(EMAIL_PATTERN)
 

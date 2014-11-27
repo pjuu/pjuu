@@ -25,7 +25,7 @@ Licence:
 from flask import current_app as app
 from flask_wtf import Form
 from wtforms import TextAreaField
-from wtforms.validators import DataRequired, Length
+from wtforms.validators import Required, Length
 
 
 class PostForm(Form):
@@ -33,7 +33,7 @@ class PostForm(Form):
 
     """
     body = TextAreaField('Post', [
-        DataRequired(),
+        Required(),
         Length(max=app.config['MAX_POST_LENGTH'],
                message='Posts can not be larger than '
                        '{} characters'.format(app.config['MAX_POST_LENGTH']))

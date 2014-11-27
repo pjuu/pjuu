@@ -3,7 +3,7 @@ Flask==0.10.1
 Flask-And-Redis==0.5
 Flask-Mail==0.9.1
 Flask-PyMongo==0.3.0
-Flask-WTF==0.10.2
+Flask-WTF==0.10.3
 Jinja2==2.7.3
 MarkupSafe==0.23
 Sphinx==1.2.3
