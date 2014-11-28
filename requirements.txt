@@ -11,9 +11,6 @@ WTForms==2.0.1
 Werkzeug==0.9.6
 blinker==1.3
 coverage==3.7.1
-gevent==1.0.1
-greenlet==0.4.5
-gunicorn==19.1.1
 hiredis==0.1.5
 itsdangerous==0.24
 jsonpickle==0.8.0
