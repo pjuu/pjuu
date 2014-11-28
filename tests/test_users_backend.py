@@ -23,7 +23,7 @@ Licence:
 
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.auth.backend import create_user, delete_account
+from pjuu.auth.backend import create_account, delete_account
 from pjuu.lib import keys as K
 from pjuu.posts.backend import (create_post, create_comment, delete_post,
                                 delete_comment)
@@ -42,7 +42,7 @@ class BackendTests(BackendTestCase):
         Tests that a user's profile representation can be returned
         """
         # Get test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Attempt to get the users repr
         profile = get_profile(user1)
         # Ensure we got a profile
@@ -65,7 +65,7 @@ class BackendTests(BackendTestCase):
         Tests that a user's account can be returned
         """
         # Get test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Attempt to get the users repr
         user = get_user(user1)
         # Ensure we got a profile
@@ -82,7 +82,7 @@ class BackendTests(BackendTestCase):
         Attempt to get a users feed under certain circumstances.
         """
         # Get test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Ensure an empty feed is returned. Remember these are paginations
         self.assertEqual(len(get_feed(user1).items), 0)
         # Ensure a users own post is added to thier feed
@@ -95,7 +95,7 @@ class BackendTests(BackendTestCase):
 
         # Create a second user, make 1 follow them, make then post and ensure
         # that the new users post appears in user 1s feed
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         follow_user(user1, user2)
 
         post2 = create_post(user2, 'user2', 'Test post')
@@ -116,7 +116,7 @@ class BackendTests(BackendTestCase):
         Test users post list works correctly
         """
         # Create test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Ensure the users post list is empty
         self.assertEqual(len(get_posts(user1).items), 0)
 
@@ -164,8 +164,8 @@ class BackendTests(BackendTestCase):
         Ensure a posts comments are stored correctly in post:$pid:comments list
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Ensure the comment lists are empty
         self.assertEqual(len(get_comments(user1).items), 0)
         self.assertEqual(len(get_comments(user2).items), 0)
@@ -211,8 +211,8 @@ class BackendTests(BackendTestCase):
         deserve 3 seperate methods.
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Ensure is_following() is false atm
         self.assertFalse(is_following(user1, user2))
         self.assertFalse(is_following(user2, user1))
@@ -286,8 +286,8 @@ class BackendTests(BackendTestCase):
 
         # Test the self cleaning lists in case there is an issue with Redis
         # during an account deletion. We need 2 new users.
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Follow each other.
         self.assertTrue(follow_user(user1, user2))
@@ -313,7 +313,7 @@ class BackendTests(BackendTestCase):
         rather than just the Redis KEYS command
         """
         # Create test user
-        create_user('user1', 'user1@pjuu.com', 'Password')
+        create_account('user1', 'user1@pjuu.com', 'Password')
         # Ensure that the user can be found
         self.assertEqual(len(search('user1').items), 1)
         self.assertEqual(search('user1').total, 1)
@@ -328,7 +328,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(search('bob').total, 0)
 
         # Create a second test user
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Ensure the new user can be found
         self.assertEqual(len(search('user2').items), 1)
         self.assertEqual(search('user2').total, 1)
@@ -348,8 +348,8 @@ class BackendTests(BackendTestCase):
         also test FollowAlert from here.
         """
         # Create 2 test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Ensure that get_alerts pagination object is empty
         self.assertEqual(get_alerts(user1).total, 0)
@@ -392,7 +392,7 @@ class BackendTests(BackendTestCase):
 
         # Do the same as above to ensure we can delete an alert ourselves
         # Create another user
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
 
         follow_user(user1, user3)
 

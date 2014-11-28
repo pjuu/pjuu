@@ -34,6 +34,10 @@ class BackendTestCase(unittest.TestCase):
         self.app_ctx = self.app.app_context()
         self.app_ctx.push()
 
+        r.flushdb()
+        m.db.posts.remove({})
+        m.db.users.remove({})
+
         # Ensure the MongoDB indexes are present
         ensure_indexes()
 
@@ -43,7 +47,8 @@ class BackendTestCase(unittest.TestCase):
         """
         # Clear the databases
         r.flushdb()
-        m.db.connection.drop_database('pjuu_testing')
+        m.db.posts.remove({})
+        m.db.users.remove({})
 
         self.app_ctx.pop()
 

@@ -104,8 +104,6 @@ def create_app(config_filename='settings.py', config_dict=None):
 
     with app.app_context():
         # Import all Pjuu stuffs
-        # Load Redis LUA scripts, this will also load the scripts into Redis
-        import pjuu.lib.lua
         # Load the blueprints
         from pjuu.pages import pages_bp
         app.register_blueprint(pages_bp)

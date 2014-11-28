@@ -25,7 +25,7 @@ Licence:
 from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.auth.backend import create_user, activate, get_user, mute
+from pjuu.auth.backend import create_account, activate, get_user, mute
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
 from pjuu.users.backend import follow_user, get_alerts
@@ -58,7 +58,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 302)
 
         # Let's create a user an login
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
         self.assertTrue(activate(user1))
         # Log the user in
@@ -97,11 +97,11 @@ class PostFrontendTests(FrontendTestCase):
         # The post endpoint also handles populating followers feeds. We will
         # create a couple of users (in the backend, we will not test the
         # frontend here).
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user2)
         follow_user(user2, user1)
 
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         activate(user3)
         follow_user(user3, user1)
 
@@ -202,7 +202,7 @@ class PostFrontendTests(FrontendTestCase):
         # for this too happen
 
         # Let's create a user and login
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
         activate(user1)
         # Log the user in
@@ -240,7 +240,7 @@ class PostFrontendTests(FrontendTestCase):
 
         # Lets create another test user and ensure that they can see the
         # comment
-        user2 = create_user('user2', 'user2@pjuu.com', 'password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'password')
         # Activate the account
         activate(user2)
         # Log the user in
@@ -308,9 +308,9 @@ class PostFrontendTests(FrontendTestCase):
         Test voting up and down on both comments and posts
         """
         # Create two users to test this. This is what we need to check this.
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # Activate the accounts
         activate(user1)
         activate(user2)
@@ -462,9 +462,9 @@ class PostFrontendTests(FrontendTestCase):
         Let's test the ability to delete posts and comments
         """
         # Create 3 users for this
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # Activate the accounts
         activate(user1)
         activate(user2)
@@ -610,9 +610,9 @@ class PostFrontendTests(FrontendTestCase):
         backend.
         """
         # Create 3 users for this
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # Activate the accounts
         activate(user1)
         activate(user2)

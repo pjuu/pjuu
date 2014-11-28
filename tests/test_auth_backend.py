@@ -26,7 +26,7 @@ from flask import current_app as app, session
 # Pjuu imports
 from pjuu.auth.backend import *
 from pjuu.lib import keys as K
-from pjuu.posts.backend import create_post, create_comment
+from pjuu.posts.backend import create_post
 from pjuu.users.backend import follow_user
 # Test imports
 from tests import BackendTestCase
@@ -57,18 +57,18 @@ class AuthBackendTests(BackendTestCase):
         """
         # Account creation
         # Get the new user uid
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Duplicate username
-        self.assertIsNone(create_user('user1', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(create_account('user1', 'userX@pjuu.com', 'Password'))
         # Duplicate email
-        self.assertIsNone(create_user('userX', 'user1@pjuu.com', 'Password'))
+        self.assertIsNone(create_account('userX', 'user1@pjuu.com', 'Password'))
         # Invalid username
-        self.assertIsNone(create_user('u', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(create_account('u', 'userX@pjuu.com', 'Password'))
         # Invalid email
-        self.assertIsNone(create_user('userX', 'userX', 'Password'))
+        self.assertIsNone(create_account('userX', 'userX', 'Password'))
         # Reserved username
-        self.assertIsNone(create_user('help', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(create_account('help', 'userX@pjuu.com', 'Password'))
         # Check lookup keys exist
         self.assertEqual(get_uid('user1'), user1)
         self.assertEqual(get_uid('user1@pjuu.com'), user1)
@@ -115,7 +115,7 @@ class AuthBackendTests(BackendTestCase):
         Checks the user flags. Such as active, banned, op
         """
         # Create a test account
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Account should be not active
         self.assertFalse(get_user(user1).get('active'))
@@ -183,7 +183,7 @@ class AuthBackendTests(BackendTestCase):
         Check a user can authenticate
         """
         # Create test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Check authenticate
         self.assertEqual(authenticate('user1', 'Password').get('_id'), user1)
@@ -205,25 +205,25 @@ class AuthBackendTests(BackendTestCase):
         Note that this is only backend relevant. login() does not check if a
         user is banned, active or anything else
         """
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # We need a request context to use the session
         with app.test_request_context('/signin'):
             # Log the new user in
-            login(user1)
+            signin(user1)
             # Check the uid is now in the session
-            self.assertEqual(session.get('uid', None), user1)
+            self.assertEqual(session.get('user_id', None), user1)
             # Log the user out
-            logout()
+            signout()
             # Ensure a KeyError is thrown (This will not happen in Pjuu)
-            self.assertIsNone(session.get('uid', None))
+            self.assertIsNone(session.get('user_id', None))
 
     def test_change_password(self):
         """
         This will test change_password(). Obviously
         """
         # Create user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Take current password (is hash don't string compare)
         current_password = get_user(user1).get('password')
         # Change password
@@ -241,7 +241,7 @@ class AuthBackendTests(BackendTestCase):
         Test change_email().
         """
         # Create user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Test email lookup key
         self.assertEqual(get_uid_email('user1@pjuu.com'), user1)
         # Check correct email
@@ -261,7 +261,7 @@ class AuthBackendTests(BackendTestCase):
         commenting is removed
         """
         # Create test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Lets just delete a fresh account
         delete_account(user1)
@@ -288,28 +288,28 @@ class AuthBackendTests(BackendTestCase):
         Note: This is not a full test of the posts system. See posts/test.py
         """
         # Create test user
-        user1 = create_user('user1', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user2@pjuu.com', 'Password')
         # Second user to test deletion from user:1:comments
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Create a post as both users
         post1 = create_post(user1, 'user1', 'Test post')
         post2 = create_post(user2, 'user2', 'Test post')
         # Create multiple comments on both posts
         # Post 1
-        comment1 = create_comment(user1, post1, "Test comment")
-        create_comment(user1, 'user1', post1, "Test comment")
+        comment1 = create_post(user1, 'user1', "Test comment", post1)
+        create_post(user1, 'user1', "Test comment", post1)
         # Post 2
-        create_comment(user1, 'user1', post2, "Test comment")
-        create_comment(user1, 'user1', post2, "Test comment")
+        create_post(user1, 'user1', "Test comment", post1)
+        create_post(user1, 'user1', "Test comment", post2, )
 
         # Delete the account
         delete_account(user1)
 
         # Ensure the Post, its comment list and votes has gone
         self.assertIsNone(m.db.posts.find_one({'_id': post1}))
-        self.assertIsNone(m.db.comments.find_one({'pid': post1}))
+        self.assertIsNone(m.db.posts.find_one({'reply_to': post1}))
         # Ensure the Comment is gone (same as above but different lookup)
-        self.assertIsNone(m.db.comments.find_one({'_id': comment1}))
+        self.assertIsNone(m.db.posts.find_one({'_id': comment1}))
         # Assert feed is empty
         self.assertFalse(r.lrange(K.USER_FEED.format(user1), 0, -1))
 
@@ -323,8 +323,8 @@ class AuthBackendTests(BackendTestCase):
         Note: This is not a full test of the users system. See users/test.py
         """
         # Create test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Make users follow each other
         self.assertTrue(follow_user(user1, user2))
         self.assertTrue(follow_user(user2, user1))
@@ -358,7 +358,7 @@ class AuthBackendTests(BackendTestCase):
         Remember that ALL data coming out of Redis is a string. We are not
         going to convert each type. EVERYTHING IS A STRING
         """
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         # Dump the account so that we can test :D
         data = dump_account(user1)
@@ -373,7 +373,6 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('<PASSWORD HASH>', data['user']['password'])
         # Ensure posts and comments are None
         self.assertEqual([], data['posts'])
-        self.assertEqual([], data['comments'])
 
         # Create some posts as the user and check they are in the dumps
         post1 = create_post(user1, 'user1', 'Post 1')
@@ -391,20 +390,20 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('<UID>', data['posts'][0]['uid'])
 
         # Create some comments on the above posts and re-dump
-        create_comment(user1, 'user1', post1, 'Comment 1')
-        create_comment(user1, 'user1', post1, 'Comment 2')
-        create_comment(user1, 'user1', post2, 'Comment 3')
-        create_comment(user1, 'user1', post3, 'Comment 4')
+        create_post(user1, 'user1', 'Comment 1', post1)
+        create_post(user1, 'user1', 'Comment 2', post1)
+        create_post(user1, 'user1', 'Comment 3', post2)
+        create_post(user1, 'user1', 'Comment 4', post3)
 
         # Re-dump the database
         data = dump_account(user1)
-        self.assertNotEqual([], data['comments'])
+        self.assertNotEqual([], data['posts'])
         # Check that all 4 comments have been dumped
 
-        self.assertEqual('Comment 1', data['comments'][3]['body'])
-        self.assertEqual('Comment 2', data['comments'][2]['body'])
-        self.assertEqual('Comment 3', data['comments'][1]['body'])
-        self.assertEqual('Comment 4', data['comments'][0]['body'])
+        self.assertEqual('Comment 1', data['posts'][3]['body'])
+        self.assertEqual('Comment 2', data['posts'][2]['body'])
+        self.assertEqual('Comment 3', data['posts'][1]['body'])
+        self.assertEqual('Comment 4', data['posts'][0]['body'])
 
         # Testing running dump account with a non-existant user
         self.assertIsNone(dump_account(K.NIL_VALUE))

@@ -24,7 +24,7 @@ Licence:
 # 3rd party imports
 from flask import url_for
 # Pjuu imports
-from pjuu.auth.backend import create_user, activate
+from pjuu.auth.backend import create_account, activate
 # Test imports
 from tests import FrontendTestCase
 
@@ -61,7 +61,7 @@ class PagesTests(FrontendTestCase):
 
         """
         # Let's create a user an login
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
         self.assertTrue(activate(user1))
         # Log the user in

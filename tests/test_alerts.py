@@ -26,7 +26,7 @@ Licence:
 """
 
 # Pjuu imports
-from pjuu.auth.backend import create_user, delete_account
+from pjuu.auth.backend import create_account, delete_account
 from pjuu.lib import keys as K
 from pjuu.lib.alerts import *
 # Test imports
@@ -57,7 +57,7 @@ class AlertTests(BackendTestCase):
         self.assertRaises(NotImplementedError, lambda: alert.prettify())
 
         # Create a user an check that at least get_username and get_email work
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         alert = BaseAlert(user1)
         self.assertEqual(alert.user.get('username'), 'user1')
         self.assertEqual(alert.user.get('email'), 'user1@pjuu.com')
@@ -87,8 +87,8 @@ class AlertTests(BackendTestCase):
         self.assertRaises(TypeError, lambda: am.alert(alert, 1))
 
         # Create a couple of users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Ensure the length of user1's alert feed is 0
         self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 0)

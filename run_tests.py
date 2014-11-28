@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # Prepare for testing
     test_loader = unittest.defaultTestLoader
     test_runner = unittest.TextTestRunner()
-    test_suite = test_loader.discover('tests', pattern='test_pages.py')
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
 
     # Run all located tests and save the returns
     test_results = test_runner.run(test_suite)

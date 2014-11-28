@@ -9,11 +9,11 @@ You will be doing social type stuff in just a moment. But before you can do that
 
 If you can click the link below you will be able to sign in.
 
-<a href="{{ url_for('activate', token=token, _external=True) }}" target="_blank">Activate Account</a>
+<a href="{{ url_for('auth.activate', token=token, _external=True) }}" target="_blank">Activate Account</a>
 
 If you can not access the above link please copy and paste the below in to your web browser of choice.
 
-{{ url_for('activate', token=token, _external=True) }}
+{{ url_for('auth.activate', token=token, _external=True) }}
 {% endblock %}
 
 {% block content_footer %}

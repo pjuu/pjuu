@@ -1,24 +1,10 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    The actual Flask endpoints for the auth system.
+"""Flask endpoints provide the web views
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: Joe Doherty 2015
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 3rd party imports
@@ -30,7 +16,8 @@ from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth import current_user
-from pjuu.auth.backend import (authenticate, login, logout, create_user,
+from pjuu.auth.backend import (authenticate, signin as be_signin,
+                               signout as be_signout, create_account,
                                activate as be_activate, get_user, get_uid,
                                change_password as be_change_password,
                                change_email as be_change_email,
@@ -52,12 +39,12 @@ def _load_user():
 
     """
     user = None
-    if 'uid' in session:
+    if 'user_id' in session:
         # Fetch the user object from MongoDB
-        user = get_user(session.get('uid'))
+        user = get_user(session.get('user_id'))
         # Remove the uid from the session if the user is not logged in
         if not user:
-            session.pop('uid', None)
+            session.pop('user_id', None)
     _app_ctx_stack.top.user = user
 
 
@@ -71,20 +58,16 @@ def kick_banned_user():
     ensure they are kicked out
     """
     if current_user and current_user.get('banned', False):
-        session.pop('uid', None)
+        session.pop('user_id', None)
         flash('You\'re a very naughty boy!', 'error')
 
 
 @auth_bp.after_app_request
 def inject_token_header(response):
-    """During testing will add an HTTP header (X-Pjuu-Token) containing any
-    auth tokens so that we can test these from the frontend tests. Checks
-    `g.token` for the token to add.
+    """If there is an auth token generated will it as a header X-Pjuu-Token.
+    Will only ever do this if testing mode is on!
 
     """
-    # This only works in testing mode! Never allow this to happen on the site.
-    # We won't check this with 'branch' as it won't ever branch the other way
-    # or we atleast don't want it too.
     if app.testing:  # pragma: no branch
         token = g.get('token')
         if token:
@@ -94,8 +77,8 @@ def inject_token_header(response):
 
 @auth_bp.app_context_processor
 def inject_user():
-    """
-    Injects `current_user` into the Jinja environment
+    """Injects `current_user` into the Jinja environment
+
     """
     return dict(current_user=current_user)
 
@@ -103,11 +86,7 @@ def inject_user():
 @auth_bp.route('/signin', methods=['GET', 'POST'])
 @anonymous_required
 def signin():
-    """Logs a user in.
-
-    Will authenticate username/password, check account activation and
-    if the user is banned or not before setting user_id in session.
-
+    """
     """
     form = SignInForm(request.form)
     if request.method == 'POST':
@@ -130,7 +109,7 @@ def signin():
                     # We will also make the session permanent if the user
                     # has requested too
                     session.permanent = form.keep_signed_in.data
-                    login(user.get('_id'))
+                    be_signin(user.get('_id'))
                     return redirect(redirect_url)
             else:
                 flash('Invalid user name or password', 'error')
@@ -142,31 +121,24 @@ def signin():
 @auth_bp.route('/signout', methods=['GET'])
 def signout():
     """
-    Logs a user out.
-    This will always go to /signin regardless. If user was actually
-    logged out it will let them know.
     """
     if current_user:
-        logout()
+        be_signout()
         flash('Successfully signed out', 'success')
-    return redirect(url_for('signin'))
+    return redirect(url_for('auth.signin'))
 
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 @anonymous_required
 def signup():
     """
-    The view a user uses to sign up for Pjuu.
-
-    This will generate the activation email and send it to the new user so
-    long as the form is correct.
     """
     form = SignUpForm(request.form)
     if request.method == 'POST':
         if form.validate():
             # User successfully signed up, create an account
-            uid = create_user(form.username.data, form.email.data,
-                              form.password.data)
+            uid = create_account(form.username.data, form.email.data,
+                                 form.password.data)
 
             # Lets check the account was created
             # This would only fail in the event of a race condition
@@ -183,7 +155,7 @@ def signup():
                 )
                 flash('Yay! You\'ve signed up<br/>Please check your e-mails '
                       'to activate your account', 'success')
-                return redirect(url_for('signin'))
+                return redirect(url_for('auth.signin'))
 
         flash('Oh no! There are errors in your form. Please try again.',
               'error')
@@ -215,21 +187,17 @@ def activate(token):
                 html_body=render_template('emails/welcome.html')
             )
             flash('Your account has now been activated', 'success')
-            return redirect(url_for('signin'))
+            return redirect(url_for('auth.signin'))
 
     # The token is either out of date or has been tampered with
     flash('Invalid token', 'error')
-    return redirect(url_for('signin'))
+    return redirect(url_for('auth.signin'))
 
 
 @auth_bp.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required
 def forgot():
     """
-    View to allow the user to recover their password.
-
-    This will send an email to the users email address so long as the account
-    is found. It will not tell the user if the account was located or not.
     """
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
@@ -248,7 +216,7 @@ def forgot():
             )
         flash('If we\'ve found your account we\'ve e-mailed you',
               'information')
-        return redirect(url_for('signin'))
+        return redirect(url_for('auth.signin'))
     return render_template('forgot.html', form=form)
 
 
@@ -272,12 +240,12 @@ def reset(token):
                 # Update the password and inform the users
                 be_change_password(data['uid'], form.password.data)
                 flash('Your password has now been reset', 'success')
-                return redirect(url_for('signin'))
+                return redirect(url_for('auth.signin'))
             else:
                 flash('Oh no! There are errors in your form', 'error')
     else:
         flash('Invalid token', 'error')
-        return redirect(url_for('signin'))
+        return redirect(url_for('auth.signin'))
     return render_template('reset.html', form=form)
 
 
@@ -285,10 +253,6 @@ def reset(token):
 @login_required
 def change_email():
     """
-    This view allows the user to change their their email address.
-
-    It will send a token to the new address for the user to confirm they own
-    it. The email will contain a link to confirm_email()
     """
     form = ChangeEmailForm(request.form)
     if request.method == 'POST':
@@ -321,11 +285,6 @@ def change_email():
 @login_required
 def confirm_email(token):
     """
-    View to actually change the users password.
-
-    This is the link they will sent during the email change procedure. If the
-    token is valid the users password will be changed and a confirmation will
-    be sent to the new email address.
     """
     # Attempt to get the data from the token
     data = check_token(token)
@@ -346,11 +305,11 @@ def confirm_email(token):
                 html_body=render_template('emails/confirm_email.html')
             )
             flash('We\'ve updated your e-mail address', 'success')
-            return redirect(url_for('change_email'))
+            return redirect(url_for('auth.change_email'))
 
     # The token is either out of date or has been tampered with
     flash('Invalid token', 'error')
-    return redirect(url_for('change_email'))
+    return redirect(url_for('auth.change_email'))
 
 
 @auth_bp.route('/settings/password', methods=['GET', 'POST'])
@@ -386,11 +345,6 @@ def change_password():
 @login_required
 def delete_account():
     """
-    View the user uses to delete their account.
-
-    Once the user has submitted the form and their password has been validated
-    there is no turning back. They will receive an e-mail to confirm the
-    account deletion.
     """
     form = ConfirmPasswordForm(request.form)
     if request.method == 'POST':
@@ -398,7 +352,7 @@ def delete_account():
             uid = current_user['_id']
             email = current_user['email']
             # Log the current user out
-            logout()
+            be_signout()
             # Delete the account
             be_delete_account(uid)
             # Inform the user that the account has/is being deleted
@@ -412,7 +366,7 @@ def delete_account():
                 html_body=render_template('emails/account_deletion.html')
             )
             # Send user back to login
-            return redirect(url_for('signin'))
+            return redirect(url_for('auth.signin'))
         else:
             flash('Oops! wrong password', 'error')
 

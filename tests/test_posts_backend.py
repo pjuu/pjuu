@@ -23,7 +23,7 @@ Licence:
 
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.auth.backend import create_user, get_user
+from pjuu.auth.backend import create_account, get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
 from pjuu.users.backend import get_alerts
@@ -41,7 +41,7 @@ class PostBackendTests(BackendTestCase):
 
         """
         # Create a user to test creating post
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Create post
         post1 = create_post(user1, 'user1', 'Test post')
         # Check the post actually exists
@@ -72,9 +72,9 @@ class PostBackendTests(BackendTestCase):
         """
         Tests that a comment can be created on a post
         """
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Create a second test user to test commenting on someone else post
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Create post
         post1 = create_post(user1, 'user1', 'Test post')
         # Create comment
@@ -115,8 +115,8 @@ class PostBackendTests(BackendTestCase):
         Note: Bare with this one it is quite tedious.
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Create a post
         post1 = create_post(user1, 'user1', 'Test post')
         # check_post should be True when user 1 creates post 1
@@ -143,9 +143,9 @@ class PostBackendTests(BackendTestCase):
         on users, posts and comments, etc...
         """
         # Create three test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
 
         # Create a post by user 1
         post1 = create_post(user1, 'user1', 'Test post')
@@ -220,8 +220,8 @@ class PostBackendTests(BackendTestCase):
         a post is deleted.
         """
         # Create three test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Create a post
         post1 = create_post(user1, 'Test post')
@@ -278,9 +278,9 @@ class PostBackendTests(BackendTestCase):
         tagging.
         """
         # Create a couple of test accounts
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
 
         # Post as user 1 and ensure user 1 exists in Redis
         post1 = create_post(user1, 'user1', 'Test post 1')
@@ -369,9 +369,9 @@ class PostBackendTests(BackendTestCase):
         situation
         """
         # Create 3 test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('user3', 'user3@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # No need to activate the accounts
 
         # User1 tag user2 in a post

@@ -27,7 +27,7 @@ import json
 from flask import current_app as app, url_for, g
 # Pjuu imports
 from pjuu import redis as r
-from pjuu.auth.backend import create_user, delete_account, activate
+from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as K, timestamp
 from pjuu.lib.alerts import AlertManager
 from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
@@ -51,8 +51,8 @@ class FrontendTests(FrontendTestCase):
         etc, etc.
         """
         # Create 2 users and have them follow each other
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user1)
         activate(user2)
         follow_user(user1, user2)
@@ -128,8 +128,8 @@ class FrontendTests(FrontendTestCase):
         mainly intended to check that comments render correctly
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user1)
         activate(user2)
 
@@ -203,8 +203,8 @@ class FrontendTests(FrontendTestCase):
         followers and following pages show the correct value
         """
         # Create 2 users and have them follow each other
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user1)
         activate(user2)
 
@@ -312,11 +312,11 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # We need some users with usernames different enough that we can test
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('joe', 'joe@pjuu.com', 'Password')
-        user4 = create_user('ant', 'ant@pjuu.com', 'Password')
-        user5 = create_user('fil', 'fil@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('joe', 'joe@pjuu.com', 'Password')
+        user4 = create_account('ant', 'ant@pjuu.com', 'Password')
+        user5 = create_account('fil', 'fil@pjuu.com', 'Password')
         # Activate some of the accounts.
         activate(user1)
         activate(user2)
@@ -380,7 +380,7 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Create a test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate it
         activate(user1)
 
@@ -416,8 +416,8 @@ class FrontendTests(FrontendTestCase):
         Check that alerts are displayed properly in the frontend
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Activate
         activate(user1)
         activate(user2)

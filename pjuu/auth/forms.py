@@ -1,30 +1,16 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    Forms used in the auth package
+"""Web forms
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: Joe Doherty 2015
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 3rd party imports
 from flask_wtf import Form
 from wtforms import BooleanField, PasswordField, StringField, ValidationError
-from wtforms.validators import EqualTo, Length, Regexp, Required
+from wtforms.validators import EqualTo, Length, Regexp, DataRequired
 
 # Pjuu imports
 from pjuu.auth import current_user
@@ -43,8 +29,12 @@ class SignInForm(Form):
     """Form to allow users to login
 
     """
-    username = StringField('User name or E-Mail', [Required()])
-    password = PasswordField('Password', [Required()])
+    username = StringField('User name or E-Mail', [
+        DataRequired()
+    ])
+    password = PasswordField('Password', [
+        DataRequired()
+    ])
     keep_signed_in = BooleanField('Keep me signed in')
 
 
@@ -56,7 +46,8 @@ class ResetForm(Form):
         EqualTo('password2', message='Passwords must match'),
         Length(min=6,
                message='Password must be at least 6 characters long'),
-        Required()])
+        DataRequired()
+    ])
     password2 = PasswordField('Confirm password')
 
 
@@ -69,7 +60,8 @@ class ChangePasswordForm(Form):
         EqualTo('new_password2', message='Passwords must match'),
         Length(min=6,
                message='Password must be at least 6 characters long'),
-        Required()])
+        DataRequired()
+    ])
     new_password2 = PasswordField('Confirm new password')
 
     def validate_password(self, field):
@@ -83,7 +75,9 @@ class ChangeEmailForm(Form):
     """
     new_email = StringField('New e-mail address', [
         Regexp(EMAIL_PATTERN, message='Invalid email address'),
-        Length(max=254), Required()])
+        Length(max=254),
+        DataRequired()
+    ])
     password = PasswordField('Current password')
 
     def validate_new_email(self, field):
@@ -103,15 +97,19 @@ class SignUpForm(Form):
         Regexp(USERNAME_PATTERN,
                message=('Must be between 3 and 16 characters and can only '
                         'contain letters, numbers and \'_\' characters.')),
-        Required()])
+        DataRequired()
+    ])
     email = StringField('E-mail address', [
         Regexp(EMAIL_PATTERN, message='Invalid email address'),
-        Length(max=254), Required()])
+        Length(max=254),
+        DataRequired()
+    ])
     password = PasswordField('Password', [
         EqualTo('password2', message='Passwords must match'),
         Length(min=6,
                message='Password must be at least 6 characters long'),
-        Required()])
+        DataRequired()
+    ])
     password2 = PasswordField('Confirm password')
 
     def validate_username(self, field):

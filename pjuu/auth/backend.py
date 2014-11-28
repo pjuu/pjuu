@@ -1,27 +1,10 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    The backend function for the auth system.
+"""Simple auth functions with access to the databases.
 
-    If in the future we decice to replace Redis we can simply change all these
-    funtions to use a new backend
+:license: AGPL v3, see LICENSE for more details
+:copyright: 2014 Joe Doherty
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
-
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Stdlib imports
@@ -85,7 +68,7 @@ RESERVED_NAMES = [
     'terms_of_service', 'alert']
 
 
-def create_user(username, email, password):
+def create_account(username, email, password):
     """Creates a new user account.
 
     :param username: The new users user name
@@ -190,16 +173,16 @@ def get_uid(lookup_value):
         return get_uid_username(lookup_value)
 
 
-def get_user(uid):
+def get_user(user_id):
     """Get user with UID as `dict`.
 
-    :param uid: The UID to get
-    :type uid: str
+    :param user_id: The UID to get
+    :type user_id: str
     :returns: The user as a dict
     :rtype: dict or None
 
     """
-    return m.db.users.find_one({'_id': uid})
+    return m.db.users.find_one({'_id': user_id})
 
 
 def check_username_pattern(username):
@@ -252,11 +235,11 @@ def check_email(email):
     return not bool(m.db.users.find_one({'email': email.lower()}, {}))
 
 
-def user_exists(uid):
+def user_exists(user_id):
     """Helper function to check that a user exists or not.
 
     """
-    return bool(m.db.users.find_one({'_id': uid}, {}))
+    return bool(m.db.users.find_one({'_id': user_id}, {}))
 
 
 def authenticate(username, password):
@@ -274,60 +257,60 @@ def authenticate(username, password):
     return None
 
 
-def login(uid):
+def signin(user_id):
     """Logs the user with uid in by adding the uid to the session.
 
     """
-    session['uid'] = uid
+    session['user_id'] = user_id
     # update last login
-    m.db.users.update({'_id': uid}, {'$set': {'last_login': timestamp()}})
+    m.db.users.update({'_id': user_id}, {'$set': {'last_login': timestamp()}})
 
 
-def logout():
+def signout():
     """Removes the user id from the session.
 
     """
-    session.pop('uid', None)
+    session.pop('user_id', None)
 
 
-def activate(uid, action=True):
+def activate(user_id, action=True):
     """Activates a user account.
 
     """
-    return m.db.users.update({'_id': uid},
+    return m.db.users.update({'_id': user_id},
                              {'$set': {'active': action}}) \
         .get('updatedExisting')
 
 
-def ban(uid, action=True):
+def ban(user_id, action=True):
     """Ban a user.
 
     By passing False as action this will unban the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'banned': action}}) \
+    return m.db.users.update({'_id': user_id}, {'$set': {'banned': action}}) \
         .get('updatedExisting')
 
 
-def bite(uid, action=True):
+def bite(user_id, action=True):
     """Bite a user (think spideman), makes them op
 
     By passing False as action this will unbite the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'op': action}}) \
+    return m.db.users.update({'_id': user_id}, {'$set': {'op': action}}) \
         .get('updatedExisting')
 
 
-def mute(uid, action=True):
+def mute(user_id, action=True):
     """Mutes a user, this stops them from posting, commenting or following
     users.
 
     By passing False as action this will un-mute the user
     """
-    return m.db.users.update({'_id': uid}, {'$set': {'muted': action}}) \
+    return m.db.users.update({'_id': user_id}, {'$set': {'muted': action}}) \
         .get('updatedExisting')
 
 
-def change_password(uid, password):
+def change_password(user_id, password):
     """ Changes uid's password.
 
     Checking of the old password _MUST_ be done before you run this! This is a
@@ -335,17 +318,18 @@ def change_password(uid, password):
 
     """
     password = generate_password(password)
-    return m.db.users.update({'_id': uid}, {'$set': {'password': password}})
+    return m.db.users.update({'_id': user_id},
+                             {'$set': {'password': password}})
 
 
-def change_email(uid, new_email):
+def change_email(user_id, new_email):
     """Changes the user with uid's e-mail address.
 
     Clears the old email key so that it can't be used and sets it to expire.
 
     """
     new_email = new_email.lower()
-    return m.db.users.update({'_id': uid}, {'$set': {'email': new_email}})
+    return m.db.users.update({'_id': user_id}, {'$set': {'email': new_email}})
 
 
 def delete_account(user_id):
@@ -362,7 +346,7 @@ def delete_account(user_id):
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.
-    posts_cursor = m.db.posts.find({'uid': user_id})
+    posts_cursor = m.db.posts.find({'user_id': user_id})
     for post in posts_cursor:
         # Get the posts id
         post_id = post.get('_id')
@@ -425,7 +409,7 @@ def delete_account(user_id):
     # elsewhere in the code base.
 
 
-def dump_account(uid):
+def dump_account(user_id):
     """Dump a users entire account; details, posts and comments to a dict.
 
     This WILL dump everything about the user. There is SOME caveats to this.
@@ -447,7 +431,7 @@ def dump_account(uid):
 
     """
     # Attempt to get the users account
-    user = m.db.users.find_one({'_id': uid})
+    user = m.db.users.find_one({'_id': user_id})
     if user:
         # We are going to remove the uid and the password hash as this may
         # lead to some security issues
@@ -461,7 +445,7 @@ def dump_account(uid):
     # Place to store our posts
     posts = []
     # Mongo cursor for all of our posts
-    posts_cursor = m.db.posts.find({'uid': uid}).sort('created', -1)
+    posts_cursor = m.db.posts.find({'user_id': user_id}).sort('created', -1)
 
     for post in posts_cursor:
         # Hide the uid from the post. The pid is okay to add as this is part of
@@ -469,17 +453,8 @@ def dump_account(uid):
         post['uid'] = '<UID>'
         posts.append(post)
 
-    # Get a list of the users comments
-    comments = []
-    # Mongo cursor for all our comments
-    comments_cursor = m.db.comments.find({'uid': uid}).sort('created', -1)
-    for comment in comments_cursor:
-        comment['uid'] = '<UID>'
-        comments.append(comment)
-
     # Return the dict of the above, this will be turned in to JSON by the view
     return {
         'user': user,
         'posts': posts,
-        'comments': comments
     }
