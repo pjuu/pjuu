@@ -4,15 +4,15 @@
 {% if pagination.items %}
 {% for item in pagination.items %}
 {% if config.TESTING %}
-<!-- list:alert:{{ item.aid }} -->
+<!-- list:alert:{{ item.alert_id }} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} alert clearfix">
-    <img class="avatar" src="{{ item.get_email()|avatar(24) }}"/>
+    <img class="avatar" src="{{ item.user.email|avatar(24) }}"/>
     <div class="control">
-        <a href="{{ url_for('delete_alert', aid=item.aid, next=request.path + '?' + request.query_string) }}" class="fa fa-eye-slash fa-lg delete"></a>
+        <a href="{{ url_for('users.delete_alert', alert_id=item.alert_id, next=request.path + '?' + request.query_string) }}" class="fa fa-eye-slash fa-lg delete"></a>
     </div>
     <div class="content alert clearfix">
-        <div class="body">{% if item.new %}<i class="fa fa-circle new"></i> {% endif %}{{ item.prettify(current_user.uid)|safe }}</div>
+        <div class="body">{% if item.new %}<i class="fa fa-circle new"></i> {% endif %}{{ item.prettify(current_user.user_id)|safe }}</div>
         <div class="created">{{ item.timestamp|timeify }}</div>
     </div>
 </li>

@@ -374,7 +374,7 @@ def get_replies(post_id, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.posts.find({'_id': post_id}).count()
+    total = m.db.posts.find_one({'_id': post_id}).get('comment_count')
     cursor = m.db.posts.find({'reply_to': post_id}) \
         .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 

@@ -194,6 +194,81 @@ class PostFrontendTests(FrontendTestCase):
 
         # Done for now
 
+    def test_view_post(self):
+        """
+        Similar to above but check the same for the view_post page. This is
+        mainly intended to check that comments render correctly
+        """
+        # Create two test users
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user1)
+        activate(user2)
+
+        # Create a post as user1. We need this to ensure that we can not get
+        # to the endpoint if we are logged out
+        post1 = create_post(user1, 'user1', 'Test post')
+
+        # Ensure we can't hit the endpoing
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       pid=post1),
+                               follow_redirects=True)
+        # Ensure we didn't get anything
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Sign in
+        self.client.post(url_for('signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        # Ensure that we can now see the endpoint
+        resp = self.client.get(url_for('view_post', username='user1',
+                                       pid=post1),
+                               follow_redirects=True)
+        # Use the testing tags to ensure everything is rendered
+        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
+        self.assertIn('Test post', resp.data)
+        # Ensure the comment form is present
+        self.assertIn('<!-- author comment -->', resp.data)
+
+        # Create a comment on the post
+        comment1 = create_post(user1, 'user1', 'Test comment 1', post1)
+
+        # Get the view again
+        resp = self.client.get(url_for('view_post', username='user1',
+                                       pid=post1),
+                               follow_redirects=True)
+
+        self.assertIn('<!-- list:comment:%s -->' % comment1, resp.data)
+        self.assertIn('Test comment 1', resp.data)
+
+        # Let's logout and log in as test2
+        self.client.get(url_for('signout'))
+        self.client.post(url_for('signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        })
+        # Check that we can see the comment
+        resp = self.client.get(url_for('view_post', username='user1',
+                                       pid=post1),
+                               follow_redirects=True)
+        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
+        self.assertIn('Test post', resp.data)
+        self.assertIn('<!-- list:comment:%s -->' % comment1, resp.data)
+        self.assertIn('Test comment', resp.data)
+
+        comment2 = create_post(user2, 'user2', 'Test comment 2', post1)
+
+        # Get the view again
+        resp = self.client.get(url_for('view_post', username='user1',
+                                       pid=post1),
+                               follow_redirects=True)
+
+        self.assertIn('<!-- list:comment:%s -->' % comment2, resp.data)
+        self.assertIn('Test comment 2', resp.data)
+        # Done for now
+
     def test_comment(self):
         """
         Test commenting on a post. This is a lot simpler than making a post

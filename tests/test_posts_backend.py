@@ -107,6 +107,119 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(comment.get('post_author'), 'user1')
         self.assertIsNotNone(comment.get('created'))
 
+    def test_get_feed(self):
+        """
+        Attempt to get a users feed under certain circumstances.
+        """
+        # Get test user
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        # Ensure an empty feed is returned. Remember these are paginations
+        self.assertEqual(len(get_feed(user1).items), 0)
+        # Ensure a users own post is added to thier feed
+        post1 = create_post(user1, 'user1', 'Test post')
+        # Ensure the list is the correct length
+        self.assertEqual(len(get_feed(user1).items), 1)
+        self.assertEqual(get_feed(user1).total, 1)
+        # Ensure the item is in Redis
+        self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
+
+        # Create a second user, make 1 follow them, make then post and ensure
+        # that the new users post appears in user 1s feed
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        follow_user(user1, user2)
+
+        post2 = create_post(user2, 'user2', 'Test post')
+        # Check user 1's feed for the next item
+        self.assertEqual(len(get_feed(user1).items), 2)
+        self.assertEqual(get_feed(user1).total, 2)
+        # Ensure the item is in Redis
+        self.assertIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
+        # Delete user 2 and ensure user 1's feed cleans itself
+        delete_account(user2)
+        self.assertEqual(len(get_feed(user1).items), 1)
+        self.assertEqual(get_feed(user1).total, 1)
+        # Ensure the item is not in Redis
+        self.assertNotIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
+
+    def test_get_posts(self):
+        """
+        Test users post list works correctly
+        """
+        # Create test user
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        # Ensure the users post list is empty
+        self.assertEqual(len(get_posts(user1).items), 0)
+
+        # Create a few test posts, ensure they appears in the users list
+        post1 = create_post(user1, 'user1', 'Test post 1')
+        post2 = create_post(user1, 'user1', 'Test post 2')
+        create_post(user1, 'user1', 'Test post 3')
+        self.assertEqual(len(get_posts(user1).items), 3)
+        self.assertEqual(get_posts(user1).total, 3)
+
+        # Delete one of the posts and ensure that it does not appear in the
+        # list.
+        delete_post(post1)
+
+        # Ensure the above is now correct with post1 missing
+        self.assertEqual(len(get_posts(user1).items), 2)
+        self.assertEqual(get_posts(user1).total, 2)
+
+        # Delete a post from MongoDB with the driver
+        m.db.posts.remove({'_id': post2})
+        # Ensure the above is now correct with post2 missing
+        self.assertEqual(len(get_posts(user1).items), 1)
+        self.assertEqual(get_posts(user1).total, 1)
+
+        # Done
+
+    def test_get_comments(self):
+        """
+        Ensure a posts comments are stored correctly in post:$pid:comments list
+        """
+        # Create two test users
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        # Create a post for each user and a comment on each for both user
+        post1 = create_post(user1, 'user1', 'Test post')
+        post2 = create_post(user2, 'user2', 'Test post')
+        # Ensure the comment lists are empty
+        self.assertEqual(len(get_replies(post1).items), 0)
+        self.assertEqual(len(get_replies(post2).items), 0)
+
+        comment1 = create_post(user1, 'user1', post1, 'Test comment')
+        comment2 = create_post(user1, 'user1', post2, 'Test comment')
+        comment3 = create_post(user2, 'user2', post1, 'Test comment')
+        comment4 = create_post(user2, 'user2', post2, 'Test comment')
+        # Ensure each comment appears in each users list
+        self.assertEqual(len(get_replies(post1).items), 2)
+        self.assertEqual(len(get_replies(post2).items), 2)
+        # Ensure the totals are correct
+        self.assertEqual(get_replies(post1).total, 2)
+        self.assertEqual(get_replies(post2).total, 2)
+        # Ensure comments are in MongoDB
+        comment_ids = \
+            [doc['_id'] for doc in m.db.comments.find({'pid': post1})]
+        self.assertIn(comment1, comment_ids)
+        self.assertIn(comment3, comment_ids)
+        comment_ids = \
+            [doc['_id'] for doc in m.db.comments.find({'pid': post2})]
+        self.assertIn(comment2, comment_ids)
+        self.assertIn(comment4, comment_ids)
+
+        # Delete 1 comment from post1 and ensure it does not exist
+        delete_post(comment1)
+        # Check that is has gone
+        self.assertEqual(len(get_replies(post1).items), 1)
+        self.assertEqual(get_replies(post1).total, 1)
+
+        # Delete a comment from inside Redis. This will trigger the self
+        # cleaning list feature. We call these orphaned cids.
+        delete_post(comment3)
+        # Check that it has gone when get_comments is called
+        self.assertEqual(len(get_replies(post2).items), 1)
+        self.assertEqual(get_replies(post2).total, 1)
+
     def test_check_post(self):
         """
         Will test that check_post returns the correct value with various

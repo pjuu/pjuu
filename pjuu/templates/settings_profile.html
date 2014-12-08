@@ -9,12 +9,14 @@
         <div class="detail">E-mail address: <b>{{ current_user['email'] }}</b></div>
         <div class="detail">
             Avatar:<br/>
+            {{ current_user }}
             <img src="{{ current_user['email']|avatar(48) }}"/><br/>
             <a href="http://gravatar.com" target="_blank">Edit Gravatar</a>
             <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>
             <p>This will change to our own custom rolled avatar system in the near future.</p>
         </div>
     </div>
+
     <form action="" method="post">
         {{ form.about.label }}:
         <textarea id="about" name="about" rows="5" maxlength="255">{{ current_user['about'] }}</textarea>

@@ -7,7 +7,7 @@
 <!-- author search -->
 {% endif %}
 <div id="author" class="block search clearfix">
-    <form action="{{ url_for('search') }}" method="GET">
+    <form action="{{ url_for('users.search') }}" method="GET">
         {{ form.query(placeholder='Search for a user...') }}
         <button type="submit"><i class="fa fa-search"></i> Search</button>
     </form>

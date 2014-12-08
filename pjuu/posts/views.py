@@ -232,10 +232,10 @@ def delete_post(username, post_id, reply_id=None):
     # Comment deletion keeps you on the page and post deletion takes you
     # to your feed
     if reply_id is not None:
-        redirect_url = handle_next(request, url_for('view_post',
+        redirect_url = handle_next(request, url_for('posts.view_post',
                                    username=username, pid=post_id))
     else:
-        redirect_url = handle_next(request, url_for('feed'))
+        redirect_url = handle_next(request, url_for('users.feed'))
 
     user_id = get_uid(username)
     if not check_post(user_id, post_id, reply_id):

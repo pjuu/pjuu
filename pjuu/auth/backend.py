@@ -34,38 +34,37 @@ EMAIL_RE = re.compile(EMAIL_PATTERN)
 # in the future. We need to protect endpoints which we need and can not afford
 # to give to users.
 RESERVED_NAMES = [
-    'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
-    'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
-    'recover', 'api', 'app', 'apps', 'archive', 'auth',
-    'authentication', 'avatar', 'bin', 'billing', 'blog', 'blogs', 'chat',
-    'cache', 'calendar', 'careers', 'cgi', 'client', 'code', 'config',
-    'connect', 'contact', 'contest', 'create', 'code', 'css', 'dashboard',
-    'data', 'db', 'design', 'delete', 'dev', 'devel', 'dir', 'directory',
-    'doc', 'docs', 'domain', 'download', 'downloads', 'downvote', 'edit',
-    'editor', 'email', 'ecommerce', 'forum', 'forums', 'faq', 'favorite',
-    'feed', 'feedback', 'flog', 'follow', 'followers', 'following', 'forgot',
-    'file', 'files', 'find', 'group', 'groups', 'help', 'home', 'homepage',
-    'host', 'hosting', 'hostname', 'html', 'http', 'httpd', 'https', 'hpg',
-    'info', 'information', 'image', 'img', 'images', 'imap', 'index', 'invite',
-    'java', 'javascript', 'job', 'jobs', 'js', 'log', 'login', 'logs',
-    'logout', 'list', 'lists', 'mail', 'master', 'media', 'message',
-    'messages', 'name', 'net', 'network', 'new', 'news', 'newsletter', 'nick',
-    'nickname', 'notes', 'order', 'orders', 'page', 'pager', 'pages',
-    'password', 'pic', 'pics', 'photo', 'photos', 'php', 'pjuu', 'plugin',
-    'plugins', 'post', 'posts', 'profile', 'project', 'projects', 'pub',
-    'public', 'random', 'register', 'registration', 'reset', 'root', 'rss',
-    'script', 'scripts', 'search', 'secure', 'send', 'service', 'signup',
-    'signin', 'singout', 'search', 'security', 'setting', 'settings', 'setup',
-    'site', 'sites', 'sitemap', 'ssh', 'stage', 'staging', 'start',
-    'subscribe', 'subdomain', 'support', 'stat', 'static', 'stats', 'status',
-    'store', 'stores', 'system', 'tablet', 'template', 'templates' 'test',
-    'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
-    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
-    'username', 'usage', 'video', 'videos', 'web', 'webmail', 'alerts',
-    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts', 'report', 'terms',
-    'privacy', 'aboutus', 'about_us', 'privacypolicy', 'privacy_policy',
-    'termsandconditions', 'termsofservice', 'terms_and_conditions',
-    'terms_of_service', 'alert']
+    'about', 'about_us', 'aboutus', 'access', 'account', 'accounts',
+    'activate', 'add', 'address', 'adm', 'admin', 'administration', 'ajax',
+    'alert', 'alerts', 'analytics', 'api', 'app', 'apps', 'archive', 'auth',
+    'authentication', 'avatar', 'billing', 'bin', 'blog', 'blogs', 'cache',
+    'calendar', 'careers', 'cgi', 'chat', 'client', 'code', 'config',
+    'connect', 'contact', 'contest', 'create', 'css', 'dashboard', 'data',
+    'db', 'delete', 'design', 'dev', 'devel', 'dir', 'directory', 'doc',
+    'docs', 'domain', 'download', 'downloads', 'downvote', 'ecommerce', 'edit',
+    'editor', 'email', 'faq', 'favorite', 'feed', 'feedback', 'file', 'files',
+    'find', 'flog', 'follow', 'followers', 'following', 'forgot', 'forum',
+    'forums', 'group', 'groups', 'has-alerts', 'hasalerts', 'help', 'home',
+    'homepage', 'host', 'hosting', 'hostname', 'hpg', 'html', 'http', 'httpd',
+    'https', 'i-has-alerts', 'ihasalerts', 'image', 'images', 'imap', 'img',
+    'index', 'info', 'information', 'invite', 'java', 'javascript', 'job',
+    'jobs', 'js', 'list', 'lists', 'log', 'login', 'logout', 'logs', 'mail',
+    'master', 'media', 'message', 'messages', 'name', 'net', 'network', 'new',
+    'news', 'newsletter', 'nick', 'nickname', 'notes', 'order', 'orders',
+    'page', 'pager', 'pages', 'password', 'photo', 'photos', 'php', 'pic',
+    'pics', 'pjuu', 'plugin', 'plugins', 'post', 'posts', 'privacy',
+    'privacy_policy', 'privacypolicy', 'profile', 'project', 'projects', 'pub',
+    'public', 'random', 'recover', 'register', 'registration', 'report',
+    'reset', 'root', 'rss', 'script', 'scripts', 'search', 'secure',
+    'security', 'send', 'service', 'setting', 'settings', 'setup', 'signin',
+    'signup', 'singout', 'site', 'sitemap', 'sites', 'ssh', 'stage', 'staging',
+    'start', 'stat', 'static', 'stats', 'status', 'store', 'stores',
+    'subdomain', 'subscribe', 'support', 'system', 'tablet', 'talk', 'task',
+    'tasks', 'template', 'templatestest', 'terms', 'terms_and_conditions',
+    'terms_of_service', 'termsandconditions', 'termsofservice', 'tests',
+    'theme', 'themes', 'tmp', 'todo', 'tools', 'unfollow', 'update', 'upload',
+    'upvote', 'url', 'usage', 'user', 'username', 'video', 'videos', 'web',
+    'webmail']
 
 
 def create_account(username, email, password):
@@ -86,7 +85,6 @@ def create_account(username, email, password):
     try:
         if check_username(username) and check_username_pattern(username) and \
                 check_email(email) and check_email_pattern(email):
-
             # Get a new UUID for the user
             uid = get_uuid()
 
@@ -118,7 +116,7 @@ def create_account(username, email, password):
 
 
 def get_uid_username(username):
-    """Get the uid for user with username.
+    """Find a uid given a username.
 
     :param username: The username to lookup
     :type username: str
@@ -126,21 +124,17 @@ def get_uid_username(username):
     :rtype: str or None
 
     """
-    # Look up the username inside mongo. The empty selector means that only the
-    # _id will be returned which is what we want
-    uid = m.db.users.find_one({'username': username.lower()}, {})
+    # Will return the user object with on the _id (user_id) field
+    user = m.db.users.find_one({'username': username.lower()}, {})
 
-    # Check that something was returned
-    if uid is not None:
-        # Return the get. If the _id is not there for some reasons it means
-        # that a None will still be returned
-        return uid.get('_id')
+    if user is not None:
+        return user.get('_id')
 
     return None
 
 
 def get_uid_email(email):
-    """Get the uid for user with email.
+    """Find a uid given a username.
 
     :param email: The email to lookup
     :type email: str
@@ -174,12 +168,12 @@ def get_uid(lookup_value):
 
 
 def get_user(user_id):
-    """Get user with UID as `dict`.
+    """Get user with :arg:`user_id` as :type:`dict`.
 
-    :param user_id: The UID to get
-    :type user_id: str
+    :param user_id: The user_id to get
+    :type user_id: `str`
     :returns: The user as a dict
-    :rtype: dict or None
+    :rtype: `dict` or `None`
 
     """
     return m.db.users.find_one({'_id': user_id})
@@ -201,18 +195,18 @@ def check_username_pattern(username):
 def check_username(username):
     """Check for username availability
 
-    :param username: The username to check for existance
+    :param username: The username to check for existence
     :type username: str
     :returns: True is the username does NOT exist, False otherwise
     :rtype: bool
 
     """
     return username not in RESERVED_NAMES and \
-        not bool(m.db.users.find_one({'username': username.lower()}, {}))
+           not bool(m.db.users.find_one({'username': username.lower()}, {}))
 
 
 def check_email_pattern(email):
-    """Checks that email matcheds what we class as an email address
+    """Checks that email matches what we class as an email address
 
     :param email: The email to test the pattern of
     :type email: str
@@ -226,9 +220,9 @@ def check_email_pattern(email):
 def check_email(email):
     """Check an e-mail addresses availability
 
-    :param email: The email to check for existance
+    :param email: The email to check for existence
     :type email: str
-    :returns: True is the email does NOT exist, False otherwise
+    :returns: True if the email does NOT exist, False otherwise
     :rtype: bool
 
     """
@@ -236,7 +230,7 @@ def check_email(email):
 
 
 def user_exists(user_id):
-    """Helper function to check that a user exists or not.
+    """Is there a user object with `user_id`?
 
     """
     return bool(m.db.users.find_one({'_id': user_id}, {}))
@@ -246,6 +240,7 @@ def authenticate(username, password):
     """Authenticate a username/password combination.
 
     """
+
     result = m.db.users.find_one({'username': username})
 
     # Check that we got a result and that the password matches the stored one

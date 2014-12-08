@@ -22,11 +22,7 @@ Licence:
 """
 
 # Pjuu imports
-from pjuu import redis as r
 from pjuu.auth.backend import create_account, delete_account
-from pjuu.lib import keys as K
-from pjuu.posts.backend import (create_post, create_comment, delete_post,
-                                delete_comment)
 from pjuu.users.backend import *
 # Test imports
 from tests import BackendTestCase
@@ -58,7 +54,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(profile.get('following_count'), 0)
 
         # Ensure a non-existant profile return None
-        self.assertEqual(get_profile(K.NIL_VALUE), None)
+        self.assertEqual(get_profile(k.NIL_VALUE), None)
 
     def test_get_user(self):
         """
@@ -75,135 +71,7 @@ class BackendTests(BackendTestCase):
         self.assertEqual(user.get('username'), 'user1')
         self.assertEqual(user.get('email'), 'user1@pjuu.com')
         # Ensure a non-existant user return None
-        self.assertEqual(get_user(K.NIL_VALUE), None)
-
-    def test_get_feed(self):
-        """
-        Attempt to get a users feed under certain circumstances.
-        """
-        # Get test user
-        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
-        # Ensure an empty feed is returned. Remember these are paginations
-        self.assertEqual(len(get_feed(user1).items), 0)
-        # Ensure a users own post is added to thier feed
-        post1 = create_post(user1, 'user1', 'Test post')
-        # Ensure the list is the correct length
-        self.assertEqual(len(get_feed(user1).items), 1)
-        self.assertEqual(get_feed(user1).total, 1)
-        # Ensure the item is in Redis
-        self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
-
-        # Create a second user, make 1 follow them, make then post and ensure
-        # that the new users post appears in user 1s feed
-        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
-        follow_user(user1, user2)
-
-        post2 = create_post(user2, 'user2', 'Test post')
-        # Check user 1's feed for the next item
-        self.assertEqual(len(get_feed(user1).items), 2)
-        self.assertEqual(get_feed(user1).total, 2)
-        # Ensure the item is in Redis
-        self.assertIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
-        # Delete user 2 and ensure user 1's feed cleans itself
-        delete_account(user2)
-        self.assertEqual(len(get_feed(user1).items), 1)
-        self.assertEqual(get_feed(user1).total, 1)
-        # Ensure the item is not in Redis
-        self.assertNotIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
-
-    def test_get_posts(self):
-        """
-        Test users post list works correctly
-        """
-        # Create test user
-        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
-        # Ensure the users post list is empty
-        self.assertEqual(len(get_posts(user1).items), 0)
-
-        # Create a few test posts, ensure they appears in the users list
-        post1 = create_post(user1, 'user1', 'Test post 1')
-        post2 = create_post(user1, 'user1', 'Test post 2')
-        post3 = create_post(user1, 'user1', 'Test post 3')
-        self.assertEqual(len(get_posts(user1).items), 3)
-        self.assertEqual(get_posts(user1).total, 3)
-
-        # Ensure the post ids are in the Redis list
-        self.assertIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-
-        # Delete one of the posts and ensure that it does not appear in the
-        # list.
-        delete_post(post1)
-
-        # Ensure the above is now correct with post1 missing
-        self.assertEqual(len(get_posts(user1).items), 2)
-        self.assertEqual(get_posts(user1).total, 2)
-
-        # Ensure the post ids are in the Redis list and post1 is NOT
-        self.assertNotIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-
-        # Delete a post from inside Redis. This will trigger the self cleaning
-        # list feature. We call these orphaned pids
-        r.delete(K.POST.format(post2))
-        # Ensure the above is now correct with post2 missing
-        self.assertEqual(len(get_posts(user1).items), 1)
-        self.assertEqual(get_posts(user1).total, 1)
-
-        # Ensure the post ids are not in the Redis list and post1 is NOT
-        self.assertNotIn(post1, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertNotIn(post2, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-        self.assertIn(post3, r.lrange(K.USER_POSTS.format(user1), 0, -1))
-
-        # Done
-
-    def test_get_comments(self):
-        """
-        Ensure a posts comments are stored correctly in post:$pid:comments list
-        """
-        # Create two test users
-        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
-        # Ensure the comment lists are empty
-        self.assertEqual(len(get_comments(user1).items), 0)
-        self.assertEqual(len(get_comments(user2).items), 0)
-        # Create a post for each user and a comment on each for both user
-        post1 = create_post(user1, 'user1', 'Test post')
-        post2 = create_post(user2, 'user2', 'Test post')
-        comment1 = create_comment(user1, 'user1', post1, 'Test comment')
-        comment2 = create_comment(user1, 'user1', post2, 'Test comment')
-        comment3 = create_comment(user2, 'user2', post1, 'Test comment')
-        comment4 = create_comment(user2, 'user2', post2, 'Test comment')
-        # Ensure each comment appears in each users list
-        self.assertEqual(len(get_comments(post1).items), 2)
-        self.assertEqual(len(get_comments(post2).items), 2)
-        # Ensure the totals are correct
-        self.assertEqual(get_comments(post1).total, 2)
-        self.assertEqual(get_comments(post2).total, 2)
-        # Ensure comments are in MongoDB
-        comment_ids = \
-            [doc['_id'] for doc in m.db.comments.find({'pid': post1})]
-        self.assertIn(comment1, comment_ids)
-        self.assertIn(comment3, comment_ids)
-        comment_ids = \
-            [doc['_id'] for doc in m.db.comments.find({'pid': post2})]
-        self.assertIn(comment2, comment_ids)
-        self.assertIn(comment4, comment_ids)
-
-        # Delete 1 comment from post1 and ensure it does not exist
-        delete_comment(comment1)
-        # Check that is has gone
-        self.assertEqual(len(get_comments(post1).items), 1)
-        self.assertEqual(get_comments(post1).total, 1)
-
-        # Delete a comment from inside Redis. This will trigger the self
-        # cleaning list feature. We call these orphaned cids.
-        delete_comment(comment3)
-        # Check that it has gone when get_comments is called
-        self.assertEqual(len(get_comments(post2).items), 1)
-        self.assertEqual(get_comments(post2).total, 1)
+        self.assertEqual(get_user(k.NIL_VALUE), None)
 
     def test_follow_unfollow_get_followers_following_is_following(self):
         """
@@ -225,10 +93,10 @@ class BackendTests(BackendTestCase):
         # Ensre the user can't follow them again
         self.assertFalse(follow_user(user2, user1))
         # Ensure the id's are in the Redis sorted sets, followers and following
-        self.assertIn(user2, r.zrange(K.USER_FOLLOWING.format(user1), 0, -1))
-        self.assertIn(user2, r.zrange(K.USER_FOLLOWERS.format(user1), 0, -1))
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWING.format(user2), 0, -1))
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
+        self.assertIn(user2, r.zrange(k.USER_FOLLOWING.format(user1), 0, -1))
+        self.assertIn(user2, r.zrange(k.USER_FOLLOWERS.format(user1), 0, -1))
+        self.assertIn(user1, r.zrange(k.USER_FOLLOWING.format(user2), 0, -1))
+        self.assertIn(user1, r.zrange(k.USER_FOLLOWERS.format(user2), 0, -1))
         # Ensure the get_followers and get_following functions return
         # the correct data
         self.assertEqual(len(get_following(user1).items), 1)
@@ -248,9 +116,9 @@ class BackendTests(BackendTestCase):
         # User 1 unfollow user 2 and ensure the sorted sets are updated
         self.assertTrue(unfollow_user(user1, user2))
         self.assertNotIn(user2,
-                         r.zrange(K.USER_FOLLOWING.format(user1), 0, -1))
+                         r.zrange(k.USER_FOLLOWING.format(user1), 0, -1))
         self.assertNotIn(user1,
-                         r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
+                         r.zrange(k.USER_FOLLOWERS.format(user2), 0, -1))
 
         # Ensure the user can't unfollow the user again
         self.assertFalse(unfollow_user(user1, user2))
@@ -297,8 +165,8 @@ class BackendTests(BackendTestCase):
         m.db.users.remove({'_id': user1})
 
         # Ensure user1 appears in both user2's followers and following lists
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWERS.format(user2), 0, -1))
-        self.assertIn(user1, r.zrange(K.USER_FOLLOWING.format(user2), 0, -1))
+        self.assertIn(user1, r.zrange(k.USER_FOLLOWERS.format(user2), 0, -1))
+        self.assertIn(user1, r.zrange(k.USER_FOLLOWING.format(user2), 0, -1))
 
         # Ensure if we actuallt get the lists from the backend functions user1
         # is not there
@@ -374,21 +242,21 @@ class BackendTests(BackendTestCase):
         # Also check it's still a BaseAlert
         self.assertTrue(isinstance(alert, BaseAlert))
         # Check its from test2
-        self.assertEqual(alert.get_username(), 'user2')
-        self.assertEqual(alert.get_email(), 'user2@pjuu.com')
+        self.assertEqual(alert.user.get('username'), 'user2')
+        self.assertEqual(alert.user.get('email'), 'user2@pjuu.com')
         self.assertIn('has started following you', alert.prettify())
 
         # Delete test2 and ensure we get no alerts
         delete_account(user2)
 
         # Ensure the alert is still inside Redis
-        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 1)
+        self.assertEqual(r.zcard(k.USER_ALERTS.format(user1)), 1)
 
         # Get the alerts, should be none and should also clear the alert from
         # Redis
         self.assertEqual(get_alerts(user1).total, 0)
         self.assertEqual(len(get_alerts(user1).items), 0)
-        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 0)
+        self.assertEqual(r.zcard(k.USER_ALERTS.format(user1)), 0)
 
         # Do the same as above to ensure we can delete an alert ourselves
         # Create another user
@@ -402,17 +270,17 @@ class BackendTests(BackendTestCase):
         # Also check it's still a BaseAlert
         self.assertTrue(isinstance(alert, BaseAlert))
         # Check its from test2
-        self.assertEqual(alert.get_username(), 'user1')
-        self.assertEqual(alert.get_email(), 'user1@pjuu.com')
+        self.assertEqual(alert.user.get('username'), 'user1')
+        self.assertEqual(alert.user.get('email'), 'user1@pjuu.com')
         self.assertIn('has started following you', alert.prettify())
 
         # Delete the alert with aid from the alert
-        delete_alert(user3, alert.aid)
+        delete_alert(user3, alert.alert_id)
 
         # Get the alerts and ensure the list is empty
         self.assertEqual(get_alerts(user3).total, 0)
         self.assertEqual(len(get_alerts(user3).items), 0)
-        self.assertEqual(r.zcard(K.USER_ALERTS.format(user3)), 0)
+        self.assertEqual(r.zcard(k.USER_ALERTS.format(user3)), 0)
 
         # Unfollow the user3 and then follow them again
         unfollow_user(user1, user3)
@@ -422,7 +290,7 @@ class BackendTests(BackendTestCase):
         self.assertIn('has started following you', alert.prettify())
 
         # Manually delete the alert
-        r.delete(K.ALERT.format(alert.aid))
+        r.delete(k.ALERT.format(alert.alert_id))
 
         # Get the alerts again and ensure the length is 0
         # Ensure that the alert is not pulled down
@@ -431,7 +299,7 @@ class BackendTests(BackendTestCase):
 
         # Get alerts for a non-existant user
         # This will not fail but will have an empty pagination
-        alerts = get_alerts(K.NIL_VALUE)
+        alerts = get_alerts(k.NIL_VALUE)
         self.assertEqual(len(alerts.items), 0)
 
         # Done for now

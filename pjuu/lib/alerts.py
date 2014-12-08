@@ -37,7 +37,7 @@ from werkzeug.utils import cached_property
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_user as be_get_user
-from pjuu.lib import keys as k, timestamp
+from pjuu.lib import keys as k, timestamp, get_uuid
 
 
 class BaseAlert(object):
@@ -48,7 +48,7 @@ class BaseAlert(object):
     """
 
     def __init__(self, user_id):
-        self.alert_id = uuid1().int
+        self.alert_id = get_uuid()
         self.timestamp = timestamp()
         self.user_id = user_id
 
@@ -68,7 +68,7 @@ class BaseAlert(object):
 
         """
         # Simple implementation, check the user exists
-        return bool(m.db.users.find_one({'_id': self.user_id}, {}))
+        return self.user is not None
 
     def prettify(self, for_uid=None):
         """Overwrite to show how the alert will be presented to the user.

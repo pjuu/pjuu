@@ -133,14 +133,14 @@ def timeify_filter(time):
 
 
 @users_bp.app_template_filter('has_alerts')
-def has_alerts_filter(uid):
+def has_alerts_filter(user_id):
     """
     Check to see if the user has any alerts. Should only ever really be Used
     with current_user
 
     Uses the i_has_alerts() backend function
     """
-    return be_i_has_alerts(uid)
+    return be_i_has_alerts(user_id)
 
 
 @users_bp.route('/', methods=['GET'])
@@ -195,19 +195,19 @@ def following(username):
     """
     Returns all users following the current user as a pagination
     """
-    uid = get_uid(username)
+    user_id = get_uid(username)
 
-    if uid is None:
+    if user_id is None:
         abort(404)
 
     # Data
-    profile = get_profile(uid)
+    profile = get_profile(user_id)
 
     # Pagination
     page = handle_page(request)
 
     # Get a list of users you are following
-    following = get_following(uid, page)
+    following = get_following(user_id, page)
     # Post form
     post_form = PostForm()
     return render_template('following.html', profile=profile,
@@ -220,19 +220,19 @@ def followers(username):
     """
     Returns all a users followers as a pagination object
     """
-    uid = get_uid(username)
+    user_id = get_uid(username)
 
-    if uid is None:
+    if user_id is None:
         abort(404)
 
     # Data
-    _profile = get_profile(uid)
+    _profile = get_profile(user_id)
 
     # Pagination
     page = handle_page(request)
 
     # Get a list of users you are following
-    _followers = get_followers(uid, page)
+    _followers = get_followers(user_id, page)
     # Post form
     post_form = PostForm()
     return render_template('followers.html', profile=_profile,
@@ -245,7 +245,7 @@ def follow(username):
     """
     Used to follow a user
     """
-    redirect_url = handle_next(request, url_for('following',
+    redirect_url = handle_next(request, url_for('users.following',
                                username=current_user.get('username')))
 
     user_id = get_uid(username)
@@ -270,7 +270,7 @@ def unfollow(username):
     """
     Used to unfollow a user
     """
-    redirect_url = handle_next(request, url_for('following',
+    redirect_url = handle_next(request, url_for('users.following',
                                username=current_user.get('username')))
 
     user_id = get_uid(username)
@@ -314,12 +314,13 @@ def settings_profile():
     Allows users to customize their profile direct from this view.
     """
     form = ChangeProfileForm(request.form)
+
     if request.method == 'POST':
         if form.validate():
             # Update current_user, this was highlighted by Ant is issue 1
             current_user['about'] = form.about.data
             # Set the users new about in Redis
-            set_about(current_user.get('uid'), form.about.data)
+            set_about(current_user.get('_id'), form.about.data)
             flash('Your profile has been updated', 'success')
         else:
             flash('Oh no! There are errors in your form', 'error')
@@ -333,7 +334,7 @@ def alerts():
     """
     Display a users alerts (notifications) to them on the site.
     """
-    uid = current_user.get('uid')
+    uid = current_user.get('_id')
 
     # Pagination
     page = handle_page(request)
@@ -342,17 +343,17 @@ def alerts():
     return render_template('alerts.html', pagination=_results)
 
 
-@users_bp.route('/alerts/<aid>/delete', methods=['GET'])
+@users_bp.route('/alerts/<alert_id>/delete', methods=['GET'])
 @login_required
-def delete_alert(aid):
+def delete_alert(alert_id):
     """
     Remove an alert id (aid) from a users alerts feed
     """
-    uid = current_user.get('uid')
+    user_id = current_user.get('_id')
     # Handle next
-    redirect_url = handle_next(request, url_for('alerts'))
+    redirect_url = handle_next(request, url_for('users.alerts'))
 
-    if be_delete_alert(uid, aid):
+    if be_delete_alert(user_id, alert_id):
         flash('Alert has been hidden', 'success')
 
     return redirect(redirect_url)
@@ -372,6 +373,6 @@ def i_has_alerts():
     if not current_user:
         return abort(403)
 
-    uid = current_user.get('uid')
+    uid = current_user.get('_id')
 
     return jsonify(result=be_i_has_alerts(uid))

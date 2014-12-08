@@ -30,7 +30,7 @@ from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import get_user
-from pjuu.lib import keys as K, timestamp
+from pjuu.lib import keys as k, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
 from pjuu.posts.backend import get_post
@@ -48,22 +48,23 @@ class FollowAlert(BaseAlert):
 
     def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> has started following you' \
-               .format(url_for('profile', username=self.user.get('username')),
+               .format(url_for('users.profile',
+                               username=self.user.get('username')),
                        do_capitalize(self.user.get('username')))
 
 
-def get_profile(uid):
+def get_profile(user_id):
     """Returns a user dict with add post_count, follow_count and following.
 
     """
-    profile = m.db.users.find_one({'_id': uid})
+    profile = m.db.users.find_one({'_id': user_id})
 
     if profile:
         # Count the users posts in MongoDB
-        profile['post_count'] = m.db.posts.find({'uid': uid}).count()
+        profile['post_count'] = m.db.posts.find({'uid': user_id}).count()
         # Count followers and folowees in Redis
-        profile['followers_count'] = r.zcard(K.USER_FOLLOWERS.format(uid))
-        profile['following_count'] = r.zcard(K.USER_FOLLOWING.format(uid))
+        profile['followers_count'] = r.zcard(k.USER_FOLLOWERS.format(user_id))
+        profile['following_count'] = r.zcard(k.USER_FOLLOWING.format(user_id))
 
     return profile if profile else None
 
@@ -76,20 +77,19 @@ def get_feed(user_id, page=1):
 
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
-    total = r.llen(K.USER_FEED.format(user_id))
-    pids = r.lrange(K.USER_FEED.format(user_id), (page - 1) * per_page,
+    total = r.llen(k.USER_FEED.format(user_id))
+    pids = r.lrange(k.USER_FEED.format(user_id), (page - 1) * per_page,
                     (page * per_page) - 1)
     posts = []
     for pid in pids:
         # Get the post
-        print pid
         post = get_post(pid)
         if post:
             posts.append(post)
         else:
             # Self cleaning lists
-            r.lrem(K.USER_FEED.format(user_id), 1, pid)
-            total = r.llen(K.USER_FEED.format(user_id))
+            r.lrem(k.USER_FEED.format(user_id), 1, pid)
+            total = r.llen(k.USER_FEED.format(user_id))
 
     return Pagination(posts, total, page, per_page)
 
@@ -102,13 +102,13 @@ def follow_user(who_uid, whom_uid):
     who_uid = who_uid
     whom_uid = whom_uid
     # Check that we are not already following the user
-    if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
+    if r.zrank(k.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return False
 
     # Follow user
     # Score is based on UTC epoch time
-    r.zadd(K.USER_FOLLOWING.format(who_uid), timestamp(), whom_uid)
-    r.zadd(K.USER_FOLLOWERS.format(whom_uid), timestamp(), who_uid)
+    r.zadd(k.USER_FOLLOWING.format(who_uid), timestamp(), whom_uid)
+    r.zadd(k.USER_FOLLOWERS.format(whom_uid), timestamp(), who_uid)
 
     # Create an alert and inform whom that who is now following them
     alert = FollowAlert(who_uid)
@@ -124,12 +124,12 @@ def unfollow_user(who_uid, whom_uid):
     who_uid = who_uid
     whom_uid = whom_uid
     # Check that we are actually following the users
-    if r.zrank(K.USER_FOLLOWING.format(who_uid), whom_uid) is None:
+    if r.zrank(k.USER_FOLLOWING.format(who_uid), whom_uid) is None:
         return False
 
     # Delete uid from who following and whom followers
-    r.zrem(K.USER_FOLLOWING.format(who_uid), whom_uid)
-    r.zrem(K.USER_FOLLOWERS.format(whom_uid), who_uid)
+    r.zrem(k.USER_FOLLOWING.format(who_uid), whom_uid)
+    r.zrem(k.USER_FOLLOWERS.format(whom_uid), who_uid)
 
     return True
 
@@ -139,8 +139,8 @@ def get_following(uid, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = r.zcard(K.USER_FOLLOWING.format(uid))
-    fids = r.zrange(K.USER_FOLLOWING.format(uid), (page - 1) * per_page,
+    total = r.zcard(k.USER_FOLLOWING.format(uid))
+    fids = r.zrange(k.USER_FOLLOWING.format(uid), (page - 1) * per_page,
                     (page * per_page) - 1)
     users = []
     for fid in fids:
@@ -149,8 +149,8 @@ def get_following(uid, page=1):
             users.append(user)
         else:
             # Self cleaning sorted sets
-            r.zrem(K.USER_FOLLOWING.format(uid), fid)
-            total = r.zcard(K.USER_FOLLOWING.format(id))
+            r.zrem(k.USER_FOLLOWING.format(uid), fid)
+            total = r.zcard(k.USER_FOLLOWING.format(id))
 
     return Pagination(users, total, page, per_page)
 
@@ -160,8 +160,8 @@ def get_followers(uid, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = r.zcard(K.USER_FOLLOWERS.format(uid))
-    fids = r.zrange(K.USER_FOLLOWERS.format(uid), (page - 1) * per_page,
+    total = r.zcard(k.USER_FOLLOWERS.format(uid))
+    fids = r.zrange(k.USER_FOLLOWERS.format(uid), (page - 1) * per_page,
                     (page * per_page) - 1)
     users = []
     for fid in fids:
@@ -170,8 +170,8 @@ def get_followers(uid, page=1):
             users.append(user)
         else:
             # Self cleaning sorted sets
-            r.zrem(K.USER_FOLLOWERS.format(uid), fid)
-            total = r.zcard(K.USER_FOLLOWERS.format(uid))
+            r.zrem(k.USER_FOLLOWERS.format(uid), fid)
+            total = r.zcard(k.USER_FOLLOWERS.format(uid))
 
     return Pagination(users, total, page, per_page)
 
@@ -180,7 +180,7 @@ def is_following(who_id, whom_id):
     """Check to see if who is following whom.
 
     """
-    if r.zrank(K.USER_FOLLOWING.format(who_id), whom_id) is not None:
+    if r.zrank(k.USER_FOLLOWING.format(who_id), whom_id) is not None:
         return True
     return False
 
@@ -219,15 +219,15 @@ def search(query):
     return Pagination(results, total, 1, per_page)
 
 
-def set_about(uid, about):
+def set_about(user_id, about):
     """Set a users about message.
 
     """
-    return m.db.users.update({'_id': uid},
+    return m.db.users.update({'_id': user_id},
                              {'$set': {'about': about}})
 
 
-def get_alerts(uid, page=1):
+def get_alerts(user_id, page=1):
     """Return a list of alert objects as a pagination.
 
     """
@@ -236,20 +236,21 @@ def get_alerts(uid, page=1):
     # Get the last time the users checked the alerts
     # Try and cast the value to an int so we can boolean compare them
     try:
-        alerts_last_checked = m.db.users.find_one({'_id': uid}) \
+        alerts_last_checked = m.db.users.find_one({'_id': user_id}) \
             .get('alerts_last_checked')
     except (AttributeError, TypeError, ValueError):
         alerts_last_checked = 0
 
     # Get total number of elements in the sorted set
-    total = r.zcard(K.USER_ALERTS.format(uid))
-    aids = r.zrevrange(K.USER_ALERTS.format(uid), (page - 1) * per_page,
+    total = r.zcard(k.USER_ALERTS.format(user_id))
+    aids = r.zrevrange(k.USER_ALERTS.format(user_id), (page - 1) * per_page,
                        (page * per_page) - 1)
 
     # Create AlertManager to load the alerts
     am = AlertManager()
 
     alerts = []
+
     for aid in aids:
         # Load the alert in to the alert manager
         alert = am.get(aid)
@@ -264,26 +265,26 @@ def get_alerts(uid, page=1):
             alerts.append(alert)
         else:
             # Self cleaning zset
-            r.zrem(K.USER_ALERTS.format(uid), aid)
-            total = r.zcard(K.USER_ALERTS.format(uid))
+            r.zrem(k.USER_ALERTS.format(user_id), aid)
+            total = r.zcard(k.USER_ALERTS.format(user_id))
             # May as well delete the alert if there is one
-            r.delete(K.ALERT.format(aid))
+            r.delete(k.ALERT.format(aid))
 
     # Update the last time the user checked there alerts
     # This will allow us to alert a user too new alerts with the /i-has-alerts
     # url
-    m.db.users.update({'_id': 'uid'},
+    m.db.users.update({'_id': user_id},
                       {'$set': {'alerts_last_checked': timestamp()}})
 
     return Pagination(alerts, total, page, per_page)
 
 
-def delete_alert(uid, aid):
+def delete_alert(user_id, alert_id):
     """Removes an alert with aid from user with uid's alert feed. This does not
     delete the alert object, it may be on other users feeds.
 
     """
-    return bool(r.zrem(K.USER_ALERTS.format(uid), aid))
+    return bool(r.zrem(k.USER_ALERTS.format(user_id), alert_id))
 
 
 def i_has_alerts(user_id):
@@ -292,11 +293,11 @@ def i_has_alerts(user_id):
     """
     # Get the stamp since last check from Redis
     # If this has not been called before make it 0
-    alerts_last_checked = get_user(user_id).get('alerts_last_checked')
+    alerts_last_checked = get_user(user_id).get('alerts_last_checked', 0)
 
     # Do the check. This will just see if there is anything returned from the
     # sorted set newer than the last_checked timestamp, SIMPLES.
     #
     # Note: zrevrangebyscore has max and min the wrong way round :P
-    return bool(r.zrevrangebyscore(K.USER_ALERTS.format(user_id), '+inf',
+    return bool(r.zrevrangebyscore(k.USER_ALERTS.format(user_id), '+inf',
                 alerts_last_checked, start=0, num=1))
