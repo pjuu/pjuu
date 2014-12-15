@@ -11,7 +11,7 @@
         <img class="avatar" src="{{ item.user_email|avatar(32) }}"/>
         <div class="control">
             {% if item.uid == current_user.uid or post.uid == current_user.uid %}
-            <a href="{{ url_for('delete_post', username=item.user_username, pid=item.pid, cid=item.cid, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+            <a href="{{ url_for('delete_post', username=post.user_username, pid=item.pid, cid=item.cid, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
             {% endif %}
         </div>
         <div class="content post clearfix">
