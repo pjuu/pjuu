@@ -3,11 +3,16 @@
 {% block list %}
 {% if pagination.items %}
 {% for item in pagination.items %}
+{% if config.TESTING %}
+<!-- list:post:{{item._id}} -->
+{% endif %}
 <li class="item{% if loop.last %} last{% endif %} clearfix">
     <img class="avatar" src="{{ item.username }}"/>
     <div class="control">
         {% if item.user_id == current_user._id %}
-        <!-- delete_post:{{item._id}} -->
+        {% if config.TESTING %}
+        <!-- delete_post:{{ item._id }} -->
+        {% endif %}
         <a href="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
     </div>
@@ -30,10 +35,12 @@
                 {% if item.user_id != current_user._id %}
                 <li>
                     {% if item._id|voted > 0 %}
+                    <!-- action:upvoted -->
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
                     {% elif item._id|voted < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
+                    <!-- action:upvote -->
                     <a href="{{ url_for('posts.upvote', username=item.username, post_id=item._id, reply_to=item.reply_to, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
@@ -54,12 +61,14 @@
                 </li>
                 {% endif %}
             </ul>
+            {% if item.comment_count %}
             <div class="right">
                 <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}" class="link comments">
                     <i class="fa fa-comments fa-lg"></i>
                     {{ item.comment_count|millify }}
                 </a>
             </div>
+            {% endif %}
         </div>
     </div>
 </li>

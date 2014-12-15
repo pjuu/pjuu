@@ -97,8 +97,8 @@ class PostingAlert(BaseAlert):
         """Overwrites the verify() of BaseAlert to check the post exists
 
         """
-        return m.db.users.find({'_id': self.user_id}).limit(1) and \
-            m.db.posts.find({'_id': self.post_id}).limit(1)
+        return m.db.users.find_one({'_id': self.user_id}, {}) and \
+            m.db.posts.find_one({'_id': self.post_id}, {})
 
 
 class TaggingAlert(PostingAlert):
@@ -108,7 +108,8 @@ class TaggingAlert(PostingAlert):
 
     def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
-               .format(url_for('profile', username=self.user.get('username')),
+               .format(url_for('users.profile',
+                               username=self.user.get('username')),
                        do_capitalize(self.user.get('username')), self.url)
 
 
@@ -133,7 +134,8 @@ class CommentingAlert(PostingAlert):
 
         return '<a href="{0}">{1}</a> ' \
                'commented on a <a href="{2}">post</a> you {3}' \
-               .format(url_for('profile', username=self.user.get('username')),
+               .format(url_for('users.profile',
+                               username=self.user.get('username')),
                        do_capitalize(self.user.get('username')), self.url, sr)
 
 
@@ -146,7 +148,7 @@ def create_post(user_id, username, body, reply_to=None):
 
     :param user_id: The user id of the user posting the post
     :type user_id: str
-    :param username: The user name of the user posting (denormalised)
+    :param username: The user name of the user posting (saves a lookup)
     :type username: str
     :param body: The content of the post
     :type body: str
@@ -227,11 +229,11 @@ def create_post(user_id, username, body, reply_to=None):
 
             # Alert all subscribers to the post that a new comment has been
             # added. We do this before subscribing anyone new
-            alert = CommentingAlert(user_id, post_id)
+            alert = CommentingAlert(user_id, reply_to)
 
             subscribers = []
             # Iterate through subscribers and let them know about the comment
-            for subscriber_id in get_subscribers(post_id):
+            for subscriber_id in get_subscribers(reply_to):
                 # Ensure we don't get alerted for our own comments
                 if subscriber_id != user_id:
                     subscribers.append(subscriber_id)
@@ -241,12 +243,12 @@ def create_post(user_id, username, body, reply_to=None):
 
             # Subscribe the user to the post, will not change anything if they
             # are already subscribed
-            subscribe(user_id, post_id, SubscriptionReasons.COMMENTER)
+            subscribe(user_id, reply_to, SubscriptionReasons.COMMENTER)
 
             # TAGGING
 
             # Create alert
-            alert = TaggingAlert(user_id, post_id)
+            alert = TaggingAlert(user_id, reply_to)
 
             # Subscribe tagees
             tagees = parse_tags(body)
@@ -254,7 +256,7 @@ def create_post(user_id, username, body, reply_to=None):
             for tagee in tagees:
                 # Don't allow tagging yourself
                 if tagee[0] != user_id:
-                    subscribe(tagee[0], post_id, SubscriptionReasons.TAGEE)
+                    subscribe(tagee[0], reply_to, SubscriptionReasons.TAGEE)
                     tagees_to_alert.append(tagee[0])
 
             # Get an alert manager to notify all tagees
@@ -292,6 +294,7 @@ def parse_tags(body, deduplicate=False):
     for tag in tags:
         # Check the tag is of an actual user
         user_id = get_uid_username(tag.group(1))
+
         if user_id is not None:
             if not deduplicate:
                 results.append((user_id, tag.group(1),
@@ -305,7 +308,7 @@ def parse_tags(body, deduplicate=False):
 
 
 def populate_followers_feeds(user_id, post_id):
-    """Fan out a pid to all the users followers.
+    """Fan out a post_id to all the users followers.
 
     This can be run on a worker to speed the process up.
 
@@ -334,16 +337,18 @@ def check_post(user_id, post_id, reply_id=None):
     if reply_id:
         # Get the reply_to field of the reply object and check it matches
         reply = m.db.posts.find_one({'_id': reply_id}, {'reply_to': True})
-        if reply.get('reply_to') != post_id:
+        if reply:
+            if reply.get('reply_to') != post_id:
+                return False
+        else:
             return False
 
     # Get the user_id for post with post_id to verify
     post = m.db.posts.find_one({'_id': post_id}, {'user_id': True})
-    if post.get('user_id') != user_id:
-        return False
+    if post is not None and post.get('user_id') == user_id:
+        return True
 
-    # The post was valid!!!
-    return True
+    return False
 
 
 def get_post(post_id):
@@ -358,8 +363,8 @@ def get_posts(user_id, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.posts.find({'uid': user_id}).count()
-    cursor = m.db.comments.find({'uid': user_id}) \
+    total = m.db.posts.find({'user_id': user_id}).count()
+    cursor = m.db.posts.find({'user_id': user_id}) \
         .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 
     posts = []
@@ -370,7 +375,7 @@ def get_posts(user_id, page=1):
 
 
 def get_replies(post_id, page=1):
-    """Returns all a posts comments as a pagination object.
+    """Returns all a posts replies as a pagination object.
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
@@ -378,11 +383,11 @@ def get_replies(post_id, page=1):
     cursor = m.db.posts.find({'reply_to': post_id}) \
         .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 
-    comments = []
-    for comment in cursor:
-        comments.append(comment)
+    replies = []
+    for reply in cursor:
+        replies.append(reply)
 
-    return Pagination(comments, total, page, per_page)
+    return Pagination(replies, total, page, per_page)
 
 
 def has_voted(user_id, post_id):
@@ -392,19 +397,19 @@ def has_voted(user_id, post_id):
     return r.zscore(k.POST_VOTES.format(post_id), user_id)
 
 
-def vote_post(uid, pid, amount=1):
+def vote_post(user_id, post_id, amount=1):
     """Handles voting on posts
 
     """
     # Get the comment so we can check who the author is
-    author_uid = get_post(pid).get('uid')
+    author_uid = get_post(post_id).get('user_id')
 
-    if not has_voted(uid, pid):
-        if author_uid != uid:
-            r.zadd(k.POST_VOTES.format(pid), amount, uid)
+    if not has_voted(user_id, post_id):
+        if author_uid != user_id:
+            r.zadd(k.POST_VOTES.format(post_id), amount, user_id)
             # Increment the score by amount (can be negative)
             # Post score can go lower than 0
-            m.db.posts.update({'_id': pid},
+            m.db.posts.update({'_id': post_id},
                               {'$inc': {'score': amount}})
 
             if amount < 0:
@@ -429,17 +434,20 @@ def delete_post(post_id):
 
     """
     post = get_post(post_id)
-
     # Delete votes and subscribers from Redis
     r.delete(k.POST_VOTES.format(post.get('_id')))
-    if post.get('reply_to'):
-        r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
 
     # Delete the post from MongoDB
     m.db.posts.remove({'_id': post_id})
 
+    if 'reply_to' in post:
+        m.db.posts.update({'_id': post['reply_to']},
+                          {'$inc': {'comment_count': -1}})
+
+
     # Trigger deletion all posts comments if this post isn't a reply
-    if not post.get('reply_to'):
+    if 'reply_to' not in post:
+        r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
         delete_post_replies(post_id)
 
 
@@ -451,15 +459,17 @@ def delete_post_replies(post_id):
 
     """
     # Get a cursor for all the posts comments
-    cur = m.db.comments.find({'post_id': post_id}, {'_id': 1})
+    cur = m.db.posts.find({'reply_to': post_id}, {'_id': 1})
 
     # Iterate over the cursor and call delete comment on each one
     for reply in cur:
+        reply_id = reply.get('_id')
+
         # Delete votes and subscribers from Redis
-        r.delete(k.POST_VOTES.format(reply.get('_id')))
+        r.delete(k.POST_VOTES.format(reply_id))
 
         # Delete the comment itself from MongoDB
-        m.db.posts.remove({'_id': post_id})
+        m.db.posts.remove({'_id': reply_id})
 
 
 def subscribe(user_id, post_id, reason):
@@ -485,7 +495,7 @@ def unsubscribe(user_id, post_id):
 
 
 def get_subscribers(post_id):
-    """Return a list of subscribers for a given post
+    """Return a list of subscribers 'user_id's for a given post
 
     """
     return r.zrange(k.POST_SUBSCRIBERS.format(post_id), 0, -1)

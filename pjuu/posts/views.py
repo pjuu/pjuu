@@ -122,10 +122,9 @@ def view_post(username, post_id):
 
 
 @posts_bp.route('/post', methods=['GET', 'POST'])
-@posts_bp.route('/<username>/<reply_to>/post', methods=['GET', 'POST'],
-                endpoint="reply")
+@posts_bp.route('/<username>/<post_id>/reply', methods=['GET', 'POST'])
 @login_required
-def post(username=None, reply_to=None):
+def post(username=None, post_id=None):
     """Enabled current_user to create a new post on Pjuu :)
 
     This view accepts GET and POST yet only acts on a POST. This is so that the
@@ -138,12 +137,12 @@ def post(username=None, reply_to=None):
         return abort(405)
 
     # Set the default redirect URLs depending on type of post it is
-    if reply_to is None:
-        redirect_url = handle_next(request, url_for('profile',
+    if post_id is None:
+        redirect_url = handle_next(request, url_for('users.profile',
                                    username=current_user['username']))
     else:
-        redirect_url = handle_next(request, url_for('view_post',
-                                   username=username, post_id=reply_to))
+        redirect_url = handle_next(request, url_for('posts.view_post',
+                                   username=username, post_id=post_id))
 
     # Stop muted users from creating posts
     if current_user.get('muted', False):
@@ -154,7 +153,7 @@ def post(username=None, reply_to=None):
     if form.validate():
         # Create the post
         if create_post(current_user['_id'], current_user['username'],
-                       form.body.data, reply_to):
+                       form.body.data, post_id):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
     else:
@@ -176,7 +175,7 @@ def upvote(username, post_id, reply_id=None):
     """Upvotes a post.
 
     """
-    redirect_url = handle_next(request, url_for('view_post',
+    redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
 
     user_id = get_uid(username)
@@ -184,7 +183,10 @@ def upvote(username, post_id, reply_id=None):
         return abort(404)
 
     try:
-        vote_post(current_user['_id'], post_id, amount=1)
+        if reply_id is None:
+            vote_post(current_user['_id'], post_id, amount=1)
+        else:
+            vote_post(current_user['_id'], reply_id, amount=1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
@@ -202,7 +204,7 @@ def downvote(username, post_id, reply_id=None):
     """Downvotes a post.
 
     """
-    redirect_url = handle_next(request, url_for('view_post',
+    redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
 
     user_id = get_uid(username)
@@ -210,13 +212,16 @@ def downvote(username, post_id, reply_id=None):
         return abort(404)
 
     try:
-        vote_post(current_user['_id'], post_id, amount=-1)
+        if reply_id is None:
+            vote_post(current_user['_id'], post_id, amount=-1)
+        else:
+            vote_post(current_user['_id'], reply_id, amount=-1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You upvoted the post', 'success')
+        flash('You downvoted the post', 'success')
 
     return redirect(redirect_url)
 
@@ -228,12 +233,11 @@ def delete_post(username, post_id, reply_id=None):
     """Deletes posts.
 
     """
-    # The default redirect is different for a post/comment deletion
-    # Comment deletion keeps you on the page and post deletion takes you
-    # to your feed
+    # The default redirect is different for a post/reply deletion
+    # Reply deletion keeps you on the page and post deletion takes you to feed
     if reply_id is not None:
         redirect_url = handle_next(request, url_for('posts.view_post',
-                                   username=username, pid=post_id))
+                                   username=username, post_id=post_id))
     else:
         redirect_url = handle_next(request, url_for('users.feed'))
 
@@ -243,14 +247,20 @@ def delete_post(username, post_id, reply_id=None):
 
     if reply_id is not None:
         post = get_post(reply_id)
+
+        if post['user_id'] != current_user['_id'] and \
+                user_id != current_user['_id']:
+            return abort(403)
     else:
-        post = get_post(post_id)
+        if user_id != current_user['_id']:
+            return abort(403)
 
-    if post.get('username') == current_user['username'] or \
-            post.get('username') == username:
-        be_delete_post(post.get('_id'))
-
+    if reply_id is not None:
+        be_delete_post(reply_id)
         flash('Post has been deleted', 'success')
+    else:
+        be_delete_post(post_id)
+        flash('Post has been deleted along with all comments', 'success')
 
     return redirect(redirect_url)
 
@@ -262,8 +272,8 @@ def unsubscribe(username, post_id):
 
     """
     # The default URL is to go back to the posts view
-    redirect_url = handle_next(request, url_for('view_post',
-                               username=username, pid=post_id))
+    redirect_url = handle_next(request, url_for('posts.view_post',
+                               username=username, post_id=post_id))
 
     user_id = get_uid(username)
     if not check_post(user_id, post_id):

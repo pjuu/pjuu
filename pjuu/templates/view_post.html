@@ -1,6 +1,6 @@
 {% extends 'base_main.html' %}
 
-{% block title %}Post - {{ post.user_username|capitalize }}{% endblock %}
+{% block title %}Post - {{ post.username|capitalize }}{% endblock %}
 
 {% block main %}
 {% if config.TESTING %}
@@ -10,17 +10,17 @@
     <img class="avatar" src="" />
 
     <div class="control">
-        {% if post.uid == current_user.uid %}
+        {% if post.user_id == current_user._id %}
         {% if config.TESTING %}
         <!-- delete_post:{{ post._id }} -->
         {% endif %}
-        <a href="{{ url_for('delete_post', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
     </div>
 
     <div class="content clearfix">
         <div class="username">
-            <a href="{{ url_for('profile', username=post.username) }}">{{ post.username|capitalize }}</a>
+            <a href="{{ url_for('users.profile', username=post.username) }}">{{ post.username|capitalize }}</a>
             <span class="created">{{ post.created|timeify }}</span>
         </div>
         <div class="body">
@@ -46,7 +46,7 @@
                     {% if config.TESTING %}
                     <!-- action:upvote -->
                     {% endif %}
-                    <a href="{{ url_for('upvote', username=post.username, pid=post._id, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <a href="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
                 <li>
@@ -61,24 +61,24 @@
                     {% if config.TESTING %}
                     <!-- action:downvote -->
                     {% endif %}
-                    <a href="{{ url_for('downvote', username=post.username, pid=post._id, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <a href="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
                     {% endif %}
                 </li>
                 {% endif %}
             </ul>
-            {% if post.pid|subscribed %}
+            {% if post._id|subscribed %}
             <div class="right">
                 {% if config.TESTING %}
-                <!-- unsubscribe:{{ post.pid }} -->
+                <!-- unsubscribe:{{ post._id }} -->
                 {% endif %}
-                <a href="{{ url_for('unsubscribe', username=post.username, pid=post._id, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
+                <a href="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-{% include 'author_comment.html' %}
+{% include 'author_reply.html' %}
 
 <div id="content" class="block clearfix">
     <h1>Comments</h1>
