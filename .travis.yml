@@ -2,11 +2,11 @@ language: python
 
 python:
   - '2.7'
-  - 'pypy'
 
 services:
   - mongodb
   - redis-server
+  - rabbitmq
 
 before_install:
   - redis-cli info | grep redis_version

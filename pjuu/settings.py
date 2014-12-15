@@ -56,6 +56,8 @@ MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
 # Celery
 CELERY_BROKER_URL = 'amqp://guest@localhost:guest//'
+# We don't need a results backend. Our tasks are fire and forget
+CELERY_RESULT_BACKEND = None
 # Don't pass tasks down the broker by default
 CELERY_ALWAYS_EAGER = True
 

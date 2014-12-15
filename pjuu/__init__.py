@@ -26,6 +26,7 @@ Licence:
 
 # 3rd party imports
 from flask import Flask
+from flask_celery import Celery
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
@@ -47,6 +48,8 @@ mongo = PyMongo()
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
 redis_sessions = Redis()
+# Global Celery object
+celery = Celery()
 # Raven global Sentry object for Flask
 sentry = Sentry()
 
@@ -101,6 +104,9 @@ def create_app(config_filename='settings.py', config_dict=None):
 
     # Set session handler to Redis
     app.session_interface = RedisSessionInterface(redis=redis_sessions)
+
+    # Create the applications Celery instance
+    celery.init_app(app)
 
     with app.app_context():
         # Import all Pjuu stuffs

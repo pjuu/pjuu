@@ -40,16 +40,3 @@ def zadd_member_nx(*args, **kwargs):
     """)
 
     return func(*args, **kwargs)
-
-
-def zadd_keyx(*args, **kwargs):
-    """
-
-    """
-    func = r.register_script("""
-    if redis.call('EXISTS', KEYS[2]) then
-        redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
-    end
-    """)
-
-    return func(*args, **kwargs)
