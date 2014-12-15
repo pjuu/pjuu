@@ -156,6 +156,9 @@ def post(username=None, post_id=None):
                        form.body.data, post_id):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
+        else:
+            flash('There was an error creating your post',
+                  'error') # pragma: no cover
     else:
         # This flash can handle only 1 form error
         # There is an odd issue where are error is thrown with no errors

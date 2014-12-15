@@ -110,6 +110,11 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNotNone(user.get('password'))
         self.assertIsNotNone(user.get('created'))
 
+        # Check user_exists works
+        self.assertTrue(user_exists(user1))
+        # Check it fails when invalid value
+        self.assertFalse(user_exists(K.NIL_VALUE))
+
     def test_userflags(self):
         """
         Checks the user flags. Such as active, banned, op

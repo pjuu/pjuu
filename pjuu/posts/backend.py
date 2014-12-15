@@ -90,8 +90,10 @@ class PostingAlert(BaseAlert):
         # Get the author of the posts username so that we can build the URL
         author = m.db.posts.find_one({'_id': self.post_id},
                                      {'username': True, '_id': False})
+
         # Return the username or None
-        return author.get('username')
+        return url_for('posts.view_post', username=author.get('username'),
+                       post_id=self.post_id)
 
     def verify(self):
         """Overwrites the verify() of BaseAlert to check the post exists
@@ -110,7 +112,7 @@ class TaggingAlert(PostingAlert):
         return '<a href="{0}">{1}</a> tagged you in a <a href="{2}">post</a>' \
                .format(url_for('users.profile',
                                username=self.user.get('username')),
-                       do_capitalize(self.user.get('username')), self.url)
+                       do_capitalize(self.user.get('username')), self.url())
 
 
 class CommentingAlert(PostingAlert):
@@ -136,7 +138,8 @@ class CommentingAlert(PostingAlert):
                'commented on a <a href="{2}">post</a> you {3}' \
                .format(url_for('users.profile',
                                username=self.user.get('username')),
-                       do_capitalize(self.user.get('username')), self.url, sr)
+                       do_capitalize(self.user.get('username')), self.url(),
+                       sr)
 
 
 def create_post(user_id, username, body, reply_to=None):
@@ -266,7 +269,7 @@ def create_post(user_id, username, body, reply_to=None):
         return post_id
 
     # If there was a problem putting the post in to Mongo we will return None
-    return None
+    return None  # pragma: no cover
 
 
 def parse_tags(body, deduplicate=False):
@@ -363,8 +366,10 @@ def get_posts(user_id, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
-    total = m.db.posts.find({'user_id': user_id}).count()
-    cursor = m.db.posts.find({'user_id': user_id}) \
+    total = m.db.posts.find({'user_id': user_id,
+                             'reply_to': {'$exists': False}}).count()
+    cursor = m.db.posts.find({'user_id': user_id,
+                              'reply_to': {'$exists': False}}) \
         .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 
     posts = []

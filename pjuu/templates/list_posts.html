@@ -61,7 +61,7 @@
                 </li>
                 {% endif %}
             </ul>
-            {% if item.comment_count %}
+            {% if not item.reply_to %}
             <div class="right">
                 <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}" class="link comments">
                     <i class="fa fa-comments fa-lg"></i>

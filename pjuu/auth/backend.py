@@ -108,7 +108,7 @@ def create_account(username, email, password):
             # returned
             result = m.db.users.insert(user)
             return uid if result else None
-    except DuplicateKeyError:
+    except DuplicateKeyError:  #pragma: no cover
         # Oh no something went wrong. Pass over it. A None will be returned.
         pass
 

@@ -34,7 +34,7 @@ def send_mail(subject, recipients, sender=None,
     Sends e-mail via flask-mail
     """
     # Set the default sender if one is not supplied
-    if sender is None:
+    if sender is None:  # pragma: no branch
         sender = app.config['MAIL_DEFAULT_SENDER']
     msg = Message()
     msg.subject = subject
