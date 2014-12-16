@@ -1,24 +1,10 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    The Flask endpoints for the posts system.
+"""Flask endpoints for interacting with the posting system
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: Joe Doherty 2015
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 3rd party imports
@@ -263,7 +249,7 @@ def delete_post(username, post_id, reply_id=None):
         flash('Post has been deleted', 'success')
     else:
         be_delete_post(post_id)
-        flash('Post has been deleted along with all comments', 'success')
+        flash('Post has been deleted along with all replies', 'success')
 
     return redirect(redirect_url)
 

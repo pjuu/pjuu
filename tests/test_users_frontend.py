@@ -102,7 +102,7 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('User 1, Post 50!', resp.data)
         # We won't check that the delete button belong to the above post
         # put we will check that there is at least one delete button
-        self.assertIn('<!-- delete_post:', resp.data)
+        self.assertIn('<!-- delete:post:', resp.data)
         # Delete the post
         resp = self.client.get(url_for('posts.delete_post', username='user1',
                                post_id=posts[100], next=url_for('users.feed')),

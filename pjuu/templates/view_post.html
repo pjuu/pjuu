@@ -12,7 +12,7 @@
     <div class="control">
         {% if post.user_id == current_user._id %}
         {% if config.TESTING %}
-        <!-- delete_post:{{ post._id }} -->
+        <!-- delete:post:{{ post._id }} -->
         {% endif %}
         <a href="{{ url_for('posts.delete_post', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
@@ -37,14 +37,14 @@
                 <li>
                     {% if post._id|voted > 0 %}
                     {% if config.TESTING %}
-                    <!-- action:upvoted -->
+                    <!-- upvoted:post:{{ post._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
                     {% elif post._id|voted < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
-                    <!-- action:upvote -->
+                    <!-- upvote:post:{{ post._id }} -->
                     {% endif %}
                     <a href="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
@@ -52,14 +52,14 @@
                 <li>
                     {% if post._id|voted < 0 %}
                     {% if config.TESTING %}
-                    <!-- action:downvoted -->
+                    <!-- downvoted:post:{{ post._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
                     {% elif post._id|voted > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
-                    <!-- action:downvote -->
+                    <!-- downvote:post:{{ post._id }} -->
                     {% endif %}
                     <a href="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
                     {% endif %}
@@ -69,7 +69,7 @@
             {% if post._id|subscribed %}
             <div class="right">
                 {% if config.TESTING %}
-                <!-- unsubscribe:{{ post._id }} -->
+                <!-- unsubscribe:post:{{ post._id }} -->
                 {% endif %}
                 <a href="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
             </div>
@@ -82,6 +82,6 @@
 
 <div id="content" class="block clearfix">
     <h1>Comments</h1>
-    {% include 'list_posts.html' %}
+    {% include 'list_replies.html' %}
 </div>
 {% endblock %}
