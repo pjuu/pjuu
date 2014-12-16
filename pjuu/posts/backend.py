@@ -433,7 +433,6 @@ def delete_post(post_id):
         m.db.posts.update({'_id': post['reply_to']},
                           {'$inc': {'comment_count': -1}})
 
-
     # Trigger deletion all posts comments if this post isn't a reply
     if 'reply_to' not in post:
         r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))

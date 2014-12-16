@@ -108,7 +108,7 @@ def create_account(username, email, password):
             # returned
             result = m.db.users.insert(user)
             return uid if result else None
-    except DuplicateKeyError:  #pragma: no cover
+    except DuplicateKeyError:  # pragma: no cover
         # Oh no something went wrong. Pass over it. A None will be returned.
         pass
 
@@ -202,7 +202,7 @@ def check_username(username):
 
     """
     return username not in RESERVED_NAMES and \
-           not bool(m.db.users.find_one({'username': username.lower()}, {}))
+        not bool(m.db.users.find_one({'username': username.lower()}, {}))
 
 
 def check_email_pattern(email):

@@ -42,7 +42,7 @@ __version__ = '0.6'
 
 # Global Flask-Mail object
 mail = Mail()
-# Global MongoDB objet
+# Global MongoDB object
 mongo = PyMongo()
 # Global Redis objects
 # redis_sessions is only used by Flask for sessions
