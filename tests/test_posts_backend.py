@@ -59,7 +59,7 @@ class PostBackendTests(BackendTestCase):
         self.assertIsNotNone(post.get('created'))
 
         # Ensure this post is the users feed (populate_feed)
-        self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
+        self.assertIn(post1, r.zrange(K.USER_FEED.format(user1), 0, -1))
 
         # Testing getting post with invalid arguments
         # Test getting a post that does not exist
@@ -108,7 +108,7 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(len(get_feed(user1).items), 1)
         self.assertEqual(get_feed(user1).total, 1)
         # Ensure the item is in Redis
-        self.assertIn(post1, r.lrange(K.USER_FEED.format(user1), 0, -1))
+        self.assertIn(post1, r.zrange(K.USER_FEED.format(user1), 0, -1))
 
         # Create a second user, make 1 follow them, make then post and ensure
         # that the new users post appears in user 1s feed
@@ -120,13 +120,13 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(len(get_feed(user1).items), 2)
         self.assertEqual(get_feed(user1).total, 2)
         # Ensure the item is in Redis
-        self.assertIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
+        self.assertIn(post2, r.zrange(K.USER_FEED.format(user1), 0, -1))
         # Delete user 2 and ensure user 1's feed cleans itself
         delete_account(user2)
         self.assertEqual(len(get_feed(user1).items), 1)
         self.assertEqual(get_feed(user1).total, 1)
         # Ensure the item is not in Redis
-        self.assertNotIn(post2, r.lrange(K.USER_FEED.format(user1), 0, -1))
+        self.assertNotIn(post2, r.zrange(K.USER_FEED.format(user1), 0, -1))
 
     def test_get_posts(self):
         """

@@ -77,9 +77,9 @@ def get_feed(user_id, page=1):
 
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
-    total = r.llen(k.USER_FEED.format(user_id))
-    pids = r.lrange(k.USER_FEED.format(user_id), (page - 1) * per_page,
-                    (page * per_page) - 1)
+    total = r.zcard(k.USER_FEED.format(user_id))
+    pids = r.zrevrange(k.USER_FEED.format(user_id), (page - 1) * per_page,
+                       (page * per_page) - 1)
     posts = []
     for pid in pids:
         # Get the post
@@ -88,8 +88,8 @@ def get_feed(user_id, page=1):
             posts.append(post)
         else:
             # Self cleaning lists
-            r.lrem(k.USER_FEED.format(user_id), 1, pid)
-            total = r.llen(k.USER_FEED.format(user_id))
+            r.zrem(k.USER_FEED.format(user_id), pid)
+            total = r.zcard(k.USER_FEED.format(user_id))
 
     return Pagination(posts, total, page, per_page)
 

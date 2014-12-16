@@ -147,13 +147,15 @@ def create_post(user_id, username, body, reply_to=None):
     """
     # Get a new UUID for the post_id ("_id" in MongoDB)
     post_id = get_uuid()
+    # Get the timestamp, we will use this to populate users feeds
+    post_time = timestamp()
 
     post = {
         '_id': post_id,             # Newly created post id
         'user_id': user_id,         # User id of the poster
         'username': username,       # Username of the poster
         'body': body,               # Body of the post
-        'created': timestamp(),     # Unix timestamp for this moment in time
+        'created': post_time,       # Unix timestamp for this moment in time
         'score': 0,                 # Atomic score counter
     }
 
@@ -175,9 +177,9 @@ def create_post(user_id, username, body, reply_to=None):
             # Handle what Pjuu < v0.6 called a POST
 
             # Add post to authors feed
-            r.lpush(k.USER_FEED.format(user_id), post_id)
+            r.zadd(k.USER_FEED.format(user_id), post_time, post_id)
             # Ensure the feed does not grow to large
-            r.ltrim(k.USER_FEED.format(user_id), 0, 999)
+            r.zremrangebyrank(k.USER_FEED.format(user_id), 0, -1000)
 
             # Subscribe the poster to there post
             subscribe(user_id, post_id, SubscriptionReasons.POSTER)
@@ -202,7 +204,7 @@ def create_post(user_id, username, body, reply_to=None):
             AlertManager().alert(alert, tagees_to_alert)
 
             # Append to all followers feeds
-            populate_followers_feeds(user_id, post_id)
+            populate_followers_feeds(user_id, post_id, post_time)
 
         else:
             # Handle what Pjuu < v0.6 called a COMMENT
@@ -294,7 +296,7 @@ def parse_tags(body, deduplicate=False):
     return results
 
 
-def populate_followers_feeds(user_id, post_id):
+def populate_followers_feeds(user_id, post_id, timestamp):
     """Fan out a post_id to all the users followers.
 
     This can be run on a worker to speed the process up.
@@ -305,10 +307,10 @@ def populate_followers_feeds(user_id, post_id):
     # This is not transactional as to not hold Redis up.
     for follower_id in followers:
         # Add the pid to the list
-        r.lpush(k.USER_FEED.format(follower_id), post_id)
+        r.zadd(k.USER_FEED.format(follower_id), timestamp, post_id)
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
-        r.ltrim(k.USER_FEED.format(follower_id), 0, 999)
+        r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
 
 
 def check_post(user_id, post_id, reply_id=None):
