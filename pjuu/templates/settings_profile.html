@@ -9,7 +9,6 @@
         <div class="detail">E-mail address: <b>{{ current_user['email'] }}</b></div>
         <div class="detail">
             Avatar:<br/>
-            {{ current_user }}
             <img src="{{ current_user['email']|avatar(48) }}"/><br/>
             <a href="http://gravatar.com" target="_blank">Edit Gravatar</a>
             <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>

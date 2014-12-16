@@ -43,7 +43,7 @@
                 </a>
             </li>
         </ul>
-        {% if profile.uid == current_user.uid %}
+        {% if profile._id == current_user._id %}
         <a href="{{ url_for('users.settings_profile') }}">
             <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
         </a>
