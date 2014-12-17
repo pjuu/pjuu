@@ -25,6 +25,10 @@ TESTING = True
 # Ensure you change this!
 SECRET_KEY = 'Development Key'
 
+# MongoDB Settings
+MONGO_HOST = 'localhost'
+MONGO_DBNAME = 'pjuu'
+
 # Redis settings (this is just the datastore, not sessions)
 REDIS_HOST = 'localhost'
 REDIS_DB = 0
@@ -50,16 +54,18 @@ MAIL_USERNAME = None
 MAIL_PASSWORD = None
 MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
+# Celery
+CELERY_BROKER_URL = 'amqp://guest@localhost:guest//'
+# We don't need a results backend. Our tasks are fire and forget
+CELERY_RESULT_BACKEND = None
+# Don't pass tasks down the broker by default
+CELERY_ALWAYS_EAGER = True
+
 # Flask-WTF (Cross site request forgery)
 # CSRF should be off during testing to allow us to submit forms
 WTF_CSRF_ENABLED = True
 # Change this for extra security
 WTF_CSRF_SESSION_KEY = SECRET_KEY
-
-# Pagination
-FEED_ITEMS_PER_PAGE = 25
-PROFILE_ITEMS_PER_PAGE = 25
-ALERT_ITEMS_PER_PAGE = 50
 
 # Sentry settings
 # If you do not add a Sentry DSN you will not receive any logging information
@@ -68,3 +74,8 @@ ALERT_ITEMS_PER_PAGE = 50
 # You will need to do add a custom one inside the __init__.py file within the
 # create_app() function.
 SENTRY_DSN = ''
+
+# Pagination
+FEED_ITEMS_PER_PAGE = 25
+PROFILE_ITEMS_PER_PAGE = 25
+ALERT_ITEMS_PER_PAGE = 50

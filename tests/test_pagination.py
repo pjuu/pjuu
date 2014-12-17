@@ -22,7 +22,6 @@ Licence:
 """
 
 # Pjuu imports
-from pjuu.lib import keys as K
 from pjuu.lib.pagination import *
 # Test imports
 from tests import BackendTestCase

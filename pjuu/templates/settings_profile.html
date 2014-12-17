@@ -15,10 +15,13 @@
             <p>This will change to our own custom rolled avatar system in the near future.</p>
         </div>
     </div>
+
     <form action="" method="post">
         {{ form.about.label }}:
-        <textarea id="about" name="about" rows="5" maxlength="255">{{ current_user['about'] }}</textarea>
-        <div id="character-count"></div>
+        <textarea id="about" name="about" rows="5" maxlength="{{ form.about.validators[0].max }}" placeholder="Set your about me...">{{ current_user['about'] }}</textarea>
+        <div id="count">
+            {{ current_user['about']|length }} / {{ form.about.validators[0].max }}
+        </div>
         {% if form.about.errors %}
         <ul class="errorlist">
             {% for error in form.about.errors %}

@@ -22,7 +22,7 @@
                 {% if config.TESTING %}
                 <!-- posts:{{ profile.post_count }} -->
                 {% endif %}
-                <a class="first" href="{{ url_for('profile', username=profile['username']) }}">
+                <a class="first" href="{{ url_for('users.profile', username=profile['username']) }}">
                     Posts: <b>{{ profile.post_count|millify }}</b>
                 </a>
             </li>
@@ -30,7 +30,7 @@
                 {% if config.TESTING %}
                 <!-- followers:{{ profile.followers_count }} -->
                 {% endif %}
-                <a href="{{ url_for('followers', username=profile['username']) }}">
+                <a href="{{ url_for('users.followers', username=profile['username']) }}">
                     Followers: <b>{{ profile.followers_count|millify }}</b>
                 </a>
             </li>
@@ -38,21 +38,21 @@
                 {% if config.TESTING %}
                 <!-- following:{{ profile.following_count }} -->
                 {% endif %}
-                <a href="{{ url_for('following', username=profile['username']) }}">
+                <a href="{{ url_for('users.following', username=profile['username']) }}">
                     Following: <b>{{ profile.following_count|millify }}</b>
                 </a>
             </li>
         </ul>
-        {% if profile.uid == current_user.uid %}
-        <a href="{{ url_for('settings_profile') }}">
+        {% if profile._id == current_user._id %}
+        <a href="{{ url_for('users.settings_profile') }}">
             <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
         </a>
         {% elif profile|following %}
-        <a href="{{ url_for('unfollow', username=profile.username, next=request.path) }}">
+        <a href="{{ url_for('users.unfollow', username=profile.username, next=request.path) }}">
             <div onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action unfollow">Following</div>
         </a>
         {% else %}
-        <a href="{{ url_for('follow', username=profile.username, next=request.path) }}">
+        <a href="{{ url_for('users.follow', username=profile.username, next=request.path) }}">
             <div class="action follow">Follow</div>
         </a>
         {% endif %}

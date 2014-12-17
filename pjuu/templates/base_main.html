@@ -2,47 +2,47 @@
 {% block layout %}
 <div id="header" class="clearfix">
     <div class="container">
-        <a href="{{ url_for('feed') }}">
+        <a href="{{ url_for('users.feed') }}">
             <img class="logo" src="{{ url_for('static', filename='img/logo_white.png') }}"/>
         </a>
         <ul class="menu">
             {% if current_user %}
             <!-- menu: logged in -->
-            <a href="{{ url_for('feed') }}"><li>
+            <a href="{{ url_for('users.feed') }}"><li>
                 <i class="fa fa-bars fa-fw fa-lg"></i>
                 <span class="no-mobile">Feed</span>
             </li></a>
-            <a href="{{ url_for('profile', username=current_user.username) }}"><li>
+            <a href="{{ url_for('users.profile', username=current_user.username) }}"><li>
                 <i class="fa fa-user fa-lg fa-fw"></i>
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
             </li></a>
-            <a href="{{ url_for('alerts') }}"><li>
-                {% if current_user.uid|has_alerts %}
+            <a href="{{ url_for('users.alerts') }}"><li>
+                {% if current_user._id|has_alerts %}
                 <i id="alert" class="fa fa-bell fa-fw fa-lg alert"></i>
                 {% else %}
                 <i id="alert" class="fa fa-bell fa-fw fa-lg"></i>
                 {% endif %}
                 <span class="no-mobile">Alerts</span>
             </li></a>
-            <a href="{{ url_for('search') }}"><li>
+            <a href="{{ url_for('users.search') }}"><li>
                 <i class="fa fa-search fa-fw fa-lg"></i>
                 <span class="no-mobile">Search</span>
             </li></a>
-            <a href="{{ url_for('settings_profile') }}"><li>
+            <a href="{{ url_for('users.settings_profile') }}"><li>
                 <i class="fa fa-cog fa-fw fa-lg"></i>
                 <span class="no-mobile">Settings</span>
             </li></a>
-            <a href="{{ url_for('signout') }}"><li></span>
+            <a href="{{ url_for('auth.signout') }}"><li></span>
                 <i class="fa fa-sign-out fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Out</span>
             </li></a>
             {% else %}
             <!-- menu: not logged in -->
-            <a href="{{ url_for('signin') }}"><li></span>
+            <a href="{{ url_for('auth.signin') }}"><li></span>
                 <i class="fa fa-sign-in fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign In</span>
             </li></a>
-            <a href="{{ url_for('signup') }}"><li></span>
+            <a href="{{ url_for('auth.signup') }}"><li></span>
                 <i class="fa fa-smile-o fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Up</span>
             </li></a>

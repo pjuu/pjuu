@@ -1,44 +1,28 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    The backend function for the auth system.
+"""Simple auth functions with access to the databases.
 
-    If in the future we decice to replace Redis we can simply change all these
-    funtions to use a new backend
+:license: AGPL v3, see LICENSE for more details
+:copyright: 2014 Joe Doherty
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
-
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Stdlib imports
 import re
 # 3rd party imports
-from flask import current_app as app, _app_ctx_stack, session, g
+from flask import session
+from pymongo.errors import DuplicateKeyError
 from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.lib import keys as K, lua as L, timestamp, get_uuid
+from pjuu import mongo as m, redis as r
+from pjuu.lib import keys as k, timestamp, get_uuid
 
 
 # Username & E-mail checker re patterns
 USERNAME_PATTERN = r'^\w{3,16}$'
 EMAIL_PATTERN = r'^[^@%!/|`#&?]+@[^.@%!/|`#&?][^@%!/|`#&?]*\.[a-z]{2,10}$'
-# Usuable regular expression objects
+# Usable regular expression objects
 USERNAME_RE = re.compile(USERNAME_PATTERN)
 EMAIL_RE = re.compile(EMAIL_PATTERN)
 
@@ -50,117 +34,89 @@ EMAIL_RE = re.compile(EMAIL_PATTERN)
 # in the future. We need to protect endpoints which we need and can not afford
 # to give to users.
 RESERVED_NAMES = [
-    'about', 'access', 'account', 'activate', 'accounts', 'add', 'address',
-    'adm', 'admin', 'administration', 'ajax', 'analytics', 'activate',
-    'recover', 'forgot', 'api', 'app', 'apps', 'archive', 'auth',
-    'authentication', 'avatar', 'bin', 'billing', 'blog', 'blogs', 'chat',
-    'cache', 'calendar', 'careers', 'cgi', 'client', 'code', 'config',
-    'connect', 'contact', 'contest', 'create', 'code', 'css', 'dashboard',
-    'data', 'db', 'design', 'delete', 'dev', 'devel', 'dir', 'directory',
-    'doc', 'docs', 'domain', 'download', 'downloads', 'downvote', 'edit',
-    'editor', 'email', 'ecommerce', 'forum', 'forums', 'faq', 'favorite',
-    'feed', 'feedback', 'flog', 'follow', 'followers', 'following', 'forgot',
-    'file', 'files', 'find', 'group', 'groups', 'help', 'home', 'homepage',
-    'host', 'hosting', 'hostname', 'html', 'http', 'httpd', 'https', 'hpg',
-    'info', 'information', 'image', 'img', 'images', 'imap', 'index', 'invite',
-    'java', 'javascript', 'job', 'jobs', 'js', 'log', 'login', 'logs',
-    'logout', 'list', 'lists', 'mail', 'master', 'media', 'message',
-    'messages', 'name', 'net', 'network', 'new', 'news', 'newsletter', 'nick',
-    'nickname', 'notes', 'order', 'orders', 'page', 'pager', 'pages',
-    'password', 'pic', 'pics', 'photo', 'photos', 'php', 'pjuu', 'plugin',
-    'plugins', 'post', 'posts', 'profile', 'project', 'projects', 'pub',
-    'public', 'random', 'register', 'registration', 'reset', 'root', 'rss',
-    'script', 'scripts', 'search', 'secure', 'send', 'service', 'signup',
-    'signin', 'singout', 'search', 'security', 'setting', 'settings', 'setup',
-    'site', 'sites', 'sitemap', 'ssh', 'stage', 'staging', 'start',
-    'subscribe', 'subdomain', 'support', 'stat', 'static', 'stats', 'status',
-    'store', 'stores', 'system', 'tablet', 'template', 'templates' 'test',
-    'tests', 'theme', 'themes', 'tmp', 'todo', 'task', 'tasks', 'tools',
-    'talk', 'unfollow', 'update', 'upload', 'upvote', 'url', 'user',
-    'username', 'usage', 'video', 'videos', 'web', 'webmail', 'alerts',
-    'ihasalerts', 'i-has-alerts', 'hasalerts', 'has-alerts', 'report', 'terms',
-    'privacy', 'aboutus', 'about_us', 'privacypolicy', 'privacy_policy',
-    'termsandconditions', 'termsofservice', 'terms_and_conditions',
-    'terms_of_service', 'alert']
+    'about', 'about_us', 'aboutus', 'access', 'account', 'accounts',
+    'activate', 'add', 'address', 'adm', 'admin', 'administration', 'ajax',
+    'alert', 'alerts', 'analytics', 'api', 'app', 'apps', 'archive', 'auth',
+    'authentication', 'avatar', 'billing', 'bin', 'blog', 'blogs', 'cache',
+    'calendar', 'careers', 'cgi', 'chat', 'client', 'code', 'config',
+    'connect', 'contact', 'contest', 'create', 'css', 'dashboard', 'data',
+    'db', 'delete', 'design', 'dev', 'devel', 'dir', 'directory', 'doc',
+    'docs', 'domain', 'download', 'downloads', 'downvote', 'ecommerce', 'edit',
+    'editor', 'email', 'faq', 'favorite', 'feed', 'feedback', 'file', 'files',
+    'find', 'flog', 'follow', 'followers', 'following', 'forgot', 'forum',
+    'forums', 'group', 'groups', 'has-alerts', 'hasalerts', 'help', 'home',
+    'homepage', 'host', 'hosting', 'hostname', 'hpg', 'html', 'http', 'httpd',
+    'https', 'i-has-alerts', 'ihasalerts', 'image', 'images', 'imap', 'img',
+    'index', 'info', 'information', 'invite', 'java', 'javascript', 'job',
+    'jobs', 'js', 'list', 'lists', 'log', 'login', 'logout', 'logs', 'mail',
+    'master', 'media', 'message', 'messages', 'name', 'net', 'network', 'new',
+    'news', 'newsletter', 'nick', 'nickname', 'notes', 'order', 'orders',
+    'page', 'pager', 'pages', 'password', 'photo', 'photos', 'php', 'pic',
+    'pics', 'pjuu', 'plugin', 'plugins', 'post', 'posts', 'privacy',
+    'privacy_policy', 'privacypolicy', 'profile', 'project', 'projects', 'pub',
+    'public', 'random', 'recover', 'register', 'registration', 'report',
+    'reset', 'root', 'rss', 'script', 'scripts', 'search', 'secure',
+    'security', 'send', 'service', 'setting', 'settings', 'setup', 'signin',
+    'signup', 'singout', 'site', 'sitemap', 'sites', 'ssh', 'stage', 'staging',
+    'start', 'stat', 'static', 'stats', 'status', 'store', 'stores',
+    'subdomain', 'subscribe', 'support', 'system', 'tablet', 'talk', 'task',
+    'tasks', 'template', 'templatestest', 'terms', 'terms_and_conditions',
+    'terms_of_service', 'termsandconditions', 'termsofservice', 'tests',
+    'theme', 'themes', 'tmp', 'todo', 'tools', 'unfollow', 'update', 'upload',
+    'upvote', 'url', 'usage', 'user', 'username', 'video', 'videos', 'web',
+    'webmail']
 
 
-@app.before_request
-def _load_user():
-    """Get the currently logged in user as a `dict` and store on the
-    application context. This will be `None` if the user is not logged in.
+def create_account(username, email, password):
+    """Creates a new user account.
 
-    """
-    user = None
-    if 'uid' in session:
-        user = r.hgetall(K.USER.format(session['uid']))
-        # Remove the uid from the session if the user is not logged in
-        if not user:
-            session.pop('uid', None)
-    _app_ctx_stack.top.user = user
-
-
-@app.after_request
-def inject_token_header(response):
-    """During testing will add an HTTP header (X-Pjuu-Token) containing any
-    auth tokens so that we can test these from the frontend tests. Checks
-    `g.token` for the token to add.
-
-    """
-    # This only works in testing mode! Never allow this to happen on the site.
-    # We won't check this with 'branch' as it won't ever branch the other way
-    # or we atleast don't want it too.
-    if app.testing:  # pragma: no branch
-        token = g.get('token')
-        if token:
-            response.headers['X-Pjuu-Token'] = token
-    return response
-
-
-def create_user(username, email, password):
-    """Creates a user account
+    :param username: The new users user name
+    :type username: str
+    :param email: The new users e-mail address
+    :type email: str
+    :param password: The new users password un-hashed
+    :type password: str
+    :returns: The UID of the new user
+    :rtype: str or None
 
     """
     username = username.lower()
     email = email.lower()
-    if check_username(username) and check_email(email) and \
-       check_username_pattern(username) and check_email_pattern(email):
-        # Create the user lookup keys. This LUA script ensures
-        # that the name can not be taken at the same time causing a race
-        # condition. This is also passed a UUID and will only return it if
-        # successful
-        uid = L.create_user(keys=[K.UID_USERNAME.format(username),
-                                  K.UID_EMAIL.format(email)],
-                            args=[get_uuid()])
-        # Create user dictionary ready for HMSET only if uid is not None
-        # This will only be None in the event of a race condition which we cant
-        # really test for.
-        if uid is not None:  # pragma: no branch
+    try:
+        if check_username(username) and check_username_pattern(username) and \
+                check_email(email) and check_email_pattern(email):
+            # Get a new UUID for the user
+            uid = get_uuid()
+
             user = {
-                'uid': uid,
-                'username': username,
-                'email': email,
+                '_id': uid,
+                'username': username.lower(),
+                'email': email.lower(),
                 'password': generate_password(password),
                 'created': timestamp(),
                 'last_login': -1,
-                'active': 0,
-                'banned': 0,
-                'op': 0,
-                'muted': 0,
+                'active': False,
+                'banned': False,
+                'op': False,
+                'muted': False,
                 'about': "",
                 'score': 0,
-                'alerts_last_checked': 0
+                'alerts_last_checked': -1,
             }
-            r.hmset(K.USER.format(uid), user)
-            # Set the TTL for the user account
-            r.expire(K.USER.format(uid), K.EXPIRE_24HRS)
-            return uid
 
-    # If none of this worked return nothing
+            # Insert the new user in to Mongo. If this fails a None will be
+            # returned
+            result = m.db.users.insert(user)
+            return uid if result else None
+    except DuplicateKeyError:  # pragma: no cover
+        # Oh no something went wrong. Pass over it. A None will be returned.
+        pass
+
     return None
 
 
 def get_uid_username(username):
-    """Get the uid for user with username.
+    """Find a uid given a username.
 
     :param username: The username to lookup
     :type username: str
@@ -168,31 +124,29 @@ def get_uid_username(username):
     :rtype: str or None
 
     """
-    # Attempt to get a uid from Redis with a lowercase username
-    uid = r.get(K.UID_USERNAME.format(username.lower()))
+    # Will return the user object with on the _id (user_id) field
+    user = m.db.users.find_one({'username': username.lower()}, {})
 
-    # Check that something was returned and it was not our defined None value
-    if uid is not None and uid != K.NIL_VALUE:
-        return uid
+    if user is not None:
+        return user.get('_id')
 
     return None
 
 
 def get_uid_email(email):
-    """Get the uid for user with email.
+    """Find a uid given a username.
 
-    :param username: The email to lookup
-    :type username: str
+    :param email: The email to lookup
+    :type email: str
     :returns: The users UID
     :rtype: str or None
 
     """
-    # Attemp to get a uid from Redis with a lowercase email
-    uid = r.get(K.UID_EMAIL.format(email.lower()))
+    # Look up the email inside mongo
+    uid = m.db.users.find_one({'email': email.lower()}, {})
 
-    # Check that something was returned and it was not our defined None value
-    if uid is not None and uid != K.NIL_VALUE:
-        return uid
+    if uid is not None:
+        return uid.get('_id')
 
     return None
 
@@ -213,40 +167,25 @@ def get_uid(lookup_value):
         return get_uid_username(lookup_value)
 
 
-def get_user(uid):
-    """Get user with UID as `dict`.
+def get_user(user_id):
+    """Get user with :arg:`user_id` as :type:`dict`.
 
-    :param uid: The UID to get
-    :type uid: str
+    :param user_id: The user_id to get
+    :type user_id: `str`
     :returns: The user as a dict
-    :rtype: dict or None
+    :rtype: `dict` or `None`
 
     """
-    result = r.hgetall(K.USER.format(uid))
-    return result if result else None
-
-
-def get_username(uid):
-    """Get a users username by there uid
-
-    :param uid: The UID to get the username of
-    :type uid: str
-    :returns: The username for the uid
-    :rtype: str or None
-
-    """
-    return r.hget(K.USER.format(uid), 'username')
-
-
-def get_email(uid):
-    """Gets a users e-mail address from a uid
-
-    """
-    return r.hget(K.USER.format(uid), 'email')
+    return m.db.users.find_one({'_id': user_id})
 
 
 def check_username_pattern(username):
     """Check that username matches what we class as a username
+
+    :param username: The username to test the pattern of
+    :type username: str
+    :returns: True if successful match, False otherwise
+    :rtype: bool
 
     """
     # Check the username is valid
@@ -254,208 +193,141 @@ def check_username_pattern(username):
 
 
 def check_username(username):
-    """Used to check for username availability.
+    """Check for username availability
+
+    :param username: The username to check for existence
+    :type username: str
+    :returns: True is the username does NOT exist, False otherwise
+    :rtype: bool
 
     """
     return username not in RESERVED_NAMES and \
-        not r.exists(K.UID_USERNAME.format(username.lower()))
+        not bool(m.db.users.find_one({'username': username.lower()}, {}))
 
 
 def check_email_pattern(email):
-    """Checks that email matcheds what we class as an email address
+    """Checks that email matches what we class as an email address
+
+    :param email: The email to test the pattern of
+    :type email: str
+    :returns: True if successful match, False otherwise
+    :rtype: bool
 
     """
     return bool(EMAIL_RE.match(email.lower()))
 
 
 def check_email(email):
-    """Used to check an e-mail addresses availability
+    """Check an e-mail addresses availability
+
+    :param email: The email to check for existence
+    :type email: str
+    :returns: True if the email does NOT exist, False otherwise
+    :rtype: bool
 
     """
-    return not r.exists(K.UID_EMAIL.format(email.lower()))
+    return not bool(m.db.users.find_one({'email': email.lower()}, {}))
 
 
-def user_exists(uid):
-    """Helper function to check that a user exists or not.
-
-    """
-    return r.exists(K.USER.format(uid))
-
-
-def is_active(uid):
-    """Checks to see if a user account has been activated
+def user_exists(user_id):
+    """Is there a user object with `user_id`?
 
     """
-    # Catch the exception if Redis returns Nones
-    try:
-        result = int(r.hget(K.USER.format(uid), "active"))
-        return bool(result)
-    except (TypeError, ValueError):
-        return False
-
-
-def is_banned(uid):
-    """Checks to see if a user account has been banned
-
-    """
-    # Catch the exception if Redis returns Nones
-    try:
-        result = int(r.hget(K.USER.format(uid), "banned"))
-        return bool(result)
-    except (TypeError, ValueError):
-        return False
-
-
-def is_op(uid):
-    """Checks to see if a user account is over powered
-
-    """
-    # Catch the exception if Redis returns Nones
-    try:
-        result = int(r.hget(K.USER.format(uid), "op"))
-        return bool(result)
-    except (TypeError, ValueError):
-        return False
-
-
-def is_mute(uid):
-    """Checks to see if a user account has been muted
-
-    """
-    # Catch the exception if Redis returns Nones
-    try:
-        result = int(r.hget(K.USER.format(uid), "muted"))
-        return bool(result)
-    except (TypeError, ValueError):
-        return False
+    return bool(m.db.users.find_one({'_id': user_id}, {}))
 
 
 def authenticate(username, password):
     """Authenticate a username/password combination.
 
     """
-    uid = get_uid(username)
 
-    # Check there is a uid and it is not NIL_VALUE
-    if uid is not None and uid != K.NIL_VALUE \
-       and check_password(r.hget(K.USER.format(uid), 'password'), password):
-        return uid
+    result = m.db.users.find_one({'username': username})
 
+    # Check that we got a result and that the password matches the stored one
+    if result and check_password(result.get('password'), password):
+        # If it matched return the document
+        return result
+
+    # Oh no, something went wrong
     return None
 
 
-def login(uid):
+def signin(user_id):
     """Logs the user with uid in by adding the uid to the session.
 
     """
-    session['uid'] = uid
+    session['user_id'] = user_id
     # update last login
-    r.hset(K.USER.format(uid), 'last_login', timestamp())
+    m.db.users.update({'_id': user_id}, {'$set': {'last_login': timestamp()}})
 
 
-def logout():
+def signout():
     """Removes the user id from the session.
 
     """
-    session.pop('uid', None)
+    session.pop('user_id', None)
 
 
-def activate(uid, action=True):
+def activate(user_id, action=True):
     """Activates a user account.
 
     """
-    if user_exists(uid):
-        # Cast the boolean to an int
-        action = int(action)
-        r.hset(K.USER.format(uid), 'active', action)
-        # Remove the TTL on the user keys which are set at signup to stop
-        # usernames being harvested
-        r.persist(K.USER.format(uid))
-        r.persist(K.UID_USERNAME.format(get_username(uid)))
-        r.persist(K.UID_EMAIL.format(get_email(uid)))
-        return True
-    else:
-        return False
+    return m.db.users.update({'_id': user_id},
+                             {'$set': {'active': action}}) \
+        .get('updatedExisting')
 
 
-def ban(uid, action=True):
-    """ READ/WRITE
-    Ban a user.
+def ban(user_id, action=True):
+    """Ban a user.
 
     By passing False as action this will unban the user
     """
-    if user_exists(uid):
-        action = int(action)
-        r.hset(K.USER.format(uid), 'banned', action)
-        return True
-    else:
-        return False
+    return m.db.users.update({'_id': user_id}, {'$set': {'banned': action}}) \
+        .get('updatedExisting')
 
 
-def bite(uid, action=True):
-    """ READ/WRITE
-    Bite a user (think spideman), makes them op
+def bite(user_id, action=True):
+    """Bite a user (think spideman), makes them op
 
     By passing False as action this will unbite the user
     """
-    if user_exists(uid):
-        action = int(action)
-        r.hset(K.USER.format(uid), 'op', action)
-        return True
-    else:
-        return False
+    return m.db.users.update({'_id': user_id}, {'$set': {'op': action}}) \
+        .get('updatedExisting')
 
 
-def mute(uid, action=True):
-    """ READ/WRITE
-    Mutes a user, this stops them from posting, commenting or following users
+def mute(user_id, action=True):
+    """Mutes a user, this stops them from posting, commenting or following
+    users.
 
     By passing False as action this will un-mute the user
     """
-    if user_exists(uid):
-        action = int(action)
-        r.hset(K.USER.format(uid), 'muted', action)
-        return True
-    else:
-        return False
+    return m.db.users.update({'_id': user_id}, {'$set': {'muted': action}}) \
+        .get('updatedExisting')
 
 
-def change_password(uid, password):
+def change_password(user_id, password):
     """ Changes uid's password.
 
-    Checking of the old password _MUST_ be done before this.
+    Checking of the old password _MUST_ be done before you run this! This is a
+    an unsafe function.
 
     """
     password = generate_password(password)
-    return r.hset(K.USER.format(uid), 'password', password)
+    return m.db.users.update({'_id': user_id},
+                             {'$set': {'password': password}})
 
 
-def change_email(uid, new_email):
+def change_email(user_id, new_email):
     """Changes the user with uid's e-mail address.
 
     Clears the old email key so that it can't be used and sets it to expire.
 
     """
     new_email = new_email.lower()
-    # Get the previous e-mail address for the user
-    old_email = r.hget(K.USER.format(uid), 'email')
-
-    # Pipeline this to the server
-    pipe = r.pipeline()
-    # Set the old e-mail key to None
-    pipe.set(K.UID_EMAIL.format(old_email), K.NIL_VALUE)
-    # Set the old ket to expire
-    pipe.expire(K.UID_EMAIL.format(old_email), K.EXPIRE_SECONDS)
-    # Create the new key
-    pipe.set(K.UID_EMAIL.format(new_email), uid)
-    # Set the user objects e-mail to the new e-mail
-    pipe.hset(K.USER.format(uid), 'email', new_email)
-    pipe.execute()
-
-    return True
+    return m.db.users.update({'_id': user_id}, {'$set': {'email': new_email}})
 
 
-def delete_account(uid):
+def delete_account(user_id):
     """Will delete a users account.
 
     This _MUST_ _REMOVE_ _ALL_ details, comments, posts, etc.
@@ -464,103 +336,75 @@ def delete_account(uid):
           This is going to be the most _expensive_ task in Pjuu, be warned.
 
     """
-    # Get some information from the hashes to delete lookup keys
-    username = r.hget(K.USER.format(uid), 'username')
-    email = r.hget(K.USER.format(uid), 'email')
-
-    # Clear the users lookup keys and user account. These are not needed
-    pipe = r.pipeline()
-    # Delete lookup keys. This will stop the user being found or logging in
-    pipe.set(K.UID_USERNAME.format(username), K.NIL_VALUE)
-    pipe.expire(K.UID_USERNAME.format(username), K.EXPIRE_SECONDS)
-    pipe.set(K.UID_EMAIL.format(email), K.NIL_VALUE)
-    pipe.expire(K.UID_EMAIL.format(email), K.EXPIRE_SECONDS)
-
-    # Delete user account
-    pipe.delete(K.USER.format(uid))
-    pipe.execute()
+    # Delete the user from MongoDB
+    m.db.users.remove({'_id': user_id})
 
     # Remove all posts a user has ever made. This includes all votes
-    # on that post and all comments.
-    pids = r.lrange(K.USER_POSTS.format(uid), 0, -1)
-    for pid in pids:
-        # Delete post
-        r.delete(K.POST.format(pid))
+    # on the posts and all comments of the posts.
+    posts_cursor = m.db.posts.find({'user_id': user_id})
+    for post in posts_cursor:
+        # Get the posts id
+        post_id = post.get('_id')
+
+        # Delete the Redis stuff
         # Delete all the votes made on the post
-        r.delete(K.POST_VOTES.format(pid))
-        # Delete posts subscribers list
-        r.delete(K.POST_SUBSCRIBERS.format(pid))
+        r.delete(k.POST_VOTES.format(post_id))
 
-        cids = r.lrange(K.POST_COMMENTS.format(pid), 0, -1)
-        for cid in cids:
-            # Get author, ensure uid is an int
-            cid_author = r.hget(K.COMMENT.format(cid), 'uid')
-            # Delete comment
-            r.delete(K.COMMENT.format(cid))
-            # Delete comment votes
-            r.delete(K.COMMENT_VOTES.format(cid))
-            # Remove the cid from users comment list
-            # This may remove some of ours. This will just make deleting
-            # a bit quicker
-            r.lrem(K.USER_COMMENTS.format(cid_author), 0, cid)
-        # Delete the comments list
-        r.delete(K.POST_COMMENTS.format(pid))
-    # Delete the users post list
-    r.delete(K.USER_POSTS.format(uid))
+        if 'reply_to' not in post:
+            # Delete posts subscribers list
+            r.delete(k.POST_SUBSCRIBERS.format(post_id))
 
-    # Delete all comments the user has every made. Including all votes on
-    # those comments
-    # This is a stripped down version of above for post comments.
-    # We are not going to clean the lists related to the posts, they will
-    # self clean. We also do not need to clear the comments from the users
-    # comments list as it will be getting deleted straight after
+            replies_cursor = m.db.posts.find({'reply_to': post_id}, {})
+            for reply in replies_cursor:
+                # Get the comments id
+                reply_id = reply.get('_id')
+                # Delete comment votes
+                r.delete(k.POST_VOTES.format(reply_id))
+                # Delete the comment itself
+                m.db.posts.remove({'_id': reply_id})
 
-    cids = r.lrange(K.USER_COMMENTS.format(uid), 0, -1)
-    for cid in cids:
-        # Get author, ensure uid is an int
-        cid_author = r.hget(K.COMMENT.format(cid), 'uid')
-        # Delete comment
-        r.delete(K.COMMENT.format(cid))
-        # Delete comment votes
-        r.delete(K.COMMENT_VOTES.format(cid))
-    # Delete the comments list
-    r.delete(K.USER_COMMENTS.format(uid))
+        # Delete the post itself
+        m.db.posts.remove({'_id': post_id})
 
-    # Delete all references to followers of the the user.
+    # Remove all the following relationships from Redis
+
+    # Delete all references to followers of the user.
     # This will remove the user from the other users following list
 
-    fids = r.zrange(K.USER_FOLLOWERS.format(uid), 0, -1)
+    # TODO Replace with ZSCAN
+    follower_cursor = r.zrange(k.USER_FOLLOWERS.format(user_id), 0, -1)
 
-    for fid in fids:
+    for follower_id in follower_cursor:
         # Clear the followers following list of the uid
-        r.zrem(K.USER_FOLLOWING.format(fid), uid)
+        r.zrem(k.USER_FOLLOWING.format(follower_id), user_id)
     # Delete the followers list
-    r.delete(K.USER_FOLLOWERS.format(uid))
+    r.delete(k.USER_FOLLOWERS.format(user_id))
 
     # Delete all references to the users the user is following
     # This will remove the user from the others users followers list
 
-    fids = r.zrange(K.USER_FOLLOWING.format(uid), 0, -1)
+    # TODO Replace with ZSCAN
+    followee_cursor = r.zrange(k.USER_FOLLOWING.format(user_id), 0, -1)
 
-    for fid in fids:
+    for followee_id in followee_cursor:
         # Clear the followers list of people uid is following
-        r.zrem(K.USER_FOLLOWERS.format(fid), uid)
+        r.zrem(k.USER_FOLLOWERS.format(followee_id), user_id)
     # Delete the following list
-    r.delete(K.USER_FOLLOWING.format(uid))
+    r.delete(k.USER_FOLLOWING.format(user_id))
 
-    # Finally delete the users feed, this may have been added too during this
-    # process. Probably not but let's be on the safe side
-    r.delete(K.USER_FEED.format(uid))
+    # Delete the users feed, this may have been added too during this process.
+    # Probably not but let's be on the safe side
+    r.delete(k.USER_FEED.format(user_id))
 
     # Delete the users alert list
     # DO NOT DELETE ANY ALERTS AS THESE ARE GENERIC
-    r.delete(K.USER_ALERTS.format(uid))
+    r.delete(k.USER_ALERTS.format(user_id))
 
-    # All done. This code may need making safer in case there are issues
+    # All done. This code may need making SAFER in case there are issues
     # elsewhere in the code base.
 
 
-def dump_account(uid):
+def dump_account(user_id):
     """Dump a users entire account; details, posts and comments to a dict.
 
     This WILL dump everything about the user. There is SOME caveats to this.
@@ -575,48 +419,37 @@ def dump_account(uid):
     data either.
 
     At the moment this WILL just dump account, posts and comments. ALL you have
-    not deleted
+    not deleted.
+
+    TODO This will need to become streaming or a background process one day.
+         This will be incredibly resource intensive.
 
     """
     # Attempt to get the users account
-    user = r.hgetall(K.USER.format(uid))
+    user = m.db.users.find_one({'_id': user_id})
     if user:
         # We are going to remove the uid and the password hash as this may
         # lead to some security issues
         user['uid'] = '<UID>'
         user['password'] = '<PASSWORD HASH>'
-        user['created'] = int(float(user['created']))
     else:
         # If there is no user then we will just stop this here. The account has
         # gone, there is no data anyway
         return None
 
-    # Get the users posts, pid's are not secret they are in the URLs. We will
-    # hide the UIDs however
+    # Place to store our posts
     posts = []
-    for pid in r.lrange(K.USER_POSTS.format(uid), 0, -1):
-        post = r.hgetall(K.POST.format(pid))
-        # Don't add a post that does not exist
-        # This should not really happen as we clean up along the way
-        if post:  # pragma: no branch
-            post['uid'] = '<UID>'
-            post['created'] = int(float(post['created']))
-            posts.append(post)
+    # Mongo cursor for all of our posts
+    posts_cursor = m.db.posts.find({'user_id': user_id}).sort('created', -1)
 
-    # Get a list of the users comments
-    comments = []
-    for cid in r.lrange(K.USER_COMMENTS.format(uid), 0, -1):
-        comment = r.hgetall(K.COMMENT.format(cid))
-        # Don't add a comment that does not exist
-        # This should not really happen as we clean up along the way
-        if comment:  # pragma: no branch
-            comment['uid'] = '<UID>'
-            comment['created'] = int(float(comment['created']))
-            comments.append(comment)
+    for post in posts_cursor:
+        # Hide the uid from the post. The pid is okay to add as this is part of
+        # the URL anyway
+        post['uid'] = '<UID>'
+        posts.append(post)
 
     # Return the dict of the above, this will be turned in to JSON by the view
     return {
         'user': user,
         'posts': posts,
-        'comments': comments
     }

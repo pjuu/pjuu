@@ -28,11 +28,14 @@ from flask_mail import Message
 from pjuu import mail
 
 
-def send_mail(subject, recipients, sender=app.config['MAIL_DEFAULT_SENDER'],
+def send_mail(subject, recipients, sender=None,
               text_body='', html_body=''):
     """
     Sends e-mail via flask-mail
     """
+    # Set the default sender if one is not supplied
+    if sender is None:  # pragma: no branch
+        sender = app.config['MAIL_DEFAULT_SENDER']
     msg = Message()
     msg.subject = subject
     msg.recipients = recipients

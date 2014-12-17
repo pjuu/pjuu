@@ -25,10 +25,13 @@ Licence:
 """
 
 # 3rd party imports
-from flask import current_app as app, render_template
+from flask import Blueprint, render_template
 
 
-@app.route('/about')
+pages_bp = Blueprint('pages', __name__)
+
+
+@pages_bp.route('/about')
 def about():
     """About us
 
@@ -36,7 +39,7 @@ def about():
     return render_template('pages/about.html')
 
 
-@app.route('/terms')
+@pages_bp.route('/terms')
 def terms():
     """Terms of service
 
@@ -44,7 +47,7 @@ def terms():
     return render_template('pages/terms.html')
 
 
-@app.route('/privacy')
+@pages_bp.route('/privacy')
 def privacy():
     """Privacy policy
 

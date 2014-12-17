@@ -33,47 +33,45 @@ from collections import Iterable
 from uuid import uuid1
 # 3rd party imports
 import jsonpickle
+from werkzeug.utils import cached_property
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.lib import keys as K, lua as L, timestamp
+from pjuu import mongo as m, redis as r
+from pjuu.auth.backend import get_user as be_get_user
+from pjuu.lib import keys as k, timestamp, get_uuid
 
 
 class BaseAlert(object):
-    """
-    Base form for all alerts within Pjuu.
+    """Base form for all alerts within Pjuu.
 
     Note: This should not be used directly but subclassed.
+
     """
 
-    def __init__(self, uid):
-        self.aid = uuid1().int
+    def __init__(self, user_id):
+        self.alert_id = get_uuid()
         self.timestamp = timestamp()
-        self.uid = uid
+        self.user_id = user_id
 
-    def get_username(self):
-        """
-        Helper; Get the username of the user who caused this.
-        """
-        return r.hget(K.USER.format(self.uid), 'username')
+    @cached_property
+    def user(self):
+        """Helper; Get the user object of the user who caused the alert.
+        This value is cached in the interpreter so it doesn't go to the
+        database each time this is called.
 
-    def get_email(self):
         """
-        Helper; Get the e-mail address of the user who caused this.
-        """
-        return r.hget(K.USER.format(self.uid), 'email')
+        return be_get_user(self.user_id)
 
     def verify(self):
-        """
-        Check the alert is valid. You may need to overwrite this if you add
+        """Check the alert is valid. You may need to overwrite this if you add
         anything to base alerts. See posts.backends.PostingAlert for more
         details on how to implement this.
+
         """
         # Simple implementation, check the user exists
-        return r.exists(K.USER.format(self.uid))
+        return self.user is not None
 
     def prettify(self, for_uid=None):
-        """
-        Overwrite to show how the alert will be presented to the user.
+        """Overwrite to show how the alert will be presented to the user.
 
         For example:
 
@@ -82,22 +80,23 @@ class BaseAlert(object):
         Feel free to use all functions you need to help make this happen.
         You may have to import some from Jinja2 and use url_for to get what we
         are looking for.
+
         """
         raise NotImplementedError
 
 
 class AlertManager(object):
-    """
-    Handles storing, loading and dishing out alerts.
+    """Handles storing, loading and dishing out alerts.
+
     """
 
     def get(self, aid):
-        """
-        Attempts to load an Alert from Redis and unpickle it
+        """Attempts to load an Alert from Redis and unpickle it.
+
         """
         # Try the unpickling process
         try:
-            pickled_alert = r.get(K.ALERT.format(aid))
+            pickled_alert = r.get(k.ALERT.format(aid))
             alert = jsonpickle.decode(pickled_alert)
         except (TypeError, ValueError):
             # We failed to get an alert for whateva reason
@@ -110,32 +109,32 @@ class AlertManager(object):
         else:
             # If the alert did not verify delete it
             # This will stop this always being called
-            r.delete(K.ALERT.format(aid))
+            r.delete(k.ALERT.format(aid))
             return None
 
-    def alert(self, alert, uids):
-        """
-        Will attempt to alert the user with uid to the alert being managed.
+    def alert(self, alert, user_ids):
+        """Will attempt to alert the user with uid to the alert being managed.
 
         This will call the alerts before_alert() method, which allows you to
         change the alert per user. It's not needed though.
+
         """
         # Check that the manager actually has an alert
         if not isinstance(alert, BaseAlert):
-            raise ValueError('AlertManager requires an alert to alert')
+            raise ValueError('alert must be a BaseAlert object')
 
         # Ensure uids is iterable
         # Stopped strings being passed in
-        if not isinstance(uids, Iterable) or isinstance(uids, str) or \
-           isinstance(uids, unicode):
-            raise TypeError('uids must be iterable')
+        if not isinstance(user_ids, Iterable) or isinstance(user_ids, str) or \
+           isinstance(user_ids, unicode):
+            raise TypeError('user_ids must be iterable')
 
         # Create the alert object
-        r.set(K.ALERT.format(alert.aid), jsonpickle.encode(alert))
+        r.set(k.ALERT.format(alert.alert_id), jsonpickle.encode(alert))
         # Set the 4WK timeout on it
-        r.expire(K.ALERT.format(alert.aid), K.EXPIRE_4WKS)
+        r.expire(k.ALERT.format(alert.alert_id), k.EXPIRE_4WKS)
 
-        for uid in uids:
+        for user_id in user_ids:
             # Only add the zset if the user still exists
-            L.zadd_keyx(keys=(K.USER_ALERTS.format(uid), K.USER.format(uid)),
-                        args=(alert.timestamp, alert.aid))
+            r.zadd(k.USER_ALERTS.format(user_id), alert.timestamp,
+                   alert.alert_id)

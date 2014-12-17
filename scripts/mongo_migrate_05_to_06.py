@@ -2,7 +2,13 @@
 
 """
 Description:
-    Users forms
+    We have moved on main database away from Redis and to MongoDB.
+
+    I won't discuss the politics here but we can't afford to keep all our
+    users, posts and comments data inside Redis if the site ever got big. We
+    chose MongoDB so we didn't have to change the way we work. This also makes
+    it easier for others to trust that this data is safe. Redis can be tricky
+    to do correctly.
 
 Licence:
     Copyright 2014 Joe Doherty <joe@pjuu.com>
@@ -20,29 +26,3 @@ Licence:
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-# 3rd party imports
-from flask_wtf import Form
-from wtforms import TextAreaField, StringField
-from wtforms.validators import Length, DataRequired
-# Pjuu imports
-from pjuu.posts.backend import MAX_POST_LENGTH
-
-
-class ChangeProfileForm(Form):
-    """
-    This is the form used to update your about information
-    """
-    about = TextAreaField('About', [
-        Length(max=MAX_POST_LENGTH,
-               message='About can not be larger than '
-                       '{} characters'.format(MAX_POST_LENGTH)
-        )
-    ])
-
-
-class SearchForm(Form):
-    """
-    This form is really simple. It is here to keep all forms at WTFroms
-    """
-    query = StringField("Query")

@@ -1,38 +1,28 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    Forms used in the posts package
+"""Web forms
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: Joe Doherty 2015
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 3rd party imports
 from flask_wtf import Form
 from wtforms import TextAreaField
-from wtforms.validators import Required, Length
+from wtforms.validators import DataRequired, Length
+# Pjuu imports
+from pjuu.posts.backend import MAX_POST_LENGTH
 
 
 class PostForm(Form):
+    """Handle the input from the web for posts and replies.
+
     """
-    This is the form used for Posts and Comments at the momment.
-    """
+
     body = TextAreaField('Post', [
-        Required(),
-        Length(max=255,
-               message='Posts can not be larger than 255 characters')
+        DataRequired(),
+        Length(max=MAX_POST_LENGTH,
+               message='Posts can not be larger than '
+                       '{} characters'.format(MAX_POST_LENGTH))
     ])

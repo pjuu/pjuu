@@ -7,11 +7,11 @@ You have asked for a password reset.
 
 If you click the link below you will then be able to reset your password.
 
-<a href="{{ url_for('reset', token=token, _external=True) }}" target="_blank">Reset Password</a>
+<a href="{{ url_for('auth.reset', token=token, _external=True) }}" target="_blank">Reset Password</a>
 
 If you can not click the above link please copy and paste the below in to your web browser of choice.
 
-{{ url_for('reset', token=token, _external=True) }}
+{{ url_for('auth.reset', token=token, _external=True) }}
 {% endblock %}
 
 {% block content_footer %}

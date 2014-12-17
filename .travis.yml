@@ -4,7 +4,9 @@ python:
   - '2.7'
 
 services:
+  - mongodb
   - redis-server
+  - rabbitmq
 
 before_install:
   - redis-cli info | grep redis_version
@@ -19,5 +21,6 @@ after_success:
   - coveralls
 
 notifications:
+  email: false
   hipchat:
     secure: "oT27TGIlAvHgtRUBejYapmt95o/q1wVRWGWh7npbPspAwWfxKVF3ZudrPR+FPx+THGNkBRiS3uxrVML6/aY2tEog6JmhhcSENz9uvBlvc6cGBgD3HGLhn1m/LX71ul73HwR8CLofqpZo3d3TqiXdbPZONUzkMQHs3NYSjB4qoto="

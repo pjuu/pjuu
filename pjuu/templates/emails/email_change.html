@@ -7,7 +7,7 @@
 
 <p>If you click the link below we will update your data.</p>
 
-<p><a href="{{ url_for('confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a></p>
+<p><a href="{{ url_for('auth.confirm_email', token=token, _external=True) }}" target="_blank">Update e-mail</a></p>
 {% endblock %}
 
 {% block content_footer %}

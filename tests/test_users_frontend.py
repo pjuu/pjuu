@@ -23,15 +23,9 @@ Licence:
 
 # Stdlib imports
 import json
-# 3rd party imports
-from flask import current_app as app, url_for, g
 # Pjuu imports
-from pjuu import redis as r
-from pjuu.auth.backend import create_user, delete_account, activate
-from pjuu.lib import keys as K, timestamp
-from pjuu.lib.alerts import AlertManager
-from pjuu.posts.backend import (create_post, create_comment, TaggingAlert,
-                                CommentingAlert)
+from pjuu.auth.backend import create_account, delete_account, activate
+from pjuu.posts.backend import create_post
 from pjuu.users.backend import *
 from pjuu.users.views import timeify_filter
 # Test imports
@@ -51,8 +45,8 @@ class FrontendTests(FrontendTestCase):
         etc, etc.
         """
         # Create 2 users and have them follow each other
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user1)
         activate(user2)
         follow_user(user1, user2)
@@ -64,18 +58,18 @@ class FrontendTests(FrontendTestCase):
         # We need to store a list of the pids since UUIDs became available
         posts = []
         for i in range(0, 51):
-            posts.append(create_post(user1, 'User 1, Post %d!' % i))
-            posts.append(create_post(user2, 'User 2, Post %d!' % i))
+            posts.append(create_post(user1, 'user1', 'User 1, Post %d!' % i))
+            posts.append(create_post(user2, 'user1', 'User 2, Post %d!' % i))
         # We now have 60 posts on each feed
 
         # Try and visit the feed when not logged in
         # There is no flash message to check.
-        resp = self.client.get(url_for('feed'))
+        resp = self.client.get(url_for('users.feed'))
         self.assertEqual(resp.status_code, 302)
 
         # Log in as user 1 and check that they can see a couple of posts on the
         # first page
-        resp = self.client.post(url_for('signin'), data={
+        resp = self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
@@ -91,7 +85,7 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- pagination:newer -->', resp.data)
 
         # Let's go to page 2 in the pagination and check there are posts there
-        resp = self.client.get(url_for('feed', page=2))
+        resp = self.client.get(url_for('users.feed', page=2))
 
         # Check some posts are there and are not there
         self.assertIn('User 1, Post 30!', resp.data)
@@ -103,98 +97,23 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- pagination:newer -->', resp.data)
 
         # Let's go back to the first page
-        resp = self.client.get(url_for('feed'))
+        resp = self.client.get(url_for('users.feed'))
         # We will delete one post and ensure that is goes missing
         self.assertIn('User 1, Post 50!', resp.data)
         # We won't check that the delete button belong to the above post
-        # put we will check that there is atleast one delete button
-        self.assertIn('<!-- delete_post:', resp.data)
+        # put we will check that there is at least one delete button
+        self.assertIn('<!-- delete:post:', resp.data)
         # Delete the post
-        resp = self.client.get(url_for('delete_post', username='user1',
-                               pid=posts[100], next=url_for('feed')),
+        resp = self.client.get(url_for('posts.delete_post', username='user1',
+                               post_id=posts[100], next=url_for('users.feed')),
                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('User 1, Post 49!', resp.data)
         self.assertNotIn('User 1, Post 50!', resp.data)
 
         # Check you can not go to a profile for a non-existant user
-        resp = self.client.get(url_for('profile', username='None'))
+        resp = self.client.get(url_for('users.profile', username='None'))
         self.assertEqual(resp.status_code, 404)
-        # Done for now
-
-    def test_view_post(self):
-        """
-        Similar to above but check the same for the view_post page. This is
-        mainly intended to check that comments render correctly
-        """
-        # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        activate(user1)
-        activate(user2)
-
-        # Create a post as user1. We need this to ensure that we can not get
-        # to the endpoint if we are logged out
-        post1 = create_post(user1, 'Test post')
-
-        # Ensure we can't hit the endpoing
-        resp = self.client.get(url_for('view_post', username='user1',
-                                       pid=post1),
-                               follow_redirects=True)
-        # Ensure we didn't get anything
-        self.assertIn('You need to be logged in to view that', resp.data)
-
-        # Sign in
-        self.client.post(url_for('signin'), data={
-            'username': 'user1',
-            'password': 'Password'
-        }, follow_redirects=True)
-
-        # Ensure that we can now see the endpoint
-        resp = self.client.get(url_for('view_post', username='user1',
-                                       pid=post1),
-                               follow_redirects=True)
-        # Use the testing tags to ensure everything is rendered
-        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
-        self.assertIn('Test post', resp.data)
-        # Ensure the comment form is present
-        self.assertIn('<!-- author comment -->', resp.data)
-
-        # Create a comment on the post
-        comment1 = create_comment(user1, post1, 'Test comment 1')
-
-        # Get the view again
-        resp = self.client.get(url_for('view_post', username='user1',
-                                       pid=post1),
-                               follow_redirects=True)
-
-        self.assertIn('<!-- list:comment:%s -->' % comment1, resp.data)
-        self.assertIn('Test comment 1', resp.data)
-
-        # Let's logout and log in as test2
-        self.client.get(url_for('signout'))
-        self.client.post(url_for('signin'), data={
-            'username': 'user2',
-            'password': 'Password'
-        })
-        # Check that we can see the comment
-        resp = self.client.get(url_for('view_post', username='user1',
-                                       pid=post1),
-                               follow_redirects=True)
-        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
-        self.assertIn('Test post', resp.data)
-        self.assertIn('<!-- list:comment:%s -->' % comment1, resp.data)
-        self.assertIn('Test comment', resp.data)
-
-        comment2 = create_comment(user2, post1, 'Test comment 2')
-
-        # Get the view again
-        resp = self.client.get(url_for('view_post', username='user1',
-                                       pid=post1),
-                               follow_redirects=True)
-
-        self.assertIn('<!-- list:comment:%s -->' % comment2, resp.data)
-        self.assertIn('Test comment 2', resp.data)
         # Done for now
 
     def test_follow_unfollow(self):
@@ -203,61 +122,61 @@ class FrontendTests(FrontendTestCase):
         followers and following pages show the correct value
         """
         # Create 2 users and have them follow each other
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         activate(user1)
         activate(user2)
 
         # Let's try and access the endpoints feature when we are not logged in
         # We should not be able to see it
-        resp = self.client.get(url_for('follow', username='user1'),
+        resp = self.client.get(url_for('users.follow', username='user1'),
                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
-        resp = self.client.get(url_for('unfollow', username='user1'),
+        resp = self.client.get(url_for('users.unfollow', username='user1'),
                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
-        resp = self.client.get(url_for('following', username='user1'),
+        resp = self.client.get(url_for('users.following', username='user1'),
                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
-        resp = self.client.get(url_for('followers', username='user1'),
+        resp = self.client.get(url_for('users.followers', username='user1'),
                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Ensure that test1 can follow and unfollow test2
         # Signin
-        resp = self.client.post(url_for('signin'), data={
+        resp = self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
         self.assertIn('<h1>Feed</h1>', resp.data)
 
         # Try and see a non-existant users followers and following page
-        resp = self.client.get(url_for('followers', username='None'))
+        resp = self.client.get(url_for('users.followers', username='None'))
         self.assertEqual(resp.status_code, 404)
-        resp = self.client.get(url_for('following', username='None'))
+        resp = self.client.get(url_for('users.following', username='None'))
         self.assertEqual(resp.status_code, 404)
         # Try follow and unfollow a non-existant user
-        resp = self.client.get(url_for('follow', username='None'))
+        resp = self.client.get(url_for('users.follow', username='None'))
         self.assertEqual(resp.status_code, 404)
-        resp = self.client.get(url_for('unfollow', username='None'))
+        resp = self.client.get(url_for('users.unfollow', username='None'))
         self.assertEqual(resp.status_code, 404)
 
         # Try follow and unfollow yourself
-        resp = self.client.get(url_for('follow', username='user1'),
+        resp = self.client.get(url_for('users.follow', username='user1'),
                                follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
-        resp = self.client.get(url_for('unfollow', username='user1'),
+        resp = self.client.get(url_for('users.unfollow', username='user1'),
                                follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
 
         # Visit test2 and ensure followers count is 0
-        resp = self.client.get(url_for('followers', username='user2'))
+        resp = self.client.get(url_for('users.followers', username='user2'))
         self.assertIn('<!-- followers:0 -->', resp.data)
 
         # Follow test2
         # Ensure we pass a next variable to come back to test2's followers page
-        resp = self.client.get(url_for('follow', username='user2',
-                               next=url_for('followers', username='user2')),
+        resp = self.client.get(url_for('users.follow', username='user2',
+                               next=url_for('users.followers', username='user2')),
                                follow_redirects=True)
         # Ensure the flash message has informed use we are following
         self.assertIn('You have started following user2', resp.data)
@@ -268,8 +187,8 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- list:user:%s -->' % user1, resp.data)
 
         # Attempt to follow test2 again
-        resp = self.client.get(url_for('follow', username='user2',
-                               next=url_for('followers', username='user2')),
+        resp = self.client.get(url_for('users.follow', username='user2',
+                               next=url_for('users.followers', username='user2')),
                                follow_redirects=True)
         # Check we got no confirmation
         self.assertNotIn('You have started following test2', resp.data)
@@ -277,13 +196,13 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- followers:1 -->', resp.data)
 
         # Ensure test2 is in from YOUR (test1s) following page
-        resp = self.client.get(url_for('following', username='user1'))
+        resp = self.client.get(url_for('users.following', username='user1'))
         self.assertNotIn('<!-- list:user:%s -->' % user1, resp.data)
 
         # Unfollow test2
         # Ensure that all the previous has been reversed
-        resp = self.client.get(url_for('unfollow', username='user2',
-                               next=url_for('followers', username='user2')),
+        resp = self.client.get(url_for('users.unfollow', username='user2',
+                               next=url_for('users.followers', username='user2')),
                                follow_redirects=True)
         self.assertIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)
@@ -291,14 +210,14 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- list:user:test1 -->', resp.data)
 
         # Attempt to unfollow the user again
-        resp = self.client.get(url_for('unfollow', username='user2',
-                               next=url_for('followers', username='user2')),
+        resp = self.client.get(url_for('users.unfollow', username='user2',
+                               next=url_for('users.followers', username='user2')),
                                follow_redirects=True)
         self.assertNotIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)
 
         # Ensure test2 is missing from YOUR (test1s) following page
-        resp = self.client.get(url_for('following', username='user1'))
+        resp = self.client.get(url_for('users.following', username='user1'))
         self.assertNotIn('<!-- list:user:%s -->' % user2, resp.data)
         # Done for now
 
@@ -308,15 +227,15 @@ class FrontendTests(FrontendTestCase):
         """
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
-        resp = self.client.get('search', follow_redirects=True)
+        resp = self.client.get('users.search', follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # We need some users with usernames different enough that we can test
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
-        user3 = create_user('joe', 'joe@pjuu.com', 'Password')
-        user4 = create_user('ant', 'ant@pjuu.com', 'Password')
-        user5 = create_user('fil', 'fil@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('joe', 'joe@pjuu.com', 'Password')
+        user4 = create_account('ant', 'ant@pjuu.com', 'Password')
+        user5 = create_account('fil', 'fil@pjuu.com', 'Password')
         # Activate some of the accounts.
         activate(user1)
         activate(user2)
@@ -332,40 +251,40 @@ class FrontendTests(FrontendTestCase):
 
         # Let's check we see the correct thing on the search page when there
         # is no search
-        resp = self.client.get(url_for('search'))
+        resp = self.client.get(url_for('users.search'))
         self.assertIn('<!-- author search -->', resp.data)
         self.assertNotIn('<h1>Results:', resp.data)
 
         # Lets search for ourselves
-        resp = self.client.get(url_for('search', query='joe'))
+        resp = self.client.get(url_for('users.search', query='joe'))
         self.assertIn('<!-- list:user:%s -->' % user3, resp.data)
 
         # Lets check that this is case-insensitive
-        resp = self.client.get(url_for('search', query='JOE'))
+        resp = self.client.get(url_for('users.search', query='JOE'))
         self.assertIn('<!-- list:user:%s -->' % user3, resp.data)
 
         # Lets try this partially
-        resp = self.client.get(url_for('search', query='j'))
+        resp = self.client.get(url_for('users.search', query='j'))
         self.assertIn('<!-- list:user:%s -->' % user3, resp.data)
 
         # Lets check we see two users if two match
-        resp = self.client.get(url_for('search', query='user'))
+        resp = self.client.get(url_for('users.search', query='user'))
         self.assertIn('<!-- list:user:%s -->' % user1, resp.data)
         self.assertIn('<!-- list:user:%s -->' % user2, resp.data)
 
         # Lets check to see if inactive users show up. THEY SHOULD
-        resp = self.client.get(url_for('search', query='fil'))
+        resp = self.client.get(url_for('users.search', query='fil'))
         self.assertIn('<!-- list:user:%s -->' % user5, resp.data)
 
         # Lets check that we can find ant because we are going to delete him
         # to ensure he goes! This has caused issues on the live site
-        resp = self.client.get(url_for('search', query='ant'))
+        resp = self.client.get(url_for('users.search', query='ant'))
         self.assertIn('<!-- list:user:%s -->' % user4, resp.data)
 
         # We will just backend delete the account.
         delete_account(user4)
         # Account is gone, lets ensure this has gone
-        resp = self.client.get(url_for('search', query='ant'))
+        resp = self.client.get(url_for('users.search', query='ant'))
         self.assertNotIn('<!-- list:user:%s -->' % user4, resp.data)
         # Done for now!
 
@@ -380,29 +299,29 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Create a test user
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate it
         activate(user1)
 
         # Signin
-        self.client.post(url_for('signin'), data={
+        self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
         })
 
         # Go to our settings page and ensure everything is there
-        resp = self.client.get(url_for('settings_profile'))
+        resp = self.client.get(url_for('users.settings_profile'))
         self.assertIn('User Name: <b>user1</b>', resp.data)
         self.assertIn('E-mail address: <b>user1@pjuu.com</b>', resp.data)
         # Post to the form and update our about. We should also be this on
         # this page
-        resp = self.client.post(url_for('settings_profile'), data={
+        resp = self.client.post(url_for('users.settings_profile'), data={
             'about': 'Otters love fish!'
         }, follow_redirects=True)
         self.assertIn('Otters love fish!', resp.data)
 
         # Try posting a MASSIVE about ('Otter' * 100)
-        resp = self.client.post(url_for('settings_profile'), data={
+        resp = self.client.post(url_for('users.settings_profile'), data={
             'about': 'Otters' * 100
         }, follow_redirects=True)
         # Check we get the form error
@@ -416,29 +335,29 @@ class FrontendTests(FrontendTestCase):
         Check that alerts are displayed properly in the frontend
         """
         # Create two test users
-        user1 = create_user('user1', 'user1@pjuu.com', 'Password')
-        user2 = create_user('user2', 'user2@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         # Activate
         activate(user1)
         activate(user2)
 
         # Try an visit i-has-alerts when not logged in
-        resp = self.client.get(url_for('i_has_alerts'))
+        resp = self.client.get(url_for('users.i_has_alerts'))
         self.assertEqual(resp.status_code, 403)
 
         # Login as user1
-        resp = self.client.post(url_for('signin'), data={
+        self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
         })
 
         # Get I has alerts and check that it is false
-        resp = self.client.get(url_for('i_has_alerts'))
+        resp = self.client.get(url_for('users.i_has_alerts'))
         # Check the JSON response
         self.assertFalse(json.loads(resp.data).get('result'))
 
         # Ensure that /alerts returns nothing
-        resp = self.client.get(url_for('alerts'))
+        resp = self.client.get(url_for('users.alerts'))
         self.assertNotIn('list:alert', resp.data)
         self.assertIn('Empty', resp.data)
 
@@ -446,12 +365,11 @@ class FrontendTests(FrontendTestCase):
         follow_user(user2, user1)
 
         # Ensure that /i-has-alerts is correct
-        resp = self.client.get(url_for('i_has_alerts'))
+        resp = self.client.get(url_for('users.i_has_alerts'))
         # Check the JSON response
         self.assertTrue(json.loads(resp.data).get('result'))
 
-        # Ensure that /alerts returns nothing
-        resp = self.client.get(url_for('alerts'))
+        resp = self.client.get(url_for('users.alerts'))
         # We don't know the alert ID but we can check that one is there by
         # looking for the comment in test mode
         self.assertIn('list:alert:', resp.data)
@@ -462,20 +380,21 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('has started following you', resp.data)
 
         # We have now checked the alerts, ensure that i-has-alerts is False
-        resp = self.client.get(url_for('i_has_alerts'))
+        resp = self.client.get(url_for('users.i_has_alerts'))
         # Check the JSON response
         self.assertFalse(json.loads(resp.data).get('result'))
 
         # Check that we can delete the alert
         # Get the alert id from the backend function
-        aid = get_alerts(user1).items[0].aid
+        aid = get_alerts(user1).items[0].alert_id
 
         # Check that we don't get a message if there was no alert to delete
-        resp = self.client.get(url_for('delete_alert', aid=K.NIL_VALUE),
+        resp = self.client.get(url_for('users.delete_alert',
+                                       alert_id=k.NIL_VALUE),
                                follow_redirects=True)
         self.assertNotIn('Alert has been hidden', resp.data)
 
-        resp = self.client.get(url_for('delete_alert', aid=aid),
+        resp = self.client.get(url_for('users.delete_alert', alert_id=aid),
                                follow_redirects=True)
         self.assertIn('Alert has been hidden', resp.data)
         # Check that there are also no alerts now

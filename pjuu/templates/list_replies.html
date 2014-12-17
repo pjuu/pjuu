@@ -4,16 +4,16 @@
 {% if pagination.items %}
 {% for item in pagination.items %}
 {% if config.TESTING %}
-<!-- list:post:{{item._id}} -->
+<!-- list:reply:{{item._id}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% endif %} clearfix">
     <img class="avatar" src="{{ item.username }}"/>
     <div class="control">
-        {% if item.user_id == current_user._id %}
+        {% if item.user_id == current_user._id or post.username == current_user.username %}
         {% if config.TESTING %}
-         <!-- delete:post:{{ item._id }} -->
+        <!-- delete:reply:{{ item._id }} -->
         {% endif %}
-        <a href="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-remove fa-lg delete"></a>
+        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
     </div>
     <div class="content post clearfix">
@@ -36,41 +36,35 @@
                 <li>
                     {% if item._id|voted > 0 %}
                     {% if config.TESTING %}
-                    <!-- upvoted:post:{{ item._id }} -->
+                    <!-- upvoted:reply:{{ item._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
                     {% elif item._id|voted < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
-                    <!-- upvote:post:{{ item._id }} -->
+                    <!-- upvote:reply:{{ item._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.upvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <a href="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
                     {% endif %}
                 </li>
                 <li>
                     {% if item._id|voted < 0 %}
                     {% if config.TESTING %}
-                    <!-- downvoted:post:{{ item._id }} -->
+                    <!-- downvoted:reply:{{ item._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
                     {% elif item._id|voted > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
-                    <!-- downvote:post:{{ item._id }} -->
+                    <!-- downvote:reply:{{ item._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.downvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <a href="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
                     {% endif %}
                 </li>
                 {% endif %}
             </ul>
-            <div class="right">
-                <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}" class="link comments">
-                    <i class="fa fa-comments fa-lg"></i>
-                    {{ item.comment_count|millify }}
-                </a>
-            </div>
         </div>
     </div>
 </li>
