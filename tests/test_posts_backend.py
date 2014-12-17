@@ -22,7 +22,6 @@ Licence:
 """
 
 # Pjuu imports
-from pjuu import redis as r
 from pjuu.auth.backend import create_account, delete_account, get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
@@ -496,3 +495,36 @@ class PostBackendTests(BackendTestCase):
         self.assertIn('you are subscribed too', alert.prettify(user3))
 
         # Done for now
+
+    def test_tagging(self):
+        """Test the regular expression which matches '@' tags.
+
+        There are a of side cases with this which we will try and test here.
+        This will not test that the subscriptions are made or whether the users
+        actually exists, it just checks the Regex.
+
+        .. note: This will need to be added to as we find edge cases.
+
+        """
+        # List of tuples holding messages to parse and number of tags expected
+        taggings = [
+            ('@pjuu', 1),
+            ('Hi @pjuu', 1),
+            ('@pjuu?', 1),
+            ('@pjuupjuupjuupjuupjuu', 0),
+            ('Have you asked joe (@joe)?', 1),
+            ('@joe, @ant, @fil', 3),
+            ('.@pjuu', 1),
+            ('.@pjuu.', 1),
+            ('@pjuu.@pjuu.@pjuu', 3),
+            ('joe@pjuu.com', 0),
+            ('joe+pjuu@pjuu.com', 0),
+            ('@@joe', 0)
+        ]
+
+        for tagging in taggings:
+
+            self.assertEqual(
+                len(TAG_RE.findall(tagging[0])),
+                tagging[1]
+            )

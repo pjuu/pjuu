@@ -28,7 +28,9 @@ from pjuu.lib.pagination import Pagination
 MAX_POST_LENGTH = 500
 
 # Used to match '@' tags in a post
-TAG_RE = re.compile('(?:^|(?<=[^\w]))@(\w{3,16})(?:$|(?=[.;,: \t]))')
+TAG_RE = re.compile(
+    r'(?:^|(?<=[.;,:?\(\[\{ \t]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t]))'
+)
 
 
 class CantVoteOnOwn(Exception):
