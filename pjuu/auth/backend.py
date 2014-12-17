@@ -8,6 +8,7 @@
 """
 
 # Stdlib imports
+from datetime import datetime
 import re
 # 3rd party imports
 from flask import session
@@ -102,6 +103,10 @@ def create_account(username, email, password):
                 'about': "",
                 'score': 0,
                 'alerts_last_checked': -1,
+                # Set the TTL for a newly created user, this has to be Datetime
+                # object for MongoDB to recognise it. This is removed on
+                # activation.
+                'ttl': datetime.utcnow()
             }
 
             # Insert the new user in to Mongo. If this fails a None will be
@@ -269,11 +274,12 @@ def signout():
 
 
 def activate(user_id, action=True):
-    """Activates a user account.
+    """Activates a user account and removes 'ttl' key from Mongo
 
     """
     return m.db.users.update({'_id': user_id},
-                             {'$set': {'active': action}}) \
+                             {'$set': {'active': action},
+                              '$unset': {'ttl': None}}) \
         .get('updatedExisting')
 
 

@@ -106,6 +106,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual(user.get('about'), '')
         self.assertEqual(user.get('score'), 0)
         self.assertEqual(user.get('alerts_last_checked'), -1)
+        self.assertIsNotNone(user.get('ttl'))
         # Check the values which are generated are not none
         self.assertIsNotNone(user.get('password'))
         self.assertIsNotNone(user.get('created'))
@@ -124,9 +125,14 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNotNone(user1)
         # Account should be not active
         self.assertFalse(get_user(user1).get('active'))
+        # TTL should be set
+        self.assertIsNotNone(get_user(user1).get('ttl'))
         # Activate
         self.assertTrue(activate(user1))
+        # Account should be active
         self.assertTrue(get_user(user1).get('active'))
+        # TTL should NOT be set
+        self.assertIsNone(get_user(user1).get('ttl'))
 
         # Deactivate
         self.assertTrue(activate(user1, False))

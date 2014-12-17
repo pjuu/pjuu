@@ -35,8 +35,12 @@ class BackendTestCase(unittest.TestCase):
         self.app_ctx.push()
 
         r.flushdb()
+
+        # Clean-up Mongo
         m.db.posts.remove({})
+        m.db.posts.drop_indexes()
         m.db.users.remove({})
+        m.db.users.drop_indexes()
 
         # Ensure the MongoDB indexes are present
         ensure_indexes()
@@ -47,8 +51,11 @@ class BackendTestCase(unittest.TestCase):
         """
         # Clear the databases
         r.flushdb()
+
         m.db.posts.remove({})
+        m.db.posts.drop_indexes()
         m.db.users.remove({})
+        m.db.users.drop_indexes()
 
         self.app_ctx.pop()
 

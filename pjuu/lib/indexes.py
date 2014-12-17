@@ -26,6 +26,7 @@ Licence:
 import pymongo
 # Pjuu imports
 from pjuu import mongo as m
+from pjuu.lib import keys as k
 
 
 def ensure_indexes():
@@ -42,6 +43,9 @@ def ensure_indexes():
     # User name and e-mail address have to be unique across the database
     m.db.users.ensure_index([('username', pymongo.DESCENDING)], unique=True)
     m.db.users.ensure_index([('email', pymongo.DESCENDING)], unique=True)
+    # Set TTL indexes for newly created users (24 hour TTL)
+    m.db.users.ensure_index([('ttl', pymongo.DESCENDING)],
+                            expireAfterSeconds=k.EXPIRE_24HRS)
 
     # Post indexes
     # Allow us to see all posts made by a user
