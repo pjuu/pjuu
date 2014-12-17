@@ -1,7 +1,7 @@
 /* Simply displays the number of characters in a textarea */
 $('textarea').bind('input propertychange', function() {
     var length = $(this).val().length;
-    var max_length = $(this).attr("maxLength") || 255;
+    var max_length = $(this).attr("maxLength");
     $(this).siblings("#count").text(length + " / " + max_length);
     if (length > max_length) {
         $(this).closest('form').find(':submit').attr('disabled', 'disabled');

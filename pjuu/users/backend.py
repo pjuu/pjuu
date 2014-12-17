@@ -61,7 +61,7 @@ def get_profile(user_id):
 
     if profile:
         # Count the users posts in MongoDB
-        profile['post_count'] = m.db.posts.find({'uid': user_id}).count()
+        profile['post_count'] = m.db.posts.find({'user_id': user_id}).count()
         # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(k.USER_FOLLOWERS.format(user_id))
         profile['following_count'] = r.zcard(k.USER_FOLLOWING.format(user_id))

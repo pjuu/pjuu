@@ -191,14 +191,10 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.post',
                                         next=url_for('users.feed')),
                                 data={
-            'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttest')
+            'body': ('P' * (MAX_POST_LENGTH + 1))
         }, follow_redirects=True)
-        self.assertIn('Posts can not be larger than 255 characters', resp.data)
+        self.assertIn('Posts can not be larger than '
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
 
         # Done for now
 
@@ -376,14 +372,10 @@ class PostFrontendTests(FrontendTestCase):
         # Try and post to many characters
         resp = self.client.post(url_for('posts.post', username='user1',
                                         post_id=post1), data={
-            'body': ('testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttesttesttesttesttesttesttesttesttesttest'
-                     'testtesttesttesttest')
+            'body': ('P' * (MAX_POST_LENGTH + 1))
         }, follow_redirects=True)
-        self.assertIn('Posts can not be larger than 255 characters', resp.data)
+        self.assertIn('Posts can not be larger than '
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
 
         # Done for now
 

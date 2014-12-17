@@ -3,9 +3,9 @@
 {% endif %}
 <div id="author" class="block post clearfix">
     <form action="{{ url_for('posts.post', next=request.path) }}" method="post">
-        {{ post_form.body(rows=2, maxlength=255, placeholder="Write a post...") }}
+        {{ post_form.body(rows=2, maxlength=post_form.body.validators[1].max, placeholder="Write a post...") }}
         {{ post_form.csrf_token }}
-        <div id="count">0 / 255</div>
+        <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
         <button type="submit"><i class="fa fa-send"></i> Post</button>
     </form>
 </div>

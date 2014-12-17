@@ -24,6 +24,9 @@ from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
 
 
+# Allow chaning the maximum length of a post
+MAX_POST_LENGTH = 500
+
 # Used to match '@' tags in a post
 TAG_RE = re.compile('(?:^|(?<=[^\w]))@(\w{3,16})(?:$|(?=[.;,: \t]))')
 

@@ -75,9 +75,6 @@ WTF_CSRF_SESSION_KEY = SECRET_KEY
 # create_app() function.
 SENTRY_DSN = ''
 
-# Pjuu internals
-MAX_POST_LENGTH = 255
-
 # Pagination
 FEED_ITEMS_PER_PAGE = 25
 PROFILE_ITEMS_PER_PAGE = 25

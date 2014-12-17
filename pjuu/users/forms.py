@@ -24,16 +24,21 @@ Licence:
 # 3rd party imports
 from flask_wtf import Form
 from wtforms import TextAreaField, StringField
-from wtforms.validators import Length, Required
+from wtforms.validators import Length, DataRequired
+# Pjuu imports
+from pjuu.posts.backend import MAX_POST_LENGTH
 
 
 class ChangeProfileForm(Form):
     """
     This is the form used to update your about information
     """
-    about = TextAreaField('About', [Required(), Length(max=255, message=(
-        'Your about can not be larger than 255 characters'
-    ))])
+    about = TextAreaField('About', [
+        Length(max=MAX_POST_LENGTH,
+               message='About can not be larger than '
+                       '{} characters'.format(MAX_POST_LENGTH)
+        )
+    ])
 
 
 class SearchForm(Form):
