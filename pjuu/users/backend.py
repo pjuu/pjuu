@@ -140,8 +140,8 @@ def get_following(uid, page=1):
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.zcard(k.USER_FOLLOWING.format(uid))
-    fids = r.zrange(k.USER_FOLLOWING.format(uid), (page - 1) * per_page,
-                    (page * per_page) - 1)
+    fids = r.zrevrange(k.USER_FOLLOWING.format(uid), (page - 1) * per_page,
+                       (page * per_page) - 1)
     users = []
     for fid in fids:
         user = get_user(fid)
@@ -161,8 +161,8 @@ def get_followers(uid, page=1):
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.zcard(k.USER_FOLLOWERS.format(uid))
-    fids = r.zrange(k.USER_FOLLOWERS.format(uid), (page - 1) * per_page,
-                    (page * per_page) - 1)
+    fids = r.zrevrange(k.USER_FOLLOWERS.format(uid), (page - 1) * per_page,
+                       (page * per_page) - 1)
     users = []
     for fid in fids:
         user = get_user(fid)
