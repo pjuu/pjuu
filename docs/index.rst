@@ -12,6 +12,9 @@ Contents:
    :maxdepth: 2
 
    auth
+   posts
+   users
+   lib
 
 
 
