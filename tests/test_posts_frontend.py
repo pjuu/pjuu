@@ -196,6 +196,25 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Posts can not be larger than '
                       '{0} characters'.format(MAX_POST_LENGTH), resp.data)
 
+        # Test that we can post 500 unicode characters
+        resp = self.client.post(url_for('posts.post',
+                                        next=url_for('users.feed')),
+                                data={
+            'body': ('光' * (MAX_POST_LENGTH))
+        }, follow_redirects=True)
+        self.assertNotIn('Posts can not be larger than '
+                         '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+
+        # Test that we can not post more than MAX_POST_LENGTH unicode
+        # characters
+        resp = self.client.post(url_for('posts.post',
+                                        next=url_for('users.feed')),
+                                data={
+            'body': ('光' * (MAX_POST_LENGTH + 1))
+        }, follow_redirects=True)
+        self.assertIn('Posts can not be larger than '
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+
         # Done for now
 
     def test_view_post(self):
