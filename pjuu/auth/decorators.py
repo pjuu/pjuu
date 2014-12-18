@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 
-"""Python decorators. These enforce permissions on the web views.
+"""Python decorators enforce permissions on the web views.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2015
+:copyright: 2014 Joe Doherty
 
 """
 

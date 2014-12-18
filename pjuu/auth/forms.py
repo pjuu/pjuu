@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 
-"""Web forms
+"""Web forms for handling user input.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2015
+:copyright: 2014 Joe Doherty
 
 """
 

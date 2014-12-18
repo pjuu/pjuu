@@ -1,9 +1,9 @@
 # -*- coding: utf8 -*-
 
-"""Flask endpoints provide the web views
+"""Flask endpoints provide the URL endpoints for the auth system.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2015
+:copyright: 2014 Joe Doherty
 
 """
 

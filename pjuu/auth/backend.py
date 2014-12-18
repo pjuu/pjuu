@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-"""Simple auth functions with access to the databases.
+"""Simple auth functions with access to the databases for use in the views.
 
 :license: AGPL v3, see LICENSE for more details
 :copyright: 2014 Joe Doherty
@@ -173,12 +173,12 @@ def get_uid(lookup_value):
 
 
 def get_user(user_id):
-    """Get user with :arg:`user_id` as :type:`dict`.
+    """Get user with `user_id` as `dict`.
 
     :param user_id: The user_id to get
-    :type user_id: `str`
+    :type user_id: str
     :returns: The user as a dict
-    :rtype: `dict` or `None`
+    :rtype: dict or None
 
     """
     return m.db.users.find_one({'_id': user_id})
@@ -336,10 +336,13 @@ def change_email(user_id, new_email):
 def delete_account(user_id):
     """Will delete a users account.
 
-    This _MUST_ _REMOVE_ _ALL_ details, comments, posts, etc.
+    This **REMOVES ALL** details, posts, replies, etc.
 
     Note: Ensure the user has authenticated this request.
-          This is going to be the most _expensive_ task in Pjuu, be warned.
+          This is going to be the most *expensive* task in Pjuu, be warned.
+
+    :param user_id: The `user_id` of the user to delete
+    :type user_id: str
 
     """
     # Delete the user from MongoDB

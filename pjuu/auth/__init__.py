@@ -3,7 +3,7 @@
 """Provides authentication, anything that deals with the users account.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2015
+:copyright: 2014 Joe Doherty
 
 """
 
