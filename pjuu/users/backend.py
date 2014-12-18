@@ -33,7 +33,7 @@ from pjuu.auth.backend import get_user
 from pjuu.lib import keys as k, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.posts.backend import get_post
+from pjuu.posts.backend import get_post, back_feed
 
 
 # Regular expressions
@@ -113,6 +113,9 @@ def follow_user(who_uid, whom_uid):
     # Create an alert and inform whom that who is now following them
     alert = FollowAlert(who_uid)
     AlertManager().alert(alert, [whom_uid])
+
+    # Back fill the who's feed with some posts from whom
+    back_feed(who_uid, whom_uid)
 
     return True
 

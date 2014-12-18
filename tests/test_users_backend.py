@@ -23,6 +23,7 @@ Licence:
 
 # Pjuu imports
 from pjuu.auth.backend import create_account, delete_account
+from pjuu.posts.backend import create_post
 from pjuu.users.backend import *
 # Test imports
 from tests import BackendTestCase
@@ -172,6 +173,38 @@ class BackendTests(BackendTestCase):
         # is not there
         self.assertEqual(get_followers(user2).total, 0)
         self.assertEqual(get_following(user2).total, 0)
+
+    def test_back_feed(self):
+        """Test the back feed feature, once a user follows another user it
+        places their latest 5 posts on their feed. They will be in chronologic
+        order.
+
+        I know that ``back_feed()`` is a posts feature but it is triggered on
+        follow.
+
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        # Create 6 test posts ('Test 1' shouldn't be back fed)
+        post1 = create_post(user1, 'user1', 'Test 1')
+        post2 = create_post(user1, 'user1', 'Test 2')
+        post3 = create_post(user1, 'user1', 'Test 3')
+        post4 = create_post(user1, 'user1', 'Test 4')
+        post5 = create_post(user1, 'user1', 'Test 5')
+        post6 = create_post(user1, 'user1', 'Test 6')
+
+        follow_user(user2, user1)
+
+        # Check that the posts are in the feed (we can do this in Redis)
+        feed = r.zrevrange(k.USER_FEED.format(user2), 0, -1)
+
+        self.assertNotIn(post1, feed)
+        self.assertIn(post2, feed)
+        self.assertIn(post3, feed)
+        self.assertIn(post4, feed)
+        self.assertIn(post5, feed)
+        self.assertIn(post6, feed)
 
     def test_search(self):
         """

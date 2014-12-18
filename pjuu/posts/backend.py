@@ -318,6 +318,38 @@ def populate_followers_feeds(user_id, post_id, timestamp):
         r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
 
 
+def back_feed(who_id, whom_id):
+    """Takes 5 lastest posts from user with ``who_id`` places them in user
+    with ``whom_id``s feed.
+
+    The reason behind this is that new users may follow someone but still have
+    and empty feed, which makes them sad :( so we'll give them some. If the
+    posts are to old for a non user they will be removed when the feed is
+    trimmed, but they may make it in to the feed but not at the top.
+
+    :param who_id: user who just followed ``who_id``
+    :type who_id: str
+    :param whom_id: user who was just followed by ``whom_id``
+    :type whom_id: str
+    :return: None
+
+    """
+    # Get followee's last 5 posts (doesn't matter if there isn't any)
+    # We only need the IDs and the created time
+    posts = m.db.posts.find({'user_id': whom_id, 'reply_to': None},
+                            {'_id': True, 'created': True}) \
+        .sort('created', -1).limit(5)
+
+    # Iterate the cursor and append the posts to the users feed
+    for post in posts:
+        timestamp = post.get('created')
+        post_id = post.get('_id')
+        # Place on the feed
+        r.zadd(k.USER_FEED.format(who_id), timestamp, post_id)
+        # Trim the feed to the 1000 max
+        r.zremrangebyrank(k.USER_FEED.format(who_id), 0, -1000)
+
+
 def check_post(user_id, post_id, reply_id=None):
     """Ensure reply_id is a reply_to post_id and that post_id was created by
     user_id.
