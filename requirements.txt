@@ -1,7 +1,7 @@
 CherryPy==3.6.0
 Flask==0.10.1
 Flask-And-Redis==0.5
-Flask-Celery-Helper==1.0.0
+Flask-Celery-Helper==1.1.0
 Flask-Mail==0.9.1
 Flask-PyMongo==0.3.0
 Flask-WTF==0.10.3
