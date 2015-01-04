@@ -8,7 +8,7 @@ Description:
     funtions to use a new backend
 
 Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+    Copyright 2014-2015 Joe Doherty <joe@pjuu.com>
 
     Pjuu is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
