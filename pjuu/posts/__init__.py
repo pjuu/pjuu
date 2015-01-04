@@ -3,6 +3,6 @@
 """Deals with anything to do with posts, replies, votes and subscriptions.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2014
+:copyright: 2014-2015 Joe Doherty
 
 """

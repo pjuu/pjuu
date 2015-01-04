@@ -1,28 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    Runs our development server!
+"""Runs our development server! This is a CherryPy WSGIServer which is wrapped
+inside the Werkzeug DebuggedApplication middleware.
 
-    This is a CherryPy WSGIServer which is wrapped in side the Werkzeug
-    DebuggedApplication middleware.
+:license: AGPL v3, see LICENSE for more details
+:copyright: 2014-2015 Joe Doherty
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
-
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # 3rd party imports

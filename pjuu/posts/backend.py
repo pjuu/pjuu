@@ -4,7 +4,7 @@
 within Redis and MongoDB
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: Joe Doherty 2014
+:copyright: 2014-2015 Joe Doherty
 
 """
 
@@ -320,7 +320,7 @@ def populate_followers_feeds(user_id, post_id, timestamp):
 
 def back_feed(who_id, whom_id):
     """Takes 5 lastest posts from user with ``who_id`` places them in user
-    with ``whom_id``s feed.
+    with ``whom_id`` feed.
 
     The reason behind this is that new users may follow someone but still have
     and empty feed, which makes them sad :( so we'll give them some. If the
@@ -331,7 +331,7 @@ def back_feed(who_id, whom_id):
     :type who_id: str
     :param whom_id: user who was just followed by ``whom_id``
     :type whom_id: str
-    :return: None
+    :returns: None
 
     """
     # Get followee's last 5 posts (doesn't matter if there isn't any)

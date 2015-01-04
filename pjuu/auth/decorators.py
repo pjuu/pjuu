@@ -3,7 +3,7 @@
 """Python decorators enforce permissions on the web views.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014 Joe Doherty
+:copyright: 2014-2015 Joe Doherty
 
 """
 

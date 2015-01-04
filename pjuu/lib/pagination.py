@@ -1,27 +1,13 @@
 # -*- coding: utf-8 -*-
 
-"""
-Description:
-    Provides pagination for Pjuu.
+"""Provides pagination for Pjuu.
 
-    This does not read anything from Redis it just provides a simple interface
-    to handle the issue.
+This does not read anything from Redis/Mongo it just provides a simple
+interface to handle the issue.
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: 2014-2015 Joe Doherty
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Stdlib imports

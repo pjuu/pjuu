@@ -1,42 +1,28 @@
 # -*- coding: utf8 -*-
 
-"""
-Description:
-    Migrate the Redis key names from version before and including 0.4 to
-    the new naming conversion used by 0.5.
+"""Migrate the Redis key names from version before and including 0.4 to the new
+naming conversion used by 0.5.
 
-    The only changes are that keys related are key spaced using Redis hashtags.
-    For example;
+The only changes are that keys related are key spaced using Redis hashtags.
+For example;
 
-        user:1 would become {user:1}
-        user:1:followers would become {user:1}:followers
-        post:1 would become {post:1}
-        post:1:comments would become {post:1}:comments
+    user:1 would become {user:1}
+    user:1:followers would become {user:1}:followers
+    post:1 would become {post:1}
+    post:1:comments would become {post:1}:comments
 
-    So on and so forth. See pjuu/lib/lua.py for more details.
+So on and so forth. See pjuu/lib/lua.py for more details.
 
-    Alerts would need to be further converted so I am simply going to remove
-    all alerts! These are not super important and it is not going to affect
-    many people at this time. They expire after 4 weeks anyway.
+Alerts would need to be further converted so I am simply going to remove
+all alerts! These are not super important and it is not going to affect
+many people at this time. They expire after 4 weeks anyway.
 
-    NOTE: THIS SCRIPT IS HORRIBLY INEFFICIENT BUT WITH THE DATA SET AS IT IS AT
-          THE MOMMENT.
+NOTE: THIS SCRIPT IS HORRIBLY INEFFICIENT BUT WITH THE DATA SET AS IT IS AT
+      THE MOMMENT.
 
-Licence:
-    Copyright 2014 Joe Doherty <joe@pjuu.com>
+:license: AGPL v3, see LICENSE for more details
+:copyright: 2014 Joe Doherty
 
-    Pjuu is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Pjuu is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Stdlib imports
