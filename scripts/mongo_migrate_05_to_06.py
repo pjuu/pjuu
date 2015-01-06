@@ -13,7 +13,8 @@ This is only needed if moving from Pjuu <0.6 to >=0.6.
 """
 
 # Stdlib imports
-import pprint
+import ast
+import json
 import re
 from uuid import uuid1
 # 3rd party imports
@@ -22,10 +23,8 @@ from redis.exceptions import ResponseError
 import pymongo
 
 
-
 r = StrictRedis()
 m = pymongo.MongoClient(host='localhost')
-p = pprint.PrettyPrinter(indent=4)
 
 
 USER = "{{user:{0}}}"
@@ -152,6 +151,13 @@ if __name__ == '__main__':
                 if m.pjuu.posts.insert(post):
                     r.delete(COMMENT.format(post_id))
 
+            # Comments are now posts so we need to change the names of the
+            # voting keys. We will also change it to match the _id in the case
+            # that it was changed above
+            if r.exists(COMMENT_VOTES.format(post_id)):
+                r.rename(COMMENT_VOTES.format(post_id),
+                         POST_VOTES.format(post['_id']))
+
     # Iterate ALL user keys, we can't do this above because we need all posts
     # migrated before the user migration will work
     for key in r.keys('{user:*}'):
@@ -211,3 +217,30 @@ if __name__ == '__main__':
     r.delete('global:uid')
     r.delete('global:pid')
     r.delete('global:cid')
+
+    # Convert the alert pickles to the new naming convention
+    for key in r.keys("{alert:*"):
+        print 'Converting alert:', key
+        # Get the alert from Redis and convert it to a dict
+        alert_pickle = r.get(key)
+        alert = ast.literal_eval(alert_pickle)
+
+        # Convert ``uid`` to ``user_id``
+        alert['user_id'] = alert['uid']
+        del alert['uid']
+
+        # Convert ``aid`` to ``alert_id``
+        alert['alert_id'] = alert['aid']
+        del alert['aid']
+
+        # Convert ``pid`` to ``post_id``
+        if 'pid' in alert:
+            alert['post_id'] = alert['pid']
+            del alert['pid']
+
+        # Make the string a valid Pickle
+        alert = json.dumps(alert)
+
+        # Update the alert in Redis
+        r.delete(key)
+        r.set(key, alert)
