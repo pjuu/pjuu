@@ -46,15 +46,20 @@ class AuthBackendTests(BackendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         self.assertIsNotNone(user1)
         # Duplicate username
-        self.assertIsNone(create_account('user1', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(
+            create_account('user1', 'userX@pjuu.com', 'Password'))
         # Duplicate email
-        self.assertIsNone(create_account('userX', 'user1@pjuu.com', 'Password'))
+        self.assertIsNone(
+            create_account('userX', 'user1@pjuu.com', 'Password'))
         # Invalid username
-        self.assertIsNone(create_account('u', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(
+            create_account('u', 'userX@pjuu.com', 'Password'))
         # Invalid email
-        self.assertIsNone(create_account('userX', 'userX', 'Password'))
+        self.assertIsNone(
+            create_account('userX', 'userX', 'Password'))
         # Reserved username
-        self.assertIsNone(create_account('help', 'userX@pjuu.com', 'Password'))
+        self.assertIsNone(
+            create_account('help', 'userX@pjuu.com', 'Password'))
         # Check lookup keys exist
         self.assertEqual(get_uid('user1'), user1)
         self.assertEqual(get_uid('user1@pjuu.com'), user1)

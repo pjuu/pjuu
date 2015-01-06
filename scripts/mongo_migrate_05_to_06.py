@@ -99,7 +99,7 @@ if __name__ == '__main__':
             # Get the count of comments for the post and add the new key
             # This is now de-normalized
             post['comment_count'] = \
-                 r.llen(POST_COMMENTS.format(post_id))
+                r.llen(POST_COMMENTS.format(post_id))
 
             post['created'] = float(post.get('created'))
             post['score'] = int(post.get('score'))

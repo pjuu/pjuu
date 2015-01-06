@@ -664,8 +664,10 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Test comment, user 2', resp.data)
 
         # Try and delete a non-existant comment
-        resp = self.client.get(url_for('posts.delete_post', username=k.NIL_VALUE,
-                                       post_id=k.NIL_VALUE, reply_id=k.NIL_VALUE))
+        resp = self.client.get(url_for('posts.delete_post',
+                                       username=k.NIL_VALUE,
+                                       post_id=k.NIL_VALUE,
+                                       reply_id=k.NIL_VALUE))
         self.assertEqual(resp.status_code, 404)
 
         # Log out as user 1
@@ -747,7 +749,8 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
         self.assertIn('You have been unsubscribed from this post', resp.data)
-        self.assertNotIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.data)
+        self.assertNotIn('<!-- unsubscribe:post:{0} -->'.format(post1),
+                         resp.data)
 
         # Logout as user1
         self.client.get(url_for('auth.signout'))

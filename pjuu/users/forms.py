@@ -22,8 +22,7 @@ class ChangeProfileForm(Form):
     about = TextAreaField('About', [
         Length(max=MAX_POST_LENGTH,
                message='About can not be larger than '
-                       '{} characters'.format(MAX_POST_LENGTH)
-        )
+                       '{} characters'.format(MAX_POST_LENGTH))
     ])
 
 

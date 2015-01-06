@@ -162,7 +162,8 @@ class FrontendTests(FrontendTestCase):
         # Follow test2
         # Ensure we pass a next variable to come back to test2's followers page
         resp = self.client.get(url_for('users.follow', username='user2',
-                               next=url_for('users.followers', username='user2')),
+                               next=url_for('users.followers',
+                                            username='user2')),
                                follow_redirects=True)
         # Ensure the flash message has informed use we are following
         self.assertIn('You have started following user2', resp.data)
@@ -174,7 +175,8 @@ class FrontendTests(FrontendTestCase):
 
         # Attempt to follow test2 again
         resp = self.client.get(url_for('users.follow', username='user2',
-                               next=url_for('users.followers', username='user2')),
+                               next=url_for('users.followers',
+                                            username='user2')),
                                follow_redirects=True)
         # Check we got no confirmation
         self.assertNotIn('You have started following test2', resp.data)
@@ -188,7 +190,8 @@ class FrontendTests(FrontendTestCase):
         # Unfollow test2
         # Ensure that all the previous has been reversed
         resp = self.client.get(url_for('users.unfollow', username='user2',
-                               next=url_for('users.followers', username='user2')),
+                               next=url_for('users.followers',
+                                            username='user2')),
                                follow_redirects=True)
         self.assertIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)
@@ -197,7 +200,8 @@ class FrontendTests(FrontendTestCase):
 
         # Attempt to unfollow the user again
         resp = self.client.get(url_for('users.unfollow', username='user2',
-                               next=url_for('users.followers', username='user2')),
+                               next=url_for('users.followers',
+                                            username='user2')),
                                follow_redirects=True)
         self.assertNotIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)

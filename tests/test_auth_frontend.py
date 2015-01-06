@@ -366,7 +366,8 @@ class AuthFrontendTests(FrontendTestCase):
         Note: We need to be logged in for this view to work.
         """
         # Try going to the view without being logged in
-        resp = self.client.get(url_for('auth.change_email'), follow_redirects=True)
+        resp = self.client.get(url_for('auth.change_email'),
+                               follow_redirects=True)
         # We will just ensure we have been redirected to /signin
         self.assertEqual(resp.status_code, 200)
         # We should see a message saying we need to signin

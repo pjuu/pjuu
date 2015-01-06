@@ -185,7 +185,6 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(len(get_replies(post1).items), 1)
         self.assertEqual(get_replies(post1).total, 1)
 
-
     def test_check_post(self):
         """
         Will test that check_post returns the correct value with various
