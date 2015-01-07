@@ -9,7 +9,7 @@
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
     <img class="avatar" src="{{ item.email|avatar(24) }}"/>
     <div class="control">
-        {% if item.user_id == current_user._id %}
+        {% if item._id == current_user._id %}
         <a href="{{ url_for('users.settings_profile') }}">
             <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
         </a>
