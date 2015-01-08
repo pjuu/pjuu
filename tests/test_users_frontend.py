@@ -68,7 +68,9 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 2, Post 1!', resp.data)
         # Check the pagination button for next is there are not prev
         self.assertIn('<!-- pagination:older -->', resp.data)
+        self.assertIn('<!-- pagination:oldest -->', resp.data)
         self.assertNotIn('<!-- pagination:newer -->', resp.data)
+        self.assertNotIn('<!-- pagination:newerest -->', resp.data)
 
         # Let's go to page 2 in the pagination and check there are posts there
         resp = self.client.get(url_for('users.feed', page=2))
@@ -80,7 +82,9 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 2, Post 5!', resp.data)
         # Check that both pagination buttons are there
         self.assertIn('<!-- pagination:older -->', resp.data)
+        self.assertIn('<!-- pagination:oldest -->', resp.data)
         self.assertIn('<!-- pagination:newer -->', resp.data)
+        self.assertIn('<!-- pagination:newest -->', resp.data)
 
         # Let's go back to the first page
         resp = self.client.get(url_for('users.feed'))

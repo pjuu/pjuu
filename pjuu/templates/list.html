@@ -10,10 +10,16 @@
     {% if pagination.prev_page %}
     <div class="newer">
         {% if config.TESTING %}
+        <!-- pagination:newest -->
+        {% endif %}
+        <a href="{{ request.path + "?page=%s" % pagination.first_page }}">
+            <i class="fa fa-angle-double-left"></i>
+        </a>
+        {% if config.TESTING %}
         <!-- pagination:newer -->
         {% endif %}
         <a href="{{ request.path + "?page=%s" % pagination.prev_page }}">
-            <i class="fa fa-chevron-left"></i> Newer
+            <i class="fa fa-angle-left"></i>
         </a>
     </div>
     {% endif %}
@@ -23,7 +29,13 @@
         <!-- pagination:older -->
         {% endif %}
         <a href="{{ request.path + "?page=%s" % pagination.next_page }}">
-            Older <i class="fa fa-chevron-right"></i>
+            <i class="fa fa-angle-right"></i>
+        </a>
+        {% if config.TESTING %}
+        <!-- pagination:oldest -->
+        {% endif %}
+        <a href="{{ request.path + "?page=%s" % pagination.last_page }}">
+            <i class="fa fa-angle-double-right"></i>
         </a>
     </div>
     {% endif %}

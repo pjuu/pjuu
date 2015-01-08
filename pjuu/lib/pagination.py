@@ -62,10 +62,18 @@ class Pagination(object):
         return None
 
     @property
+    def first_page(self):
+        return 1
+
+    @property
     def next_page(self):
         if self.page < self.pages:
             return self.page + 1
         return None
+
+    @property
+    def last_page(self):
+        return self.pages
 
 
 def handle_page(request):
