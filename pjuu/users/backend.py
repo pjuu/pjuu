@@ -48,7 +48,8 @@ def get_profile(user_id):
     if profile:
         # Count the users posts in MongoDB
         profile['post_count'] = m.db.posts.find(
-            {'user_id': user_id, 'reply_to': {'$exists': False}}).count()
+            {'user_id': user_id, 'reply_to': {'$exists': False}}
+        ).count()
         # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(k.USER_FOLLOWERS.format(user_id))
         profile['following_count'] = r.zcard(k.USER_FOLLOWING.format(user_id))
@@ -226,8 +227,9 @@ def get_alerts(user_id, page=1):
     # Get the last time the users checked the alerts
     # Try and cast the value to an int so we can boolean compare them
     try:
-        alerts_last_checked = m.db.users.find_one({'_id': user_id}) \
-            .get('alerts_last_checked')
+        alerts_last_checked = m.db.users.find_one(
+            {'_id': user_id}
+        ).get('alerts_last_checked')
     except (AttributeError, TypeError, ValueError):
         alerts_last_checked = 0
 

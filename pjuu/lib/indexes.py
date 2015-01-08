@@ -27,14 +27,26 @@ def ensure_indexes():
     """
     # User indexes
     # User name and e-mail address have to be unique across the database
-    m.db.users.ensure_index([('username', pymongo.DESCENDING)], unique=True)
-    m.db.users.ensure_index([('email', pymongo.DESCENDING)], unique=True)
+    m.db.users.ensure_index(
+        [('username', pymongo.DESCENDING)],
+        unique=True
+    )
+    m.db.users.ensure_index(
+        [('email', pymongo.DESCENDING)],
+        unique=True
+    )
     # Set TTL indexes for newly created users (24 hour TTL)
-    m.db.users.ensure_index([('ttl', pymongo.DESCENDING)],
-                            expireAfterSeconds=k.EXPIRE_24HRS)
+    m.db.users.ensure_index(
+        [('ttl', pymongo.DESCENDING)],
+        expireAfterSeconds=k.EXPIRE_24HRS
+    )
 
     # Post indexes
     # Allow us to see all posts made by a user
-    m.db.posts.ensure_index([('uid', pymongo.DESCENDING)])
+    m.db.posts.ensure_index(
+        [('uid', pymongo.DESCENDING)]
+    )
     # Allow us to find all replies on a post
-    m.db.posts.ensure_index([('reply_to', pymongo.DESCENDING)])
+    m.db.posts.ensure_index(
+        [('reply_to', pymongo.DESCENDING)]
+    )

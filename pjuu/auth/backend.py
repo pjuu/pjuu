@@ -288,8 +288,10 @@ def ban(user_id, action=True):
 
     By passing False as action this will unban the user
     """
-    return m.db.users.update({'_id': user_id}, {'$set': {'banned': action}}) \
-        .get('updatedExisting')
+    return m.db.users.update(
+        {'_id': user_id},
+        {'$set': {'banned': action}}
+    ).get('updatedExisting')
 
 
 def bite(user_id, action=True):
@@ -297,8 +299,10 @@ def bite(user_id, action=True):
 
     By passing False as action this will unbite the user
     """
-    return m.db.users.update({'_id': user_id}, {'$set': {'op': action}}) \
-        .get('updatedExisting')
+    return m.db.users.update(
+        {'_id': user_id},
+        {'$set': {'op': action}}
+    ).get('updatedExisting')
 
 
 def mute(user_id, action=True):
@@ -307,8 +311,10 @@ def mute(user_id, action=True):
 
     By passing False as action this will un-mute the user
     """
-    return m.db.users.update({'_id': user_id}, {'$set': {'muted': action}}) \
-        .get('updatedExisting')
+    return m.db.users.update(
+        {'_id': user_id},
+        {'$set': {'muted': action}}
+    ).get('updatedExisting')
 
 
 def change_password(user_id, password):
@@ -319,8 +325,10 @@ def change_password(user_id, password):
 
     """
     password = generate_password(password)
-    return m.db.users.update({'_id': user_id},
-                             {'$set': {'password': password}})
+    return m.db.users.update(
+        {'_id': user_id},
+        {'$set': {'password': password}}
+    )
 
 
 def change_email(user_id, new_email):
