@@ -376,7 +376,8 @@ def delete_account():
 @auth_bp.route('/settings/dump', methods=['GET', 'POST'])
 @login_required
 def dump_account():
-    """
+    """Enables the user to dump a JSON representation of their account.
+
     """
     form = ConfirmPasswordForm(request.form)
     if request.method == 'POST':

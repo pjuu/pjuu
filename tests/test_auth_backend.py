@@ -371,7 +371,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('user1', data['user']['username'])
         self.assertFalse(data['user']['active'])
         # Check that uid and password have been scrubbed
-        self.assertEqual('<UID>', data['user']['uid'])
+        self.assertEqual('<UID>', data['user']['_id'])
         self.assertEqual('<PASSWORD HASH>', data['user']['password'])
         # Ensure posts and comments are None
         self.assertEqual([], data['posts'])
@@ -389,7 +389,7 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual('Post 2', data['posts'][1]['body'])
         self.assertEqual('Post 3', data['posts'][0]['body'])
         # Ensure there is no a uid in the post
-        self.assertEqual('<UID>', data['posts'][0]['uid'])
+        self.assertEqual('<UID>', data['posts'][0]['user_id'])
 
         # Create some comments on the above posts and re-dump
         create_post(user1, 'user1', 'Comment 1', post1)

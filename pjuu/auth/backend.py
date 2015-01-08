@@ -447,7 +447,7 @@ def dump_account(user_id):
     if user:
         # We are going to remove the uid and the password hash as this may
         # lead to some security issues
-        user['uid'] = '<UID>'
+        user['_id'] = '<UID>'
         user['password'] = '<PASSWORD HASH>'
     else:
         # If there is no user then we will just stop this here. The account has
@@ -462,7 +462,7 @@ def dump_account(user_id):
     for post in posts_cursor:
         # Hide the uid from the post. The pid is okay to add as this is part of
         # the URL anyway
-        post['uid'] = '<UID>'
+        post['user_id'] = '<UID>'
         posts.append(post)
 
     # Return the dict of the above, this will be turned in to JSON by the view
