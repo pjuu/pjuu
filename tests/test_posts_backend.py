@@ -310,15 +310,20 @@ class PostBackendTests(BackendTestCase):
         reply3 = create_post(user1, 'user1', 'Test comment 3', post1)
         reply4 = create_post(user2, 'user2', 'Test comment 4', post1)
 
+        # Check the comment count on post1 is correct
+        self.assertEqual(get_post(post1).get('comment_count'), 4)
+
         # Test deleting one comment
         # This function does not actually test to see if the user has the
         # the rights to delete the post. This should be tested in the frontend
         # Check a comment can be deleted
         self.assertIsNone(delete_post(reply4))
+
         # Check that getting the comment returns None
         self.assertIsNone(get_post(reply4))
-        # Ensure the comment is no longer in the posts comment list and no
-        # longer in the users comment list (that comment was by user2)
+
+        # Ensure the comment count on post1 is correct
+        self.assertEqual(get_post(post1).get('comment_count'), 3)
 
         # Delete the post. This should delete all the comments, we will check
         self.assertIsNone(delete_post(post1))

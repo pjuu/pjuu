@@ -472,9 +472,8 @@ def delete_post(post_id):
     if 'reply_to' in post:
         m.db.posts.update({'_id': post['reply_to']},
                           {'$inc': {'comment_count': -1}})
-
-    # Trigger deletion all posts comments if this post isn't a reply
-    if 'reply_to' not in post:
+    else:
+        # Trigger deletion all posts comments if this post isn't a reply
         r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
         delete_post_replies(post_id)
 
@@ -489,15 +488,15 @@ def delete_post_replies(post_id):
     # Get a cursor for all the posts comments
     cur = m.db.posts.find({'reply_to': post_id}, {'_id': 1})
 
-    # Iterate over the cursor and call delete comment on each one
+    # Iterate over the cursor and delete each one
     for reply in cur:
         reply_id = reply.get('_id')
 
-        # Delete votes and subscribers from Redis
-        r.delete(k.POST_VOTES.format(reply_id))
-
         # Delete the comment itself from MongoDB
         m.db.posts.remove({'_id': reply_id})
+
+        # Delete votes from Redis
+        r.delete(k.POST_VOTES.format(reply_id))
 
 
 def subscribe(user_id, post_id, reason):

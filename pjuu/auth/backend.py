@@ -358,30 +358,37 @@ def delete_account(user_id):
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.
+    # This action exists within the posts backend but importing it causes
+    # serious circular import issues. So We will re-create it here.
     posts_cursor = m.db.posts.find({'user_id': user_id})
     for post in posts_cursor:
         # Get the posts id
         post_id = post.get('_id')
 
-        # Delete the Redis stuff
-        # Delete all the votes made on the post
-        r.delete(k.POST_VOTES.format(post_id))
+        r.delete(k.POST_VOTES.format(post.get('_id')))
 
-        if 'reply_to' not in post:
-            # Delete posts subscribers list
-            r.delete(k.POST_SUBSCRIBERS.format(post_id))
-
-            replies_cursor = m.db.posts.find({'reply_to': post_id}, {})
-            for reply in replies_cursor:
-                # Get the comments id
-                reply_id = reply.get('_id')
-                # Delete comment votes
-                r.delete(k.POST_VOTES.format(reply_id))
-                # Delete the comment itself
-                m.db.posts.remove({'_id': reply_id})
-
-        # Delete the post itself
+        # Delete the post from MongoDB
         m.db.posts.remove({'_id': post_id})
+
+        if 'reply_to' in post:
+            m.db.posts.update({'_id': post['reply_to']},
+                              {'$inc': {'comment_count': -1}})
+        else:
+            # Trigger deletion all posts comments if this post isn't a reply
+            r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
+
+            # Get a cursor for all the posts comments
+            cur = m.db.posts.find({'reply_to': post_id}, {'_id': 1})
+
+            # Iterate over the cursor and call delete comment on each one
+            for reply in cur:
+                reply_id = reply.get('_id')
+
+                # Delete votes and subscribers from Redis
+                r.delete(k.POST_VOTES.format(reply_id))
+
+                # Delete the comment itself from MongoDB
+                m.db.posts.remove({'_id': reply_id})
 
     # Remove all the following relationships from Redis
 
