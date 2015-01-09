@@ -15,7 +15,7 @@ from flask import (abort, flash, redirect, render_template, request, url_for,
                    jsonify, Blueprint)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import get_uid, get_uid_username
+from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page

@@ -18,6 +18,7 @@ from werkzeug.security import (generate_password_hash as generate_password,
 # Pjuu imports
 from pjuu import mongo as m, redis as r
 from pjuu.lib import keys as k, timestamp, get_uuid
+from pjuu.posts.backend import delete_post
 
 
 # Username & E-mail checker re patterns
@@ -118,70 +119,6 @@ def create_account(username, email, password):
         pass
 
     return None
-
-
-def get_uid_username(username):
-    """Find a uid given a username.
-
-    :param username: The username to lookup
-    :type username: str
-    :returns: The users UID
-    :rtype: str or None
-
-    """
-    # Will return the user object with on the _id (user_id) field
-    user = m.db.users.find_one({'username': username.lower()}, {})
-
-    if user is not None:
-        return user.get('_id')
-
-    return None
-
-
-def get_uid_email(email):
-    """Find a uid given a username.
-
-    :param email: The email to lookup
-    :type email: str
-    :returns: The users UID
-    :rtype: str or None
-
-    """
-    # Look up the email inside mongo
-    uid = m.db.users.find_one({'email': email.lower()}, {})
-
-    if uid is not None:
-        return uid.get('_id')
-
-    return None
-
-
-def get_uid(lookup_value):
-    """Calls either `get_uid_username` or `get_uid_email` depending on the
-    the contents of `lookup_value`.
-
-    :param lookup_value: The value to lookup
-    :type lookup_value: str
-    :returns: The users UID
-    :rtype: str or None
-
-    """
-    if '@' in lookup_value:
-        return get_uid_email(lookup_value)
-    else:
-        return get_uid_username(lookup_value)
-
-
-def get_user(user_id):
-    """Get user with `user_id` as `dict`.
-
-    :param user_id: The user_id to get
-    :type user_id: str
-    :returns: The user as a dict
-    :rtype: dict or None
-
-    """
-    return m.db.users.find_one({'_id': user_id})
 
 
 def check_username_pattern(username):
@@ -358,37 +295,10 @@ def delete_account(user_id):
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.
-    # This action exists within the posts backend but importing it causes
-    # serious circular import issues. So We will re-create it here.
-    posts_cursor = m.db.posts.find({'user_id': user_id})
+    # This calls the backend function from posts to do the deed
+    posts_cursor = m.db.posts.find({'user_id': user_id}, {})
     for post in posts_cursor:
-        # Get the posts id
-        post_id = post.get('_id')
-
-        r.delete(k.POST_VOTES.format(post.get('_id')))
-
-        # Delete the post from MongoDB
-        m.db.posts.remove({'_id': post_id})
-
-        if 'reply_to' in post:
-            m.db.posts.update({'_id': post['reply_to']},
-                              {'$inc': {'comment_count': -1}})
-        else:
-            # Trigger deletion all posts comments if this post isn't a reply
-            r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
-
-            # Get a cursor for all the posts comments
-            cur = m.db.posts.find({'reply_to': post_id}, {'_id': 1})
-
-            # Iterate over the cursor and call delete comment on each one
-            for reply in cur:
-                reply_id = reply.get('_id')
-
-                # Delete votes and subscribers from Redis
-                r.delete(k.POST_VOTES.format(reply_id))
-
-                # Delete the comment itself from MongoDB
-                m.db.posts.remove({'_id': reply_id})
+        delete_post(post.get('_id'))
 
     # Remove all the following relationships from Redis
 

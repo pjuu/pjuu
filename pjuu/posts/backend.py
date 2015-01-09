@@ -17,7 +17,7 @@ from jinja2.filters import do_capitalize
 
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import get_uid_username
+from pjuu.auth.utils import get_uid_username
 from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.lua import zadd_member_nx
@@ -463,19 +463,23 @@ def delete_post(post_id):
 
     """
     post = get_post(post_id)
-    # Delete votes and subscribers from Redis
-    r.delete(k.POST_VOTES.format(post.get('_id')))
 
-    # Delete the post from MongoDB
-    m.db.posts.remove({'_id': post_id})
+    # In some situations a post may be in a cursor (deleting account) but have
+    # already been deleted by this function in a previous run.
+    if post is not None:
+        # Delete votes and subscribers from Redis
+        r.delete(k.POST_VOTES.format(post.get('_id')))
 
-    if 'reply_to' in post:
-        m.db.posts.update({'_id': post['reply_to']},
-                          {'$inc': {'comment_count': -1}})
-    else:
-        # Trigger deletion all posts comments if this post isn't a reply
-        r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
-        delete_post_replies(post_id)
+        # Delete the post from MongoDB
+        m.db.posts.remove({'_id': post_id})
+
+        if 'reply_to' in post:
+            m.db.posts.update({'_id': post['reply_to']},
+                              {'$inc': {'comment_count': -1}})
+        else:
+            # Trigger deletion all posts comments if this post isn't a reply
+            r.delete(k.POST_SUBSCRIBERS.format(post.get('_id')))
+            delete_post_replies(post_id)
 
 
 def delete_post_replies(post_id):

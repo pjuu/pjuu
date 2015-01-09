@@ -15,6 +15,7 @@ from werkzeug.http import parse_cookie
 # Pjuu imports
 from pjuu import redis_sessions as rs
 from pjuu.auth.backend import *
+from pjuu.auth.utils import *
 # Test imports
 from tests import FrontendTestCase
 

@@ -8,7 +8,6 @@
 """
 
 # Pjuu imports
-from pjuu.lib import keys as K
 from pjuu.lib.tokens import *
 # Test imports
 from tests import BackendTestCase

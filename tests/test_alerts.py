@@ -10,7 +10,7 @@ backend test for the specific alerts that appear there.
 
 # Pjuu imports
 from pjuu.auth.backend import create_account, delete_account
-from pjuu.lib import keys as K
+from pjuu.lib import keys as k
 from pjuu.lib.alerts import *
 # Test imports
 from tests import BackendTestCase
@@ -27,7 +27,7 @@ class AlertTests(BackendTestCase):
 
         """
         # Check that an alert will not work with a non-existant get_user
-        alert = BaseAlert(K.NIL_VALUE)
+        alert = BaseAlert(k.NIL_VALUE)
         # Check that there is a timestamp
         self.assertGreater(alert.timestamp, 0)
         # We should get nothing back for alerts when it comes to our
@@ -58,15 +58,15 @@ class AlertTests(BackendTestCase):
         am = AlertManager()
 
         # Try and load a non-existant alert
-        self.assertIsNone(am.get(K.NIL_VALUE))
+        self.assertIsNone(am.get(k.NIL_VALUE))
 
         # Try and alert on something which is not an alert
-        self.assertRaises(ValueError, lambda: am.alert('ALERT', K.NIL_VALUE))
+        self.assertRaises(ValueError, lambda: am.alert('ALERT', k.NIL_VALUE))
 
         # Test that alerting a single users does not work, they need to be
         # iterable
         # Create an alert
-        alert = BaseAlert(K.NIL_VALUE)
+        alert = BaseAlert(k.NIL_VALUE)
         self.assertRaises(TypeError, lambda: am.alert(alert, 1))
 
         # Create a couple of users
@@ -74,7 +74,7 @@ class AlertTests(BackendTestCase):
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Ensure the length of user1's alert feed is 0
-        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 0)
+        self.assertEqual(r.zcard(k.USER_ALERTS.format(user1)), 0)
 
         # Create an alert from user2
         alert = BaseAlert(user2)
@@ -82,10 +82,10 @@ class AlertTests(BackendTestCase):
         am.alert(alert, [user1])
 
         # Ensure the length of user1's alert feed is 1
-        self.assertEqual(r.zcard(K.USER_ALERTS.format(user1)), 1)
+        self.assertEqual(r.zcard(k.USER_ALERTS.format(user1)), 1)
 
         # Get alerts for user1, user Redis directly
-        alerts = r.zrange(K.USER_ALERTS.format(user1), 0, 0)
+        alerts = r.zrange(k.USER_ALERTS.format(user1), 0, 0)
         # Get the alert from alerts
         alert = am.get(alerts[0])
         self.assertIsNotNone(alert)

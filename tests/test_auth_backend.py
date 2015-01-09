@@ -11,6 +11,7 @@
 from flask import current_app as app, session
 # Pjuu imports
 from pjuu.auth.backend import *
+from pjuu.auth.utils import *
 from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post
 from pjuu.users.backend import follow_user

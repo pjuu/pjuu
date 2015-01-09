@@ -8,7 +8,8 @@
 """
 
 # Pjuu imports
-from pjuu.auth.backend import create_account, delete_account, get_user
+from pjuu.auth.backend import create_account, delete_account
+from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
 from pjuu.users.backend import follow_user, get_alerts, get_feed

@@ -18,11 +18,12 @@ from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth import current_user
 from pjuu.auth.backend import (authenticate, signin as be_signin,
                                signout as be_signout, create_account,
-                               activate as be_activate, get_user, get_uid,
+                               activate as be_activate,
                                change_password as be_change_password,
                                change_email as be_change_email,
                                delete_account as be_delete_account,
                                dump_account as be_dump_account)
+from pjuu.auth.utils import get_uid, get_user
 from pjuu.auth.decorators import anonymous_required, login_required
 from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
                              ChangeEmailForm, ChangePasswordForm,

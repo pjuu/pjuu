@@ -12,7 +12,7 @@ from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.backend import get_uid
+from pjuu.auth.utils import get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page

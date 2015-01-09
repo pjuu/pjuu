@@ -22,7 +22,7 @@ import jsonpickle
 from werkzeug.utils import cached_property
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import get_user as be_get_user
+from pjuu.auth.utils import get_user as be_get_user
 from pjuu.lib import keys as k, timestamp, get_uuid
 
 

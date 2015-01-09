@@ -15,7 +15,7 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import get_user
+from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
