@@ -12,7 +12,7 @@ before_install:
   - redis-cli info | grep redis_version
 
 install:
-  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
 
 script:
   - coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt --branch run_tests.py
