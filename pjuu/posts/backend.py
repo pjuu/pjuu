@@ -381,7 +381,16 @@ def get_post(post_id):
     """Returns a post. Simple helper function
 
     """
-    return m.db.posts.find_one({'_id': post_id})
+    post = m.db.posts.find_one({'_id': post_id})
+    # Attach in the e-mail (will be removed with image uploads)
+
+    if post is not None:
+        user = m.db.users.find_one({'_id': post.get('user_id')},
+                                   {'email': True})
+        if user is not None:
+            post['user_email'] = user.get('email')
+
+    return post
 
 
 def get_posts(user_id, page=1):
@@ -389,6 +398,11 @@ def get_posts(user_id, page=1):
 
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+
+    # Get the user object we need the email for Gravatar.
+    user = m.db.users.find_one({'_id': user_id},
+                               {'email': True})
+
     total = m.db.posts.find({'user_id': user_id,
                              'reply_to': {'$exists': False}}).count()
     cursor = m.db.posts.find({'user_id': user_id,
@@ -397,6 +411,11 @@ def get_posts(user_id, page=1):
 
     posts = []
     for post in cursor:
+        # Get the users email address for the avatar. This will be removed
+        # when image uploads are added
+        if user is not None:
+            post['user_email'] = user.get('email')
+
         posts.append(post)
 
     return Pagination(posts, total, page, per_page)
@@ -414,6 +433,14 @@ def get_replies(post_id, page=1):
 
     replies = []
     for reply in cursor:
+        # We have to get the users email for each post for the gravatar
+        user = m.db.users.find_one(
+            {'_id': reply.get('user_id')},
+            {'email': True})
+
+        if user is not None:
+            reply['user_email'] = user.get('email')
+
         replies.append(reply)
 
     return Pagination(replies, total, page, per_page)

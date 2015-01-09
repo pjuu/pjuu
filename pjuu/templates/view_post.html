@@ -7,7 +7,7 @@
 <!-- view:post:{{ post._id }} -->
 {% endif %}
 <div id="post" class="block clearfix">
-    <img class="avatar" src="" />
+    <img class="avatar" src="{{ post.user_email|avatar(48) }}" />
 
     <div class="control">
         {% if post.user_id == current_user._id %}
