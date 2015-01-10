@@ -352,6 +352,14 @@ button:hover {
     color: #C00;
 }
 
+.hide {
+    color: #999;
+}
+
+.hide:hover {
+    color: #C00;
+}
+
 .comments:hover {
     color: #33C;
 }
