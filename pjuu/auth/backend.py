@@ -182,13 +182,15 @@ def authenticate(username, password):
     """Authenticate a username/password combination.
 
     """
-
-    result = m.db.users.find_one({'username': username})
+    if '@' in username:
+        user = m.db.users.find_one({'email': username})
+    else:
+        user = m.db.users.find_one({'username': username})
 
     # Check that we got a result and that the password matches the stored one
-    if result and check_password(result.get('password'), password):
+    if user and check_password(user.get('password'), password):
         # If it matched return the document
-        return result
+        return user
 
     # Oh no, something went wrong
     return None
