@@ -59,7 +59,7 @@
     </div>
 </div>
 
-{% if profile.uid == current_user.uid %}
+{% if profile._id == current_user._id %}
     {% include 'author_post.html' %}
 {% endif %}
 
