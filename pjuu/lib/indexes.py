@@ -44,7 +44,7 @@ def ensure_indexes():
     # Post indexes
     # Allow us to see all posts made by a user
     m.db.posts.ensure_index(
-        [('uid', pymongo.DESCENDING)]
+        [('user_id', pymongo.DESCENDING)]
     )
     # Allow us to find all replies on a post
     m.db.posts.ensure_index(
