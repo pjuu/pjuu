@@ -190,6 +190,9 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNotNone(user1)
         # Check authenticate
         self.assertEqual(authenticate('user1', 'Password').get('_id'), user1)
+        # Check auth with e-mail
+        self.assertEqual(authenticate('user1@pjuu.com', 'Password').get('_id'),
+                         user1)
         # Check incorrect password
         self.assertIsNone(authenticate('user1', 'Pass'))
         # Check non existant user
