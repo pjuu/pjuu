@@ -99,11 +99,16 @@ def view_post(username, post_id):
     page = handle_page(request)
 
     # Get post and comments for the current page
-    post = get_post(post_id)
+    _post = get_post(post_id)
+
+    # Stop a reply from ever being shown here
+    if 'reply_to' in _post:
+        return abort(404)
+
     pagination = get_replies(post_id, page)
 
     post_form = PostForm()
-    return render_template('view_post.html', post=post,
+    return render_template('view_post.html', post=_post,
                            pagination=pagination, post_form=post_form)
 
 

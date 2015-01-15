@@ -278,6 +278,11 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Test comment 2', resp.data)
         # Done for now
 
+        # Attempt to view_post on a reply. Shouldn't work
+        resp = self.client.get(url_for('posts.view_post', username='user2',
+                                       post_id=comment2))
+        self.assertEqual(resp.status_code, 404)
+
     def test_replies(self):
         """
         Test commenting on a post. This is a lot simpler than making a post
