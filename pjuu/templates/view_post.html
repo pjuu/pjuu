@@ -14,7 +14,7 @@
         {% if config.TESTING %}
         <!-- delete:post:{{ post._id }} -->
         {% endif %}
-        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-remove fa-lg delete"></a>
+        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=post._id) }}" class="fa fa-remove fa-lg delete"></a>
         {% endif %}
     </div>
 
