@@ -6,6 +6,7 @@ Flask-PyMongo==0.3.0
 Flask-WTF==0.11
 Jinja2==2.7.3
 MarkupSafe==0.23
+Pillow==2.7.0
 WTForms==2.0.2
 Werkzeug==0.9.6
 blinker==1.3
