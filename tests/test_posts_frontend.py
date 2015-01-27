@@ -8,6 +8,7 @@
 """
 
 # Pjuu imports
+import io
 from pjuu.auth.backend import create_account, activate, mute
 from pjuu.posts.backend import *
 from pjuu.users.backend import follow_user
@@ -201,7 +202,90 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Posts can not be larger than '
                       '{0} characters'.format(MAX_POST_LENGTH), resp.data)
 
+        # Ensure that posting an image with no text still doesn't allow it
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        resp = self.client.post(
+            url_for('posts.post'),
+            data={
+                'body': '',
+                'upload': (image, 'otter.jpg')
+            },
+            follow_redirects=True
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('A message is required.', resp.data)
+
+        # Test posting with an image
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        resp = self.client.post(
+            url_for('posts.post'),
+            data={
+                'body': 'Test upload',
+                'upload': (image, 'otter.jpg')
+            },
+            follow_redirects=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        # Goto the users feed an ensure the post is there
+        resp = self.client.get(url_for('users.feed'))
+        self.assertEqual(resp.status_code, 200)
+
+        # So that we can check the data is in the templates, upload a post
+        # in the backend and ensure it appears where it should
+        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        post1 = create_post(user1, 'user1', 'Test post', upload=image)
+        self.assertIsNotNone(post1)
+        post = get_post(post1)
+        resp = self.client.get(url_for('users.feed'))
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
+                                                  filename=post.get('upload')),
+                      resp.data)
+
+        # Although the below belongs in `test_view_post` we are just going to
+        # check it here for simplicity
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
+                                                  filename=post.get('upload')),
+                      resp.data)
+
         # Done for now
+
+    def test_get_upload(self):
+        """Tests the simple wrapper around ``lib.uploads.get_upload``
+
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+
+        # Create the post with an upload to get
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        post1 = create_post(user1, 'user1', 'Test post', upload=image)
+        self.assertIsNotNone(post1)
+
+        post = get_post(post1)
+
+        # Try and get the post and ensure we are redirected because we are not
+        # logged in
+        resp = self.client.get(url_for('posts.get_upload',
+                                       filename=post.get('upload')))
+        self.assertEqual(resp.status_code, 302)
+
+        # Log in as user1 and get the upload
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.get_upload',
+                                       filename=post.get('upload')))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers['Content-Type'], 'image/png')
 
     def test_view_post(self):
         """
@@ -386,6 +470,46 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than '
                       '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+
+        # Test replies with an image
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        resp = self.client.post(
+            url_for('posts.post', username='user1', post_id=post1),
+            data={
+                'body': 'Test upload',
+                'upload': (image, 'otter.jpg')
+            },
+            follow_redirects=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        # So that we can check the data is in the templates, upload a post
+        # in the backend and ensure it appears where it should
+        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        reply_img = create_post(user1, 'user1', 'Test post', reply_to=post1,
+                                upload=image)
+        self.assertIsNotNone(reply_img)
+        reply = get_post(reply_img)
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertIn('<!-- upload:reply:%s -->' % reply_img, resp.data)
+        self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
+                                                  filename=reply.get('upload')),
+                      resp.data)
+
+        # Ensure that posting an image with no text still doesn't allow it
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        resp = self.client.post(
+            url_for('posts.post', username='user1', post_id=post1),
+            data={
+                'body': '',
+                'upload': (image, 'otter.jpg')
+            },
+            follow_redirects=True
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('A message is required.', resp.data)
 
         # Done for now
 

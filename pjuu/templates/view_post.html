@@ -28,6 +28,16 @@
             {{ post.body|e|urlize|nameify }}
             {% endautoescape %}
         </div>
+        {% if post.upload %}
+        {% if config.TESTING %}
+        <!-- upload:post:{{ post._id }} -->
+        {% endif %}
+        <div class="image">
+            <a href="{{ url_for('posts.get_upload', filename=post.upload) }}">
+                <img src="{{ url_for('posts.get_upload', filename=post.upload) }}"/>
+            </a>
+        </div>
+        {% endif %}
         <div class="panel clearfix">
             <ul>
                 <li>

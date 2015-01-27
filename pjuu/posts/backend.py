@@ -22,6 +22,7 @@ from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
+from pjuu.lib.uploads import process_upload
 
 
 # Allow chaning the maximum length of a post
@@ -131,7 +132,7 @@ class CommentingAlert(PostingAlert):
                        sr)
 
 
-def create_post(user_id, username, body, reply_to=None):
+def create_post(user_id, username, body, reply_to=None, upload=None):
     """Creates a new post
 
     This handled both posts and what used to be called comments. If the
@@ -146,6 +147,7 @@ def create_post(user_id, username, body, reply_to=None):
     :type body: str
     :param reply_to: The post id of the post this is a reply to if any
     :type reply_to: str
+    :param upload:
     :returns: The post id of the new post
     :rtype: str or None
 
@@ -170,6 +172,22 @@ def create_post(user_id, username, body, reply_to=None):
     else:
         # Replies don't need a comment count on posts
         post['comment_count'] = 0
+
+    # TODO: Make the upload process better at dealing with issues
+    if upload:
+        # If there is an upload along with this post it needs to go for
+        # processing.
+        # process_upload() can throw an Exception of UploadError.
+        # TODO: Turn this in to a Celery task
+        filename = process_upload(post_id, upload)
+
+        if filename is not None:
+            # If the upload process was okay attach the filename to the doc
+            post['upload'] = filename
+        else:
+            # Stop the image upload process here if something went wrong.
+            return None
+
 
     # Add the post to the database
     # If the post isn't stored, result will be None

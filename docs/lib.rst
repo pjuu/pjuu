@@ -58,3 +58,10 @@ Tokens (pjuu.lib.tokens)
 .. automodule:: pjuu.lib.tokens
    :members:
    :private-members:
+
+Uploads (pjuu.lib.uploads)
+------------------------
+
+.. automodule:: pjuu.lib.uploads
+   :members:
+   :private-members:

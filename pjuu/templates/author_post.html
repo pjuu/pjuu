@@ -2,10 +2,14 @@
 <!-- author post -->
 {% endif %}
 <div id="author" class="block post clearfix">
-    <form action="{{ url_for('posts.post', next=request.path) }}" method="post">
+    <form action="{{ url_for('posts.post', next=request.path) }}" method="post" enctype="multipart/form-data">
         {{ post_form.body(rows=2, maxlength=post_form.body.validators[1].max, placeholder="Write a post...") }}
         {{ post_form.csrf_token }}
         <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
-        <button type="submit"><i class="fa fa-send"></i> Post</button>
+        <div id="action">
+            {{ post_form.upload }}
+            <label id="upload-label" for="upload"><i class="fa fa-camera"></i></label>
+            <button type="submit"><i class="fa fa-send"></i> Post</button>
+        </div>
     </form>
 </div>

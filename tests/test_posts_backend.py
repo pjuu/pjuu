@@ -8,6 +8,7 @@
 """
 
 # Pjuu imports
+import io
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
@@ -43,6 +44,7 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(post.get('comment_count'), 0)
         # Check the memebers we don't know the answer to
         self.assertIsNotNone(post.get('created'))
+        self.assertNotIn('upload', post)
 
         # Ensure this post is the users feed (populate_feed)
         self.assertIn(post1, r.zrange(K.USER_FEED.format(user1), 0, -1))
@@ -50,6 +52,24 @@ class PostBackendTests(BackendTestCase):
         # Testing getting post with invalid arguments
         # Test getting a post that does not exist
         self.assertIsNone(get_post(K.NIL_VALUE))
+
+        # Create a post with an image
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        post2 = create_post(user1, 'user1', 'Test post #2', upload=image)
+
+        self.assertIsNotNone(post2)
+
+        post = get_post(post2)
+        self.assertIn('upload', post)
+        self.assertIsNotNone(post.get('upload'))
+
+        # Create a post with a broken image, ensure it's handled correctly
+        image = io.BytesIO()
+        post3 = create_post(user1, 'user1', 'Test post #3', upload=image)
+        self.assertIsNone(post3)
+        post3 = get_post(post3)
+        self.assertIsNone(post3)
+
 
     def test_create_reply(self):
         """Test that a reply can be made on a post
@@ -79,6 +99,26 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(comment.get('body'), 'Test comment')
         self.assertEqual(comment.get('score'), 0)
         self.assertIsNotNone(comment.get('created'))
+        self.assertNotIn('upload', comment)
+
+        # Create a post with an image
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        reply1 = create_post(user1, 'user1', 'Test post #2', reply_to=post1,
+                             upload=image)
+
+        self.assertIsNotNone(reply1)
+
+        comment = get_post(reply1)
+        self.assertIn('upload', comment)
+        self.assertIsNotNone(comment.get('upload'))
+
+        # Create a post with a broken image, ensure it's handled correctly
+        image = io.BytesIO()
+        reply2 = create_post(user1, 'user1', 'Test post #3', reply_to=post1,
+                            upload=image)
+        self.assertIsNone(reply2)
+        comment = get_post(reply2)
+        self.assertIsNone(comment)
 
     def test_get_feed(self):
         """

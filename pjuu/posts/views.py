@@ -7,6 +7,7 @@
 
 """
 
+from StringIO import StringIO
 # 3rd party imports
 from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint)
@@ -16,6 +17,7 @@ from pjuu.auth.utils import get_uid
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next
 from pjuu.lib.pagination import handle_page
+from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
                       vote_post, get_post, delete_post as be_delete_post,
                       get_replies, unsubscribe as be_unsubscribe,
@@ -140,11 +142,18 @@ def post(username=None, post_id=None):
         flash('You have been silenced!', 'warning')
         return redirect(redirect_url)
 
-    form = PostForm(request.form)
+    form = PostForm()
     if form.validate():
+        # If there is an uploaded File pass it on else pass nothing
+        if form.upload.data:
+            # Pass the BytesIO stream to the backend.
+            upload = form.upload.data.stream
+        else:
+            upload = None
+
         # Create the post
         if create_post(current_user['_id'], current_user['username'],
-                       form.body.data, post_id):
+                       form.body.data, post_id, upload):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
         else:
@@ -160,6 +169,15 @@ def post(username=None, post_id=None):
             flash('Oh no! There are errors in your post.',
                   'error')  # pragma: no cover
     return redirect(redirect_url)
+
+
+@posts_bp.route('/uploads/<path:filename>', methods=['GET'])
+@login_required
+def get_upload(filename):
+    """Simple function to get the uploaded content from GridFS.
+
+    """
+    return be_get_upload(filename)
 
 
 @posts_bp.route('/<username>/<post_id>/upvote', methods=['GET'])
@@ -240,9 +258,9 @@ def delete_post(username, post_id, reply_id=None):
         return abort(404)
 
     if reply_id is not None:
-        post = get_post(reply_id)
+        _post = get_post(reply_id)
 
-        if post['user_id'] != current_user['_id'] and \
+        if _post['user_id'] != current_user['_id'] and \
                 user_id != current_user['_id']:
             return abort(403)
     else:

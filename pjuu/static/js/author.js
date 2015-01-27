@@ -11,3 +11,13 @@ $('textarea').bind('input propertychange', function() {
         $(this).siblings("#count").css('color', '#000');
     }
 });
+
+/* Change the camera icon when a file has been added to the input */
+$('#upload').bind('change', function() {
+    var fileName = $("#upload").val();
+    if (fileName) {
+        $('#upload-label').addClass('has-file');
+    } else {
+        $('#upload-label').removeClass('has-file');
+    }
+});

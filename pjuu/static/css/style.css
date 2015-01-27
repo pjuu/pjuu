@@ -90,7 +90,6 @@ input[type=password].error {
 input[type=submit] {
     border: 1px solid #666;
     border-radius: 3px;
-    float: right;
     font-weight: 700;
     padding: 0.5em 1em;
 }
@@ -477,6 +476,18 @@ button:hover {
     word-wrap: break-word;
 }
 
+#post .image {
+    margin: 0 0 1em;
+}
+
+#post .image img {
+    border: 1px solid #666;
+    display: block;
+    max-height: 240px;
+    max-width: 100%;
+    width: auto;
+}
+
 #post .created {
     color: #BBB;
     font-size: 11px;
@@ -551,8 +562,33 @@ button:hover {
     margin: 0 0 0.5em 0;
 }
 
+#author input[type="file"] {
+    height: 0;
+    width: 0;
+}
+
+#author #upload-label {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    font-weight: 700;
+    float: left;
+    margin-right: 1em;
+    padding: 0.25em 1em;
+}
+
+.has-file {
+    color: #0C0 !important;
+}
+
 #author #count {
     float: left;
+    padding: 0.25em;
+}
+
+#author #action {
+    float: right;
     padding: 0.25em;
 }
 
@@ -642,8 +678,20 @@ button:hover {
     word-wrap: break-word;
 }
 
-#list .user .body{
+#list .user .body {
     margin: 0.75em 0 0;
+}
+
+#list .image {
+    margin: 0 0 1em;
+}
+
+#list .image img {
+    border: 1px solid #666;
+    display: block;
+    max-height: 240px;
+    max-width: 100%;
+    width: auto;
 }
 
 #list .alert .body {
