@@ -182,6 +182,9 @@ def authenticate(username, password):
     """Authenticate a username/password combination.
 
     """
+    # Case-insensitive login
+    username = username.lower()
+
     if '@' in username:
         user = m.db.users.find_one({'email': username})
     else:

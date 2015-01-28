@@ -193,6 +193,14 @@ class AuthBackendTests(BackendTestCase):
         # Check auth with e-mail
         self.assertEqual(authenticate('user1@pjuu.com', 'Password').get('_id'),
                          user1)
+        # Case in-sensitive test
+        self.assertEqual(authenticate('USER1', 'Password').get('_id'), user1)
+        self.assertEqual(authenticate('USER1@PJUU.COM', 'Password').get('_id'),
+                         user1)
+        # Ensure case in-sensitive password does NOT WORK
+        self.assertIsNone(authenticate('user1', 'password'))
+        self.assertIsNone(authenticate('user1', 'PASSWORD'))
+
         # Check incorrect password
         self.assertIsNone(authenticate('user1', 'Pass'))
         # Check non existant user
