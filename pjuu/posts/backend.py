@@ -188,7 +188,6 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
             # Stop the image upload process here if something went wrong.
             return None
 
-
     # Add the post to the database
     # If the post isn't stored, result will be None
     result = m.db.posts.insert(post)

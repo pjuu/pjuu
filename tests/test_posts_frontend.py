@@ -494,9 +494,8 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
         self.assertIn('<!-- upload:reply:%s -->' % reply_img, resp.data)
-        self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
-                                                  filename=reply.get('upload')),
-                      resp.data)
+        self.assertIn('<img src="%s"/>' % url_for(
+            'posts.get_upload', filename=reply.get('upload')), resp.data)
 
         # Ensure that posting an image with no text still doesn't allow it
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())

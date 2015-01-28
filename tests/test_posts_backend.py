@@ -70,7 +70,6 @@ class PostBackendTests(BackendTestCase):
         post3 = get_post(post3)
         self.assertIsNone(post3)
 
-
     def test_create_reply(self):
         """Test that a reply can be made on a post
 
@@ -115,7 +114,7 @@ class PostBackendTests(BackendTestCase):
         # Create a post with a broken image, ensure it's handled correctly
         image = io.BytesIO()
         reply2 = create_post(user1, 'user1', 'Test post #3', reply_to=post1,
-                            upload=image)
+                             upload=image)
         self.assertIsNone(reply2)
         comment = get_post(reply2)
         self.assertIsNone(comment)
