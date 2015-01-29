@@ -30,9 +30,9 @@ Note: This will install Redis from wheezy-backports you may want to change this.
 Note: This will install MongoDB from 10gen's own Debian repository. This is not always needed and your own distributions repository may do.
 
 ```
-$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-
 $ sudo sh -c 'echo "deb http://ftp.uk.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list'
+
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
 
 $ sudo sh -c 'echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" >> /etc/apt/sources.list'
 
@@ -42,7 +42,7 @@ $ sudo apt-get install build-essentials python-dev python-setuptools
 
 $ sudo apt-get install -t wheezy-backports redis-server
 
-$ ssudo apt-get install mongodb-org
+$ sudo apt-get install mongodb-org
 
 $ sudo easy_install virtualenv
 
