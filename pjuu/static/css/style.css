@@ -91,6 +91,7 @@ input[type=submit] {
     border: 1px solid #666;
     border-radius: 3px;
     font-weight: 700;
+    float: right;
     padding: 0.5em 1em;
 }
 
@@ -582,7 +583,7 @@ button:hover {
     color: #0C0 !important;
 }
 
-#author #count {
+#count {
     float: left;
     padding: 0.25em;
 }
@@ -815,7 +816,7 @@ button:hover {
 
 #setting {
     margin: 0 auto;
-    padding: 0.5em;
+    padding: 0.5em 0.5em 1em;
     min-width: 300px;
     max-width: 380px;
 }
