@@ -564,9 +564,8 @@ button:hover {
 }
 
 #author input[type="file"] {
-    display: none;
-    height: 0;
-    width: 0;
+    position: absolute;
+    left: -9999px;
 }
 
 #author #upload-label {
