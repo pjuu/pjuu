@@ -7,8 +7,10 @@
         {{ post_form.csrf_token }}
         <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
         <div id="action">
-            {{ post_form.upload }}
-            <label id="upload-label" for="upload"><i class="fa fa-camera"></i></label>
+            <label id="upload-label" for="upload">
+                {{ post_form.upload }}
+                <i class="fa fa-camera"></i>
+            </label>
             <button type="submit"><i class="fa fa-send"></i> Post</button>
         </div>
     </form>
