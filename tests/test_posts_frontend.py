@@ -510,6 +510,20 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('A message is required.', resp.data)
 
+        # Ensure that an invalid filename is stopped by the forms
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        resp = self.client.post(
+            url_for('posts.post', username='user1', post_id=post1),
+            data={
+                'body': 'Test',
+                'upload': (image, 'otter.cheese')
+            },
+            follow_redirects=True
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Only "gif", "jpg", "jpeg" and "png" files are '
+                      'supported', resp.data)
+
         # Done for now
 
     def test_up_down_vote(self):

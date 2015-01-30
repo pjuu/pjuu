@@ -160,14 +160,11 @@ def post(username=None, post_id=None):
             flash('There was an error creating your post',
                   'error')  # pragma: no cover
     else:
-        # This flash can handle only 1 form error
-        # There is an odd issue where are error is thrown with no errors
-        # Can't recreate the issue
-        if len(form.body.errors) > 0:
-            flash(form.body.errors[0], 'error')
-        else:
-            flash('Oh no! There are errors in your post.',
-                  'error')  # pragma: no cover
+        # Will print out all errors that happen in a post form.
+        # This is better than "There is an error in your post"
+        for key, value in form.errors.iteritems():
+            for error in value:
+                flash(error, 'error')
     return redirect(redirect_url)
 
 
