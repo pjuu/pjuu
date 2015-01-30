@@ -21,7 +21,7 @@ from pjuu.lib.sessions import RedisSessionInterface
 
 # Application information
 __author__ = 'Joe Doherty <joe@pjuu.com>'
-__version__ = '0.7-dev'
+__version__ = '0.7'
 
 
 # Global Flask-Mail object
