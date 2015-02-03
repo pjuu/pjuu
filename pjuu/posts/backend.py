@@ -22,7 +22,7 @@ from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
-from pjuu.lib.uploads import process_upload
+from pjuu.lib.uploads import process_upload, delete_upload
 
 
 # Allow chaning the maximum length of a post
@@ -517,6 +517,10 @@ def delete_post(post_id):
         # Delete the post from MongoDB
         m.db.posts.remove({'_id': post_id})
 
+        if 'upload' in post:
+            # If there is an upload, delete it!
+            delete_upload(post['upload'])
+
         if 'reply_to' in post:
             m.db.posts.update({'_id': post['reply_to']},
                               {'$inc': {'comment_count': -1}})
@@ -534,7 +538,7 @@ def delete_post_replies(post_id):
 
     """
     # Get a cursor for all the posts comments
-    cur = m.db.posts.find({'reply_to': post_id}, {'_id': 1})
+    cur = m.db.posts.find({'reply_to': post_id})
 
     # Iterate over the cursor and delete each one
     for reply in cur:
@@ -542,6 +546,10 @@ def delete_post_replies(post_id):
 
         # Delete the comment itself from MongoDB
         m.db.posts.remove({'_id': reply_id})
+
+        # Remove any uploaded files
+        if 'upload' in reply:
+            delete_upload(reply['upload'])
 
         # Delete votes from Redis
         r.delete(k.POST_VOTES.format(reply_id))
