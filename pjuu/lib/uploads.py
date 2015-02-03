@@ -11,6 +11,7 @@ At this time this only includes images so Pillow and GridFS are used.
 
 import io
 from PIL import Image as PILImage
+import gridfs
 
 from pjuu import mongo as m
 
@@ -70,3 +71,24 @@ def get_upload(filename, collection='uploads'):
     # Flask-PyMongo will handle 404's etc.
     # Tell the browser to cache for 1sec.
     return m.send_file(filename, base=collection, cache_for=3600)
+
+
+def delete_upload(filename, collection='uploads'):
+    """Deletes file with ``filename`` from GridFS ``collection.
+
+    :param filename: The filename to delete
+    :param collection: The collection to look for the file in
+
+    """
+    grid = gridfs.GridFS(m.db, collection=collection)
+
+    # There should only be one file but unfortunately pymongo's docs are wrong
+    # and there is no `find_one` method :(
+    cursor = grid.find({'filename': filename}).limit(1)
+    for file in cursor:
+        return grid.delete(file._id)
+
+    # If there is no file with the filename then return True.
+    # This function does the same as the MongoDB, no files is always True.
+    # This can't be hit without manually deleting the file from GridFS
+    return True  # pragma: nocover

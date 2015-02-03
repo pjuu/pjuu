@@ -7,14 +7,16 @@
 
 """
 
-# Pjuu imports
 import io
+import gridfs
+
+from pjuu import mongo as m
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
 from pjuu.users.backend import follow_user, get_alerts, get_feed
-# Tests imports
+
 from tests import BackendTestCase
 
 
@@ -373,6 +375,42 @@ class PostBackendTests(BackendTestCase):
         self.assertIsNone(get_post(reply1))
         self.assertIsNone(get_post(reply2))
         self.assertIsNone(get_post(reply3))
+
+        # Test deleting posts with uploads
+        # Ensuring that the images are gone.
+        # The actual deleting is tested in 'test_uploads.py'
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        post1 = create_post(user1, 'user1', 'Test post #2', upload=image)
+        self.assertIsNotNone(post1)
+        post1_filename = get_post(post1).get('upload')
+
+        # Reset the file position in the image
+        image.seek(0)
+        reply1 = create_post(user1, 'user1', 'Test comment 1', post1,
+                             upload=image)
+        self.assertIsNotNone(reply1)
+        reply1_filename = get_post(reply1).get('upload')
+
+        image.seek(0)
+        reply2 = create_post(user2, 'user2', 'Test comment 2', post1,
+                             upload=image)
+        self.assertIsNotNone(reply2)
+        reply2_filename = get_post(reply2).get('upload')
+
+        # Create GridFS file checker
+        grid = gridfs.GridFS(m.db, 'uploads')
+
+        # Check that each file exists
+        self.assertTrue(grid.exists({'filename': post1_filename}))
+        self.assertTrue(grid.exists({'filename': reply1_filename}))
+        self.assertTrue(grid.exists({'filename': reply2_filename}))
+
+        self.assertIsNone(delete_post(post1))
+
+        # Check that all the files no longer exist
+        self.assertFalse(grid.exists({'filename': post1_filename}))
+        self.assertFalse(grid.exists({'filename': reply1_filename}))
+        self.assertFalse(grid.exists({'filename': reply2_filename}))
 
     def test_subscriptions(self):
         """

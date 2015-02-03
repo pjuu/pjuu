@@ -7,12 +7,14 @@
 
 """
 
+import gridfs
 import io
 from os import listdir
 from os.path import isfile, join
 
+from pjuu import mongo as m
 from pjuu.lib import get_uuid
-from pjuu.lib.uploads import process_upload, get_upload
+from pjuu.lib.uploads import process_upload, get_upload, delete_upload
 
 from tests import FrontendTestCase
 
@@ -32,6 +34,9 @@ class PagesTests(FrontendTestCase):
             if isfile(join(test_upload_dir, f))
         ]
 
+        # Create a GridFS object to test image deletion
+        grid = gridfs.GridFS(m.db, collection='uploads')
+
         # Test each file in the upload directory
         for f in test_upload_files:
             print 'Testing:', f
@@ -46,8 +51,16 @@ class PagesTests(FrontendTestCase):
             # Get the upload these are designed for being served directly by
             # Flask. This is a Flask/Werkzeug response object
             image = get_upload(filename)
-
+            self.assertTrue(grid.exists({'filename': filename}))
             self.assertEqual(image.headers['Content-Type'], 'image/png')
+
+            # Test deletion
+            # Ensure file is present (it will be)
+            self.assertTrue(grid.exists({'filename': filename}))
+            # Delete the file and ensure it is not there through GridFS
+            delete_upload(filename)
+            # Ensure the file has gone
+            self.assertFalse(grid.exists({'filename': filename}))
 
         # Ensure that if we load a non-image file a None value is returned
         uuid = get_uuid()
