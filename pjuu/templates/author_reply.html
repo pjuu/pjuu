@@ -8,7 +8,7 @@
         <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
         <div id="action">
             <label id="upload-label" for="upload">
-                {{ post_form.upload }}
+                {{ post_form.upload(accept='image/jpeg,image/gif,image/png') }}
                 <i class="fa fa-camera"></i>
             </label>
             <button type="submit"><i class="fa fa-comment"></i> Comment</button>
