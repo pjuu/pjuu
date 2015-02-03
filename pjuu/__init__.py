@@ -8,6 +8,7 @@ provide the create_app() function to build an instance of Pjuu.
 
 """
 
+import os
 # 3rd party imports
 from flask import Flask
 from flask_celery import Celery
@@ -91,6 +92,24 @@ def create_app(config_filename='settings.py', config_dict=None):
 
     # Create the applications Celery instance
     celery.init_app(app)
+
+    # Static URLs will have an mtime appended as a query string as cache buster
+    @app.url_defaults
+    def cache_buster(endpoint, values):
+        if 'static' == endpoint or '.static' == endpoint[-7:]:
+            filename = values.get('filename', None)
+            if filename:
+                static_folder = app.static_folder
+
+                param_name = 'h'
+                while param_name in values:
+                    # Doesn't need coverage. Simple stops the param_name 'h'
+                    # colliding with any future param
+                    param_name = '_' + param_name  # pragma: no cover
+
+                # Get the mtime of the file
+                values[param_name] = int(os.stat(
+                    os.path.join(static_folder, filename)).st_mtime)
 
     with app.app_context():
         # Import all Pjuu stuffs
