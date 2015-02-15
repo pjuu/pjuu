@@ -14,5 +14,5 @@ celery==3.1.17
 hiredis==0.1.6
 itsdangerous==0.24
 jsonpickle==0.9.0
-raven==5.1.1
+raven==5.2.0
 redis==2.10.3
