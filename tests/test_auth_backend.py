@@ -12,6 +12,7 @@ from flask import current_app as app, session
 # Pjuu imports
 from pjuu.auth.backend import *
 from pjuu.auth.utils import *
+from pjuu.auth.stats import get_stats
 from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post
 from pjuu.users.backend import follow_user
@@ -423,3 +424,49 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNone(dump_account(K.NIL_VALUE))
 
         # This is a very basic test. May need expanding in the future
+
+    def test_stats(self):
+        """Ensure the ``pjuu.auth``s exposed stats are correct
+
+        """
+        # Get the stats as a dict so we can reach inside more easily
+        stats = dict(get_stats())
+
+        self.assertEqual(stats.get('Total users'), 0)
+        self.assertEqual(stats.get('Total active users'), 0)
+        self.assertEqual(stats.get('Total banned users'), 0)
+        self.assertEqual(stats.get('Total muted users'), 0)
+        self.assertEqual(stats.get('Total OP users'), 0)
+        self.assertEqual(stats.get('Newest users'), [])
+
+        create_account('user1', 'user1@pjuu.com', 'Password')
+
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user2)
+
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
+        activate(user3)
+        ban(user3)
+
+        user4 = create_account('user4', 'user4@pjuu.com', 'Password')
+        activate(user4)
+        mute(user4)
+
+        user5 = create_account('user5', 'user5@pjuu.com', 'Password')
+        bite(user5)
+
+         # Get the stats as a dict so we can reach inside more easily
+        stats = dict(get_stats())
+
+        # URL string to ensure links are being added in to newest users
+        self.assertEqual(stats.get('Total users'), 5)
+        self.assertEqual(stats.get('Total active users'), 3)
+        self.assertEqual(stats.get('Total banned users'), 1)
+        self.assertEqual(stats.get('Total muted users'), 1)
+        self.assertEqual(stats.get('Total OP users'), 1)
+
+        user_list = ['user5', 'user4', 'user3', 'user2', 'user1']
+        newest_users = stats.get('Newest users')
+
+        for i in xrange(len(newest_users)):
+            self.assertIn(user_list[i], newest_users[i])

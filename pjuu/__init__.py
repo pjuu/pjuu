@@ -40,17 +40,18 @@ sentry = Sentry()
 
 
 def create_app(config_filename='settings.py', config_dict=None):
-    """
-    Creates a Pjuu WSGI application with the passed in confif_filename.
+    """Creates a Pjuu WSGI application with the passed in config_filename.
 
-    config_filename should be one of a Python file as per the default. To
+    ``config_filename`` should be a Python file as per the default. To
     create one simply copy the settings.py file and change the settings
     to suit yourself
 
-    settings_dict can be used to override any settings inside config_filename.
-    This is useful for testing. See run_tests.py for an example
+    ``settings_dict`` can be used to override any settings inside
+    ``config_filename``. This is useful for testing. See run_tests.py for an
+    example
+
     """
-    # Pylint has suggested I dont set config_dict to a empty dict, we now have
+    # Pylint has suggested I don't set config_dict to a empty dict, we now have
     # to check if it is None and then assign an empty dict
     if config_dict is None:  # pragma: no cover
         config_dict = {}
@@ -114,14 +115,16 @@ def create_app(config_filename='settings.py', config_dict=None):
     with app.app_context():
         # Import all Pjuu stuffs
         # Load the blueprints
-        from pjuu.pages import pages_bp
-        app.register_blueprint(pages_bp)
         from pjuu.auth.views import auth_bp
         app.register_blueprint(auth_bp)
         from pjuu.posts.views import posts_bp
         app.register_blueprint(posts_bp)
         from pjuu.users.views import users_bp
         app.register_blueprint(users_bp)
+        from lib.dashboard import dashboard_bp
+        app.register_blueprint(dashboard_bp)
+        from lib.pages import pages_bp
+        app.register_blueprint(pages_bp)
 
     # Return a nice shiny new Pjuu WSGI application :)
     return app

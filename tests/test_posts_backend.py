@@ -15,6 +15,7 @@ from pjuu.auth.backend import create_account, delete_account
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import *
+from pjuu.posts.stats import get_stats
 from pjuu.users.backend import follow_user, get_alerts, get_feed
 
 from tests import BackendTestCase
@@ -571,7 +572,7 @@ class PostBackendTests(BackendTestCase):
         This will not test that the subscriptions are made or whether the users
         actually exists, it just checks the Regex.
 
-        .. note: This will need to be added to as we find edge cases.
+        .. note: This will need to be added to as we find more cases.
 
         """
         # List of tuples holding messages to parse and number of tags expected
@@ -591,8 +592,30 @@ class PostBackendTests(BackendTestCase):
         ]
 
         for tagging in taggings:
-
             self.assertEqual(
                 len(TAG_RE.findall(tagging[0])),
                 tagging[1]
             )
+
+    def test_stats(self):
+        """Ensure the ``pjuu.posts`` exposed stats are correct
+
+        """
+        stats = dict(get_stats())
+
+        self.assertEqual(stats.get('Total posts'), 0)
+        self.assertEqual(stats.get('Total uploads'), 0)
+        self.assertIsNone(stats.get('Last post'))
+
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+
+        post1 = create_post(user1, 'user1', 'Test post 1')
+        reply1 = create_post(user1, 'user1', 'Test reply 1', post1)
+
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        post2 = create_post(user1, 'user1', 'Test post #2', upload=image)
+
+        stats = dict(get_stats())
+        self.assertEqual(stats.get('Total posts'), 3)
+        self.assertEqual(stats.get('Total uploads'), 1)
+        self.assertIsNotNone(stats.get('Last post'))

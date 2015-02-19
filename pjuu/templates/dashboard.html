@@ -1,0 +1,25 @@
+{% extends 'base_main.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block main %}
+{% for name, stats in stats_list %}
+    <div id="dash" class="block clearfix">
+        <h1>{{ name|capitalize }}</h1>
+        <dl>
+            {% for key, value in stats %}
+            <dt>{{ key }}</dt>
+            {% if value is sequence and value is not string %}
+                {% for item in value %}
+                    {% autoescape off %}
+                    <dd>{{ item }}</dd>
+                    {% endautoescape %}
+                {% endfor %}
+            {% else %}
+                <dd>{{ value }}</dd>
+            {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
+{% endfor %}
+{% endblock %}

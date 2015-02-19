@@ -839,7 +839,35 @@ button:hover {
     margin: 0.5em 1em;
 }
 
-/* FOOTER ================================================================= */
+/* DASHBOARD =============================================================== */
+#dash {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 0;
+}
+
+#dash h1 {
+    background-color: #EEE;
+    border-bottom: 1px solid #666;
+    border-radius: 6px 6px 0 0;
+    color: #666;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+    vertical-align: middle;
+}
+
+#dash dl {
+    margin: 1em;
+}
+
+#dash dd {
+    font-weight: 700;
+}
+
+/* FOOTER ================================================================== */
 #footer {
     margin: 2em 0 0.5em 0;
     text-align: center;
