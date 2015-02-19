@@ -1,10 +1,13 @@
 # -*- coding: utf8 -*-
 
-"""Provides a dashboard to Pjuu's OP users `op` in MongoDB.
+"""Provides a dashboard to Pjuu's OP users.
 
-This should just give some stats on total users, total posts and new users etc.
-This can be expanded in future to provide more of an admin area similar to
-Django.
+Dashboard will loop through all packages under ``pjuu`` looking for `stats.py`
+files and then will read in the stats (list of tuples) from `get_stats()`. It
+then makes this data available on the site at '/dashboard'.
+
+This package also provides generic server data to the dashboard itself. Things
+such as hostname, uname, time, etc.
 
 :license: AGPL v3, see LICENSE for more details
 :copyright: 2014-2015 Joe Doherty
@@ -28,8 +31,7 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 
 def get_stats():
-    """Dashboard provides server statistics as there is no better place to put
-    this to have it appear at the top.
+    """Provides server statistics; hostname, uname, time (UTC) and timestamp.
 
     """
     return [
@@ -42,9 +44,7 @@ def get_stats():
 
 @dashboard_bp.route('/dashboard', methods=['GET'])
 def dashboard():
-    """The dashboard view will simply loop through the other packages looking
-    for a `stats.py` which should contain all the statistics for that package
-    that it would like to present on the dashboard.
+    """Loops through packages looking for stats to provide a data view.
 
     """
     # Do not allow users who are not OP to log in

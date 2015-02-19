@@ -14,9 +14,7 @@ from pjuu import mongo as m
 
 
 def get_stats():
-    """Called by the dashboard to get the final stats dictionary.
-
-    :rtype: dict
+    """Provides authentication stats on users.
 
     """
 

@@ -10,6 +10,13 @@ Alerts (pjuu.lib.alerts)
    :members:
    :private-members:
 
+Dashboard (pjuu.lib.dashboard)
+------------------------------
+
+.. automodule:: pjuu.lib.dashboard
+   :members:
+   :private-members:
+
 Indexes (pjuu.lib.indexes)
 --------------------------
 

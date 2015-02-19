@@ -14,9 +14,7 @@ from pjuu.users.views import timeify_filter
 
 
 def get_stats():
-    """Called by the dashboard to get the final stats dictionary.
-
-    :rtype: dict
+    """Provides post level statistics.
 
     """
 

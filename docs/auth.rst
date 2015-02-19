@@ -24,6 +24,13 @@ Forms (pjuu.auth.forms)
    :members:
    :private-members:
 
+Stats (pjuu.auth.stats)
+------------------------
+
+.. automodule:: pjuu.auth.stats
+   :members:
+   :private-members:
+
 Views (pjuu.auth.views)
 -----------------------
 

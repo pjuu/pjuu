@@ -17,6 +17,13 @@ Forms (pjuu.posts.forms)
    :members:
    :private-members:
 
+Stats (pjuu.posts.stats)
+------------------------
+
+.. automodule:: pjuu.posts.stats
+   :members:
+   :private-members:
+
 Views (pjuu.posts.views)
 ------------------------
 
