@@ -260,36 +260,38 @@ def mute(user_id, action=True):
 
 
 def change_password(user_id, password):
-    """ Changes uid's password.
+    """Changes user with ``user_id``s password.
 
-    Checking of the old password _MUST_ be done before you run this! This is a
-    an unsafe function.
+    Checking of the old password MUST be done before you run this! This is a
+    an unsafe function. You will also need to apply sanity (length etc.) checks
+    outside this function.
 
     """
+    # Create the password hash from the plain-text password
     password = generate_password(password)
-    return m.db.users.update(
-        {'_id': user_id},
-        {'$set': {'password': password}}
-    )
+
+    return m.db.users.update({'_id': user_id},
+                             {'$set': {'password': password}})
 
 
 def change_email(user_id, new_email):
-    """Changes the user with uid's e-mail address.
+    """Changes the user with ``user_id``'s e-mail address.
 
-    Clears the old email key so that it can't be used and sets it to expire.
+    Please ensure that it is a valid e-mail address out side of this function.
+    This function is unsafe and provides NO sanity checking.
 
     """
-    new_email = new_email.lower()
-    return m.db.users.update({'_id': user_id}, {'$set': {'email': new_email}})
+    return m.db.users.update({'_id': user_id},
+                             {'$set': {'email': new_email.lower()}})
 
 
 def delete_account(user_id):
     """Will delete a users account.
 
-    This **REMOVES ALL** details, posts, replies, etc.
+    This **REMOVES ALL** details, posts, replies, etc. Not votes though.
 
-    Note: Ensure the user has authenticated this request.
-          This is going to be the most *expensive* task in Pjuu, be warned.
+    .. note: Ensure the user has authenticated this request. This is going to
+             be the most *expensive* task in Pjuu, be warned.
 
     :param user_id: The `user_id` of the user to delete
     :type user_id: str
