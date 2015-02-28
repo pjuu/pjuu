@@ -38,7 +38,7 @@ $ sudo sh -c 'echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit
 
 $ sudo apt-get update
 
-$ sudo apt-get install build-essentials python-dev python-setuptools
+$ sudo apt-get install build-essential python-dev python-setuptools
 
 $ sudo apt-get install -t wheezy-backports redis-server
 
