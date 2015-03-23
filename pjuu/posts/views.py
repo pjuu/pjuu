@@ -7,11 +7,10 @@
 
 """
 
-from StringIO import StringIO
-# 3rd party imports
+
 from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint)
-# Pjuu imports
+
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid
 from pjuu.auth.decorators import login_required
@@ -274,7 +273,7 @@ def delete_post(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@posts_bp.route('/<username>/<post_id>/unsubscribe')
+@posts_bp.route('/<username>/<post_id>/unsubscribe', methods=['GET'])
 @login_required
 def unsubscribe(username, post_id):
     """Unsubscribes a user from a post
