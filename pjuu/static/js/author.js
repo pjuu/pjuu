@@ -12,7 +12,7 @@ $('textarea').bind('input propertychange', function() {
     }
 });
 
-/* Change the camera icon when a file has been added to the input */
+/* Change the image icon when a file has been added to the input */
 $('#upload').bind('change', function() {
     var fileName = $("#upload").val();
     if (fileName) {
@@ -21,3 +21,13 @@ $('#upload').bind('change', function() {
         $('#upload-label').removeClass('has-file');
     }
 });
+
+/* 
+ * Remove image upload field if it is set in the JS. Mainly for Android.
+ * If there is a function defined within the Android app this will not show.
+ */
+try {
+    $('#upload-label').toggle(!Android.hideImageUpload());
+} catch (error) {
+    $('#upload-label').toggle();
+}
