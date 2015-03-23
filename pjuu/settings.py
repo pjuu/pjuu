@@ -54,14 +54,6 @@ MAIL_USERNAME = None
 MAIL_PASSWORD = None
 MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
 
-# Celery
-# This has gone in for future use. It is not currently implemented
-CELERY_BROKER_URL = None
-# We don't need a results backend. Our tasks are fire and forget
-CELERY_RESULT_BACKEND = None
-# Don't pass tasks down the broker by default
-CELERY_ALWAYS_EAGER = True
-
 # Flask-WTF (Cross site request forgery)
 # CSRF should be off during testing to allow us to submit forms
 WTF_CSRF_ENABLED = True
