@@ -52,10 +52,11 @@ def dashboard():
         return abort(403)
 
     # Get a list of all packages within Pjuu
-    packages = [name
-                for importer, name, ispkg
-                in pkgutil.iter_modules(pjuu.__path__, pjuu.__name__ + ".")
-                if ispkg
+    packages = [
+        name
+        for importer, name, ispkg
+        in pkgutil.iter_modules(pjuu.__path__, pjuu.__name__ + ".")
+        if ispkg
     ]
 
     # Hold on to all stats collected

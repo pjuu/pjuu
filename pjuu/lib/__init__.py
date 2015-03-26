@@ -8,7 +8,7 @@
 """
 
 # Stdlib imports
-from time import time, clock
+from time import time
 from urlparse import urlparse, urljoin
 from uuid import uuid1
 

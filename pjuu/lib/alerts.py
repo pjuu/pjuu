@@ -16,12 +16,11 @@ own purposes.
 
 # Stdlib imports
 from collections import Iterable
-from uuid import uuid1
 # 3rd party imports
 import jsonpickle
 from werkzeug.utils import cached_property
 # Pjuu imports
-from pjuu import mongo as m, redis as r
+from pjuu import redis as r
 from pjuu.auth.utils import get_user as be_get_user
 from pjuu.lib import keys as k, timestamp, get_uuid
 
@@ -121,6 +120,5 @@ class AlertManager(object):
         r.expire(k.ALERT.format(alert.alert_id), k.EXPIRE_4WKS)
 
         for user_id in user_ids:
-            # Only add the zset if the user still exists
             r.zadd(k.USER_ALERTS.format(user_id), alert.timestamp,
                    alert.alert_id)
