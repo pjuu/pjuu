@@ -23,7 +23,8 @@ after_success:
 notifications:
   email: false
   webhooks:
-    secure: "Cb89mDzNT+ME9ExMfVvaiG29gRGn7hTVyrLwVRKErRm1oP6zi4zNELdlgA/eRtpQIzqZ5SXLkUgMzuKQ6JJvB52boID4WpNZNFPKtRyYd6gTVO96ZkWouoeOcs3kF6TOf2HeLwiVTLzXlSd8kxLsLMPQt7fXQAR0roEAHOzzy2Q="
+    urls:
+      secure: "GJVuWZAJIekY1skbh4LMgxhYs4foYnRFME/lBFjmE5W1S96C//xvuchBbSls/8NDg+6397ZZpqxUNPkDWCljvL0ieantM8u4qMd/pBFbplqRd/FsAexJaEzkuPO0cVDniHCaDqEVzwDeXxpqJqyJP1NaxV/4Jx/bBlTNj73WqkI="
     on_success: always
     on_failure: always
     on_start: false
