@@ -6,10 +6,8 @@ python:
 services:
   - mongodb
   - redis-server
-  - rabbitmq
 
 before_install:
-  - redis-cli info | grep redis_version
   - sudo apt-get update
   - sudo apt-get install libtiff4-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk
 
@@ -24,5 +22,8 @@ after_success:
 
 notifications:
   email: false
-  hipchat:
-    secure: "oT27TGIlAvHgtRUBejYapmt95o/q1wVRWGWh7npbPspAwWfxKVF3ZudrPR+FPx+THGNkBRiS3uxrVML6/aY2tEog6JmhhcSENz9uvBlvc6cGBgD3HGLhn1m/LX71ul73HwR8CLofqpZo3d3TqiXdbPZONUzkMQHs3NYSjB4qoto="
+  webhooks:
+    secure: "Cb89mDzNT+ME9ExMfVvaiG29gRGn7hTVyrLwVRKErRm1oP6zi4zNELdlgA/eRtpQIzqZ5SXLkUgMzuKQ6JJvB52boID4WpNZNFPKtRyYd6gTVO96ZkWouoeOcs3kF6TOf2HeLwiVTLzXlSd8kxLsLMPQt7fXQAR0roEAHOzzy2Q="
+    on_success: always
+    on_failure: always
+    on_start: false
