@@ -8,15 +8,15 @@
         <img class="avatar" src="{{ profile['email']|avatar(48) }}"/>
         <div class="content clearfix">
                 <div class="username">
-                    {{ profile['username']|capitalize }}
+                    {{ profile.username|capitalize }}
                 </div>
-            <div class="body">{{profile['about']}}</div>
+            <div class="body">{{ profile.about }}</div>
         </div>
     </div>
     <div class="panel clearfix">
         <ul class="clearfix">
             <li>
-                <i class="fa fa-trophy fa-lg"></i> <b>{{ profile['score']|millify }}</b>
+                <i class="fa fa-trophy fa-lg"></i> <b>{{ profile.score|millify }}</b>
             </li>
             <li>
                 {% if config.TESTING %}

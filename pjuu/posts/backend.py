@@ -28,9 +28,44 @@ from pjuu.lib.uploads import process_upload, delete_upload
 # Allow chaning the maximum length of a post
 MAX_POST_LENGTH = 500
 
-# Used to match '@' tags in a post
-TAG_RE = re.compile(
-    r'(?:^|(?<=[.;,:?\(\[\{ \t]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t]))'
+# Regular expressions for highlighting URLs, @mentions and #hashtags
+# URL matching pattern; thanks to John Gruber @ http://daringfireball.net/
+# https://gist.github.com/gruber/8891611
+URL_RE = re.compile(
+    r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|'
+    r'gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|'
+    r'tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|'
+    r'bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|'
+    r'ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|'
+    r'er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|'
+    r'gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|'
+    r'jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|'
+    r'mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|'
+    r'nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|'
+    r'qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|'
+    r'su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|'
+    r'uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}'
+    r'\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\(['
+    r'^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<'
+    r'!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|'
+    r'biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|'
+    r'ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|'
+    r'bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|'
+    r'cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|'
+    r'fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|'
+    r'hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|'
+    r'kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|'
+    r'ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|'
+    r'nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|'
+    r'sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|'
+    r'td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|'
+    r've|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
+)
+MENTION_RE = re.compile(
+    r'(?:^|(?<=[\(\[\{ \t]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t]))'
+)
+HASHTAG_RE = re.compile(
+    r'(?:^|(?<=[\(\[\{ \t]))#(\w{2,32})(?:$|(?=[.;,:?\)\]\} \t]))'
 )
 
 
@@ -170,15 +205,16 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
         # If the is a reply it must have this property
         post['reply_to'] = reply_to
     else:
-        # Replies don't need a comment count on posts
+        # Replies don't need a comment count
         post['comment_count'] = 0
 
     # TODO: Make the upload process better at dealing with issues
     if upload:
         # If there is an upload along with this post it needs to go for
         # processing.
-        # process_upload() can throw an Exception of UploadError.
-        # TODO: Turn this in to a Celery task
+        # process_upload() can throw an Exception of UploadError. We will let
+        # it fall through as a 500 is okay I think.
+        # TODO: Turn this in to a Queue task at some point
         filename = process_upload(post_id, upload)
 
         if filename is not None:
@@ -188,16 +224,26 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
             # Stop the image upload process here if something went wrong.
             return None
 
+    # Process everything thats needed in a post
+    links, mentions, hashtags = parse_post(body)
+
+    # Only add the fields if we need too.
+    if links:
+        post['links'] = links
+
+    if mentions:
+        post['mentions'] = mentions
+
+    if hashtags:
+        post['hashtags'] = hashtags
+
     # Add the post to the database
     # If the post isn't stored, result will be None
     result = m.db.posts.insert(post)
 
     # Only carry out the rest of the actions if the insert was successful
     if result:
-        # Is this a comment?
         if reply_to is None:
-            # Handle what Pjuu < v0.6 called a POST
-
             # Add post to authors feed
             r.zadd(k.USER_FEED.format(user_id), post_time, post_id)
             # Ensure the feed does not grow to large
@@ -206,37 +252,17 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
             # Subscribe the poster to there post
             subscribe(user_id, post_id, SubscriptionReasons.POSTER)
 
-            # TAGGING
-
-            # Create alert manager and alert
-            alert = TaggingAlert(user_id, post_id)
-            # Alert tagees
-            tagees = parse_tags(body)
-            # Store a list of uids which need to alerted to the tagging
-            tagees_to_alert = []
-            for tagee in tagees:
-                # Don't allow tagging yourself
-                if tagee[0] != user_id:
-                    # Subscibe the tagee to the post
-                    subscribe(tagee[0], post_id, SubscriptionReasons.TAGEE)
-                    # Add the tagee's uid to the list to alert them
-                    tagees_to_alert.append(tagee[0])
-
-            # Alert the required tagees
-            AlertManager().alert(alert, tagees_to_alert)
+            # Alert everyone tagged in the post
+            alert_tagees(mentions, user_id, post_id)
 
             # Append to all followers feeds
             populate_followers_feeds(user_id, post_id, post_time)
 
         else:
-            # Handle what Pjuu < v0.6 called a COMMENT
-
             # To reduce database look ups on the read path we will increment
             # the reply_to's comment count.
             m.db.posts.update({'_id': reply_to},
                               {'$inc': {'comment_count': 1}})
-
-            # COMMENT ALERTING
 
             # Alert all subscribers to the post that a new comment has been
             # added. We do this before subscribing anyone new
@@ -256,66 +282,102 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
             # are already subscribed
             subscribe(user_id, reply_to, SubscriptionReasons.COMMENTER)
 
-            # TAGGING
+            # Alert everyone tagged in the post
+            alert_tagees(mentions, user_id, reply_to)
 
-            # Create alert
-            alert = TaggingAlert(user_id, reply_to)
-
-            # Subscribe tagees
-            tagees = parse_tags(body)
-            tagees_to_alert = []
-            for tagee in tagees:
-                # Don't allow tagging yourself
-                if tagee[0] != user_id:
-                    subscribe(tagee[0], reply_to, SubscriptionReasons.TAGEE)
-                    tagees_to_alert.append(tagee[0])
-
-            # Get an alert manager to notify all tagees
-            AlertManager().alert(alert, tagees_to_alert)
-
-        # Return the id of the new post
         return post_id
 
     # If there was a problem putting the post in to Mongo we will return None
     return None  # pragma: no cover
 
 
-def parse_tags(body, deduplicate=False):
-    """Finds '@' tags within a posts body.
-
-    This is used by create_post to alert users that they have been tagged in a
-    post and by the 'nameify' template_filter also uses this to identify tags
-    before it inserts the links. See nameify_filter() in posts.views
+def parse_links(body):
+    """Finds links (http://, https://, www. and mail addresses) within a post
+    body.
 
     :type body: str
-    :param deduplicate: remove duplicate instances of a tag. Used by the
-                        alerting system to only send one alert to a user even
-                        if someone repeats the tag. Having this as false allows
-                        us to highlight all the tags in the nameify_filter.
-    :type deduplicate: bool
-    :returns: This returns a list of tuples (uid, username, tag, span)
+    :return: This returns a list of tuples (link, span)
     :rtype: list
 
     """
-    tags = TAG_RE.finditer(body)
+    urls = URL_RE.finditer(body)
 
     results = []
-    seen = []
-
-    for tag in tags:
-        # Check the tag is of an actual user
-        user_id = get_uid_username(tag.group(1))
-
-        if user_id is not None:
-            if not deduplicate:
-                results.append((user_id, tag.group(1),
-                                tag.group(0), tag.span()))
-            elif user_id not in seen:
-                results.append((user_id, tag.group(1),
-                                tag.group(0), tag.span()))
-                seen.append(user_id)
+    for url in urls:
+        results.append({
+            'link': url.group(0),
+            'span': url.span()
+        })
 
     return results
+
+
+def parse_mentions(body):
+    """Finds '@mention's within a posts body. Only highlights users which
+    currently exist within Pjuu.
+
+    .. note: `span` includes the '@' `username` does not.
+
+    :type body: str
+    :return: This returns a list of tuples (user_id, username, span)
+    :rtype: list
+
+    """
+    tags = MENTION_RE.finditer(body)
+
+    results = []
+    for tag in tags:
+        username = tag.group(1).lower()
+
+        # Check the tag is of an actual user
+        user_id = get_uid_username(username)
+
+        if user_id is None:
+            continue
+
+        results.append({
+            'user_id': user_id,
+            'username': username,
+            'span': tag.span()
+        })
+
+    return results
+
+
+def parse_hashtags(body):
+    """Finds '#hashtag`s within a posts body.
+
+    .. note: `span` includes the '#' `hashtag` does not.
+             Hastags are stored in lowercase but the scan isn't so that would
+             need to be swapped when making HTML.
+
+    :param body:
+    :return: This returns a list of tuples (hashtag, span)
+    :rtype: list
+
+    """
+    tags = HASHTAG_RE.finditer(body)
+
+    results = []
+    for tag in tags:
+        # There is no checking of 'hashtags' anything goes
+        results.append({
+            'hashtag': tag.group(1).lower(),
+            'span': tag.span()
+        })
+
+    return results
+
+
+def parse_post(body):
+    """This is a helper function which will run all the above parsers.
+
+    """
+    links = parse_links(body)
+    mentions = parse_mentions(body)
+    hashtags = parse_hashtags(body)
+
+    return links, mentions, hashtags
 
 
 def populate_followers_feeds(user_id, post_id, timestamp):
@@ -333,6 +395,42 @@ def populate_followers_feeds(user_id, post_id, timestamp):
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
         r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
+
+
+def alert_tagees(tagees, user_id, post_id):
+    """Creates a new tagging alert from `user_id` and `post_id` and alerts all
+    in the `tagees` list.
+
+    This will take the tagees processed as `mentions`, it will ensure no
+    duplication and that the poster is not alerted if they tag themselves.
+
+    :type tagees: list
+    :type user_id: str
+    :type post_id: str
+
+    """
+    alert = TaggingAlert(user_id, post_id)
+
+    seen_user_ids = []
+    for tagee in tagees:
+        tagged_user_id = tagee.get('user_id')
+
+        # Don't alert users more than once
+        if tagged_user_id in seen_user_ids:
+            continue
+
+        # Don't alert posting user to tag
+        if tagged_user_id == user_id:
+            continue
+
+        # Subscribe the tagee to the post won't change anything if they are
+        # already subscribed
+        subscribe(tagged_user_id, post_id, SubscriptionReasons.TAGEE)
+
+        seen_user_ids.append(tagged_user_id)
+
+    # Get an alert manager to notify all tagees
+    AlertManager().alert(alert, seen_user_ids)
 
 
 def back_feed(who_id, whom_id):
@@ -353,9 +451,10 @@ def back_feed(who_id, whom_id):
     """
     # Get followee's last 5 posts (doesn't matter if there isn't any)
     # We only need the IDs and the created time
-    posts = m.db.posts.find({'user_id': whom_id, 'reply_to': None},
-                            {'_id': True, 'created': True}) \
-        .sort('created', -1).limit(5)
+    posts = m.db.posts.find(
+        {'user_id': whom_id, 'reply_to': None},
+        {'_id': True, 'created': True}
+    ).sort('created', -1).limit(5)
 
     # Iterate the cursor and append the posts to the users feed
     for post in posts:
@@ -420,16 +519,17 @@ def get_posts(user_id, page=1):
     user = m.db.users.find_one({'_id': user_id},
                                {'email': True})
 
-    total = m.db.posts.find({'user_id': user_id,
-                             'reply_to': {'$exists': False}}).count()
-    cursor = m.db.posts.find({'user_id': user_id,
-                              'reply_to': {'$exists': False}}) \
-        .sort('created', -1).skip((page - 1) * per_page).limit(per_page)
+    total = m.db.posts.find({
+        'user_id': user_id,
+        'reply_to': {'$exists': False}}).count()
+    cursor = m.db.posts.find({
+        'user_id': user_id,
+        'reply_to': {'$exists': False}
+    }).sort('created', -1).skip((page - 1) * per_page).limit(per_page)
 
     posts = []
     for post in cursor:
-        # Get the users email address for the avatar. This will be removed
-        # when image uploads are added
+        # This is not a nice solution but is needed for Gravatar
         if user is not None:
             post['user_email'] = user.get('email')
 
@@ -457,10 +557,36 @@ def get_replies(post_id, page=1):
 
         if user is not None:
             reply['user_email'] = user.get('email')
-
-        replies.append(reply)
+            replies.append(reply)
 
     return Pagination(replies, total, page, per_page)
+
+
+def get_hashtagged_posts(hashtag, page=1):
+    """Returns all posts with `hashtag` in date order.
+
+    """
+    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+
+    total = m.db.posts.find({
+        'hashtags.hashtag': hashtag,
+        'reply_to': {'$exists': False}}).count()
+    cursor = m.db.posts.find({
+        'hashtags.hashtag': hashtag,
+        'reply_to': {'$exists': False}
+    }).sort('created', -1).skip((page - 1) * per_page).limit(per_page)
+
+    posts = []
+    for post in cursor:
+        user = m.db.users.find_one(
+            {'_id': post.get('user_id')},
+            {'email': True})
+
+        if post is not None:
+            post['user_email'] = user.get('email')
+            posts.append(post)
+
+    return Pagination(posts, total, page, per_page)
 
 
 def has_voted(user_id, post_id):

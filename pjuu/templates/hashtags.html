@@ -1,0 +1,10 @@
+{% extends 'base_main.html' %}
+
+{% block title %}Hashtag{% endblock %}
+
+{% block main %}
+<div id="content" class="block clearfix">
+    <h1>Hashtag: {{ hashtag }}</h1>
+    {% include 'list_posts.html' %}
+</div>
+{% endblock %}

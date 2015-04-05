@@ -50,3 +50,8 @@ def ensure_indexes():
     m.db.posts.ensure_index(
         [('reply_to', pymongo.DESCENDING)]
     )
+    # Index hash tags within posts
+    m.db.posts.ensure_index(
+        [('hashtags.hashtag', pymongo.DESCENDING)]
+    )
+

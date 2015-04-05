@@ -7,7 +7,6 @@
 
 """
 
-
 from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint)
 
@@ -20,47 +19,71 @@ from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
                       vote_post, get_post, delete_post as be_delete_post,
                       get_replies, unsubscribe as be_unsubscribe,
-                      CantVoteOnOwn, AlreadyVoted, parse_tags)
+                      CantVoteOnOwn, AlreadyVoted, get_hashtagged_posts)
 from .forms import PostForm
 
 
 posts_bp = Blueprint('posts', __name__)
 
 
-@posts_bp.app_template_filter('nameify')
-def nameify_filter(body):
-    """
-    Will highlight user names inside a post. This is done after urlize.
+@posts_bp.app_template_filter('postify')
+def postify_filter(post):
+    """Will highlight everything that is stored along with the post. Will call
+    the backend `postify` function to make HTML from the posts: link, mentions
+    and hash tags. See that function for more details.
 
-    These uses the same parse_tags() function as to identify tags for
-    alerts
-
-    TODO This may be overkill.
-    This requires manual escaping of the post|comment|about messages. In
-    Jinja2 you have to do to the following to get the posts to show as we
-    want:
+    To use on the post do the following:
 
     {% autoescape false %}
-    post.body|e|urlize|nameify
+    post|postify
     {% endautoescape %}
 
-    The 'e' filter is needed as we have had to turn auto escape off.
+    .. note: This does not work on the text but on the post so within templates
+             you will need to use 'item|postify' and ensure autoescape is off.
+
     """
-    tags = parse_tags(body, deduplicate=True)
+    post_body = post.get('body')
+
+    items = post.get('links', []) + post.get('mentions', []) + \
+        post.get('hashtags', [])
+
+    items = sorted(items, key=lambda k: k['span'][0])
+
     offset = 0
-    for tag in tags:
-        # Calculate the left and right hand sides of the tag
-        # These add offset as we go, we are changing the length of the string
-        # each time!
-        left = tag[3][0] + offset
-        right = tag[3][1] + offset
-        # Build the link
-        link = '<a href=\"/{0}\">{1}</a>'.format(tag[1], tag[2])
-        # Calculate the offset to adjust rest of tag boundries
-        offset += len(link) - len(tag[2])
-        # Add the link in place of the '@' tag
-        body = (body[:left] + link + body[right:])
-    return body
+    for item in items:
+        left = item['span'][0] + offset
+        right = item['span'][1] + offset
+
+        # The snippet of text we need to replace
+        replace_text = post_body[left:right]
+
+        if 'link' in item:
+            html = '<a href="{0}" target="_blank">{1}</a>'.format(
+                item['link'],
+                replace_text
+            )
+
+        elif 'username' in item:
+            html = '<a href="{0}">{1}</a>'.format(
+                url_for('users.profile', username=item['username']),
+                replace_text
+            )
+
+        elif 'hashtag' in item:
+            html = '<a href="{0}">{1}</a>'.format(
+                url_for('posts.hashtags', hashtag=item['hashtag']),
+                replace_text
+            )
+
+        else:
+            # Handles the can't happen case of there being and item that doesnt
+            # match any of the above.
+            continue  # pragma: no cover
+
+        offset += len(html) - (item['span'][1] - item['span'][0])
+        post_body = post_body[:left] + html + post_body[right:]
+
+    return post_body
 
 
 @posts_bp.app_template_filter('voted')
@@ -164,6 +187,7 @@ def post(username=None, post_id=None):
         for key, value in form.errors.iteritems():
             for error in value:
                 flash(error, 'error')
+
     return redirect(redirect_url)
 
 
@@ -293,3 +317,23 @@ def unsubscribe(username, post_id):
         flash('You have been unsubscribed from this post', 'success')
 
     return redirect(redirect_url)
+
+
+@posts_bp.route('/hashtags', methods=['GET'])
+@posts_bp.route('/hashtags/<hashtag>', methods=['GET'])
+@login_required
+def hashtags(hashtag=None):
+    """Used to view a list of posts which contain a specific hashtag.
+
+    """
+    # We need to check the conditions for a valid hashtag if not we will
+    # perform a 404 ourselves.
+    if not hashtag or len(hashtag) < 2:
+        return abort(404)
+
+    # Pagination
+    page = handle_page(request)
+    pagination = get_hashtagged_posts(hashtag.lower(), page)
+
+    return render_template('hashtags.html', hashtag=hashtag,
+                           pagination=pagination)

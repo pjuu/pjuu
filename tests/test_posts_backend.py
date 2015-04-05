@@ -565,37 +565,132 @@ class PostBackendTests(BackendTestCase):
 
         # Done for now
 
-    def test_tagging(self):
-        """Test the regular expression which matches '@' tags.
+    def test_link_parsing(self):
+        """Link regular expressions (http, https, www, etc...).
 
-        There are a of side cases with this which we will try and test here.
-        This will not test that the subscriptions are made or whether the users
-        actually exists, it just checks the Regex.
-
-        .. note: This will need to be added to as we find more cases.
+        .. note: This will need to be added to as we find any failure cases.
 
         """
-        # List of tuples holding messages to parse and number of tags expected
-        taggings = [
-            ('@pjuu', 1),
-            ('Hi @pjuu', 1),
-            ('@pjuu?', 1),
-            ('@pjuupjuupjuupjuupjuu', 0),
-            ('Have you asked joe (@joe)?', 1),
-            ('@joe, @ant, @fil', 3),
-            ('.@pjuu', 1),
-            ('.@pjuu.', 1),
-            ('@pjuu.@pjuu.@pjuu', 3),
-            ('joe@pjuu.com', 0),
-            ('joe+pjuu@pjuu.com', 0),
-            ('@@joe', 0)
+        # Tests for the regex
+        tests = [
+            ('http://foo.com/blah_blah', ['http://foo.com/blah_blah']),
+            ('http://foo.com/blah_blah/', ['http://foo.com/blah_blah/']),
+            ('http://foo.com/blah_blah_(wikipedia)',
+                ['http://foo.com/blah_blah_(wikipedia)']),
+            ('http://foo.com/blah_blah_(wikipedia)_(again)',
+                ['http://foo.com/blah_blah_(wikipedia)_(again)']),
+            ('http://www.example.com/wpstyle/?p=364',
+                ['http://www.example.com/wpstyle/?p=364']),
+            ('https://www.example.com/foo/?bar=baz&inga=42&quux',
+                ['https://www.example.com/foo/?bar=baz&inga=42&quux']),
+            ('http://✪df.ws/123', ['http://✪df.ws/123']),
+            ('http://userid:password@example.com:8080',
+                ['http://userid:password@example.com:8080']),
+            ('http://userid:password@example.com:8080/',
+                ['http://userid:password@example.com:8080/']),
+            ('http://userid@example.com', ['http://userid@example.com']),
+            ('http://userid@example.com/', ['http://userid@example.com/']),
+            ('http://userid@example.com:8080',
+                ['http://userid@example.com:8080']),
+            ('http://userid@example.com:8080/',
+                ['http://userid@example.com:8080/']),
+            ('http://userid:password@example.com',
+                ['http://userid:password@example.com']),
+            ('http://userid:password@example.com/',
+                ['http://userid:password@example.com/']),
+            ('http://142.42.1.1/', ['http://142.42.1.1/']),
+            ('http://142.42.1.1:8080/', ['http://142.42.1.1:8080/']),
+            ('http://➡.ws/䨹', ['http://➡.ws/䨹']),
+            ('http://⌘.ws', ['http://⌘.ws']),
+            ('http://⌘.ws/', ['http://⌘.ws/']),
+            ('http://foo.com/blah_(wikipedia)#cite-1',
+                ['http://foo.com/blah_(wikipedia)#cite-1']),
+            ('http://foo.com/blah_(wikipedia)_blah#cite-1',
+                ['http://foo.com/blah_(wikipedia)_blah#cite-1']),
+            ('http://foo.com/unicode_(✪)_in_parens',
+                ['http://foo.com/unicode_(✪)_in_parens']),
+            ('http://foo.com/(something)?after=parens',
+                ['http://foo.com/(something)?after=parens']),
+            ('http://☺.damowmow.com/', ['http://☺.damowmow.com/']),
+            ('http://code.google.com/events/#&product=browser',
+                ['http://code.google.com/events/#&product=browser']),
+            ('http://j.mp', ['http://j.mp']),
+            ('http://foo.bar/?q=Test%20URL-encoded%20stuff',
+                ['http://foo.bar/?q=Test%20URL-encoded%20stuff']),
+            ('http://مثال.إختبار', ['http://مثال.إختبار']),
+            ('http://例子.测试', ['http://例子.测试']),
+            ('http://उदाहरण.परीक्षा', ['http://उदाहरण.परीक्षा']),
+            ('http://1337.net', ['http://1337.net']),
+            ('http://a.b-c.de', ['http://a.b-c.de']),
+            ('http://223.255.255.254', ['http://223.255.255.254']),
+
+            ('http://', []),
+            ('http://.', []),
+            ('http://..', []),
+            ('http://?', []),
+            ('http://??', []),
+            ('http://##', []),
+            ('http://##/', []),
+            ('http://foo.bar?q=Spaces should be encoded', []),
+            ('//', []),
+            ('//a', []),
+            ('///a', []),
+            ('///', []),
+            ('http:///a', []),
+            ('foo.com', []),
+            ('rdar://1234', []),
+            ('h://test', []),
+            ('http:// shouldfail.com', []),
+            (':// should fail', []),
+            ('http://foo.bar/foo(bar)baz quux', []),
+            ('ftps://foo.bar/', []),
+            ('http://-error-.invalid/', []),
+            ('http://a.b--c.de/', []),
+            ('http://-a.b.co', []),
+            ('http://a.b-.co', []),
+            ('http://0.0.0.0', []),
+            ('http://10.1.1.0', []),
+            ('http://10.1.1.255', []),
+            ('http://224.1.1.1', []),
+            ('http://1.1.1.1.1', []),
+            ('http://123.123.123', []),
+            ('http://3628126748', []),
+            ('http://.www.foo.bar/', []),
+            ('http://www.foo.bar./', []),
+            ('http://.www.foo.bar./', []),
+            ('http://10.1.1.1', []),
+            ('http://10.1.1.254', [])
         ]
 
-        for tagging in taggings:
-            self.assertEqual(
-                len(TAG_RE.findall(tagging[0])),
-                tagging[1]
-            )
+        for test in tests:
+            urls = URL_RE.findall(test[0])
+            self.assertEqual(urls, test[1])
+
+    def test_mention_parsing(self):
+        """Mention regular expressions (@mention)
+
+        .. note: This will need to be added to as we find any failure cases.
+
+        """
+        # Tests for the regex
+        tests = []
+
+        for test in tests:
+            mentions = MENTION_RE.findall(test[0])
+            self.assertEqual(mentions, test[1])
+
+    def test_hashtag_parsing(self):
+        """Hashtag regular expressions (#hashtag)
+
+        .. note: This will need to be added to as we find any failure cases.
+
+        """
+        # Tests for the regex
+        tests = []
+
+        for test in tests:
+            hashtags = HASHTAG_RE.findall(test[0])
+            self.assertEqual(hashtags, test[1])
 
     def test_stats(self):
         """Ensure the ``pjuu.posts`` exposed stats are correct
@@ -610,10 +705,10 @@ class PostBackendTests(BackendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         post1 = create_post(user1, 'user1', 'Test post 1')
-        reply1 = create_post(user1, 'user1', 'Test reply 1', post1)
+        create_post(user1, 'user1', 'Test reply 1', post1)
 
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
-        post2 = create_post(user1, 'user1', 'Test post #2', upload=image)
+        create_post(user1, 'user1', 'Test post #2', upload=image)
 
         stats = dict(get_stats())
         self.assertEqual(stats.get('Total posts'), 3)

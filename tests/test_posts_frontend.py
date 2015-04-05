@@ -253,6 +253,19 @@ class PostFrontendTests(FrontendTestCase):
                                                   filename=post.get('upload')),
                       resp.data)
 
+        # Ensure that links, mentions and hashtags are parsed and linked
+        # correctly
+        post1 = create_post(user1, 'user1', 'https://pjuu.com @user2 #pjuu')
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertIn('<a href="{0}" target="_blank">{0}</a> <a href="{1}">{2}'
+                      '</a> <a href="{3}">{4}</a>'.format(
+                        'https://pjuu.com',
+                        url_for('users.profile', username='user2'),
+                        '@user2',
+                        url_for('posts.hashtags', hashtag='pjuu'),
+                        '#pjuu'), resp.data)
+
         # Done for now
 
     def test_get_upload(self):
@@ -979,3 +992,40 @@ class PostFrontendTests(FrontendTestCase):
         # Negative
         num_str = millify_filter(-1000)
         self.assertEqual(num_str, "-1K")
+
+    def test_hashtags(self):
+        """Ensure the hashtags endpoint gives acts and gives the posts we
+        expect.
+
+        .. note: For parsing of these please see `test_posts_backend.py`.
+
+        """
+        # Ensure you can't get to the end point when no logged in.
+        resp = self.client.get(url_for('posts.hashtags', hashtag='test'),
+                               follow_redirects=True)
+        self.assertIn('You need to be logged in to view that', resp.data)
+
+        # Sign in
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        # Check all conditions which will result in a 404
+        resp = self.client.get(url_for('posts.hashtags'))
+        self.assertEqual(404, resp.status_code)
+
+        resp = self.client.get(url_for('posts.hashtags', hashtag=''))
+        self.assertEqual(404, resp.status_code)
+
+        resp = self.client.get(url_for('posts.hashtags', hashtag='a'))
+        self.assertEqual(404, resp.status_code)
+
+        # Check what is there at the moment which it will just echo our valid
+        # hashtag back at us
+        resp = self.client.get(url_for('posts.hashtags', hashtag='pjuu'))
+        self.assertEqual(200, resp.status_code)
+        self.assertIn('pjuu', resp.data)
+
