@@ -5,7 +5,7 @@ Pjuu is under very active development at this early stage in its life. A lot
 may change between versions until we are happy with it :)
 ```
 
-[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu=master) [![Coverage Status](https://coveralls.io/repos/pjuu/pjuu/badge.png?branch=master)](https://coveralls.io/r/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![Documentation Status](https://readthedocs.org/projects/pjuu/badge/?version=master&style=default)](https://pjuu.readthedocs.org/en/master/) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
+[![Build Status](https://travis-ci.org/pjuu/pjuu.svg?branch=master)](https://travis-ci.org/pjuu/pjuu?branch=master) [![Coverage Status](https://coveralls.io/repos/pjuu/pjuu/badge.png?branch=master)](https://coveralls.io/r/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![Documentation Status](https://readthedocs.org/projects/pjuu/badge/?version=master&style=default)](https://pjuu.readthedocs.org/en/master/) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pjuu/pjuu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
