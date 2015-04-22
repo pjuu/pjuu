@@ -219,10 +219,10 @@ def activate(user_id, action=True):
     """Activates a user account and removes 'ttl' key from Mongo
 
     """
-    return m.db.users.update({'_id': user_id},
-                             {'$set': {'active': action},
-                              '$unset': {'ttl': None}}) \
-        .get('updatedExisting')
+    return m.db.users.update(
+        {'_id': user_id},
+        {'$set': {'active': action}, '$unset': {'ttl': None}}
+    ).get('updatedExisting')
 
 
 def ban(user_id, action=True):
