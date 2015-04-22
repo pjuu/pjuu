@@ -8,14 +8,14 @@
 """
 
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import create_account, delete_account, get_user
+from pjuu.auth.backend import create_account, delete_account
 from pjuu.lib import keys as k
 from pjuu.lib.alerts import BaseAlert
 from pjuu.posts.backend import create_post
 from pjuu.users.backend import (
     get_profile, search, is_following, get_following, get_followers,
     i_has_alerts, FollowAlert, get_alerts, follow_user, unfollow_user,
-    delete_alert
+    delete_alert, get_user
 )
 
 from tests import BackendTestCase
