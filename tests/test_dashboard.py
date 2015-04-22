@@ -12,7 +12,7 @@ import os
 import socket
 
 from flask import url_for
-from pjuu.auth.backend import create_account, delete_account, activate, bite
+from pjuu.auth.backend import create_account, activate, bite
 
 from tests import FrontendTestCase
 

@@ -15,6 +15,7 @@ install:
   - pip install -r requirements-dev.txt
 
 script:
+  - flake8 --exclude=docs,venv .
   - coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt --branch run_tests.py
 
 after_success:

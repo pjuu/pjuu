@@ -8,10 +8,15 @@
 """
 
 
-from flask import current_app as app
+from flask import current_app as app, session
 
-from pjuu.auth.backend import *
-from pjuu.auth.utils import *
+from pjuu import mongo as m, redis as r
+from pjuu.auth.backend import (
+    create_account, delete_account, dump_account, get_user, authenticate, mute,
+    bite, change_password, change_email, activate, ban, signin, signout,
+    user_exists
+)
+from pjuu.auth.utils import get_uid, get_uid_email, get_uid_username
 from pjuu.auth.stats import get_stats
 from pjuu.lib import keys as K
 from pjuu.posts.backend import create_post

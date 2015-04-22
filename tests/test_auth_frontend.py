@@ -14,8 +14,10 @@ from flask import url_for
 from werkzeug.http import parse_cookie
 # Pjuu imports
 from pjuu import redis_sessions as rs
-from pjuu.auth.backend import *
-from pjuu.auth.utils import *
+from pjuu.auth.backend import (
+    activate, authenticate, ban, create_account, delete_account
+)
+from pjuu.auth.utils import get_uid_username
 # Test imports
 from tests import FrontendTestCase
 

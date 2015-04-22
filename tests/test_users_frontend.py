@@ -7,14 +7,16 @@
 
 """
 
-# Stdlib imports
 import json
-# Pjuu imports
+
+from flask import url_for
+
 from pjuu.auth.backend import create_account, delete_account, activate
+from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
-from pjuu.users.backend import *
+from pjuu.users.backend import follow_user, get_alerts
 from pjuu.users.views import timeify_filter
-# Test imports
+
 from tests import FrontendTestCase
 
 

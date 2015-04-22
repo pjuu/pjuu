@@ -9,9 +9,10 @@ backend test for the specific alerts that appear there.
 """
 
 # Pjuu imports
+from pjuu import redis as r
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.lib import keys as k
-from pjuu.lib.alerts import *
+from pjuu.lib.alerts import AlertManager, BaseAlert
 # Test imports
 from tests import BackendTestCase
 

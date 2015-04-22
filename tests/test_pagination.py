@@ -8,7 +8,7 @@
 """
 
 # Pjuu imports
-from pjuu.lib.pagination import *
+from pjuu.lib.pagination import Pagination, handle_page
 # Test imports
 from tests import BackendTestCase
 

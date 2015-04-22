@@ -8,7 +8,9 @@
 """
 
 # Pjuu imports
-from pjuu.lib.tokens import *
+from pjuu import redis as r
+from pjuu.lib import keys as k
+from pjuu.lib.tokens import check_token, generate_token
 # Test imports
 from tests import BackendTestCase
 
@@ -51,7 +53,7 @@ class TokenTests(BackendTestCase):
         # Create a token and mangle the data inside Redis
         token1 = generate_token("token1")
         # Not a valid JSON pickle, the dict is invalid
-        r.set(K.TOKEN.format(token1), "{token: 1}")
+        r.set(k.TOKEN.format(token1), "{token: 1}")
         self.assertIsNone(check_token(token1))
         # That will have raised our ValueError, I don't know how to trigger a
         # TypeError from Redis as everything is a string

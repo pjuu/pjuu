@@ -54,4 +54,3 @@ def ensure_indexes():
     m.db.posts.ensure_index(
         [('hashtags.hashtag', pymongo.DESCENDING)]
     )
-

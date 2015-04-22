@@ -10,7 +10,7 @@
 # 3rd party imports
 from flask_wtf import Form
 from wtforms import TextAreaField, StringField
-from wtforms.validators import Length, DataRequired
+from wtforms.validators import Length
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
 
