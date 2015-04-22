@@ -8,8 +8,6 @@ within Redis and MongoDB
 
 """
 
-# Stdlib imports
-import re
 
 # 3rd party imports
 from flask import current_app as app, url_for
@@ -17,56 +15,16 @@ from jinja2.filters import do_capitalize
 
 # Pjuu imports
 from pjuu import mongo as m, redis as r
-from pjuu.auth.utils import get_uid_username
 from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
+from pjuu.lib.parser import parse_post
 from pjuu.lib.uploads import process_upload, delete_upload
 
 
 # Allow chaning the maximum length of a post
 MAX_POST_LENGTH = 500
-
-# Regular expressions for highlighting URLs, @mentions and #hashtags
-# URL matching pattern; thanks to John Gruber @ http://daringfireball.net/
-# https://gist.github.com/gruber/8891611
-URL_RE = re.compile(
-    r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|'
-    r'gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|'
-    r'tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|'
-    r'bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|'
-    r'ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|'
-    r'er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|'
-    r'gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|'
-    r'jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|'
-    r'mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|'
-    r'nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|'
-    r'qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|'
-    r'su|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|'
-    r'uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)/)(?:[^\s()<>{}'
-    r'\[\]]+|\([^\s()]*?\([^\s()]+\)[^\s()]*?\)|\([^\s]+?\))+(?:\([^\s()]*?\(['
-    r'^\s()]+\)[^\s()]*?\)|\([^\s]+?\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’])|(?:(?<'
-    r'!@)[a-z0-9]+(?:[.\-][a-z0-9]+)*[.](?:com|net|org|edu|gov|mil|aero|asia|'
-    r'biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|tel|travel|xxx|ac|'
-    r'ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|'
-    r'bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|'
-    r'cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|'
-    r'fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|'
-    r'hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|'
-    r'kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|'
-    r'ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|'
-    r'nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|'
-    r'sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|'
-    r'td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|'
-    r've|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
-)
-MENTION_RE = re.compile(
-    r'(?:^|(?<=[\(\[\{ \t]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t]))'
-)
-HASHTAG_RE = re.compile(
-    r'(?:^|(?<=[\(\[\{ \t]))#(\w{2,32})(?:$|(?=[.;,:?\)\]\} \t]))'
-)
 
 
 class CantVoteOnOwn(Exception):
@@ -289,95 +247,6 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
 
     # If there was a problem putting the post in to Mongo we will return None
     return None  # pragma: no cover
-
-
-def parse_links(body):
-    """Finds links (http://, https://, www. and mail addresses) within a post
-    body.
-
-    :type body: str
-    :return: This returns a list of tuples (link, span)
-    :rtype: list
-
-    """
-    urls = URL_RE.finditer(body)
-
-    results = []
-    for url in urls:
-        results.append({
-            'link': url.group(0),
-            'span': url.span()
-        })
-
-    return results
-
-
-def parse_mentions(body):
-    """Finds '@mention's within a posts body. Only highlights users which
-    currently exist within Pjuu.
-
-    .. note: `span` includes the '@' `username` does not.
-
-    :type body: str
-    :return: This returns a list of tuples (user_id, username, span)
-    :rtype: list
-
-    """
-    tags = MENTION_RE.finditer(body)
-
-    results = []
-    for tag in tags:
-        username = tag.group(1).lower()
-
-        # Check the tag is of an actual user
-        user_id = get_uid_username(username)
-
-        if user_id is None:
-            continue
-
-        results.append({
-            'user_id': user_id,
-            'username': username,
-            'span': tag.span()
-        })
-
-    return results
-
-
-def parse_hashtags(body):
-    """Finds '#hashtag`s within a posts body.
-
-    .. note: `span` includes the '#' `hashtag` does not.
-             Hastags are stored in lowercase but the scan isn't so that would
-             need to be swapped when making HTML.
-
-    :param body:
-    :return: This returns a list of tuples (hashtag, span)
-    :rtype: list
-
-    """
-    tags = HASHTAG_RE.finditer(body)
-
-    results = []
-    for tag in tags:
-        # There is no checking of 'hashtags' anything goes
-        results.append({
-            'hashtag': tag.group(1).lower(),
-            'span': tag.span()
-        })
-
-    return results
-
-
-def parse_post(body):
-    """This is a helper function which will run all the above parsers.
-
-    """
-    links = parse_links(body)
-    mentions = parse_mentions(body)
-    hashtags = parse_hashtags(body)
-
-    return links, mentions, hashtags
 
 
 def populate_followers_feeds(user_id, post_id, timestamp):

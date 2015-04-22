@@ -39,7 +39,6 @@ class PagesTests(FrontendTestCase):
 
         # Test each file in the upload directory
         for f in test_upload_files:
-            print 'Testing:', f
             uuid = get_uuid()
             image = io.BytesIO(
                 open(f).read()

@@ -28,9 +28,8 @@ posts_bp = Blueprint('posts', __name__)
 
 @posts_bp.app_template_filter('postify')
 def postify_filter(post):
-    """Will highlight everything that is stored along with the post. Will call
-    the backend `postify` function to make HTML from the posts: link, mentions
-    and hash tags. See that function for more details.
+    """Will highlight everything that is stored along with the post: link,
+    mentions and hash tags.
 
     To use on the post do the following:
 

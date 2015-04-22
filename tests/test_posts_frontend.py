@@ -253,21 +253,6 @@ class PostFrontendTests(FrontendTestCase):
                                                   filename=post.get('upload')),
                       resp.data)
 
-        # Ensure that links, mentions and hashtags are parsed and linked
-        # correctly
-        post1 = create_post(user1, 'user1', 'https://pjuu.com @user2 #pjuu')
-        resp = self.client.get(url_for('posts.view_post', username='user1',
-                                       post_id=post1))
-        self.assertIn('<a href="{0}" target="_blank">{0}</a> <a href="{1}">{2}'
-                      '</a> <a href="{3}">{4}</a>'.format(
-                        'https://pjuu.com',
-                        url_for('users.profile', username='user2'),
-                        '@user2',
-                        url_for('posts.hashtags', hashtag='pjuu'),
-                        '#pjuu'), resp.data)
-
-        # Done for now
-
     def test_get_upload(self):
         """Tests the simple wrapper around ``lib.uploads.get_upload``
 
@@ -993,6 +978,58 @@ class PostFrontendTests(FrontendTestCase):
         num_str = millify_filter(-1000)
         self.assertEqual(num_str, "-1K")
 
+    def test_postify(self):
+        """Test that postify renders posts correctly when the correct
+        informations is attached.
+
+        .. note: This is not intended to test the parsing but simply that what
+                 is parsed is rendered correctly.
+
+        """
+        # We need a user to post as.
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        # Create a post with a user that does not exist there should be no
+        # rendering involved
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Hello @joe'
+        }, follow_redirects=True)
+
+        self.assertIn('Hello @joe', resp.data)
+
+        # Create another user and then tag them
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user2)
+
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Hello @user2'
+        }, follow_redirects=True)
+
+        self.assertIn('Hello <a href="{0}">@user2</a>'.format(
+            url_for('users.profile', username='user2')), resp.data)
+
+        # Check a link
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Visit https://pjuu.com'
+        }, follow_redirects=True)
+
+        self.assertIn('Visit <a href="https://pjuu.com" target="_blank">'
+                      'https://pjuu.com</a>', resp.data)
+
+        # Test a hashtag
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Wow #hashtag'
+        }, follow_redirects=True)
+
+        self.assertIn('Wow <a href="{0}">#hashtag</a>'.format(
+            url_for('posts.hashtags', hashtag='hashtag')), resp.data)
+
     def test_hashtags(self):
         """Ensure the hashtags endpoint gives acts and gives the posts we
         expect.
@@ -1027,5 +1064,15 @@ class PostFrontendTests(FrontendTestCase):
         # hashtag back at us
         resp = self.client.get(url_for('posts.hashtags', hashtag='pjuu'))
         self.assertEqual(200, resp.status_code)
-        self.assertIn('pjuu', resp.data)
+        self.assertIn('<h1>Hashtag: pjuu</h1>', resp.data)
+        self.assertIn('Empty', resp.data)
 
+        # Create a post with a hash tag to ensure we can get it
+        resp = self.client.post(
+            url_for('posts.post', next=url_for('posts.hashtags',
+                                               hashtag='ace')), data={
+                'body': 'This is a new hashtag #ace'
+            }, follow_redirects=True)
+        self.assertIn('<h1>Hashtag: ace</h1>', resp.data)
+        self.assertIn('This is a new hashtag <a href="{0}">#ace</a>'.format(
+            url_for('posts.hashtags', hashtag='ace')), resp.data)

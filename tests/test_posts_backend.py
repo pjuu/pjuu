@@ -10,11 +10,14 @@
 import io
 import gridfs
 
-from pjuu import mongo as m
+from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
-from pjuu.posts.backend import *
+from pjuu.posts.backend import (
+    AlreadyVoted, CantVoteOnOwn, CommentingAlert, SubscriptionReasons,
+    TaggingAlert, check_post, create_post, delete_post, get_post, get_posts,
+    get_replies, is_subscribed, subscribe, unsubscribe, vote_post)
 from pjuu.posts.stats import get_stats
 from pjuu.users.backend import follow_user, get_alerts, get_feed
 
@@ -562,98 +565,6 @@ class PostBackendTests(BackendTestCase):
         alert = get_alerts(user3).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
         self.assertIn('you are subscribed too', alert.prettify(user3))
-
-        # Done for now
-
-    def test_link_parsing(self):
-        """Link regular expressions (http, https, www, etc...).
-
-        .. note: This will need to be added to as we find any failure cases.
-
-        """
-        # Tests for the regex
-        tests = [
-            ('http://foo.com/blah_blah', ['http://foo.com/blah_blah']),
-            ('http://foo.com/blah_blah/', ['http://foo.com/blah_blah/']),
-            ('http://foo.com/blah_blah_(wikipedia)',
-                ['http://foo.com/blah_blah_(wikipedia)']),
-            ('http://foo.com/blah_blah_(wikipedia)_(again)',
-                ['http://foo.com/blah_blah_(wikipedia)_(again)']),
-            ('http://www.example.com/wpstyle/?p=364',
-                ['http://www.example.com/wpstyle/?p=364']),
-            ('https://www.example.com/foo/?bar=baz&inga=42&quux',
-                ['https://www.example.com/foo/?bar=baz&inga=42&quux']),
-            ('http://✪df.ws/123', ['http://✪df.ws/123']),
-            ('http://userid:password@example.com:8080',
-                ['http://userid:password@example.com:8080']),
-            ('http://userid:password@example.com:8080/',
-                ['http://userid:password@example.com:8080/']),
-            ('http://userid@example.com', ['http://userid@example.com']),
-            ('http://userid@example.com/', ['http://userid@example.com/']),
-            ('http://userid@example.com:8080',
-                ['http://userid@example.com:8080']),
-            ('http://userid@example.com:8080/',
-                ['http://userid@example.com:8080/']),
-            ('http://userid:password@example.com',
-                ['http://userid:password@example.com']),
-            ('http://userid:password@example.com/',
-                ['http://userid:password@example.com/']),
-            ('http://142.42.1.1/', ['http://142.42.1.1/']),
-            ('http://142.42.1.1:8080/', ['http://142.42.1.1:8080/']),
-            ('http://➡.ws/䨹', ['http://➡.ws/䨹']),
-            ('http://⌘.ws', ['http://⌘.ws']),
-            ('http://⌘.ws/', ['http://⌘.ws/']),
-            ('http://foo.com/blah_(wikipedia)#cite-1',
-                ['http://foo.com/blah_(wikipedia)#cite-1']),
-            ('http://foo.com/blah_(wikipedia)_blah#cite-1',
-                ['http://foo.com/blah_(wikipedia)_blah#cite-1']),
-            ('http://foo.com/unicode_(✪)_in_parens',
-                ['http://foo.com/unicode_(✪)_in_parens']),
-            ('http://foo.com/(something)?after=parens',
-                ['http://foo.com/(something)?after=parens']),
-            ('http://☺.damowmow.com/', ['http://☺.damowmow.com/']),
-            ('http://code.google.com/events/#&product=browser',
-                ['http://code.google.com/events/#&product=browser']),
-            ('http://j.mp', ['http://j.mp']),
-            ('http://foo.bar/?q=Test%20URL-encoded%20stuff',
-                ['http://foo.bar/?q=Test%20URL-encoded%20stuff']),
-            ('http://مثال.إختبار', ['http://مثال.إختبار']),
-            ('http://例子.测试', ['http://例子.测试']),
-            ('http://उदाहरण.परीक्षा', ['http://उदाहरण.परीक्षा']),
-            ('http://1337.net', ['http://1337.net']),
-            ('http://a.b-c.de', ['http://a.b-c.de']),
-            ('http://223.255.255.254', ['http://223.255.255.254']),
-        ]
-
-        for test in tests:
-            urls = URL_RE.findall(test[0])
-            self.assertEqual(urls, test[1])
-
-    def test_mention_parsing(self):
-        """Mention regular expressions (@mention)
-
-        .. note: This will need to be added to as we find any failure cases.
-
-        """
-        # Tests for the regex
-        tests = []
-
-        for test in tests:
-            mentions = MENTION_RE.findall(test[0])
-            self.assertEqual(mentions, test[1])
-
-    def test_hashtag_parsing(self):
-        """Hashtag regular expressions (#hashtag)
-
-        .. note: This will need to be added to as we find any failure cases.
-
-        """
-        # Tests for the regex
-        tests = []
-
-        for test in tests:
-            hashtags = HASHTAG_RE.findall(test[0])
-            self.assertEqual(hashtags, test[1])
 
     def test_stats(self):
         """Ensure the ``pjuu.posts`` exposed stats are correct
