@@ -115,7 +115,7 @@ class CommentingAlert(PostingAlert):
             sr = 'were tagged in'
         else:
             # This should never really happen but let's play ball eh?
-            sr = 'are subscribed too'
+            sr = 'are subscribed to'
 
         return '<a href="{0}">{1}</a> ' \
                'commented on a <a href="{2}">post</a> you {3}' \
