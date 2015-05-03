@@ -539,7 +539,7 @@ class PostBackendTests(BackendTestCase):
         self.assertTrue(isinstance(alert, CommentingAlert))
         self.assertEqual(alert.user['username'], 'user2')
         self.assertEqual(alert.user['email'], 'user2@pjuu.com')
-        # Please remember that prettify requires a uid to format it too
+        # Please remember that prettify requires a uid to format it to
         self.assertIn('commented on a', alert.prettify(user1))
         self.assertIn('you posted', alert.prettify(user1))
 
@@ -564,7 +564,7 @@ class PostBackendTests(BackendTestCase):
         # Check the new prettify message
         alert = get_alerts(user3).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
-        self.assertIn('you are subscribed too', alert.prettify(user3))
+        self.assertIn('you are subscribed to', alert.prettify(user3))
 
     def test_stats(self):
         """Ensure the ``pjuu.posts`` exposed stats are correct
