@@ -8,12 +8,11 @@ Redis and MongoDB.
 
 """
 
-# Stdlib imports
 import re
-# 3rd party imports
+
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
-# Pjuu imports
+
 from pjuu import mongo as m, redis as r
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp
@@ -28,9 +27,7 @@ SEARCH_RE = re.compile(SEARCH_PATTERN)
 
 
 class FollowAlert(BaseAlert):
-    """A following alert
-
-    """
+    """A simple class for a following alert."""
 
     def prettify(self, for_uid=None):
         return '<a href="{0}">{1}</a> has started following you' \
@@ -40,9 +37,7 @@ class FollowAlert(BaseAlert):
 
 
 def get_profile(user_id):
-    """Returns a user dict with add post_count, follow_count and following.
-
-    """
+    """Returns a user dict with add post_count, follow_count and following."""
     profile = m.db.users.find_one({'_id': user_id})
 
     if profile:
@@ -60,9 +55,8 @@ def get_profile(user_id):
 def get_feed(user_id, page=1):
     """Returns a users feed as a pagination object.
 
-    Please note that the feed is stored inside Redis still as this requires
-    fan-out to update all the users who are following you.
-
+    .. note: The feed is stored inside Redis still as this requires fan-out to
+             update all the users who are following you.
     """
     per_page = app.config.get('FEED_ITEMS_PER_PAGE')
     total = r.zcard(k.USER_FEED.format(user_id))
@@ -82,13 +76,15 @@ def get_feed(user_id, page=1):
     return Pagination(posts, total, page, per_page)
 
 
+def remove_from_feed(post_id, user_id):
+    """Remove ``post_id`` from ``user_id``s feed."""
+    return bool(r.zrem(k.USER_FEED.format(user_id), post_id))
+
+
 def follow_user(who_uid, whom_uid):
     """Add whom to who's following zset and who to whom's followers zset.
     Generate an alert for this action.
-
     """
-    who_uid = who_uid
-    whom_uid = whom_uid
     # Check that we are not already following the user
     if r.zrank(k.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
         return False
@@ -109,11 +105,8 @@ def follow_user(who_uid, whom_uid):
 
 
 def unfollow_user(who_uid, whom_uid):
-    """Remove whom from who's following zset and who to whom's followers zset
-
+    """Remove whom from who's following zset and who to whom's followers zset.
     """
-    who_uid = who_uid
-    whom_uid = whom_uid
     # Check that we are actually following the users
     if r.zrank(k.USER_FOLLOWING.format(who_uid), whom_uid) is None:
         return False
@@ -126,9 +119,7 @@ def unfollow_user(who_uid, whom_uid):
 
 
 def get_following(uid, page=1):
-    """Returns a list of users uid is following as a pagination object.
-
-    """
+    """Returns a list of users uid is following as a pagination object."""
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = r.zcard(k.USER_FOLLOWING.format(uid))
     fids = r.zrevrange(k.USER_FOLLOWING.format(uid), (page - 1) * per_page,
@@ -179,8 +170,8 @@ def is_following(who_id, whom_id):
 # TODO Fix this!
 def search(query):
     """Search for users. Will return a list as a pagination object.
-    Please note that this will block redis whilst it runs.
 
+    .. note: Will block Redis whilst it runs.
     """
     per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
 
@@ -200,7 +191,6 @@ def search(query):
         for user in cursor:
             total += 1
             results.append(user)
-
     else:
         # If there was not query to search for 0 off everything
         results = []

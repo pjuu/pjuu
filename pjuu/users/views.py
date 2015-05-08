@@ -22,31 +22,28 @@ from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import get_posts
 from pjuu.posts.forms import PostForm
 from pjuu.users.forms import ChangeProfileForm, SearchForm
-from pjuu.users.backend import (follow_user, unfollow_user, get_profile,
-                                get_feed, get_followers, get_following,
-                                is_following, set_about, get_alerts,
-                                search as be_search,
-                                i_has_alerts as be_i_has_alerts,
-                                delete_alert as be_delete_alert)
+from pjuu.users.backend import (
+    follow_user, unfollow_user, get_profile, get_feed, get_followers,
+    get_following, is_following, set_about, get_alerts, search as be_search,
+    i_has_alerts as be_i_has_alerts, delete_alert as be_delete_alert,
+    remove_from_feed as be_remove_from_feed
+)
 
 
 users_bp = Blueprint('users', __name__)
 
 
 @users_bp.app_template_filter('following')
-def following_filter(profile):
-    """
-    Checks if current user is following the user with id piped to filter
-    """
-    return is_following(current_user.get('_id'), profile.get('_id'))
+def following_filter(_profile):
+    """Checks if current user is following the user piped to filter."""
+    return is_following(current_user.get('_id'), _profile.get('_id'))
 
 
 @users_bp.app_template_filter('avatar')
 def avatar_filter(email, size=24):
-    """
-    Returns gravatar URL for a given email with the size size.
+    """Returns gravatar URL for a given email with the size size.
 
-    Note: In future this will return a Pjuu avatar URL
+    .. note: In future this will return a Pjuu avatar URL
     """
     return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
            (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
@@ -54,9 +51,7 @@ def avatar_filter(email, size=24):
 
 @users_bp.app_template_filter('millify')
 def millify_filter(n):
-    """
-    Template filter to millify numbers, e.g. 1K, 2M, 1.25B
-    """
+    """Template filter to millify numbers, e.g. 1K, 2M, 1.25B."""
     try:
         n = int(n)
         if n == 0:
@@ -77,8 +72,8 @@ def millify_filter(n):
 
 @users_bp.app_template_filter('timeify')
 def timeify_filter(time):
-    """
-    Takes integer epoch time and returns a DateTime string for display.
+    """Takes integer epoch time and returns a DateTime string for display.
+
     If this conversion fails this function will return "Err"
     """
     try:
@@ -120,11 +115,9 @@ def timeify_filter(time):
 
 @users_bp.app_template_filter('has_alerts')
 def has_alerts_filter(user_id):
-    """
-    Check to see if the user has any alerts. Should only ever really be Used
-    with current_user
+    """Check to see if the user has any alerts.
 
-    Uses the i_has_alerts() backend function
+    .. warning: Should only ever really be used with ``current_user``.
     """
     return be_i_has_alerts(user_id)
 
@@ -150,19 +143,27 @@ def feed():
                            post_form=post_form)
 
 
+@users_bp.route('/feed/<post_id>/remove', methods=['GET'])
+@login_required
+def remove_from_feed(post_id):
+    """Removes ``post_id`` from current users feed"""
+    if be_remove_from_feed(post_id, current_user.get('_id')):
+        flash('Message has been removed from feed', 'success')
+
+    return redirect(handle_next(request, url_for('users.feed')))
+
+
 @users_bp.route('/<username>', methods=['GET'])
 @login_required
 def profile(username):
-    """This is refered to as Posts on the site. It will show the users posts.
-
-    """
+    """It will show the users posts. Referred to as "posts" on the site."""
     uid = get_uid_username(username)
 
     if uid is None:
         abort(404)
 
     # Data
-    profile = get_profile(uid)
+    _profile = get_profile(uid)
 
     # Pagination
     page = handle_page(request)
@@ -171,41 +172,37 @@ def profile(username):
 
     # Post form
     post_form = PostForm()
-    return render_template('posts.html', profile=profile,
+    return render_template('posts.html', profile=_profile,
                            pagination=pagination, post_form=post_form)
 
 
 @users_bp.route('/<username>/following', methods=['GET'])
 @login_required
 def following(username):
-    """
-    Returns all users following the current user as a pagination
-    """
+    """Returns all users following the current user as a pagination."""
     user_id = get_uid(username)
 
     if user_id is None:
         abort(404)
 
     # Data
-    profile = get_profile(user_id)
+    _profile = get_profile(user_id)
 
     # Pagination
     page = handle_page(request)
 
     # Get a list of users you are following
-    following = get_following(user_id, page)
+    _following = get_following(user_id, page)
     # Post form
     post_form = PostForm()
-    return render_template('following.html', profile=profile,
-                           pagination=following, post_form=post_form)
+    return render_template('following.html', profile=_profile,
+                           pagination=_following, post_form=post_form)
 
 
 @users_bp.route('/<username>/followers', methods=['GET'])
 @login_required
 def followers(username):
-    """
-    Returns all a users followers as a pagination object
-    """
+    """Returns all a users followers as a pagination object."""
     user_id = get_uid(username)
 
     if user_id is None:
@@ -228,9 +225,7 @@ def followers(username):
 @users_bp.route('/<username>/follow', methods=['GET'])
 @login_required
 def follow(username):
-    """
-    Used to follow a user
-    """
+    """Follow a user."""
     redirect_url = handle_next(request, url_for('users.following',
                                username=current_user.get('username')))
 
@@ -253,9 +248,7 @@ def follow(username):
 @users_bp.route('/<username>/unfollow', methods=['GET'])
 @login_required
 def unfollow(username):
-    """
-    Used to unfollow a user
-    """
+    """Unfollow a user"""
     redirect_url = handle_next(request, url_for('users.following',
                                username=current_user.get('username')))
 
@@ -278,9 +271,9 @@ def unfollow(username):
 @users_bp.route('/search', methods=['GET'])
 @login_required
 def search():
-    """
-    Handles searching of users. This is all done via a GET query.
-    There should be _NO_ CSRF as this will appear in the URL and look shit
+    """Search for a users. This is all done via a GET query.
+
+    .. note: Should be _NO_ CSRF this will appear in the URL and look shit.
     """
     form = SearchForm(request.form)
 
@@ -296,9 +289,7 @@ def search():
 @users_bp.route('/settings/profile', methods=['GET', 'POST'])
 @login_required
 def settings_profile():
-    """
-    Allows users to customize their profile direct from this view.
-    """
+    """Allows users to customize their profile direct from this view."""
     form = ChangeProfileForm(request.form)
 
     if request.method == 'POST':
@@ -317,9 +308,7 @@ def settings_profile():
 @users_bp.route('/alerts', methods=['GET'])
 @login_required
 def alerts():
-    """
-    Display a users alerts (notifications) to them on the site.
-    """
+    """Display a users alerts (notifications) to them on the site."""
     uid = current_user.get('_id')
 
     # Pagination
@@ -332,9 +321,7 @@ def alerts():
 @users_bp.route('/alerts/<alert_id>/delete', methods=['GET'])
 @login_required
 def delete_alert(alert_id):
-    """
-    Remove an alert id (aid) from a users alerts feed
-    """
+    """Remove an alert id (aid) from a users alerts feed."""
     user_id = current_user.get('_id')
     # Handle next
     redirect_url = handle_next(request, url_for('users.alerts'))
@@ -347,12 +334,13 @@ def delete_alert(alert_id):
 
 @users_bp.route('/i-has-alerts', methods=['GET'])
 def i_has_alerts():
-    """
-    Will return a simple JSON response to denote if the current user has any
+    """Return a simple JSON response to denote if the current user has any
     alerts since last time this was called.
 
-    This will be passed in with the template but will allow something like
-    jQuery to check.
+    This will be passed in with the template but will allow something an AJAX
+    call to get the data also.
+
+    .. note: See ``pjuu/static/js/alerts.js``
     """
     # We don't want this view to redirect to signin so we will throw a 403
     # this will make jQuery easier to use with this endpoint

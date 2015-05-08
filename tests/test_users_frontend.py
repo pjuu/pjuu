@@ -412,3 +412,52 @@ class FrontendTests(FrontendTestCase):
         # Check 3 weeks ago
         time_yearago = timestamp() - 1814400
         self.assertEqual(timeify_filter(time_yearago), '3 weeks ago')
+
+    def test_remove_from_feed(self):
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        # Activate
+        activate(user1)
+
+        follow_user(user1, user2)
+
+        post = create_post(user2, 'user2', 'User 2, is here')
+
+        # Check that the post appears in the users feed
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        self.assertIn('User 2, is here', resp.data)
+        self.assertIn('remove:post:{}'.format(post), resp.data)
+
+        # Hide the post
+        resp = self.client.get(url_for('users.remove_from_feed', post_id=post),
+                               follow_redirects=True)
+
+        self.assertNotIn('User 2, is here', resp.data)
+        self.assertNotIn('remove:post:{}'.format(post), resp.data)
+        self.assertIn('Message has been removed from feed', resp.data)
+
+        # Can a user remove their own post?
+        post = create_post(user1, 'user1', 'User 1, is here')
+
+        # The user should not see a hide button though
+        resp = self.client.get(url_for('users.feed'))
+        self.assertIn('User 1, is here', resp.data)
+        self.assertNotIn('remove:post:{}'.format(post), resp.data)
+
+        # Ensure the URL hides the post
+        resp = self.client.get(url_for('users.remove_from_feed', post_id=post),
+                               follow_redirects=True)
+
+        self.assertNotIn('User 1, is here', resp.data)
+        self.assertIn('Message has been removed from feed', resp.data)
+
+        # Ensure removing a post that is not in your feed does not displau a
+        # flash message
+        resp = self.client.get(url_for('users.remove_from_feed', post_id=''),
+                               follow_redirects=True)
+
+        self.assertNotIn('Message has been removed from feed', resp.data)
