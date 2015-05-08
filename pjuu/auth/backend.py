@@ -94,7 +94,9 @@ def create_account(username, email, password):
                 '_id': uid,
                 'username': username.lower(),
                 'email': email.lower(),
-                'password': generate_password(password),
+                'password': generate_password(password,
+                                              method='pbkdf2:sha256',
+                                              salt_length=20),
                 'created': timestamp(),
                 'last_login': -1,
                 'active': False,
@@ -268,7 +270,9 @@ def change_password(user_id, password):
 
     """
     # Create the password hash from the plain-text password
-    password = generate_password(password)
+    password = generate_password(password,
+                                 method='pbkdf2:sha256:2000',
+                                 salt_length=20)
 
     return m.db.users.update({'_id': user_id},
                              {'$set': {'password': password}})

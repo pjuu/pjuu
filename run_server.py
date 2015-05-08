@@ -28,7 +28,7 @@ if __name__ == '__main__':
     debug_app = DebuggedApplication(app, True)
     cherrypy.tree.graft(debug_app, '/')
     cherrypy.config.update({
-        'engine.autoreload_on': True,
+        'engine.autoreload.on': True,
         'server.socket_port': 5000,
         'server.socket_host': '0.0.0.0'
     })
