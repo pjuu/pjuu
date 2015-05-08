@@ -1,6 +1,7 @@
 {% extends 'list.html' %}
 
 {% block list %}
+
 {% if pagination.items %}
 {% for item in pagination.items %}
 {% if config.TESTING %}
@@ -10,10 +11,15 @@
     <img class="avatar" src="{{ item.user_email|avatar(32) }}"/>
     <div class="control">
         {% if item.user_id == current_user._id %}
-        {% if config.TESTING %}
-         <!-- delete:post:{{ item._id }} -->
-        {% endif %}
-        <a href="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-remove fa-lg delete"></a>
+            {% if config.TESTING %}
+            <!-- delete:post:{{ item._id }} -->
+            {% endif %}
+            <a href="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-remove fa-lg delete"></a>
+        {% elif request.endpoint == 'users.feed' %}
+            {% if config.TESTING %}
+            <!-- remove:post:{{ item._id }} -->
+            {% endif %}
+            <a href="{{ url_for('users.remove_from_feed', post_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-eye-slash hide"></a>
         {% endif %}
     </div>
     <div class="content post clearfix">
