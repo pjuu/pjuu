@@ -609,7 +609,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.downvote', username='user1',
                                        post_id=post1, reply_id=comment1),
                                follow_redirects=True)
-        self.assertIn('You downvoted the post', resp.data)
+        self.assertIn('You downvoted the comment', resp.data)
         self.assertIn('<!-- downvoted:reply:{0} -->'.format(comment1),
                       resp.data)
         self.assertNotIn('<!-- downvote:reply:{0} -->'.format(comment1),
