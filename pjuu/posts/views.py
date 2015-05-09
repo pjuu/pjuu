@@ -223,7 +223,9 @@ def upvote(username, post_id, reply_id=None):
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You upvoted the post', 'success')
+        flash('You upvoted the ' + (
+                                    "comment" if reply_id else "post"),
+              'success')
 
     return redirect(redirect_url)
 
@@ -252,7 +254,9 @@ def downvote(username, post_id, reply_id=None):
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You downvoted the post', 'success')
+        flash('You downvoted the ' + (
+                                      "comment" if reply_id else "post"),
+              'success')
 
     return redirect(redirect_url)
 
