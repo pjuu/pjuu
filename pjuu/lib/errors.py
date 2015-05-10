@@ -22,7 +22,7 @@ custom_error_messages = {
 def handle_error(error):
     """Generically handle error messages with custom messages"""
     error.custom_message = custom_error_messages.get(error.code,
-                                                     error.message)
+                                                     error.description)
     return render_template('errors.html', error=error), error.code
 
 
