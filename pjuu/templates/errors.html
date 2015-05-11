@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ error.code }}{% endblock %}
+
+{% block layout %}
+<div id="main">
+    <div class="container">
+        <div id="error">
+            <div class="code">{{ error.name }}</div>
+            <div class="message">
+                <p>{% autoescape false %}{{ error.custom_message }}{% endautoescape %}</p>
+                <p>You can try going back to the <a href="{{ url_for('users.feed') }}">home page.</a></p>
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+{% endblock %}

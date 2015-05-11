@@ -106,6 +106,10 @@ def create_app(config_filename='settings.py', config_dict=None):
                 values[param_name] = int(os.stat(
                     os.path.join(static_folder, filename)).st_mtime)
 
+    # Register error handlers
+    from pjuu.lib.errors import register_errors
+    register_errors(app)
+
     with app.app_context():
         # Import all Pjuu stuffs
         # Load the blueprints
