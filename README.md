@@ -71,6 +71,12 @@ Running the unit tests with coverage:
 $ coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt run_tests.py
 ```
 
+Checking code quality and PEP8 compliance:
+
+```
+$ flake8 --exclude=docs,venv .
+```
+
 Running the development server (CherryPy):
 
 ```
