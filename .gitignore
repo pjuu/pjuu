@@ -58,3 +58,4 @@ target/
 .idea/
 *.sublime*
 *.swp
+tags
