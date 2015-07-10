@@ -95,7 +95,7 @@ def create_account(username, email, password):
                 'username': username.lower(),
                 'email': email.lower(),
                 'password': generate_password(password,
-                                              method='pbkdf2:sha256',
+                                              method='pbkdf2:sha256:2000',
                                               salt_length=20),
                 'created': timestamp(),
                 'last_login': -1,
