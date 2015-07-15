@@ -7,8 +7,6 @@
 
 """
 
-import json
-
 from flask import url_for
 
 from pjuu.auth.backend import create_account, delete_account, activate
