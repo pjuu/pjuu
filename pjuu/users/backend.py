@@ -269,7 +269,7 @@ def delete_alert(user_id, alert_id):
     return bool(r.zrem(k.USER_ALERTS.format(user_id), alert_id))
 
 
-def i_has_alerts(user_id):
+def new_alerts(user_id):
     """Checks too see if user has any new alerts since they last got the them.
 
     """

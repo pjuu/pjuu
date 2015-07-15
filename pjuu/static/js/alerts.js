@@ -1,26 +1,20 @@
 /*
  * Check to see if the user has alerts, if so change the menu icon.
- * This will check every 20 seconds by default.
+ * This will check every 60 seconds by default.
  */
 
 // This uses a timeout so that if it fails (auth pages) it won't bother
 // trying agin until the page is refreshed.
 function has_alerts() {
-    $.get("/i-has-alerts", function(data) {
-        // Do we have alerts?
-        if (data.result == true) {
-            // We have alerts so change the image in the menu
-            $("#alert").addClass('alert');
-            // Don't bother looking for alerts again. It can only go red once
-        } else {
-            // We will not check that we don't have alerts and try and reset
-            // the image. This will reduce overhead.
-            // We will simply set a timeout to look again in 20 seconds
-            setTimeout(function() {
-                has_alerts();
-            }, 20000);
-        }
-    })
+    $.get("/alerts/new", function(data) {
+        // Yey we have some alerts :-)
+        $("#alert").addClass('alert');
+    }).fail(function() {
+        // Oh no. We have no new alerts lets check again in a minute.
+        setTimeout(function() {
+            has_alerts();
+        }, 60000);
+    });
 }
 
 // Set an inital timeout.
@@ -28,4 +22,4 @@ function has_alerts() {
 // do that
 setTimeout(function() {
     has_alerts();
-}, 20000);
+}, 60000);
