@@ -4,6 +4,9 @@ python:
   - '2.7'
   - 'pypy'
 
+# Enable container based deploys
+sudo: false
+
 services:
   - mongodb
   - redis-server
