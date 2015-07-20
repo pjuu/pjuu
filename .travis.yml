@@ -4,16 +4,10 @@ python:
   - '2.7'
   - 'pypy'
 
-# Enable container based deploys
-sudo: false
 
 services:
   - mongodb
   - redis-server
-
-before_install:
-  - apt-get update
-  - apt-get install libtiff4-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk
 
 install:
   - pip install -r requirements-dev.txt
