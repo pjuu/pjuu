@@ -8,6 +8,7 @@
 """
 
 from flask import render_template
+from werkzeug.exceptions import HTTPException, InternalServerError
 
 
 custom_error_messages = {
@@ -21,6 +22,11 @@ custom_error_messages = {
 
 def handle_error(error):
     """Generically handle error messages with custom messages"""
+
+    # Handle exceptions that are not Internal Server Errors
+    if not isinstance(error, HTTPException):
+        error = InternalServerError()
+
     error.custom_message = custom_error_messages.get(error.code,
                                                      error.description)
     return render_template('errors.html', error=error), error.code
