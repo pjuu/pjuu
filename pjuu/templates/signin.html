@@ -2,20 +2,22 @@
 
 {% block title %}Sign In{% endblock %}
 
-{% block header %}Sign In{% endblock%}
 {% block form %}
-<form action="" method="post" autocomplete="off">
-    {{ form.username.label }}
-    {{ form.username }}
-    {{ form.password.label }}
-    {{ form.password }}
-    {{ form.keep_signed_in }}
-    {{ form.keep_signed_in.label }}
+<form id="sign-in" action="" method="post" autocomplete="off">
+    <div class="form-group">
+        {{ form.username(placeholder="Username/Email") }}
+        {{ form.password(placeholder="Password") }}
+    </div>
     {{ form.csrf_token }}
-    <input type="submit" value="Sign In" tabindex="4"/>
+    <input type="submit" value="Sign In">
+
+    <div class="form-group">
+        {{ form.keep_signed_in }}
+        {{ form.keep_signed_in.label }}
+    </div>
 </form>
 {% endblock %}
 {% block links %}
-<div class="link">Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign Up for free</a></div>
-<div class="link">Forgotten your password? <a href="{{ url_for('auth.forgot') }}">Recover it here</a></div>
+<a href="{{ url_for('auth.signup') }}" class="link">Sign Up</a>
+<a href="{{ url_for('auth.forgot') }}" class="link">Forgot Password</a>
 {% endblock %}
