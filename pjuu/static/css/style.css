@@ -1,6 +1,8 @@
+@import url(http://fonts.googleapis.com/css?family=Lato:300);
+
 /* GLOBAL ================================================================== */
 html, body {
-    background-color: #F5FAE6;
+    /* background-color: #F5FAE6; */
     font-family: Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 400;
@@ -48,7 +50,7 @@ html[xmlns] .clearfix {
 .no-mobile {
 }
 
-/* forms */
+/* Forms */
 input[type=text],
 input[type=password],
 textarea {
@@ -90,7 +92,6 @@ input[type=submit] {
     border: 1px solid #666;
     border-radius: 3px;
     font-weight: 700;
-    float: right;
     padding: 0.5em 1em;
 }
 
@@ -119,8 +120,8 @@ button:hover {
 }
 
 .messages .error {
-    background-color: #C00;
-    color: #600;
+    background-color: #FF4136;
+    color: white;
 }
 
 .messages .information {
@@ -140,59 +141,108 @@ button:hover {
 
 /* AUTHENTICATION ========================================================== */
 #auth {
-    width: 100%;
-}
-
-#auth a {
-    font-weight: 700;
-}
-
-#auth h1 {
-    color: #666;
-    font-size: 1.25em;
-    margin: 0 0 1em 0;
-    padding: 0;
-}
-
-#auth .container {
-    margin: 0 auto;
-    min-width: 300px;
-    max-width: 380px;
-}
-
-#auth .logo {
-    display: block;
-    margin: 1em auto 0;
-    padding: 0;
+    font-family: Lato, 'Open Sans', sans-serif;
+    margin: 20px 10px;
+    text-align: center;
 }
 
 #auth .motto {
-    color: #000;
-    font-family: Georgia, Garamond, serif;
-    font-size: 1.25em;
-    margin: 0 auto 1em;
-    text-align: center;
+    color: #333;
+    font-size: 26px;
+    font-weight: 300;
+    line-height: 1.15em;
+    padding: 5%;
 }
 
-#auth .form {
-    background-color: #FFF;
-    border: 1px solid #666;
-    border-radius: 3px;
-    margin: 0 auto;
-    padding: 1em;
+#auth .motto span {
+    font-size: 28px;
+}
+
+.form-group {
+    padding: 8px;
+}
+
+#auth form {
+    padding: 30px;
+}
+
+#auth input {
+    border: 2px solid #9C0;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 20px;
+}
+
+#auth input:focus {
+    box-shadow: 3px 3px 10px rgba(125, 125, 125, 0.71);
+    outline: 0 !important;
+}
+
+#auth input[type=text],
+#auth input[type=password] {
+    margin: 8px 0;
+}
+
+#auth input[type=submit] {
+    background-color: #9C0;
+    color: white;
+    margin: 10px auto;
+    text-transform: uppercase;
+    width: 45%;
+
+    -webkit-transition: all 300ms;
+    -moz-transition: all 300ms;
+    -ms-transition: all 300ms;
+    -o-transition: all 300ms;
+    transition: all 300ms;
+}
+
+#auth input[type=submit]:hover {
+    background-color: white;
+    color: #9C0;
 }
 
 #auth .link {
-    background-color: #FFF;
-    border: 1px solid #666;
-    border-radius: 3px;
-    color: #000;
-    margin: 1em auto;
-    padding: 0.75em;
-    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    padding: 8px;
+    text-transform: uppercase;
 }
 
-/* error list can be used anywhere */
+#auth .link > a {
+    padding-left: 10px;
+}
+
+@media (min-width: 600px) {
+    #auth {
+        margin: 50px;
+    }
+
+    #auth input[type=text],
+    #auth input[type=password] {
+        margin: 0 5px;
+    }
+
+    #sign-in input[type=text],
+    #sign-in input[type=password] {
+        display: inline-block;
+        width: 35%;
+    }
+
+    #sign-up {
+        margin: auto;
+        width: 70%;
+    }
+}
+
+@media (min-width: 800px) {
+    #auth .container {
+        margin: auto;
+        width: 70%;
+    }
+}
+
+/* Error list can be used anywhere */
 .errorlist {
     color: #C00;
     list-style: none;
@@ -991,7 +1041,6 @@ button:hover {
     }
 
     /* ACTION BUTTON ======================================================= */
-
     /* PROFILE ============================================================= */
     #profile .avatar {
         height: 24px;
