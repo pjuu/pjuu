@@ -17,7 +17,7 @@
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
             </li></a>
             <a href="{{ url_for('users.alerts') }}"><li>
-                {% if current_user._id|has_alerts %}
+                {% if current_user._id|new_alerts %}
                 <i id="alert" class="fa fa-bell fa-fw fa-lg alert"></i>
                 {% else %}
                 <i id="alert" class="fa fa-bell fa-fw fa-lg"></i>

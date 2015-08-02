@@ -7,8 +7,6 @@
 
 """
 
-import json
-
 from flask import url_for
 
 from pjuu.auth.backend import create_account, delete_account, activate
@@ -338,7 +336,7 @@ class FrontendTests(FrontendTestCase):
         activate(user2)
 
         # Try an visit i-has-alerts when not logged in
-        resp = self.client.get(url_for('users.i_has_alerts'))
+        resp = self.client.get(url_for('users.new_alerts'))
         self.assertEqual(resp.status_code, 403)
 
         # Login as user1
@@ -348,9 +346,9 @@ class FrontendTests(FrontendTestCase):
         })
 
         # Get I has alerts and check that it is false
-        resp = self.client.get(url_for('users.i_has_alerts'))
+        resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
-        self.assertFalse(json.loads(resp.data).get('result'))
+        self.assertEqual(resp.status_code, 404)
 
         # Ensure that /alerts returns nothing
         resp = self.client.get(url_for('users.alerts'))
@@ -361,9 +359,9 @@ class FrontendTests(FrontendTestCase):
         follow_user(user2, user1)
 
         # Ensure that /i-has-alerts is correct
-        resp = self.client.get(url_for('users.i_has_alerts'))
+        resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
-        self.assertTrue(json.loads(resp.data).get('result'))
+        self.assertEqual(resp.status_code, 200)
 
         resp = self.client.get(url_for('users.alerts'))
         # We don't know the alert ID but we can check that one is there by
@@ -376,9 +374,9 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('has started following you', resp.data)
 
         # We have now checked the alerts, ensure that i-has-alerts is False
-        resp = self.client.get(url_for('users.i_has_alerts'))
+        resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
-        self.assertFalse(json.loads(resp.data).get('result'))
+        self.assertEqual(resp.status_code, 404)
 
         # Check that we can delete the alert
         # Get the alert id from the backend function

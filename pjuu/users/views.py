@@ -12,7 +12,7 @@ from hashlib import md5
 import math
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request, url_for,
-                   jsonify, Blueprint)
+                   Blueprint)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
@@ -25,7 +25,7 @@ from pjuu.users.forms import ChangeProfileForm, SearchForm
 from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, set_about, get_alerts, search as be_search,
-    i_has_alerts as be_i_has_alerts, delete_alert as be_delete_alert,
+    new_alerts as be_new_alerts, delete_alert as be_delete_alert,
     remove_from_feed as be_remove_from_feed
 )
 
@@ -113,13 +113,13 @@ def timeify_filter(time):
         return "Err"
 
 
-@users_bp.app_template_filter('has_alerts')
-def has_alerts_filter(user_id):
+@users_bp.app_template_filter('new_alerts')
+def new_alerts_filter(user_id):
     """Check to see if the user has any alerts.
 
     .. warning: Should only ever really be used with ``current_user``.
     """
-    return be_i_has_alerts(user_id)
+    return be_new_alerts(user_id)
 
 
 @users_bp.route('/', methods=['GET'])
@@ -332,10 +332,10 @@ def delete_alert(alert_id):
     return redirect(redirect_url)
 
 
-@users_bp.route('/i-has-alerts', methods=['GET'])
-def i_has_alerts():
-    """Return a simple JSON response to denote if the current user has any
-    alerts since last time this was called.
+@users_bp.route('/alerts/new', methods=['GET'])
+def new_alerts():
+    """Return a simple http status  response to denote if the current user has
+    any alerts since last time this was called.
 
     This will be passed in with the template but will allow something an AJAX
     call to get the data also.
@@ -349,4 +349,7 @@ def i_has_alerts():
 
     uid = current_user.get('_id')
 
-    return jsonify(result=be_i_has_alerts(uid))
+    # If a user has alerts then return a 200 else a 404
+    if be_new_alerts(uid):
+        return "", 200
+    return "", 404

@@ -14,7 +14,7 @@ from pjuu.lib.alerts import BaseAlert
 from pjuu.posts.backend import create_post
 from pjuu.users.backend import (
     get_profile, search, is_following, get_following, get_followers,
-    i_has_alerts, FollowAlert, get_alerts, follow_user, unfollow_user,
+    new_alerts, FollowAlert, get_alerts, follow_user, unfollow_user,
     delete_alert, get_user
 )
 
@@ -252,14 +252,14 @@ class BackendTests(BackendTestCase):
         follow_user(user2, user1)
 
         # Check that i_has_alerts is True
-        self.assertTrue(i_has_alerts(user1))
+        self.assertTrue(new_alerts(user1))
 
         # Ensure that there is an alert in the get_alerts
         self.assertEqual(get_alerts(user1).total, 1)
         self.assertEqual(len(get_alerts(user1).items), 1)
 
         # Check that i_has_alerts is False, we have read them with get_alerts
-        self.assertFalse(i_has_alerts(user1))
+        self.assertFalse(new_alerts(user1))
 
         # Get the alert and check that the alert is the follow alert
         alert = get_alerts(user1).items[0]
