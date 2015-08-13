@@ -25,7 +25,7 @@ def handle_error(error):
 
     # Handle exceptions that are not Internal Server Errors
     if not isinstance(error, HTTPException):
-        error = InternalServerError()
+        error = InternalServerError()  # pragma: no cover
 
     error.custom_message = custom_error_messages.get(error.code,
                                                      error.description)
