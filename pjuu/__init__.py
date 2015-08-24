@@ -14,6 +14,7 @@ from flask import Flask
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
+from flask_wtf import CsrfProtect
 from raven.contrib.flask import Sentry
 # Pjuu imports
 from pjuu.lib.sessions import RedisSessionInterface
@@ -32,6 +33,10 @@ mongo = PyMongo()
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
 redis_sessions = Redis()
+
+# Cross Site Request Forgery protection
+csrf = CsrfProtect()
+
 # Raven global Sentry object for Flask
 sentry = Sentry()
 
@@ -84,6 +89,9 @@ def create_app(config_filename='settings.py', config_dict=None):
 
     # Create the Redis session interface
     redis_sessions.init_app(app, 'SESSION_REDIS')
+
+    # Initialize CSRF protection
+    csrf.init_app(app)
 
     # Set session handler to Redis
     app.session_interface = RedisSessionInterface(redis=redis_sessions)

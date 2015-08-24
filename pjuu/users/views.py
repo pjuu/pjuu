@@ -143,14 +143,16 @@ def feed():
                            post_form=post_form)
 
 
-@users_bp.route('/feed/<post_id>/remove', methods=['GET'])
+@users_bp.route('/feed/<post_id>/remove', methods=['POST'])
 @login_required
 def remove_from_feed(post_id):
-    """Removes ``post_id`` from current users feed"""
+    """Removes ``post_id`` from current users feed."""
+    redirect_url = handle_next(request, url_for('users.feed'))
+
     if be_remove_from_feed(post_id, current_user.get('_id')):
         flash('Message has been removed from feed', 'success')
 
-    return redirect(handle_next(request, url_for('users.feed')))
+    return redirect(handle_next(request, redirect_url))
 
 
 @users_bp.route('/<username>', methods=['GET'])
@@ -222,7 +224,7 @@ def followers(username):
                            pagination=_followers, post_form=post_form)
 
 
-@users_bp.route('/<username>/follow', methods=['GET'])
+@users_bp.route('/<username>/follow', methods=['POST'])
 @login_required
 def follow(username):
     """Follow a user."""
@@ -245,7 +247,7 @@ def follow(username):
     return redirect(redirect_url)
 
 
-@users_bp.route('/<username>/unfollow', methods=['GET'])
+@users_bp.route('/<username>/unfollow', methods=['POST'])
 @login_required
 def unfollow(username):
     """Unfollow a user"""

@@ -199,8 +199,8 @@ def get_upload(filename):
     return be_get_upload(filename)
 
 
-@posts_bp.route('/<username>/<post_id>/upvote', methods=['GET'])
-@posts_bp.route('/<username>/<post_id>/<reply_id>/upvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/upvote', methods=['POST'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/upvote', methods=['POST'])
 @login_required
 def upvote(username, post_id, reply_id=None):
     """Upvotes a post.
@@ -229,8 +229,8 @@ def upvote(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@posts_bp.route('/<username>/<post_id>/downvote', methods=['GET'])
-@posts_bp.route('/<username>/<post_id>/<reply_id>/downvote', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/downvote', methods=['POST'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/downvote', methods=['POST'])
 @login_required
 def downvote(username, post_id, reply_id=None):
     """Downvotes a post.
@@ -259,8 +259,8 @@ def downvote(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@posts_bp.route('/<username>/<post_id>/delete', methods=['GET'])
-@posts_bp.route('/<username>/<post_id>/<reply_id>/delete', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/delete', methods=['POST'])
+@posts_bp.route('/<username>/<post_id>/<reply_id>/delete', methods=['POST'])
 @login_required
 def delete_post(username, post_id, reply_id=None):
     """Deletes posts.
@@ -298,7 +298,7 @@ def delete_post(username, post_id, reply_id=None):
     return redirect(redirect_url)
 
 
-@posts_bp.route('/<username>/<post_id>/unsubscribe', methods=['GET'])
+@posts_bp.route('/<username>/<post_id>/unsubscribe', methods=['POST'])
 @login_required
 def unsubscribe(username, post_id):
     """Unsubscribes a user from a post

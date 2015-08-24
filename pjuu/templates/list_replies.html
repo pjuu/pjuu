@@ -13,7 +13,10 @@
         {% if config.TESTING %}
         <!-- delete:reply:{{ item._id }} -->
         {% endif %}
-        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-remove fa-lg delete"></a>
+        <form action="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <button class="fa fa-remove fa-lg delete buttonlink"></button>
+        </form>
         {% endif %}
     </div>
     <div class="content post clearfix">
@@ -55,7 +58,10 @@
                     {% if config.TESTING %}
                     <!-- upvote:reply:{{ item._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-arrow-up fa-lg link upvote buttonlink"></button>
+                    </form>
                     {% endif %}
                 </li>
                 <li>
@@ -70,7 +76,10 @@
                     {% if config.TESTING %}
                     <!-- downvote:reply:{{ item._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-arrow-down fa-lg link downvote buttonlink"></button>
+                    </form>
                     {% endif %}
                 </li>
                 {% endif %}
