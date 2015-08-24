@@ -167,9 +167,9 @@ class FrontendTests(FrontendTestCase):
         # Follow test2
         # Ensure we pass a next variable to come back to test2's followers page
         resp = self.client.post(url_for('users.follow', username='user2',
-                               next=url_for('users.followers',
-                                            username='user2')),
-                               follow_redirects=True)
+                                next=url_for('users.followers',
+                                             username='user2')),
+                                follow_redirects=True)
         # Ensure the flash message has informed use we are following
         self.assertIn('You have started following user2', resp.data)
         # Ensure test2's followers count has been incremented
