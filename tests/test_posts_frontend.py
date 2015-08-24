@@ -571,9 +571,9 @@ class PostFrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.data)
 
         # Visit user 2's comment and UPVOTE that
-        resp = self.client.get(url_for('posts.upvote', username='user2',
-                                       post_id=post2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You upvoted the post', resp.data)
@@ -585,9 +585,9 @@ class PostFrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.data)
 
         # Let's try and vote on that post again
-        resp = self.client.get(url_for('posts.upvote', username='user2',
-                                       post_id=post2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
         # Now that we have voted we should only see the arrow pointing to what
@@ -606,9 +606,9 @@ class PostFrontendTests(FrontendTestCase):
                       resp.data)
 
         # Down vote the users comment (it's nothing personal test2 :P)
-        resp = self.client.get(url_for('posts.downvote', username='user1',
-                                       post_id=post1, reply_id=comment1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post1, reply_id=comment1),
+                                follow_redirects=True)
         self.assertIn('You downvoted the comment', resp.data)
         self.assertIn('<!-- downvoted:reply:{0} -->'.format(comment1),
                       resp.data)
@@ -620,9 +620,9 @@ class PostFrontendTests(FrontendTestCase):
                          resp.data)
 
         # Lets check that we can't vote on this comment again
-        resp = self.client.get(url_for('posts.downvote', username='user1',
-                                       post_id=post1, reply_id=comment1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post1, reply_id=comment1),
+                                follow_redirects=True)
         self.assertIn('You have already voted on this post', resp.data)
 
         # Now lets double check we can't vote on our own comments or posts
@@ -635,31 +635,31 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Comment user 1', resp.data)
 
         # Lets ensure we can't vote on either the comment or the post
-        resp = self.client.get(url_for('posts.upvote', username='user1',
-                                       post_id=post3),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=post3),
+                                follow_redirects=True)
         self.assertIn('You can not vote on your own posts', resp.data)
 
-        resp = self.client.get(url_for('posts.upvote', username='user1',
-                                       post_id=post3, reply_id=comment2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=post3, reply_id=comment2),
+                                follow_redirects=True)
         self.assertIn('You can not vote on your own posts', resp.data)
 
         # Try and vote on a comment or post that does not exist
         # Vote on a post
-        resp = self.client.get(url_for('posts.upvote', username='user1',
-                                       post_id=k.NIL_VALUE),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=k.NIL_VALUE),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 404)
         # Vote on a comment
-        resp = self.client.get(url_for('posts.downvote', username='user1',
-                                       post_id=post3, reply_id=k.NIL_VALUE),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post3, reply_id=k.NIL_VALUE),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 404)
         # Vote on a post when the user doesn't even exists
-        resp = self.client.get(url_for('posts.downvote', username='userX',
-                                       post_id=post3, reply_id=k.NIL_VALUE),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='userX',
+                                        post_id=post3, reply_id=k.NIL_VALUE),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 404)
 
         # Let's ensure a logged out user can not perform any of these actions
@@ -667,14 +667,14 @@ class PostFrontendTests(FrontendTestCase):
         self.client.get(url_for('auth.signout'), follow_redirects=True)
         # We are at the signin page
         # Vote on a post
-        resp = self.client.get(url_for('posts.upvote', username='user1',
-                                       post_id=post3),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=post3),
+                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
         # Vote on a comment
-        resp = self.client.get(url_for('posts.downvote', username='user1',
-                                       post_id=post3, reply_id=comment2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post3, reply_id=comment2),
+                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Log in as user3 and try and catch some situations which are missing
@@ -684,15 +684,15 @@ class PostFrontendTests(FrontendTestCase):
             'password': 'Password'
         }, follow_redirects=True)
         # Downvote user1's post
-        resp = self.client.get(url_for('posts.downvote', username='user1',
-                                       post_id=post1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post1),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Create a post and try and downvote it
         post4 = create_post(user3, 'user3', 'Test post')
-        resp = self.client.get(url_for('posts.downvote', username='user3',
-                                       post_id=post4),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.downvote', username='user3',
+                                        post_id=post4),
+                                follow_redirects=True)
         self.assertIn('You can not vote on your own posts', resp.data)
         # Done for now
 
@@ -730,8 +730,8 @@ class PostFrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- delete:post:{0} -->'.format(post2), resp.data)
 
         # Try and delete user two's post this should fail
-        resp = self.client.get(url_for('posts.delete_post', username='user2',
-                                       post_id=post2))
+        resp = self.client.post(url_for('posts.delete_post', username='user2',
+                                        post_id=post2))
         self.assertEqual(resp.status_code, 403)
         # Ensure the post is still actuall there
         resp = self.client.get(url_for('posts.view_post', username='user2',
@@ -739,15 +739,15 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Test post, user 2', resp.data)
 
         # Try and delete a non-existant post
-        resp = self.client.get(url_for('posts.delete_post',
-                                       username=k.NIL_VALUE,
-                                       post_id=k.NIL_VALUE))
+        resp = self.client.post(url_for('posts.delete_post',
+                                        username=k.NIL_VALUE,
+                                        post_id=k.NIL_VALUE))
         self.assertEqual(resp.status_code, 404)
 
         # Let's delete our own post
-        resp = self.client.get(url_for('posts.delete_post', username='user1',
-                                       post_id=post1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.delete_post', username='user1',
+                                        post_id=post1),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Post has been deleted along with all replies',
                       resp.data)
@@ -777,9 +777,9 @@ class PostFrontendTests(FrontendTestCase):
                               post_id=post2, reply_id=comment1), resp.data)
 
         # Let's delete are own comment
-        resp = self.client.get(url_for('posts.delete_post', username='user2',
-                                       post_id=post2, reply_id=comment1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.delete_post', username='user2',
+                                        post_id=post2, reply_id=comment1),
+                                follow_redirects=True)
         # Check we have confirmation
         self.assertIn('Post has been deleted', resp.data)
         # Lets check that comment 2 is there
@@ -790,15 +790,15 @@ class PostFrontendTests(FrontendTestCase):
 
         # Attempt to delete user 2's comment. This should fail with a 403
         # as we are neither the comment author nor the post author
-        resp = self.client.get(url_for('posts.delete_post', username='user2',
-                                       post_id=post2, reply_id=comment2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.delete_post', username='user2',
+                                        post_id=post2, reply_id=comment2),
+                                follow_redirects=True)
         # Let's check we got the error
         self.assertEqual(resp.status_code, 403)
 
         # Attempt to delete user 2's post we should receive a 403
-        resp = self.client.get(url_for('posts.delete_post', username='user2',
-                                       post_id=post2, reply_id=comment2))
+        resp = self.client.post(url_for('posts.delete_post', username='user2',
+                                        post_id=post2, reply_id=comment2))
         self.assertEqual(resp.status_code, 403)
 
         # Let's just ensure the comment wasn't deleted
@@ -807,10 +807,10 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Test comment, user 2', resp.data)
 
         # Try and delete a non-existant comment
-        resp = self.client.get(url_for('posts.delete_post',
-                                       username=k.NIL_VALUE,
-                                       post_id=k.NIL_VALUE,
-                                       reply_id=k.NIL_VALUE))
+        resp = self.client.post(url_for('posts.delete_post',
+                                        username=k.NIL_VALUE,
+                                        post_id=k.NIL_VALUE,
+                                        reply_id=k.NIL_VALUE))
         self.assertEqual(resp.status_code, 404)
 
         # Log out as user 1
@@ -837,9 +837,9 @@ class PostFrontendTests(FrontendTestCase):
         # No need to test that test2 can delete there own post as we have
         # tested this already with test1.
         # Check that the owner of the post (user2) can delete any comment
-        resp = self.client.get(url_for('posts.delete_post', username='user2',
-                                       post_id=post2, reply_id=comment3),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.delete_post', username='user2',
+                                        post_id=post2, reply_id=comment3),
+                                follow_redirects=True)
         # Check we have confirmation
         self.assertIn('Post has been deleted', resp.data)
         # Lets check that comment 2 is there
@@ -888,9 +888,9 @@ class PostFrontendTests(FrontendTestCase):
 
         # Unsubscribe via the frontend and ensure the button is removed and
         # we get a flash message
-        resp = self.client.get(url_for('posts.unsubscribe', username='user1',
-                                       post_id=post1),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.unsubscribe', username='user1',
+                                        post_id=post1),
+                                follow_redirects=True)
         self.assertIn('You have been unsubscribed from this post', resp.data)
         self.assertNotIn('<!-- unsubscribe:post:{0} -->'.format(post1),
                          resp.data)
@@ -910,9 +910,9 @@ class PostFrontendTests(FrontendTestCase):
 
         # Check that unsubscribing from a non-existant (wont pass check post)
         # post will raise a 404
-        resp = self.client.get(url_for('posts.unsubscribe',
-                                       username=k.NIL_VALUE,
-                                       post_id=k.NIL_VALUE))
+        resp = self.client.post(url_for('posts.unsubscribe',
+                                        username=k.NIL_VALUE,
+                                        post_id=k.NIL_VALUE))
         self.assertEqual(resp.status_code, 404)
 
         # Log out aster user2
@@ -935,9 +935,9 @@ class PostFrontendTests(FrontendTestCase):
         # Create a post as user1 which we will not be subscribed too and ensure
         # that no message is shown
         post2 = create_post(user1, 'user1', "Test post, for cant unsubscribe")
-        resp = self.client.get(url_for('posts.unsubscribe', username='user1',
-                                       post_id=post2),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.unsubscribe', username='user1',
+                                        post_id=post2),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertNotIn('You have been unsubscribed from this post',
                          resp.data)

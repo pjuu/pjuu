@@ -94,9 +94,10 @@ class FrontendTests(FrontendTestCase):
         # put we will check that there is at least one delete button
         self.assertIn('<!-- delete:post:', resp.data)
         # Delete the post
-        resp = self.client.get(url_for('posts.delete_post', username='user1',
-                               post_id=posts[100], next=url_for('users.feed')),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('posts.delete_post', username='user1',
+                                post_id=posts[100], next=url_for(
+                                    'users.feed')),
+                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('User 1, Post 49!', resp.data)
         self.assertNotIn('User 1, Post 50!', resp.data)
@@ -119,11 +120,11 @@ class FrontendTests(FrontendTestCase):
 
         # Let's try and access the endpoints feature when we are not logged in
         # We should not be able to see it
-        resp = self.client.get(url_for('users.follow', username='user1'),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.follow', username='user1'),
+                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
-        resp = self.client.get(url_for('users.unfollow', username='user1'),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.unfollow', username='user1'),
+                                follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
         resp = self.client.get(url_for('users.following', username='user1'),
                                follow_redirects=True)
@@ -146,17 +147,17 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.following', username='None'))
         self.assertEqual(resp.status_code, 404)
         # Try follow and unfollow a non-existant user
-        resp = self.client.get(url_for('users.follow', username='None'))
+        resp = self.client.post(url_for('users.follow', username='None'))
         self.assertEqual(resp.status_code, 404)
-        resp = self.client.get(url_for('users.unfollow', username='None'))
+        resp = self.client.post(url_for('users.unfollow', username='None'))
         self.assertEqual(resp.status_code, 404)
 
         # Try follow and unfollow yourself
-        resp = self.client.get(url_for('users.follow', username='user1'),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.follow', username='user1'),
+                                follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
-        resp = self.client.get(url_for('users.unfollow', username='user1'),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.unfollow', username='user1'),
+                                follow_redirects=True)
         self.assertIn('You can\'t follow/unfollow yourself', resp.data)
 
         # Visit test2 and ensure followers count is 0
@@ -165,7 +166,7 @@ class FrontendTests(FrontendTestCase):
 
         # Follow test2
         # Ensure we pass a next variable to come back to test2's followers page
-        resp = self.client.get(url_for('users.follow', username='user2',
+        resp = self.client.post(url_for('users.follow', username='user2',
                                next=url_for('users.followers',
                                             username='user2')),
                                follow_redirects=True)
@@ -178,10 +179,10 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- list:user:%s -->' % user1, resp.data)
 
         # Attempt to follow test2 again
-        resp = self.client.get(url_for('users.follow', username='user2',
-                               next=url_for('users.followers',
-                                            username='user2')),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.follow', username='user2',
+                                next=url_for('users.followers',
+                                             username='user2')),
+                                follow_redirects=True)
         # Check we got no confirmation
         self.assertNotIn('You have started following test2', resp.data)
         # Check that the followers count has not incremented
@@ -193,20 +194,20 @@ class FrontendTests(FrontendTestCase):
 
         # Unfollow test2
         # Ensure that all the previous has been reversed
-        resp = self.client.get(url_for('users.unfollow', username='user2',
-                               next=url_for('users.followers',
-                                            username='user2')),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.unfollow', username='user2',
+                                next=url_for('users.followers',
+                                             username='user2')),
+                                follow_redirects=True)
         self.assertIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)
         # Check the list testing tag has gone
         self.assertNotIn('<!-- list:user:test1 -->', resp.data)
 
         # Attempt to unfollow the user again
-        resp = self.client.get(url_for('users.unfollow', username='user2',
-                               next=url_for('users.followers',
-                                            username='user2')),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.unfollow', username='user2',
+                                next=url_for('users.followers',
+                                             username='user2')),
+                                follow_redirects=True)
         self.assertNotIn('You are no longer following user2', resp.data)
         self.assertIn('<!-- followers:0 -->', resp.data)
 
@@ -431,8 +432,9 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('remove:post:{}'.format(post), resp.data)
 
         # Hide the post
-        resp = self.client.get(url_for('users.remove_from_feed', post_id=post),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.remove_from_feed',
+                                        post_id=post),
+                                follow_redirects=True)
 
         self.assertNotIn('User 2, is here', resp.data)
         self.assertNotIn('remove:post:{}'.format(post), resp.data)
@@ -447,15 +449,17 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('remove:post:{}'.format(post), resp.data)
 
         # Ensure the URL hides the post
-        resp = self.client.get(url_for('users.remove_from_feed', post_id=post),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.remove_from_feed',
+                                        post_id=post),
+                                follow_redirects=True)
 
         self.assertNotIn('User 1, is here', resp.data)
         self.assertIn('Message has been removed from feed', resp.data)
 
         # Ensure removing a post that is not in your feed does not displau a
         # flash message
-        resp = self.client.get(url_for('users.remove_from_feed', post_id=''),
-                               follow_redirects=True)
+        resp = self.client.post(url_for('users.remove_from_feed',
+                                        post_id=''),
+                                follow_redirects=True)
 
         self.assertNotIn('Message has been removed from feed', resp.data)

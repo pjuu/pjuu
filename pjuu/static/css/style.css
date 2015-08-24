@@ -336,6 +336,7 @@ button:hover {
 
 .follow:hover {
     background-color: #3C3;
+    border: 1px solid #3C3;
     color: #FFF;
 }
 
@@ -349,6 +350,7 @@ button:hover {
 .unfollow:hover {
     background-color: #C00;
     border: 1px solid #C00;
+    color: #FFF;
     content: "Unfollow";
 }
 
@@ -583,6 +585,13 @@ button:hover {
     padding: 0;
 }
 
+#post button {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
 /* AUTHOR ================================================================== */
 #author {
     border: 1px solid #666;
@@ -691,6 +700,13 @@ button:hover {
     list-style: none;
     margin: 0 0 0.5em 0;
     padding: 0.5em;
+}
+
+#list .item .buttonlink {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    cursor: pointer;
 }
 
 #list .last {

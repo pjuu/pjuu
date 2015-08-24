@@ -14,7 +14,10 @@
         {% if config.TESTING %}
         <!-- delete:post:{{ post._id }} -->
         {% endif %}
-        <a href="{{ url_for('posts.delete_post', username=post.username, post_id=post._id) }}" class="fa fa-remove fa-lg delete"></a>
+        <form action="{{ url_for('posts.delete_post', username=post.username, post_id=post._id) }}" method="post">
+            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <button class="fa fa-remove fa-lg delete"></button>
+        </form>
         {% endif %}
     </div>
 
@@ -56,7 +59,10 @@
                     {% if config.TESTING %}
                     <!-- upvote:post:{{ post._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-up fa-lg link upvote"></a>
+                    <form action="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-arrow-up fa-lg link upvote"></button>
+                    </form>
                     {% endif %}
                 </li>
                 <li>
@@ -71,7 +77,10 @@
                     {% if config.TESTING %}
                     <!-- downvote:post:{{ post._id }} -->
                     {% endif %}
-                    <a href="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path) }}" class="fa fa-arrow-down fa-lg link downvote"></a>
+                    <form action="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-arrow-down fa-lg link downvote"></button>
+                    </form>
                     {% endif %}
                 </li>
                 {% endif %}
@@ -81,7 +90,10 @@
                 {% if config.TESTING %}
                 <!-- unsubscribe:post:{{ post._id }} -->
                 {% endif %}
-                <a href="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" class="fa fa-bell-slash fa-lg link unsubscribe"></a>
+                <form action="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                    <button class="fa fa-bell-slash fa-lg link unsubscribe"></button>
+                </form>
             </div>
             {% endif %}
         </div>
