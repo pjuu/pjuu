@@ -72,9 +72,23 @@ class AuthFrontendTests(FrontendTestCase):
             'username': 'user1',
             'password': 'Password',
             'keep_signed_in': True
-        })
+        }, follow_redirects=True)
         # Check we are redirected
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("<title>Feed - Pjuu</title>", resp.data)
+
+        # Log back out
+        self.client.get(url_for('auth.signout'))
+
+        # Test that the user has additional spaces striped from their names
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': ' user1 ',
+            'password': 'Password',
+            'keep_signed_in': True
+        }, follow_redirects=True)
+        # Check we are redirected
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("<title>Feed - Pjuu</title>", resp.data)
 
         # Log back out
         self.client.get(url_for('auth.signout'))

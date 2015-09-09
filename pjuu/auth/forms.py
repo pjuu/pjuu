@@ -37,6 +37,12 @@ class SignInForm(Form):
     ])
     keep_signed_in = BooleanField('Keep me signed in')
 
+    def validate_username(form, field):
+        """Strip surrounding white space from user name. This can happen on
+        certain devices.
+        """
+        field.data = field.data.strip()
+
 
 class ResetForm(Form):
     """Form to reset your password.
