@@ -56,11 +56,6 @@ POST_VOTES = "{{post:{0}}}:votes"
 # Returns: zset
 POST_SUBSCRIBERS = "{{post:{0}}}:subscribers"
 
-# Comment related keys
-
-# Returns: zset
-COMMENT_VOTES = "{{comment:{0}}}:votes"
-
 # Alert related keys
 
 # Return: hash

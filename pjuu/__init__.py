@@ -127,9 +127,9 @@ def create_app(config_filename='settings.py', config_dict=None):
         app.register_blueprint(posts_bp)
         from pjuu.users.views import users_bp
         app.register_blueprint(users_bp)
-        from lib.dashboard import dashboard_bp
+        from pjuu.lib.dashboard import dashboard_bp
         app.register_blueprint(dashboard_bp)
-        from lib.pages import pages_bp
+        from pjuu.lib.pages import pages_bp
         app.register_blueprint(pages_bp)
 
     # Return a nice shiny new Pjuu WSGI application :)
