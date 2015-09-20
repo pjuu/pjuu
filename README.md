@@ -62,7 +62,13 @@ $ pip install -r requirements-dev.txt
 Running the unit tests with coverage:
 
 ```
-$ make cover 
+$ make test
+```
+
+Obtain a coverage report
+
+```
+$ make coverage
 ```
 
 Checking code quality and PEP8 compliance:
