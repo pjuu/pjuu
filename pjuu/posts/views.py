@@ -68,7 +68,8 @@ def postify_filter(post):
                 replace_text
             )
 
-        elif 'hashtag' in item:
+        elif 'hashtag' in item:  # pragma: no branch
+            # The pragma above is because the `else` should never be called
             html = '<a href="{0}">{1}</a>'.format(
                 url_for('posts.hashtags', hashtag=item['hashtag']),
                 replace_text

@@ -1,21 +1,21 @@
-# Quick make commands to ensure all commands for checking code have been run
-# To check everything just run `make`
+# Pjuu Makefile
+# Used for quickly testing, running and ensuring code quality
+# during development.
 
 all: flake cover
 
 test:
-	@echo 'Running tests...'
-	python run_tests.py
+	@echo 'Running test suite...'
+	coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt --branch run_tests.py
 
-cover:
-	@echo 'Ensuring all lines of code are checked by the tests...'
-	coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt run_tests.py
+coverage:
+	@echo 'Generating code coverage report...'
 	coverage report
 
 flake:
-	@echo 'Ensuring all code is PEP8 compliant...'
-	flake8 --exclude=docs,venv .
+	@echo 'Checking coding standards...'
+	flake8 --exclude=docs,venv,venv3,venvpypy .
 
 run:
-	@echo 'Running Pjuu in CherryPy development server...'
+	@echo 'Starting Pjuu test server...'
 	python run_server.py

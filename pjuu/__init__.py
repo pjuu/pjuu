@@ -101,7 +101,7 @@ def create_app(config_filename='settings.py', config_dict=None):
     def cache_buster(endpoint, values):
         if 'static' == endpoint or '.static' == endpoint[-7:]:
             filename = values.get('filename', None)
-            if filename:
+            if filename:  # pragma: no branch
                 static_folder = app.static_folder
 
                 param_name = 'h'

@@ -399,7 +399,7 @@ def get_posts(user_id, page=1):
     posts = []
     for post in cursor:
         # This is not a nice solution but is needed for Gravatar
-        if user is not None:
+        if user is not None:  # pragma: no branch
             post['user_email'] = user.get('email')
 
         posts.append(post)
@@ -424,7 +424,7 @@ def get_replies(post_id, page=1):
             {'_id': reply.get('user_id')},
             {'email': True})
 
-        if user is not None:
+        if user is not None:  # pragma: no branch
             reply['user_email'] = user.get('email')
             replies.append(reply)
 
@@ -451,7 +451,7 @@ def get_hashtagged_posts(hashtag, page=1):
             {'_id': post.get('user_id')},
             {'email': True})
 
-        if post is not None:
+        if post is not None:  # pragma: no branch
             post['user_email'] = user.get('email')
             posts.append(post)
 

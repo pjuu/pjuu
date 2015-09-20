@@ -26,7 +26,7 @@ from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, set_about, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_remove_from_feed
+    remove_from_feed as be_rem_from_feed
 )
 
 
@@ -149,7 +149,7 @@ def remove_from_feed(post_id):
     """Removes ``post_id`` from current users feed."""
     redirect_url = handle_next(request, url_for('users.feed'))
 
-    if be_remove_from_feed(post_id, current_user.get('_id')):
+    if be_rem_from_feed(post_id, current_user.get('_id')):  # pragma: no branch
         flash('Message has been removed from feed', 'success')
 
     return redirect(handle_next(request, redirect_url))

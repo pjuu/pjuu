@@ -59,28 +59,22 @@ $ source venv/bin/activate
 $ pip install -r requirements-dev.txt
 ```
 
-Running the unit tests:
-
-```
-$ python run_tests.py
-```
-
 Running the unit tests with coverage:
 
 ```
-$ coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt run_tests.py
+$ make cover 
 ```
 
 Checking code quality and PEP8 compliance:
 
 ```
-$ flake8 --exclude=docs,venv .
+$ make flake
 ```
 
 Running the development server (CherryPy):
 
 ```
-$ python run_server.py
+$ make run 
 ```
 
 You can view the site by visiting: http://localhost:5000
