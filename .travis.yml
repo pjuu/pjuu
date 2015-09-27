@@ -19,7 +19,7 @@ script:
   - make test 
 
 after_success:
-  - coveralls
+  - codecov
 
 notifications:
   email: false
