@@ -39,14 +39,23 @@
             {% endautoescape %}
         </div>
         {% if item.upload %}
-        {% if config.TESTING %}
-        <!-- upload:post:{{ item._id }} -->
-        {% endif %}
-        <div class="image">
-            <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}">
-                <img src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
-            </a>
-        </div>
+            {% if config.TESTING %}
+            <!-- upload:post:{{ item._id }} -->
+            {% endif %}
+            <div class="image">
+                {% if current_user.hide_feed_images %}
+                <div class="no-image">
+                    {% if config.TESTING %}
+                    <!-- upload:hidden:{{ item._id }} -->
+                    {% endif %}
+                    <i class="fa fa-picture-o fa-lg"></i>
+                </div>
+                {% else %}
+                <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}">
+                    <img src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
+                </a>
+                {% endif %}
+            </div>
         {% endif %}
         <div class="panel clearfix">
             <ul class="left">

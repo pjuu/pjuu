@@ -26,7 +26,7 @@ from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, set_about, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_rem_from_feed
+    remove_from_feed as be_rem_from_feed, set_display_settings
 )
 
 
@@ -296,6 +296,11 @@ def settings_profile():
 
     if request.method == 'POST':
         if form.validate():
+            # Update users display settings
+            current_user['hide_feed_images'] = form.hide_feed_images.data
+            set_display_settings(current_user.get('_id'),
+                                 hide_feed_images=form.hide_feed_images.data)
+
             # Update current_user, this was highlighted by Ant is issue 1
             current_user['about'] = form.about.data
             # Set the users new about in Redis

@@ -5,30 +5,54 @@
 <h1>Profile settings</h1>
 <div id="setting" class="clearfix">
     <div class="details">
-        <div class="detail">User Name: <b>{{ current_user['username'] }}</b></div>
-        <div class="detail">E-mail address: <b>{{ current_user['email'] }}</b></div>
         <div class="detail">
-            Avatar:<br/>
-            <img src="{{ current_user['email']|avatar(48) }}"/><br/>
-            <a href="http://gravatar.com" target="_blank">Edit Gravatar</a>
-            <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>
-            <p>This will change to our own custom rolled avatar system in the near future.</p>
+            <div class="header">User Name</div>
+            <div class="content">{{ current_user['username'] }}</div>
+        </div>
+        <div class="detail">
+            <div class="header">E-mail address</div>
+            <div class="content">{{ current_user['email'] }}</div>
+        </div>
+        <div class="detail">
+            <div class="header">Avatar</div>
+            <div class="content">
+                <img src="{{ current_user['email']|avatar(48) }}"/><br/>
+                <a href="http://gravatar.com" target="_blank">Edit Gravatar</a>
+                <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>
+                <p>This will change to our own custom rolled avatar system in the near future.</p>
+            </div>
         </div>
     </div>
 
     <form action="" method="post">
-        {{ form.about.label }}:
-        <textarea id="about" name="about" rows="5" maxlength="{{ form.about.validators[0].max }}" placeholder="Set your about me...">{{ current_user['about'] }}</textarea>
-        <div id="count">
-            {{ current_user['about']|length }} / {{ form.about.validators[0].max }}
+        <div class="details">
+            <div class="detail">
+                <div class="header">
+                    Display settings
+                </div>
+                <div class="content">
+                    {{ form.hide_feed_images(checked=current_user.hide_feed_images) }} {{ form.hide_feed_images.label }}
+                </div>
+            </div>
         </div>
-        {% if form.about.errors %}
-        <ul class="errorlist">
-            {% for error in form.about.errors %}
-            <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        <div class="details">
+            <div class="detail">
+                <div class="header">{{ form.about.label }}</div>
+                <div class="content">
+                    <textarea id="about" name="about" rows="5" maxlength="{{ form.about.validators[0].max }}" placeholder="Set your about me...">{{ current_user.about }}</textarea>
+                    <div id="count">
+                        {{ current_user.about|length }} / {{ form.about.validators[0].max }}
+                    </div>
+                    {% if form.about.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.about.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {{ form.csrf_token }}
         <button type="submit"><i class="fa fa-edit"></i> Update Profile</button>
     </form>
