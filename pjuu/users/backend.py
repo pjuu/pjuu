@@ -208,6 +208,18 @@ def set_about(user_id, about):
                              {'$set': {'about': about}})
 
 
+def set_display_settings(user_id, hide_feed_images=None):
+    """Update any display settings for the user.
+
+    .. note: To add a new settings add the item as a kwarg to this function.
+    """
+    if hide_feed_images is not None:  # pragma: no branch
+        m.db.users.update({'_id': user_id},
+                          {'$set': {'hide_feed_images': hide_feed_images}})
+
+    return True
+
+
 def get_alerts(user_id, page=1):
     """Return a list of alert objects as a pagination.
 

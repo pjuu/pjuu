@@ -14,7 +14,7 @@ from flask import url_for
 from pjuu.auth.backend import create_account, activate, mute
 from pjuu.lib import keys as k
 from pjuu.posts.backend import create_post, get_post, MAX_POST_LENGTH
-from pjuu.users.backend import follow_user
+from pjuu.users.backend import follow_user, set_display_settings
 from pjuu.users.views import millify_filter, timeify_filter
 
 from tests import FrontendTestCase
@@ -47,7 +47,7 @@ class PostFrontendTests(FrontendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Activate the account
         self.assertTrue(activate(user1))
-        # Log the user in
+        # # Log the user in
         resp = self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
             'password': 'Password'
@@ -255,6 +255,34 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
                                                   filename=post.get('upload')),
                       resp.data)
+
+    def test_hide_feed_images(self):
+        """"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        # Log the user in
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Disable feed images
+        set_display_settings(user1, hide_feed_images=True)
+
+        # Upload another image
+        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        post1 = create_post(user1, 'user1', 'Test post', upload=image)
+        self.assertIsNotNone(post1)
+
+        post = get_post(post1)
+        resp = self.client.get(url_for('users.feed'))
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertNotIn('<img src="%s"/>' %
+                         url_for('posts.get_upload',
+                                 filename=post.get('upload')),
+                         resp.data)
+        self.assertIn('<!-- upload:hidden:%s -->' % post1, resp.data)
 
     def test_get_upload(self):
         """Tests the simple wrapper around ``lib.uploads.get_upload``

@@ -752,6 +752,11 @@ button:hover {
     margin: 0 0 1em;
 }
 
+#list .image .no-image {
+    font-size: 1.5em;
+    padding: 0.5em 0;
+}
+
 #list .image img {
     border: 1px solid #666;
     display: block;
@@ -887,13 +892,20 @@ button:hover {
 }
 
 #setting .details {
-    margin: 0;
-    padding: 0;
+    margin: 0 0 2em;
 }
 
 #setting .detail {
-    margin: 0 0 0.5em;
-    padding: 0 0 0.5em;
+    margin: 0 0 1em;
+    padding: 0;
+}
+
+#setting .detail .header {
+    font-weight: 700;
+}
+
+#setting .detail .content {
+    margin: 0.5em 0 0 2em;
 }
 
 #setting .warning {

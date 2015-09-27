@@ -12,7 +12,7 @@ from flask import url_for
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
-from pjuu.users.backend import follow_user, get_alerts
+from pjuu.users.backend import follow_user, get_alerts, get_user
 from pjuu.users.views import timeify_filter
 
 from tests import FrontendTestCase
@@ -284,9 +284,8 @@ class FrontendTests(FrontendTestCase):
         # Done for now!
 
     def test_settings_profile(self):
-        """
-        Ensure users have the ability to see some information about there
-        account and can change there about message
+        """Ensure users have the ability to see some information about there
+        account and can change there about message and display options.
         """
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
@@ -306,8 +305,8 @@ class FrontendTests(FrontendTestCase):
 
         # Go to our settings page and ensure everything is there
         resp = self.client.get(url_for('users.settings_profile'))
-        self.assertIn('User Name: <b>user1</b>', resp.data)
-        self.assertIn('E-mail address: <b>user1@pjuu.com</b>', resp.data)
+        self.assertIn('<div class="content">user1</div>', resp.data)
+        self.assertIn('<div class="content">user1@pjuu.com</div>', resp.data)
         # Post to the form and update our about. We should also be this on
         # this page
         resp = self.client.post(url_for('users.settings_profile'), data={
@@ -323,12 +322,29 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('Oh no! There are errors in your form', resp.data)
         # Ensure the about did not change
         self.assertIn('Otters love fish!', resp.data)
-        # Done for now
+
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'about': 'Test display settings',
+            'hide_feed_images': True,
+        }, follow_redirects=True)
+        self.assertIn('Test display settings', resp.data)
+
+        # Not sure it's good to check for a checked checkbox so test the user
+        # account
+        user = get_user(user1)
+        self.assertTrue(user.get('hide_feed_images'))
+
+        # Ensure you can unset it
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'about': 'Test display settings',
+        }, follow_redirects=True)
+
+        # Get the user again. This should have been updated from the database
+        user = get_user(user1)
+        self.assertFalse(user.get('hide_feed_images'))
 
     def test_alerts(self):
-        """
-        Check that alerts are displayed properly in the frontend
-        """
+        """Check that alerts are displayed properly in the frontend."""
         # Create two test users
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
