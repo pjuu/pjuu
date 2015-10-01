@@ -31,7 +31,20 @@
                     Display settings
                 </div>
                 <div class="content">
-                    {{ form.hide_feed_images(checked=current_user.hide_feed_images) }} {{ form.hide_feed_images.label }}
+                    <div>
+                    {{ form.hide_feed_images(checked=current_user.hide_feed_images or False) }}
+                    {{ form.hide_feed_images.label }}
+                    </div>
+                    <div>
+                        {{ form.feed_pagination_size.label }}
+                        {{ form.feed_pagination_size }}
+                    </div>
+                    <div>
+                        {{ form.replies_pagination_size.label }} {{ form.replies_pagination_size }}
+                    </div>
+                    <div>
+                        {{ form.alerts_pagination_size.label }} {{ form.alerts_pagination_size }}
+                    </div>
                 </div>
             </div>
         </div>

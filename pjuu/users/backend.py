@@ -52,13 +52,15 @@ def get_profile(user_id):
     return profile if profile else None
 
 
-def get_feed(user_id, page=1):
+def get_feed(user_id, page=1, per_page=None):
     """Returns a users feed as a pagination object.
 
     .. note: The feed is stored inside Redis still as this requires fan-out to
              update all the users who are following you.
     """
-    per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
     total = r.zcard(k.USER_FEED.format(user_id))
     pids = r.zrevrange(k.USER_FEED.format(user_id), (page - 1) * per_page,
                        (page * per_page) - 1)
@@ -118,9 +120,11 @@ def unfollow_user(who_uid, whom_uid):
     return True
 
 
-def get_following(uid, page=1):
+def get_following(uid, page=1, per_page=None):
     """Returns a list of users uid is following as a pagination object."""
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
     total = r.zcard(k.USER_FOLLOWING.format(uid))
     fids = r.zrevrange(k.USER_FOLLOWING.format(uid), (page - 1) * per_page,
                        (page * per_page) - 1)
@@ -137,11 +141,13 @@ def get_following(uid, page=1):
     return Pagination(users, total, page, per_page)
 
 
-def get_followers(uid, page=1):
+def get_followers(uid, page=1, per_page=None):
     """Returns a list of users who follow user with uid as a pagination object.
 
     """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
     total = r.zcard(k.USER_FOLLOWERS.format(uid))
     fids = r.zrevrange(k.USER_FOLLOWERS.format(uid), (page - 1) * per_page,
                        (page * per_page) - 1)
@@ -173,7 +179,7 @@ def search(query):
 
     .. note: Will block Redis whilst it runs.
     """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+    per_page = app.config.get('FEED_ITEMS_PER_PAGE')
 
     # Clean up query string
     query = query.lower()
@@ -220,11 +226,23 @@ def set_display_settings(user_id, hide_feed_images=None):
     return True
 
 
-def get_alerts(user_id, page=1):
+def set_pagination_sizes(user_id, feed_size=25, replies_size=25,
+                         alerts_size=50):
+    """Update the number of items the users sees during pagination."""
+    m.db.users.update({'_id': user_id}, {'$set': {
+        'feed_pagination_size': int(feed_size),
+        'replies_pagination_size': int(replies_size),
+        'alerts_pagination_size': int(alerts_size)
+    }})
+    return True
+
+
+def get_alerts(user_id, page=1, per_page=None):
     """Return a list of alert objects as a pagination.
 
     """
-    per_page = app.config.get('ALERT_ITEMS_PER_PAGE')
+    if per_page is None:
+        per_page = app.config.get('ALERT_ITEMS_PER_PAGE')
 
     # Get the last time the users checked the alerts
     # Try and cast the value to an int so we can boolean compare them

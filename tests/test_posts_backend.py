@@ -10,6 +10,8 @@
 import io
 import gridfs
 
+from flask import current_app as app
+
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.auth.utils import get_user
@@ -17,7 +19,8 @@ from pjuu.lib import keys as K
 from pjuu.posts.backend import (
     AlreadyVoted, CantVoteOnOwn, CommentingAlert, SubscriptionReasons,
     TaggingAlert, check_post, create_post, delete_post, get_post, get_posts,
-    get_replies, is_subscribed, subscribe, unsubscribe, vote_post)
+    get_replies, is_subscribed, subscribe, unsubscribe, vote_post,
+    get_hashtagged_posts)
 from pjuu.posts.stats import get_stats
 from pjuu.users.backend import follow_user, get_alerts, get_feed
 
@@ -159,6 +162,23 @@ class PostBackendTests(BackendTestCase):
         # Ensure the item is not in Redis
         self.assertNotIn(post2, r.zrange(K.USER_FEED.format(user1), 0, -1))
 
+    def test_get_feed_pagination_sizes(self):
+        """Ensure that getting the feed at different pagination sizes work"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        follow_user(user1, user2)
+
+        # Create lots of posts so they apear in user1's feed.
+        for i in xrange(101):
+            create_post(user2, 'user2', 'Post {}'.format(i))
+
+        FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        self.assertEqual(len(get_feed(user1).items), FEED_ITEMS_PER_PAGE)
+        self.assertEqual(len(get_feed(user1, per_page=25).items), 25)
+        self.assertEqual(len(get_feed(user1, per_page=50).items), 50)
+        self.assertEqual(len(get_feed(user1, per_page=100).items), 100)
+
     def test_get_posts(self):
         """
         Test users post list works correctly
@@ -190,6 +210,21 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(get_posts(user1).total, 1)
 
         # Done
+
+    def test_get_posts_pagination_sizes(self):
+        """Ensure get_posts works with various pagination sizes"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+
+        # Create loads of posts
+        for i in xrange(100):
+            create_post(user1, 'user1', 'Test post {}'.format(i))
+
+        FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        self.assertEqual(len(get_posts(user1).items), FEED_ITEMS_PER_PAGE)
+        self.assertEqual(len(get_posts(user1, per_page=25).items), 25)
+        self.assertEqual(len(get_posts(user1, per_page=50).items), 50)
+        self.assertEqual(len(get_posts(user1, per_page=100).items), 100)
 
     def test_get_replies(self):
         """Test getting all replies for a post
@@ -230,6 +265,22 @@ class PostBackendTests(BackendTestCase):
         # Check that is has gone
         self.assertEqual(len(get_replies(post1).items), 1)
         self.assertEqual(get_replies(post1).total, 1)
+
+    def test_get_replies_pagination_sizes(self):
+        """Ensure get_posts works with various pagination sizes"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        post1 = create_post(user1, 'user1', 'Test post')
+
+        # Create loads of posts
+        for i in xrange(100):
+            create_post(user1, 'user1', 'Test post {}'.format(i), post1)
+
+        REPLIES_ITEMS_PER_PAGE = app.config.get('REPLIES_ITEMS_PER_PAGE')
+
+        self.assertEqual(len(get_replies(post1).items), REPLIES_ITEMS_PER_PAGE)
+        self.assertEqual(len(get_replies(post1, per_page=25).items), 25)
+        self.assertEqual(len(get_replies(post1, per_page=50).items), 50)
+        self.assertEqual(len(get_replies(post1, per_page=100).items), 100)
 
     def test_check_post(self):
         """
@@ -588,3 +639,25 @@ class PostBackendTests(BackendTestCase):
         self.assertEqual(stats.get('Total posts'), 3)
         self.assertEqual(stats.get('Total uploads'), 1)
         self.assertIsNotNone(stats.get('Last post'))
+
+    def test_get_hashtagged_posts_pagination_sizes(self):
+        """Ensure the correct number of hashtagged posts are returned when
+        pagination sizes have been changed.
+        """
+        """Ensure get_posts works with various pagination sizes"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+
+        # Create loads of posts
+        for i in xrange(100):
+            create_post(user1, 'user1', 'Test post {} #test'.format(i))
+
+        FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        self.assertEqual(
+            len(get_hashtagged_posts('test').items), FEED_ITEMS_PER_PAGE)
+        self.assertEqual(
+            len(get_hashtagged_posts('test', per_page=25).items), 25)
+        self.assertEqual(
+            len(get_hashtagged_posts('test', per_page=50).items), 50)
+        self.assertEqual(
+            len(get_hashtagged_posts('test', per_page=100).items), 100)
