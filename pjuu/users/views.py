@@ -12,7 +12,7 @@ from hashlib import md5
 import math
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request, url_for,
-                   Blueprint)
+                   Blueprint, current_app as app)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
@@ -26,7 +26,8 @@ from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, set_about, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_rem_from_feed, set_display_settings
+    remove_from_feed as be_rem_from_feed, set_display_settings,
+    set_pagination_sizes
 )
 
 
@@ -135,7 +136,8 @@ def feed():
     # Pagination
     page = handle_page(request)
     # Get feed pagination
-    pagination = get_feed(current_user.get('_id'), page)
+    pagination = get_feed(current_user.get('_id'), page,
+                          current_user.get('feed_pagination_size'))
 
     # Post form
     post_form = PostForm()
@@ -170,7 +172,8 @@ def profile(username):
     # Pagination
     page = handle_page(request)
     # Get the posts pagination
-    pagination = get_posts(uid, page)
+    pagination = get_posts(uid, page,
+                           current_user.get('feed_pagination_size'))
 
     # Post form
     post_form = PostForm()
@@ -194,7 +197,9 @@ def following(username):
     page = handle_page(request)
 
     # Get a list of users you are following
-    _following = get_following(user_id, page)
+    _following = get_following(user_id, page,
+                               current_user.get('feed_pagination_size'))
+
     # Post form
     post_form = PostForm()
     return render_template('following.html', profile=_profile,
@@ -217,7 +222,9 @@ def followers(username):
     page = handle_page(request)
 
     # Get a list of users you are following
-    _followers = get_followers(user_id, page)
+    _followers = get_followers(user_id, page,
+                               current_user.get('feed_pagination_size'))
+
     # Post form
     post_form = PostForm()
     return render_template('followers.html', profile=_profile,
@@ -292,14 +299,40 @@ def search():
 @login_required
 def settings_profile():
     """Allows users to customize their profile direct from this view."""
-    form = ChangeProfileForm(request.form)
+    # Create the form and initialize the `select` field this can not be done
+    # in the template.
+    form = ChangeProfileForm(
+        feed_pagination_size=(current_user.get('feed_pagination_size') or
+                              app.config.get('FEED_ITEMS_PER_PAGE')),
+        replies_pagination_size=(current_user.get('replies_pagination_size') or
+                                 app.config.get('REPLIES_ITEMS_PER_PAGE')),
+        alerts_pagination_size=(current_user.get('alerts_pagination_size') or
+                                app.config.get('ALERT_ITEMS_PER_PAGE')),
+    )
 
     if request.method == 'POST':
+        form = ChangeProfileForm(request.form)
         if form.validate():
             # Update users display settings
             current_user['hide_feed_images'] = form.hide_feed_images.data
             set_display_settings(current_user.get('_id'),
                                  hide_feed_images=form.hide_feed_images.data)
+
+            # Set the pagination sizes in the currently loaded user profile.
+            current_user['feed_pagination_size'] = \
+                int(form.feed_pagination_size.data)
+            current_user['replies_pagination_size'] = \
+                int(form.replies_pagination_size.data)
+            current_user['alerts_pagination_size'] = \
+                int(form.alerts_pagination_size.data)
+
+            # Update the MongoDB user pofile with these settings.
+            set_pagination_sizes(
+                current_user.get('_id'),
+                form.feed_pagination_size.data,
+                form.replies_pagination_size.data,
+                form.alerts_pagination_size.data
+            )
 
             # Update current_user, this was highlighted by Ant is issue 1
             current_user['about'] = form.about.data
@@ -321,7 +354,8 @@ def alerts():
     # Pagination
     page = handle_page(request)
 
-    _results = get_alerts(uid, page)
+    _results = get_alerts(uid, page,
+                          current_user.get('alerts_pagination_size'))
     return render_template('alerts.html', pagination=_results)
 
 

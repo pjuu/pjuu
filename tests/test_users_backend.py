@@ -7,6 +7,8 @@
 
 """
 
+from flask import current_app as app
+
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import create_account, delete_account
 from pjuu.lib import keys as k
@@ -165,6 +167,40 @@ class BackendTests(BackendTestCase):
         # is not there
         self.assertEqual(get_followers(user2).total, 0)
         self.assertEqual(get_following(user2).total, 0)
+
+    def test_followers_and_unfollowers_pagination_sizes(self):
+        """Ensure that the followers and unfollowers feeds are correct if
+        changing the feed size.
+        """
+        users = []
+        # Creae 101 users (0 - 100)
+        for i in xrange(101):
+            users.append(create_account('user{}'.format(i),
+                                        'user{}@pjuu.com'.format(i),
+                                        'Password'))
+
+        # Make user0 follow all users and visa versa
+        for i in xrange(1, 101):
+            follow_user(users[0], users[i])
+            follow_user(users[i], users[0])
+
+        FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        # Check that the correct amount of users come back for follower and
+        # following
+        self.assertEqual(len(get_followers(users[0]).items),
+                         FEED_ITEMS_PER_PAGE)
+
+        self.assertEqual(len(get_followers(users[0], per_page=25).items), 25)
+        self.assertEqual(len(get_followers(users[0], per_page=50).items), 50)
+        self.assertEqual(len(get_followers(users[0], per_page=100).items), 100)
+
+        self.assertEqual(len(get_following(users[0]).items),
+                         FEED_ITEMS_PER_PAGE)
+
+        self.assertEqual(len(get_following(users[0], per_page=25).items), 25)
+        self.assertEqual(len(get_following(users[0], per_page=50).items), 50)
+        self.assertEqual(len(get_following(users[0], per_page=100).items), 100)
 
     def test_back_feed(self):
         """Test the back feed feature, once a user follows another user it
@@ -328,3 +364,21 @@ class BackendTests(BackendTestCase):
         self.assertEqual(len(alerts.items), 0)
 
         # Done for now
+
+    def test_alerts_pagination_sizes(self):
+        """Check that the correct number of alerts are generated"""
+        # Create 2 test users
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        # Generate lots of following alerts
+        for i in xrange(101):
+            follow_user(user2, user1)
+            unfollow_user(user2, user1)
+
+        ALERT_ITEMS_PER_PAGE = app.config.get('ALERT_ITEMS_PER_PAGE')
+
+        self.assertEqual(len(get_alerts(user1).items), ALERT_ITEMS_PER_PAGE)
+        self.assertEqual(len(get_alerts(user1, per_page=25).items), 25)
+        self.assertEqual(len(get_alerts(user1, per_page=50).items), 50)
+        self.assertEqual(len(get_alerts(user1, per_page=100).items), 100)

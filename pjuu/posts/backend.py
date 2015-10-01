@@ -378,11 +378,10 @@ def get_post(post_id):
     return post
 
 
-def get_posts(user_id, page=1):
-    """Returns a users posts as a pagination object.
-
-    """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+def get_posts(user_id, page=1, per_page=None):
+    """Returns a users posts as a pagination object."""
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
 
     # Get the user object we need the email for Gravatar.
     user = m.db.users.find_one({'_id': user_id},
@@ -407,11 +406,11 @@ def get_posts(user_id, page=1):
     return Pagination(posts, total, page, per_page)
 
 
-def get_replies(post_id, page=1):
-    """Returns all a posts replies as a pagination object.
+def get_replies(post_id, page=1, per_page=None):
+    """Returns all a posts replies as a pagination object."""
+    if per_page is None:
+        per_page = app.config.get('REPLIES_ITEMS_PER_PAGE')
 
-    """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
     total = m.db.posts.find_one({'_id': post_id}).get('comment_count')
     cursor = m.db.posts.find(
         {'reply_to': post_id}
@@ -431,11 +430,10 @@ def get_replies(post_id, page=1):
     return Pagination(replies, total, page, per_page)
 
 
-def get_hashtagged_posts(hashtag, page=1):
-    """Returns all posts with `hashtag` in date order.
-
-    """
-    per_page = app.config.get('PROFILE_ITEMS_PER_PAGE')
+def get_hashtagged_posts(hashtag, page=1, per_page=None):
+    """Returns all posts with `hashtag` in date order."""
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
 
     total = m.db.posts.find({
         'hashtags.hashtag': hashtag,

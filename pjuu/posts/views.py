@@ -129,7 +129,8 @@ def view_post(username, post_id):
     if 'reply_to' in _post:
         return abort(404)
 
-    pagination = get_replies(post_id, page)
+    pagination = get_replies(post_id, page,
+                             current_user.get('replies_pagination_size'))
 
     post_form = PostForm()
     return render_template('view_post.html', post=_post,
