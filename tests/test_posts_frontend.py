@@ -14,7 +14,7 @@ from flask import url_for
 from pjuu.auth.backend import create_account, activate, mute
 from pjuu.lib import keys as k
 from pjuu.posts.backend import create_post, get_post, MAX_POST_LENGTH
-from pjuu.users.backend import follow_user, set_display_settings
+from pjuu.users.backend import follow_user, update_profile_settings
 from pjuu.users.views import millify_filter, timeify_filter
 
 from tests import FrontendTestCase
@@ -268,7 +268,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
 
         # Disable feed images
-        set_display_settings(user1, hide_feed_images=True)
+        update_profile_settings(user1, hide_feed_images=True)
 
         # Upload another image
         image = io.BytesIO(open('tests/upload_test_files/otter.png').read())

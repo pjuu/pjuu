@@ -19,7 +19,7 @@ from pjuu.auth.utils import get_uid_username
 # Regular expressions for highlighting URLs, @mentions and #hashtags
 # URL matching pattern; thanks to John Gruber @ http://daringfireball.net/
 # https://gist.github.com/gruber/8891611
-URL_RE = re.compile(
+URL_RE_PATTERN = (
     r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](?:com|net|org|edu|'
     r'gov|mil|aero|asia|biz|cat|coop|info|int|jobs|mobi|museum|name|post|pro|'
     r'tel|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|'
@@ -49,6 +49,7 @@ URL_RE = re.compile(
     r'td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|'
     r've|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw)\b/?(?!@)))'
 )
+URL_RE = re.compile(URL_RE_PATTERN)
 
 MENTION_RE = re.compile(
     r'(?:^|(?<=[\(\[\{ \t]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t]))'

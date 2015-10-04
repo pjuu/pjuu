@@ -499,6 +499,11 @@ button:hover {
     width: 100px;
 }
 
+#profile .additional div {
+    float: left;
+    margin: 1em 2em 0 0;
+}
+
 /* POST ==================================================================== */
 #post {
     background-color: #FFF;
@@ -1089,9 +1094,9 @@ button:hover {
         vertical-align: middle;
     }
 
-    #profile .body {
+    /*#profile .body {
         display: none;
-    }
+    }*/
 
     #profile .panel {
         margin: 0;

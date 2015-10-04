@@ -24,10 +24,9 @@ from pjuu.posts.forms import PostForm
 from pjuu.users.forms import ChangeProfileForm, SearchForm
 from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
-    get_following, is_following, set_about, get_alerts, search as be_search,
+    get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_rem_from_feed, set_display_settings,
-    set_pagination_sizes
+    remove_from_feed as be_rem_from_feed, update_profile_settings
 )
 
 
@@ -308,17 +307,17 @@ def settings_profile():
                                  app.config.get('REPLIES_ITEMS_PER_PAGE')),
         alerts_pagination_size=(current_user.get('alerts_pagination_size') or
                                 app.config.get('ALERT_ITEMS_PER_PAGE')),
+        homepage=current_user.get('homepage', ''),
+        location=current_user.get('location', '')
     )
 
     if request.method == 'POST':
         form = ChangeProfileForm(request.form)
         if form.validate():
-            # Update users display settings
+            # Update the current user in the session
+            current_user['about'] = form.about.data
             current_user['hide_feed_images'] = form.hide_feed_images.data
-            set_display_settings(current_user.get('_id'),
-                                 hide_feed_images=form.hide_feed_images.data)
 
-            # Set the pagination sizes in the currently loaded user profile.
             current_user['feed_pagination_size'] = \
                 int(form.feed_pagination_size.data)
             current_user['replies_pagination_size'] = \
@@ -326,18 +325,21 @@ def settings_profile():
             current_user['alerts_pagination_size'] = \
                 int(form.alerts_pagination_size.data)
 
-            # Update the MongoDB user pofile with these settings.
-            set_pagination_sizes(
+            current_user['homepage'] = form.homepage.data
+            current_user['location'] = form.location.data
+
+            # Update the user in the database
+            update_profile_settings(
                 current_user.get('_id'),
-                form.feed_pagination_size.data,
-                form.replies_pagination_size.data,
-                form.alerts_pagination_size.data
+                about=form.about.data,
+                hide_feed_images=form.hide_feed_images.data,
+                feed_size=form.feed_pagination_size.data,
+                replies_size=form.replies_pagination_size.data,
+                alerts_size=form.alerts_pagination_size.data,
+                homepage=form.homepage.data,
+                location=form.location.data
             )
 
-            # Update current_user, this was highlighted by Ant is issue 1
-            current_user['about'] = form.about.data
-            # Set the users new about in Redis
-            set_about(current_user.get('_id'), form.about.data)
             flash('Your profile has been updated', 'success')
         else:
             flash('Oh no! There are errors in your form', 'error')

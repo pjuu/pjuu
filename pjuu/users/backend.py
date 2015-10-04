@@ -9,6 +9,7 @@ Redis and MongoDB.
 """
 
 import re
+from urlparse import urlparse
 
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
@@ -206,35 +207,28 @@ def search(query):
     return Pagination(results, total, 1, per_page)
 
 
-def set_about(user_id, about):
-    """Set a users about message.
+def update_profile_settings(user_id, about="", hide_feed_images=False,
+                            feed_size=25, replies_size=25, alerts_size=50,
+                            homepage='', location=''):
+    """Update all options on a users profile settings in MongoDB."""
+    # Ensure the homepage URL is as valid as it can be
+    if homepage != '':
+        homepage_url = urlparse(homepage, scheme='http')
+        if homepage_url.netloc == '':
+            homepage = 'http://' + homepage
+            homepage_url = urlparse(homepage, scheme='http')
+        homepage = homepage_url.geturl()
 
-    """
-    return m.db.users.update({'_id': user_id},
-                             {'$set': {'about': about}})
-
-
-def set_display_settings(user_id, hide_feed_images=None):
-    """Update any display settings for the user.
-
-    .. note: To add a new settings add the item as a kwarg to this function.
-    """
-    if hide_feed_images is not None:  # pragma: no branch
-        m.db.users.update({'_id': user_id},
-                          {'$set': {'hide_feed_images': hide_feed_images}})
-
-    return True
-
-
-def set_pagination_sizes(user_id, feed_size=25, replies_size=25,
-                         alerts_size=50):
-    """Update the number of items the users sees during pagination."""
+    # Ensure that the home page has a valid scheme needed for external links
     m.db.users.update({'_id': user_id}, {'$set': {
+        'about': about,
+        'hide_feed_images': hide_feed_images,
         'feed_pagination_size': int(feed_size),
         'replies_pagination_size': int(replies_size),
-        'alerts_pagination_size': int(alerts_size)
+        'alerts_pagination_size': int(alerts_size),
+        'homepage': homepage,
+        'location': location,
     }})
-    return True
 
 
 def get_alerts(user_id, page=1, per_page=None):
