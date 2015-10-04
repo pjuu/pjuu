@@ -19,7 +19,7 @@ from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.posts.backend import get_post, back_feed
+from pjuu.posts.backend import back_feed
 
 
 # Regular expressions
@@ -54,7 +54,7 @@ def get_profile(user_id):
 
 
 def get_feed(user_id, page=1, per_page=None):
-    """Returns a users feed as a pagination object.
+    """Returns all the posts in a users feed as a pagination object.
 
     .. note: The feed is stored inside Redis still as this requires fan-out to
              update all the users who are following you.
@@ -62,21 +62,41 @@ def get_feed(user_id, page=1, per_page=None):
     if per_page is None:
         per_page = app.config.get('FEED_ITEMS_PER_PAGE')
 
+    # Get the total number of item in the feed and the subset for the current
+    # page.
     total = r.zcard(k.USER_FEED.format(user_id))
     pids = r.zrevrange(k.USER_FEED.format(user_id), (page - 1) * per_page,
                        (page * per_page) - 1)
-    posts = []
-    for pid in pids:
-        # Get the post
-        post = get_post(pid)
-        if post:
-            posts.append(post)
-        else:
-            # Self cleaning lists
-            r.zrem(k.USER_FEED.format(user_id), pid)
-            total = r.zcard(k.USER_FEED.format(user_id))
 
-    return Pagination(posts, total, page, per_page)
+    # Get all the posts in one call to MongoDB
+    posts = []
+    cursor = m.db.posts.find({'_id': {'$in': pids}})
+    for post in cursor:
+        posts.append(post)
+
+    # Sort the feed as MongoDBs `$in` operator does not return the list
+    # in order
+    posts = sorted(posts, key=lambda item: item['created'], reverse=True)
+
+    # Get a list of unique `user_id`s from all the post.
+    user_ids = list(set([post.get('user_id') for post in posts]))
+    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'email': True})
+    # Create a lookup dict `{username: email}`
+    user_emails = dict((user.get('_id'), user.get('email')) for user in cursor)
+
+    # Add the e-mails to the posts
+    processed_posts = []
+    for post in posts:
+        post['user_email'] = user_emails.get(post.get('user_id'))
+        processed_posts.append(post)
+
+    # Clean up the list in Redis if the
+    if len(processed_posts) < len(pids):
+        diff_pids = list(
+            set(pids) - set([post.get('_id') for post in processed_posts]))
+        r.zrem(k.USER_FEED.format(user_id), *diff_pids)
+
+    return Pagination(processed_posts, total, page, per_page)
 
 
 def remove_from_feed(post_id, user_id):
