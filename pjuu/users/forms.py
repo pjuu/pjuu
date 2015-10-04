@@ -10,15 +10,14 @@
 # 3rd party imports
 from flask_wtf import Form
 from wtforms import BooleanField, TextAreaField, SelectField, StringField
-from wtforms.validators import Length
+from wtforms.validators import Length, Optional, Regexp
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
+from pjuu.lib.parser import URL_RE
 
 
 class ChangeProfileForm(Form):
-    """
-    This is the form used to update your about information
-    """
+    """This is the form used to update your about information"""
     hide_feed_images = BooleanField('Hide images in feeds')
 
     choices = [('25', '25'), ('50', '50'), ('100', '100')]
@@ -30,10 +29,19 @@ class ChangeProfileForm(Form):
     alerts_pagination_size = SelectField('Number of alerts to show',
                                          choices=choices, default=50)
 
+    homepage = StringField('Home page', [
+        Regexp(URL_RE,
+               message='Please ensure the home page is a valid URL or empty'),
+        Optional()
+    ])
+
+    location = StringField('Location', [Optional()])
+
     about = TextAreaField('About', [
         Length(max=MAX_POST_LENGTH,
                message='About can not be larger than '
                        '{} characters'.format(MAX_POST_LENGTH))
+
     ])
 
 

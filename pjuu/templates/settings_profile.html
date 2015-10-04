@@ -27,13 +27,33 @@
     <form action="" method="post">
         <div class="details">
             <div class="detail">
+                <div class="header">Additional information</div>
+                <div class="content">
+                    <div>
+                        {{ form.homepage.label }}
+                        {{ form.homepage }}
+                        {% if form.homepage.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.homepage.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.location.label }}
+                        {{ form.location }}
+                    </div>
+                </div>
+            </div>
+            <div class="detail">
                 <div class="header">
                     Display settings
                 </div>
                 <div class="content">
                     <div>
-                    {{ form.hide_feed_images(checked=current_user.hide_feed_images or False) }}
-                    {{ form.hide_feed_images.label }}
+                        {{ form.hide_feed_images(checked=current_user.hide_feed_images or False) }}
+                        {{ form.hide_feed_images.label }}
                     </div>
                     <div>
                         {{ form.feed_pagination_size.label }}

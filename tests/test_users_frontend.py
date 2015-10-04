@@ -343,6 +343,48 @@ class FrontendTests(FrontendTestCase):
         user = get_user(user1)
         self.assertFalse(user.get('hide_feed_images'))
 
+        # Test setting a homepage and location works as expected
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'about': 'Test display settings',
+            'homepage': 'pjuu.com',
+            'location': 'England'
+        }, follow_redirects=True)
+
+        user = get_user(user1)
+        self.assertEqual(user.get('homepage'), 'http://pjuu.com')
+        self.assertEqual(user.get('location'), 'England')
+
+        # Ensure you can't set an invalid URL
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'about': 'Test display settings',
+            'homepage': 'pjuu.cheese',
+        }, follow_redirects=True)
+
+        self.assertIn('Please ensure the home page is a valid URL or empty',
+                      resp.data)
+
+        # Test a URL that doesn't need to be prefixed
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'about': 'Test display settings',
+            'homepage': 'https://pjuu.com',
+        }, follow_redirects=True)
+
+        user = get_user(user1)
+        self.assertEqual(user.get('homepage'), 'https://pjuu.com')
+
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'homepage': 'https://pjuu.com',
+            'location': 'England',
+        }, follow_redirects=True)
+
+        # Ensure the users profile reflects the changes
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('<i class="fa fa-map-marker fa-lg"></i> England',
+                      resp.data)
+        self.assertIn(
+            '<a href="https://pjuu.com"><i class="fa fa-globe fa-lg"></i></a>',
+            resp.data)
+
     def test_alerts(self):
         """Check that alerts are displayed properly in the frontend."""
         # Create two test users

@@ -11,6 +11,16 @@
                     {{ profile.username|capitalize }}
                 </div>
             <div class="body">{{ profile.about }}</div>
+            {% if profile.hompage != '' or profile.location != '' %}
+            <div class="additional clearfixr">
+                {% if profile.homepage %}
+                <div><a href="{{ profile.homepage }}"><i class="fa fa-globe fa-lg"></i></a></div>
+                {% endif %}
+                {% if profile.location %}
+                <div><i class="fa fa-map-marker fa-lg"></i> {{ profile.location }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
     <div class="panel clearfix">
