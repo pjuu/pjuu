@@ -13,6 +13,7 @@ from urlparse import urlparse
 
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
+import pymongo
 
 from pjuu import mongo as m, redis as r
 from pjuu.auth.utils import get_user
@@ -70,13 +71,11 @@ def get_feed(user_id, page=1, per_page=None):
 
     # Get all the posts in one call to MongoDB
     posts = []
-    cursor = m.db.posts.find({'_id': {'$in': pids}})
+    cursor = m.db.posts.find({'_id': {'$in': pids}}).sort(
+        'created', pymongo.DESCENDING)
+
     for post in cursor:
         posts.append(post)
-
-    # Sort the feed as MongoDBs `$in` operator does not return the list
-    # in order
-    posts = sorted(posts, key=lambda item: item['created'], reverse=True)
 
     # Get a list of unique `user_id`s from all the post.
     user_ids = list(set([post.get('user_id') for post in posts]))
