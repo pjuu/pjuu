@@ -52,6 +52,13 @@ Paginations (pjuu.lib.pagination)
    :members:
    :private-members:
 
+Parser (pjuu.lib.parser)
+------------------------
+
+.. automodule:: pjuu.lib.parser
+   :members:
+   :private-members:
+
 Sessions (pjuu.lib.sessions)
 ----------------------------
 
