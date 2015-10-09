@@ -45,3 +45,12 @@ def get_uuid():
 
     """
     return uuid1().hex
+
+
+def fix_url(url):
+    """Fix a URL by ensuring at has a scheme."""
+    _url = urlparse(url, scheme='http')
+    if _url.netloc == '':
+        url = 'http://' + url
+        _url = urlparse(url, scheme='http')
+    return _url.geturl()
