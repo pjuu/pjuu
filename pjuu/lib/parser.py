@@ -14,6 +14,7 @@
 import re
 
 from pjuu.auth.utils import get_uid_username
+from pjuu.lib import fix_url
 
 
 # Regular expressions for highlighting URLs, @mentions and #hashtags
@@ -71,14 +72,14 @@ def parse_links(body):
     result = []
     for link in links:
         result.append({
-            'link': link.group(0),
+            'link': fix_url(link.group(0)),
             'span': link.span()
         })
 
     return result
 
 
-def parse_mentions(body):
+def parse_mentions(body, check_user=True):
     """Parses @mentions out of a post.
 
     .. note: This will need to be refined as edge cases are discovered.
@@ -89,7 +90,11 @@ def parse_mentions(body):
     result = []
     for mention in mentions:
         username = mention.group(1)
-        user_id = get_uid_username(username)
+        if check_user:
+            user_id = get_uid_username(username)
+        else:
+            user_id = 'NA'
+
         if user_id:
             result.append({
                 'user_id': user_id,

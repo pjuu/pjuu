@@ -9,7 +9,6 @@ Redis and MongoDB.
 """
 
 import re
-from urlparse import urlparse
 
 from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
@@ -17,7 +16,7 @@ import pymongo
 
 from pjuu import mongo as m, redis as r
 from pjuu.auth.utils import get_user
-from pjuu.lib import keys as k, timestamp
+from pjuu.lib import keys as k, timestamp, fix_url
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
 from pjuu.posts.backend import back_feed
@@ -232,11 +231,7 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
     """Update all options on a users profile settings in MongoDB."""
     # Ensure the homepage URL is as valid as it can be
     if homepage != '':
-        homepage_url = urlparse(homepage, scheme='http')
-        if homepage_url.netloc == '':
-            homepage = 'http://' + homepage
-            homepage_url = urlparse(homepage, scheme='http')
-        homepage = homepage_url.geturl()
+        homepage = fix_url(homepage)
 
     # Ensure that the home page has a valid scheme needed for external links
     m.db.users.update({'_id': user_id}, {'$set': {
