@@ -19,7 +19,9 @@ from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
                       vote_post, get_post, delete_post as be_delete_post,
                       get_replies, unsubscribe as be_unsubscribe,
-                      CantVoteOnOwn, AlreadyVoted, get_hashtagged_posts)
+                      CantVoteOnOwn, AlreadyVoted, get_hashtagged_posts,
+                      flag_post, has_flagged, CantFlagOwn, AlreadyFlagged,
+                      unflag_post as be_unflag_post)
 from .forms import PostForm
 
 
@@ -107,6 +109,12 @@ def subscribed_filter(post_id):
 
     """
     return is_subscribed(current_user.get('_id'), post_id)
+
+
+@posts_bp.app_template_filter('flagged')
+def flagged_filter(post_id):
+    """Check if a user flagged the post with post id"""
+    return has_flagged(current_user.get('_id'), post_id)
 
 
 @posts_bp.route('/<username>/<post_id>', methods=['GET'])
@@ -318,6 +326,66 @@ def unsubscribe(username, post_id):
     # were actually unsubscribed
     if be_unsubscribe(current_user['_id'], post_id):
         flash('You have been unsubscribed from this post', 'success')
+
+    return redirect(redirect_url)
+
+
+@posts_bp.route('/<username>/<post_id>/flag', methods=['POST'])
+@login_required
+def flag(username, post_id):
+    """Flags a post so that moderators are aware of it.
+
+    .. note: This is a requirement to enter the Apple app store.
+    """
+    # Ensure the default redirect is to the correct location.
+    reply_id = get_post(post_id).get('reply_to')
+
+    if reply_id is None:
+        redirect_url = handle_next(request, url_for('posts.view_post',
+                                   username=username, post_id=post_id))
+    else:
+        reply = get_post(reply_id)
+        redirect_url = handle_next(request, url_for('posts.view_post',
+                                   username=reply.get('username'),
+                                   post_id=reply_id))
+
+    user_id = get_uid(username)
+
+    if not check_post(user_id, post_id):
+        return abort(404)
+
+    try:
+        flag_post(current_user['_id'], post_id)
+    except CantFlagOwn:
+        flash('You can not flag on your own posts', 'error')
+    except AlreadyFlagged:
+        flash('You have already flagged this post', 'error')
+    else:
+        flash('You flagged the ' + ('comment' if reply_id else 'post'),
+              'success')
+
+    return redirect(redirect_url)
+
+
+@posts_bp.route('/dashboard/<post_id>/unflag', methods=['GET'])
+def unflag_post(post_id):
+    """Resets a posts votes to 0.
+
+    .. note: OP users only. Uses a `dashboard URL`
+    """
+    # Do not allow users who are not OP to log in
+    if not current_user or not current_user.get('op', False):
+        return abort(403)
+
+    if get_post(post_id) is None:
+        return abort(404)
+
+    # Reset the posts flag. Doesn't matter if there aren't any
+    be_unflag_post(post_id)
+    flash('Flags have been reset for post')
+
+    # Always go back to the dashboard
+    redirect_url = url_for('dashboard.dashboard')
 
     return redirect(redirect_url)
 

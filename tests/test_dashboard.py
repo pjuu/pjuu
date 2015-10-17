@@ -13,6 +13,7 @@ import socket
 
 from flask import url_for
 from pjuu.auth.backend import create_account, activate, bite
+from pjuu.posts.backend import create_post, flag_post
 
 from tests import FrontendTestCase
 
@@ -23,6 +24,7 @@ class DashboardTests(FrontendTestCase):
     """
 
     def test_dashboard_view(self):
+        """Ensure basic stats show in dashboard"""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         activate(user1)
 
@@ -71,3 +73,57 @@ class DashboardTests(FrontendTestCase):
         # 'Users' does not provide ANY stats at the moment
 
         # Done for now. All tests for other stats should be within each pkg.
+
+    def test_flag_control(self):
+        """Ensure flagged posts appear in the dashboard"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        # Make user1 OP
+        bite(user1)
+        activate(user1)
+
+        post1 = create_post(user2, 'user2', 'post1')
+        post2 = create_post(user2, 'user2', 'post2')
+
+        comment1 = create_post(user2, 'user2', 'comment1', post1)
+        comment2 = create_post(user2, 'user2', 'comment2', post1)
+
+        # Flag all the posts
+        flag_post(user1, post1)
+        flag_post(user1, post2)
+        flag_post(user1, comment1)
+        flag_post(user1, comment2)
+
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+        resp = self.client.get(url_for('dashboard.dashboard'))
+
+        s = '{0} - <a href="{1}">{2}</a>: <a href="{3}">{4}</a> ' + \
+            '[<a href="{5}">Unflag</a>]'
+
+        self.assertIn(s.format(
+            1,
+            url_for('users.profile',
+                    username='user2'),
+            'user2',
+            url_for('posts.view_post',
+                    username='user2',
+                    post_id=post1),
+            post1,
+            url_for('posts.unflag_post', post_id=post1)
+        ), resp.data)
+
+        self.assertIn(s.format(
+            1,
+            url_for('users.profile',
+                    username='user2'),
+            'user2',
+            url_for('posts.view_post',
+                    username='user2',
+                    post_id=post1),
+            comment1,
+            url_for('posts.unflag_post', post_id=comment1)
+        ) + ' (comment)', resp.data)
