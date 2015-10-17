@@ -5,8 +5,10 @@
 {% block form %}
 <form id="sign-in" action="" method="post" autocomplete="off">
     <div class="form-group">
-        {{ form.username(placeholder="Username/Email") }}
-        {{ form.password(placeholder="Password") }}
+        {{ form.username.label }}
+        {{ form.username }}
+        {{ form.password.label }}
+        {{ form.password }}
     </div>
     {{ form.csrf_token }}
     <input type="submit" value="Sign In">

@@ -4,7 +4,7 @@
 
 {% block header %}Sign Up{% endblock %}
 {% block form %}
-<form id="sign-up" action="" method="post" autocomplete="off">
+<form action="" method="post" autocomplete="off">
     <div class="form-group">
         {{ form.username.label }}
         {{ form.username }}
@@ -41,6 +41,9 @@
     <div class="form-group">
         {{ form.password2.label }}
         {{ form.password2 }}
+    </div>
+    <div class="terms">
+        By signing up, you agree to the <a href="{{ url_for('pages.terms') }}">Terms of Service</a> and <a href="{{ url_for('pages.privacy') }}">Privacy Policy</a>.
     </div>
     {{ form.csrf_token }}
     <div class="form-group">
