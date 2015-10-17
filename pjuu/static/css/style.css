@@ -173,24 +173,25 @@ button:hover {
     text-align: center;
 }
 
+#auth form {
+    margin: 3em auto;
+    width: 32em;
+}
+
 #auth .motto {
     color: #333;
     font-size: 26px;
     font-weight: 300;
     line-height: 1.15em;
-    padding: 5%;
+    padding: 1em 0;
 }
 
 #auth .motto span {
     font-size: 28px;
 }
 
-.form-group {
-    padding: 8px;
-}
-
-#auth form {
-    padding: 30px;
+#auth .terms {
+    margin: 2em 0 1em;
 }
 
 #auth input {
@@ -198,24 +199,16 @@ button:hover {
     -webkit-border-radius: 20px;
     -moz-border-radius: 20px;
     border-radius: 20px;
-}
-
-#auth input:focus {
-    box-shadow: 3px 3px 10px rgba(125, 125, 125, 0.71);
-    outline: 0 !important;
-}
-
-#auth input[type=text],
-#auth input[type=password] {
-    margin: 8px 0;
+    padding: 0.5em 0.75em;
 }
 
 #auth input[type=submit] {
     background-color: #9C0;
     color: white;
-    margin: 10px auto;
+    margin: 1em auto;
     text-transform: uppercase;
-    width: 45%;
+
+    width: 100%;
 
     -webkit-transition: all 300ms;
     -moz-transition: all 300ms;
@@ -236,30 +229,9 @@ button:hover {
     text-transform: uppercase;
 }
 
-#auth .link > a {
-    padding-left: 10px;
-}
-
-@media (min-width: 600px) {
-    #auth {
-        margin: 50px;
-    }
-
-    #auth input[type=text],
-    #auth input[type=password] {
-        margin: 0 5px;
-    }
-
-    #sign-in input[type=text],
-    #sign-in input[type=password] {
-        display: inline-block;
-        width: 35%;
-    }
-
-    #sign-up {
-        margin: auto;
-        width: 70%;
-    }
+#auth .messages {
+    margin: 0 auto;
+    width: 32em;
 }
 
 @media (min-width: 800px) {
@@ -1060,11 +1032,22 @@ button:hover {
         width: 98%;
     }
 
+    #auth form {
+        width: 100%;
+    }
+
+    #auth .messages {
+        width: 100%;
+    }
+
     #auth .logo {
         display: block;
         margin: 1em auto 0;
         padding: 0;
-        width: 40%;
+    }
+
+    #auth .motto {
+        font-size: 18px;
     }
 
     /* HEADER ============================================================== */

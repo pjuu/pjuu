@@ -5,10 +5,12 @@
     <div class="container">
         <img class="logo" src="{{ url_for('static', filename='img/logo_otter.png') }}" width="200">
 
-        <div class="motto"><span>Pjuu</span> - An open source social thing</div>
+        <div class="motto">Pjuu - An open source social thing</div>
         {% include 'messages.html' %}
         <div class="form clearfix">
+            {% if self.header() %}
             <h1>{% block header %}{% endblock %}</h1>
+            {% endif %}
             {% block form %}{% endblock %}
         </div>
         {% block links %}

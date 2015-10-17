@@ -1,8 +1,8 @@
 <div id="footer">
     <div class="links">
-        <a href="{{ url_for('pages.about') }}">About Us</a> &middot; 
-        <!--<a href="{{ url_for('pages.terms') }}">Terms of Service</a> &middot; -->
-        <a href="{{ url_for('pages.privacy') }}">Privacy</a> &middot; 
+        <a href="{{ url_for('pages.about') }}">About Us</a> &middot;
+        <a href="{{ url_for('pages.terms') }}">Terms of Service</a> &middot;
+        <a href="{{ url_for('pages.privacy') }}">Privacy</a> &middot;
         <a target="_blank" href="https://github.com/pjuu">Github</a>
         {% if current_user and current_user.op %}
             &nbsp;&middot;
