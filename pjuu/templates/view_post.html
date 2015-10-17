@@ -42,7 +42,7 @@
         </div>
         {% endif %}
         <div class="panel clearfix">
-            <ul>
+            <ul class="left">
                 <li>
                     <i class="fa fa-trophy fa-lg"></i> {{ post.score|millify }}
                 </li>
@@ -85,17 +85,34 @@
                 </li>
                 {% endif %}
             </ul>
-            {% if post._id|subscribed %}
-            <div class="right">
-                {% if config.TESTING %}
-                <!-- unsubscribe:post:{{ post._id }} -->
+            <ul class="right">
+                {% if post.user_id != current_user._id %}
+                <li>
+                    {% if post._id|flagged %}
+                        {% if config.TESTING %}
+                        <!-- flag:post:{{ post._id }} -->
+                        {% endif %}
+                        <i class="fa fa-flag fa-lg flagged"></i>
+                        {% else %}
+                        <form action="{{ url_for('posts.flag', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                            <button class="fa fa-flag fa-lg link buttonlink flag"></button>
+                        </form>
+                    {% endif %}
+                </li>
                 {% endif %}
-                <form action="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
-                    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                    <button class="fa fa-bell-slash fa-lg link unsubscribe"></button>
-                </form>
-            </div>
-            {% endif %}
+                {% if post._id|subscribed %}
+                <li>
+                    {% if config.TESTING %}
+                    <!-- unsubscribe:post:{{ post._id }} -->
+                    {% endif %}
+                    <form action="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-bell-slash fa-lg link unsubscribe"></button>
+                    </form>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </div>

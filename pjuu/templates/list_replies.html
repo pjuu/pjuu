@@ -84,6 +84,23 @@
                 </li>
                 {% endif %}
             </ul>
+            <ul class="right">
+                {% if item.user_id != current_user._id %}
+                <li>
+                    {% if config.TESTING %}
+                    <!-- flag:post:{{ item._id }} -->
+                    {% endif %}
+                    {% if item._id|flagged %}
+                    <i class="fa fa-flag fa-lg flagged"></i>
+                    {% else %}
+                    <form action="{{ url_for('posts.flag', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="fa fa-flag fa-lg link buttonlink flag"></button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </li>

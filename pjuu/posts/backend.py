@@ -41,6 +41,16 @@ class AlreadyVoted(Exception):
     pass
 
 
+class CantFlagOwn(Exception):
+    """Can't flag your own post."""
+    pass
+
+
+class AlreadyFlagged(Exception):
+    """You can't flag a post twice."""
+    pass
+
+
 class SubscriptionReasons(object):
     """Constants describing subscriptions to a post
 
@@ -570,6 +580,35 @@ def unsubscribe(user_id, post_id):
     return bool(r.zrem(k.POST_SUBSCRIBERS.format(post_id), user_id))
 
 
+def flag_post(user_id, post_id):
+    """Flags a post for moderator review.
+
+    :returns: True if flagged, false if removed.
+              `CantFlagOwn` in case of error.
+    """
+    # Get the comment so we can check who the author is
+    post = get_post(post_id)
+
+    if post.get('user_id') != user_id:
+        if not has_flagged(user_id, post_id):
+            # Increment the flag count by one and store the user name
+            r.zadd(k.POST_FLAGS.format(post_id), timestamp(), user_id)
+            m.db.posts.update({'_id': post_id},
+                              {'$inc': {'flags': 1}})
+        else:
+            raise AlreadyFlagged
+    else:
+        raise CantFlagOwn
+
+
+def unflag_post(post_id):
+    """Resets the flag count on a post to 0.
+
+    .. note: This is an OP user only action from the dashboard.
+    """
+    return m.db.posts.update({'_id': post_id}, {'$set': {'flags': 0}})
+
+
 def get_subscribers(post_id):
     """Return a list of subscribers 'user_id's for a given post
 
@@ -582,6 +621,11 @@ def is_subscribed(user_id, post_id):
 
     """
     return r.zrank(k.POST_SUBSCRIBERS.format(post_id), user_id) is not None
+
+
+def has_flagged(user_id, post_id):
+    """"""
+    return r.zrank(k.POST_FLAGS.format(post_id), user_id) is not None
 
 
 def subscription_reason(user_id, post_id):

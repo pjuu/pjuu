@@ -11,9 +11,11 @@ import io
 
 from flask import url_for
 
-from pjuu.auth.backend import create_account, activate, mute
+from pjuu import mongo as m
+from pjuu.auth.backend import create_account, activate, mute, bite
 from pjuu.lib import keys as k
-from pjuu.posts.backend import create_post, get_post, MAX_POST_LENGTH
+from pjuu.posts.backend import (create_post, get_post, MAX_POST_LENGTH,
+                                has_flagged, flag_post)
 from pjuu.users.backend import follow_user, update_profile_settings
 from pjuu.users.views import millify_filter, timeify_filter
 
@@ -559,7 +561,7 @@ class PostFrontendTests(FrontendTestCase):
         """
         Test voting up and down on both comments and posts
         """
-        # Create two users to test this. This is what we need to check this.
+        # Create three users to test this. This is what we need to check this.
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         user3 = create_account('user3', 'user3@pjuu.com', 'Password')
@@ -723,6 +725,155 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertIn('You can not vote on your own posts', resp.data)
         # Done for now
+
+    def test_flagging(self):
+        """Ensure flagging works as expected"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        activate(user1)
+        activate(user2)
+
+        # Ensure both users are following each other
+        follow_user(user1, user2)
+        follow_user(user2, user1)
+
+        post1 = create_post(user1, 'user1', 'Post user 1')
+        post2 = create_post(user2, 'user2', 'Post user 2')
+        comment1 = create_post(user2, 'user2', 'Comment user 2', post1)
+        comment2 = create_post(user1, 'user1', 'Comment user 1', post1)
+
+        # Ensure user 1 only sees the flag for post that aren't his
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+        self.assertIn('<h1>Feed</h1>', resp.data)
+
+        self.assertIn('<!-- list:post:{0} -->'.format(post1), resp.data)
+        self.assertIn('<!-- list:post:{0} -->'.format(post2), resp.data)
+
+        # You can not flag a top level post without visiting it.
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.data)
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post2), resp.data)
+
+        # Ensure user1 can't see a flag on his post or comments but can on
+        # user2s reply
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.data)
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(comment2), resp.data)
+        self.assertIn('<!-- flag:post:{0} -->'.format(comment1), resp.data)
+
+        # Ensure a user can not flag his own post or comment
+        resp = self.client.post(url_for('posts.flag', username='user1',
+                                        post_id=post1),
+                                follow_redirects=True)
+        self.assertIn('You can not flag on your own posts', resp.data)
+
+        resp = self.client.post(url_for('posts.flag', username='user1',
+                                        post_id=post1, reply_id=comment2),
+                                follow_redirects=True)
+        self.assertIn('You can not flag on your own posts', resp.data)
+
+        # Post should not be flagged
+        self.assertFalse(has_flagged(user1, post2))
+        self.assertIsNone(get_post(post2).get('flags'))
+
+        # Ensure user1 can flag user2s post
+        resp = self.client.post(url_for('posts.flag', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
+        self.assertIn('You flagged the post', resp.data)
+
+        # Are they listed as flagged
+        self.assertTrue(has_flagged(user1, post2))
+        self.assertEqual(get_post(post2).get('flags'), 1)
+
+        # Ensure user1 can un-flag user2s post
+        resp = self.client.post(url_for('posts.flag', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
+        self.assertIn('You have already flagged this post', resp.data)
+
+        # Are they listed as flagged
+        self.assertTrue(has_flagged(user1, post2))
+        self.assertEqual(get_post(post2).get('flags'), 1)
+
+        # Comment should not be flagged
+        self.assertFalse(has_flagged(user1, comment1))
+        self.assertIsNone(get_post(comment1).get('flags'))
+
+        # Ensure user1 can flag user2s comment
+        resp = self.client.post(url_for('posts.flag', username='user2',
+                                        post_id=comment1),
+                                follow_redirects=True)
+        self.assertIn('You flagged the comment', resp.data)
+
+        # Are they listed as flagged
+        self.assertTrue(has_flagged(user1, comment1))
+        self.assertEqual(get_post(comment1).get('flags'), 1)
+
+        # Ensure user2 can't flag a post again'
+        resp = self.client.post(url_for('posts.flag', username='user2',
+                                        post_id=comment1),
+                                follow_redirects=True)
+        self.assertIn('You have already flagged this post', resp.data)
+
+        # Are they listed as flagged
+        self.assertTrue(has_flagged(user1, comment1))
+        self.assertEqual(get_post(comment1).get('flags'), 1)
+
+        # Ensure we can not flag a non existant post
+        resp = self.client.post(url_for('posts.flag', username='user3',
+                                        post_id=comment1),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)
+
+    def test_unflagging(self):
+        """Ensure OP users can un-flag a post."""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        activate(user1)
+        activate(user2)
+
+        bite(user1)
+
+        post1 = create_post(user2, 'user2', 'Test post user 2')
+
+        flag_post(user1, post1)
+
+        # Ensure the post has a flag
+        self.assertEqual(m.db.posts.find_one({'_id': post1}).get('flags'), 1)
+
+        # Ensure a non-OP user can not unflag posts
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        }, follow_redirects=True)
+        resp = self.client.get(url_for('posts.unflag_post', post_id=post1))
+
+        self.assertEqual(resp.status_code, 403)
+
+        self.client.get(url_for('auth.signout'))
+
+        # Ensure user1 (op) can unflag a post
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.get(url_for('posts.unflag_post', post_id=post1),
+                               follow_redirects=True)
+        self.assertIn('Flags have been reset for post', resp.data)
+
+        self.assertEqual(m.db.posts.find_one({'_id': post1}).get('flags'), 0)
+
+        # Ensure we can not unflag a non-existant post
+        resp = self.client.get(url_for('posts.unflag_post', post_id='NA'),
+                               follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)
 
     def test_delete_post_comment(self):
         """

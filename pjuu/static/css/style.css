@@ -403,6 +403,14 @@ button:hover {
     color: #C00;
 }
 
+.flag:hover {
+    color: #C00;
+}
+
+.flagged {
+    color: #C00;
+}
+
 .hide {
     color: #999;
 }
@@ -576,7 +584,6 @@ button:hover {
 }
 
 #post .panel ul {
-    float: left;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -951,6 +958,19 @@ button:hover {
 
 #dash dd {
     font-weight: 700;
+}
+
+#dash form {
+    display: inline;
+}
+
+#dash button {
+    background: none !important;
+    border: none;
+    display: inline;
+    float: none;
+    padding: 0 !important;
+    cursor: pointer;
 }
 
 /* FOOTER ================================================================== */

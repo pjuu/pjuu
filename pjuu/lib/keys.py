@@ -56,6 +56,9 @@ POST_VOTES = "{{post:{0}}}:votes"
 # Returns: zset
 POST_SUBSCRIBERS = "{{post:{0}}}:subscribers"
 
+# Returns: zset
+POST_FLAGS = "{{post:{0}}}:flags"
+
 # Alert related keys
 
 # Return: hash
