@@ -116,7 +116,7 @@ def parse_hashtags(body):
     result = []
     for hashtag in hashtags:
         result.append({
-            'hashtag': hashtag.group(1),
+            'hashtag': hashtag.group(1).lower(),
             'span': hashtag.span()
         })
 
