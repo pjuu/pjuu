@@ -45,6 +45,8 @@ def postify_filter(post):
     """
     post_body = post.get('body')
 
+    print post_body
+
     items = post.get('links', []) + post.get('mentions', []) + \
         post.get('hashtags', [])
 
@@ -59,20 +61,20 @@ def postify_filter(post):
         replace_text = post_body[left:right]
 
         if 'link' in item:
-            html = '<a href="{0}" target="_blank">{1}</a>'.format(
+            html = u'<a href="{0}" target="_blank">{1}</a>'.format(
                 item['link'],
                 replace_text
             )
 
         elif 'username' in item:
-            html = '<a href="{0}">{1}</a>'.format(
+            html = u'<a href="{0}">{1}</a>'.format(
                 url_for('users.profile', username=item['username']),
                 replace_text
             )
 
         elif 'hashtag' in item:  # pragma: no branch
             # The pragma above is because the `else` should never be called
-            html = '<a href="{0}">{1}</a>'.format(
+            html = u'<a href="{0}">{1}</a>'.format(
                 url_for('posts.hashtags', hashtag=item['hashtag']),
                 replace_text
             )
