@@ -1055,7 +1055,12 @@ button:hover {
 }
 
 #pages ul {
+    margin: 0.5em 0;
     list-style: none
+}
+
+#pages.terms ul {
+    list-style: circle;
 }
 
 #pages li {
