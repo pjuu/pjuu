@@ -45,8 +45,6 @@ def postify_filter(post):
     """
     post_body = post.get('body')
 
-    print post_body
-
     items = post.get('links', []) + post.get('mentions', []) + \
         post.get('hashtags', [])
 
