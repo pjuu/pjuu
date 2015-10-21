@@ -51,7 +51,7 @@ class BackendTestCase(unittest.TestCase):
         r.flushdb()
 
         # Clean up Mongo only after each test.
-        m.db.connection.drop_database(app.config.get('MONGO_DBNAME'))
+        m.cx.drop_database(app.config.get('MONGO_DBNAME'))
 
         self.app_ctx.pop()
 
