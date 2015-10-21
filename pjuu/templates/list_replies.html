@@ -15,7 +15,7 @@
         {% endif %}
         <form action="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <button class="fa fa-remove fa-lg delete buttonlink"></button>
+            <button title="Delete post" class="fa fa-remove fa-lg delete buttonlink"></button>
         </form>
         {% endif %}
     </div>
@@ -60,7 +60,7 @@
                     {% endif %}
                     <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button class="fa fa-arrow-up fa-lg link upvote buttonlink"></button>
+                        <button title="Up vote" class="fa fa-arrow-up fa-lg link upvote buttonlink"></button>
                     </form>
                     {% endif %}
                 </li>
@@ -78,7 +78,7 @@
                     {% endif %}
                     <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button class="fa fa-arrow-down fa-lg link downvote buttonlink"></button>
+                        <button title="Down vote" class="fa fa-arrow-down fa-lg link downvote buttonlink"></button>
                     </form>
                     {% endif %}
                 </li>
@@ -95,7 +95,7 @@
                     {% else %}
                     <form action="{{ url_for('posts.flag', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button class="fa fa-flag fa-lg link buttonlink flag"></button>
+                        <button title="Flag post" class="fa fa-flag fa-lg link buttonlink flag"></button>
                     </form>
                     {% endif %}
                 </li>

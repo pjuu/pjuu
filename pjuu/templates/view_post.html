@@ -16,7 +16,7 @@
         {% endif %}
         <form action="{{ url_for('posts.delete_post', username=post.username, post_id=post._id) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <button class="fa fa-remove fa-lg delete"></button>
+            <button title="Delete post" class="fa fa-remove fa-lg delete"></button>
         </form>
         {% endif %}
     </div>
@@ -61,7 +61,7 @@
                     {% endif %}
                     <form action="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button class="fa fa-arrow-up fa-lg link upvote"></button>
+                        <button title="Up vote" class="fa fa-arrow-up fa-lg link upvote"></button>
                     </form>
                     {% endif %}
                 </li>
@@ -79,7 +79,7 @@
                     {% endif %}
                     <form action="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button class="fa fa-arrow-down fa-lg link downvote"></button>
+                        <button title="Down vote" class="fa fa-arrow-down fa-lg link downvote"></button>
                     </form>
                     {% endif %}
                 </li>
@@ -96,7 +96,7 @@
                         {% else %}
                         <form action="{{ url_for('posts.flag', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                            <button class="fa fa-flag fa-lg link buttonlink flag"></button>
+                            <button title="Flag post" class="fa fa-flag fa-lg link buttonlink flag"></button>
                         </form>
                     {% endif %}
                 </li>
