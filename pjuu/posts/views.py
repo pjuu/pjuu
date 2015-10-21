@@ -382,7 +382,7 @@ def unflag_post(post_id):
 
     # Reset the posts flag. Doesn't matter if there aren't any
     be_unflag_post(post_id)
-    flash('Flags have been reset for post')
+    flash('Flags have been reset for post', 'success')
 
     # Always go back to the dashboard
     redirect_url = url_for('dashboard.dashboard')
