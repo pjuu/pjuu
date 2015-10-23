@@ -7,24 +7,44 @@
     <div class="details">
         <div class="detail">
             <div class="header">User Name</div>
-            <div class="content">{{ current_user['username'] }}</div>
+            <div class="content">{{ current_user.username }}</div>
         </div>
         <div class="detail">
             <div class="header">E-mail address</div>
-            <div class="content">{{ current_user['email'] }}</div>
+            <div class="content">{{ current_user.email }}</div>
         </div>
         <div class="detail">
-            <div class="header">Avatar</div>
-            <div class="content">
-                <img src="{{ current_user['email']|avatar(48) }}"/><br/>
-                <a href="http://gravatar.com" target="_blank">Edit Gravatar</a>
-                <p>We use Gravatar to provide avatars at the moment. If you wish to change your picture head on over there and create an account.</p>
-                <p>This will change to our own custom rolled avatar system in the near future.</p>
-            </div>
+            <div class="header">Member since</div>
+            <div class="content">{{ current_user.created|datetime }}</div>
         </div>
     </div>
 
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
+        <div class="details">
+            <div class="detail avatar">
+                <div class="header">Avatar</div>
+                <div class="content">
+                    {% if config.TESTING  %}
+                        {% if current_user.avatar %}
+                        <!-- user:avatar:{{ current_user.avatar }} -->
+                        {% else %}
+                        <!-- user:avatar:default -->
+                        {% endif %}
+                    {% endif %}
+                    <div><img src="{{ url_for('users.avatar', username=current_user.username) }}" /></div>
+                    <div class="clearfix">
+                        <label id="upload-label" for="upload" style="display: none;">
+                            {{ form.upload(accept='image/*') }}
+                            <i class="fa fa-picture-o"></i> Upload an avatar
+                        </label>
+                    </div>
+                    <div>
+                        <p>We will ensure the image is <b>96px by 96px</b>. For best results please ensure you avatar file is that size.</p>
+                        <p><i>This will not take effect until you "Update Profile" at the bottom.</i></p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="details">
             <div class="detail">
                 <div class="header">Additional information</div>

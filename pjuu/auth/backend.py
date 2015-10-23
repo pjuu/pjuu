@@ -17,7 +17,9 @@ from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
 from pjuu import mongo as m, redis as r
+from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp, get_uuid
+from pjuu.lib.uploads import delete_upload
 from pjuu.posts.backend import delete_post
 
 
@@ -301,8 +303,15 @@ def delete_account(user_id):
     :type user_id: str
 
     """
+    # Get the user object we will need this to remove the avatar
+    user = get_user(user_id)
+
     # Delete the user from MongoDB
     m.db.users.remove({'_id': user_id})
+
+    # If the user has an avatar remove it
+    if user.get('avatar'):
+        delete_upload(user['avatar'], 'avatars')
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.
