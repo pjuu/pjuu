@@ -516,7 +516,7 @@ button:hover {
     border-radius: 3px;
     font-weight: 700;
     float: right;
-    margin: 0.25em;
+    margin: 0.25em 0;
     padding: 0.25em 0;
     text-align: center;
     width: 100px;
@@ -1151,6 +1151,7 @@ input[type="file"] {
 
     #profile .panel {
         margin: 0;
+        padding: 0.25em;
     }
 
     #profile .panel ul {
@@ -1159,11 +1160,11 @@ input[type="file"] {
 
     #profile .panel li {
         float: none;
-        padding: 0.5em 1em;
+        padding: 0.5em 0.5em;
     }
 
     #profile .action {
-        width: auto;
+        width: 100%;
         float: none;
         padding: 0.5em 0;
     }
