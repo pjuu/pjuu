@@ -190,7 +190,7 @@ def avatar(username):
                           collection='avatars')
 
     # The user doesn't have one send them the default
-    return send_file('static/img/otter_avatar.png', cache_timeout=120)
+    return send_file('static/img/otter_avatar.png', cache_timeout=0)
 
 
 @users_bp.route('/<username>/following', methods=['GET'])
