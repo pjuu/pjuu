@@ -8,17 +8,18 @@
 """
 
 # Stdlib imports
-from hashlib import md5
+from datetime import datetime
 import math
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request, url_for,
-                   Blueprint, current_app as app)
+                   Blueprint, current_app as app, send_file)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.utils import get_uid, get_uid_username
+from pjuu.auth.utils import get_uid, get_uid_username, get_user
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page
+from pjuu.lib.uploads import get_upload
 from pjuu.posts.backend import get_posts
 from pjuu.posts.forms import PostForm
 from pjuu.users.forms import ChangeProfileForm, SearchForm
@@ -37,16 +38,6 @@ users_bp = Blueprint('users', __name__)
 def following_filter(_profile):
     """Checks if current user is following the user piped to filter."""
     return is_following(current_user.get('_id'), _profile.get('_id'))
-
-
-@users_bp.app_template_filter('avatar')
-def avatar_filter(email, size=24):
-    """Returns gravatar URL for a given email with the size size.
-
-    .. note: In future this will return a Pjuu avatar URL
-    """
-    return 'https://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
-           (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
 
 
 @users_bp.app_template_filter('millify')
@@ -111,6 +102,12 @@ def timeify_filter(time):
 
     except (TypeError, ValueError):
         return "Err"
+
+
+@users_bp.app_template_filter('datetime')
+def datetime_filter(time):
+    """Takes integer epoch time and returns a DateTime string for display."""
+    return datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
 
 
 @users_bp.app_template_filter('new_alerts')
@@ -178,6 +175,22 @@ def profile(username):
     post_form = PostForm()
     return render_template('posts.html', profile=_profile,
                            pagination=pagination, post_form=post_form)
+
+
+@users_bp.route('/<username>/avatar', methods=['GET'])
+@login_required
+def avatar(username):
+    """Return the users avatar image or the dafault."""
+    # Get the user
+    user = get_user(get_uid_username(username))
+
+    # If the user has an avatar set then get it from GridFS
+    if user.get('avatar') is not None:
+        return get_upload(user.get('avatar'), cache_for=0,
+                          collection='avatars')
+
+    # The user doesn't have one send them the default
+    return send_file('static/img/otter_avatar.png', cache_timeout=120)
 
 
 @users_bp.route('/<username>/following', methods=['GET'])
@@ -312,8 +325,16 @@ def settings_profile():
     )
 
     if request.method == 'POST':
-        form = ChangeProfileForm(request.form)
+        form = ChangeProfileForm()
+
         if form.validate():
+            # If there is an uploaded File pass it on else pass nothing
+            if form.upload.data:
+                # Pass the BytesIO stream to the backend.
+                upload = form.upload.data.stream
+            else:
+                upload = None
+
             # Update the current user in the session
             current_user['about'] = form.about.data
             current_user['hide_feed_images'] = form.hide_feed_images.data
@@ -329,7 +350,7 @@ def settings_profile():
             current_user['location'] = form.location.data
 
             # Update the user in the database
-            update_profile_settings(
+            user = update_profile_settings(
                 current_user.get('_id'),
                 about=form.about.data,
                 hide_feed_images=form.hide_feed_images.data,
@@ -337,8 +358,12 @@ def settings_profile():
                 replies_size=form.replies_pagination_size.data,
                 alerts_size=form.alerts_pagination_size.data,
                 homepage=form.homepage.data,
-                location=form.location.data
+                location=form.location.data,
+                upload=upload
             )
+
+            # Reload the current_user
+            current_user.update(user)
 
             flash('Your profile has been updated', 'success')
         else:

@@ -8,7 +8,7 @@
 <!-- list:post:{{item._id}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% endif %} clearfix">
-    <img class="avatar" src="{{ item.user_email|avatar(32) }}"/>
+    <img class="avatar size48" src="{{ url_for('users.avatar', username=item.username) }}"/>
     <div class="control">
         {% if item.user_id == current_user._id %}
             {% if config.TESTING %}

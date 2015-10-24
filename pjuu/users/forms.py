@@ -9,6 +9,7 @@
 
 # 3rd party imports
 from flask_wtf import Form
+from flask_wtf.file import FileAllowed, FileField
 from wtforms import BooleanField, TextAreaField, SelectField, StringField
 from wtforms.validators import Length, Optional, Regexp
 # Pjuu imports
@@ -18,6 +19,11 @@ from pjuu.lib.parser import URL_RE
 
 class ChangeProfileForm(Form):
     """This is the form used to update your about information"""
+    upload = FileField('Upload', [
+        FileAllowed(['gif', 'jpg', 'jpeg', 'png'],
+                    'Only "gif", "jpg", "jpeg" and "png" files are supported')
+    ])
+
     hide_feed_images = BooleanField('Hide images in feeds')
 
     choices = [('25', '25'), ('50', '50'), ('100', '100')]

@@ -57,7 +57,7 @@ def process_upload(_id, upload, collection='uploads', image_size=(1280, 720)):
         return None
 
 
-def get_upload(filename, collection='uploads'):
+def get_upload(filename, collection='uploads', cache_for=3600):
     """Returns a Flask response object which should contain the uploaded file
     with filename from collection.
 
@@ -69,8 +69,7 @@ def get_upload(filename, collection='uploads'):
 
     """
     # Flask-PyMongo will handle 404's etc.
-    # Tell the browser to cache for 1sec.
-    return m.send_file(filename, base=collection, cache_for=3600)
+    return m.send_file(filename, base=collection, cache_for=cache_for)
 
 
 def delete_upload(filename, collection='uploads'):
@@ -84,7 +83,7 @@ def delete_upload(filename, collection='uploads'):
 
     # There should only be one file but unfortunately pymongo's docs are wrong
     # and there is no `find_one` method :(
-    cursor = grid.find({'filename': filename}).limit(1)
+    cursor = grid.find({'filename': filename})
     for file in cursor:
         return grid.delete(file._id)
 

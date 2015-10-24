@@ -7,8 +7,12 @@
 
 """
 
-from flask import url_for
+import io
 
+from flask import url_for
+import gridfs
+
+from pjuu import mongo as m
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
@@ -521,3 +525,72 @@ class FrontendTests(FrontendTestCase):
                                 follow_redirects=True)
 
         self.assertNotIn('Message has been removed from feed', resp.data)
+
+    def test_avatars(self):
+        """Can a user set there own avatar?"""
+        # Create a test user
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        # Activate it
+        activate(user1)
+
+        # Signin
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        # Check default avatar is present
+        resp = self.client.get(url_for('users.settings_profile',
+                               username='user1'))
+        self.assertIn('<!-- user:avatar:default -->', resp.data)
+        self.assertIn(url_for('users.avatar', username='user1'), resp.data)
+
+        # Check the avatar for the default
+        # We can't inspect it
+        resp = self.client.get(url_for('users.avatar',
+                               username='user1'))
+        self.assertEqual(resp.status_code, 200)
+
+        # Get the users object to check some things
+        user = get_user(user1)
+
+        # User shouldn't have an avatar
+        self.assertIsNone(user.get('avatar'))
+
+        # Create the file
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'upload': (image, 'otter.png')
+        }, follow_redirects=True)
+
+        user = get_user(user1)
+
+        self.assertIsNotNone(user.get('avatar'))
+        self.assertIn('<!-- user:avatar:{} -->'.format(user.get('avatar')),
+                      resp.data)
+
+        grid = gridfs.GridFS(m.db, collection='avatars')
+        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
+                         1)
+
+        resp = self.client.get(url_for('users.avatar',
+                               username='user1'))
+        self.assertEqual(resp.status_code, 200)
+
+        # upload another and ensure there is only one in GridFs
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'upload': (image, 'otter.png')
+        }, follow_redirects=True)
+
+        user = get_user(user1)
+        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
+                         1)
+
+        # This is technically an auth test but if we delete the account we can
+        # ensure the avatar is removed.
+        delete_account(user1)
+        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
+                         0)

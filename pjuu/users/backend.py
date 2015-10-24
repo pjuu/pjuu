@@ -11,6 +11,7 @@ Redis and MongoDB.
 import re
 
 from flask import current_app as app, url_for
+import gridfs
 from jinja2.filters import do_capitalize
 import pymongo
 
@@ -19,6 +20,7 @@ from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp, fix_url
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
+from pjuu.lib.uploads import process_upload
 from pjuu.posts.backend import back_feed
 
 
@@ -227,14 +229,20 @@ def search(query):
 
 def update_profile_settings(user_id, about="", hide_feed_images=False,
                             feed_size=25, replies_size=25, alerts_size=50,
-                            homepage='', location=''):
+                            homepage='', location='', upload=None):
     """Update all options on a users profile settings in MongoDB."""
     # Ensure the homepage URL is as valid as it can be
     if homepage != '':
         homepage = fix_url(homepage)
 
-    # Ensure that the home page has a valid scheme needed for external links
-    m.db.users.update({'_id': user_id}, {'$set': {
+    avatar = None
+    if upload:
+        filename = process_upload(user_id, upload, collection='avatars',
+                                  image_size=(96, 96))
+        if filename is not None:  # pragma: no cover
+            avatar = filename
+
+    update_dict = {
         'about': about,
         'hide_feed_images': hide_feed_images,
         'feed_pagination_size': int(feed_size),
@@ -242,7 +250,26 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
         'alerts_pagination_size': int(alerts_size),
         'homepage': homepage,
         'location': location,
-    }})
+    }
+
+    if avatar is not None:
+        # Add the avatar to the dict
+        update_dict['avatar'] = avatar
+
+        # Clean up any old avatars
+        # There is no update in GridFS
+        grid = gridfs.GridFS(m.db, collection='avatars')
+        # Get all old ones
+        cursor = grid.find(
+            {'filename': avatar}).sort('uploadDate', -1).skip(1)
+        for f in cursor:
+            grid.delete(f._id)
+
+    # Update the users profile
+    m.db.users.update({'_id': user_id}, {'$set': update_dict})
+
+    # Return the user object. We can update the current_user from this
+    return get_user(user_id)
 
 
 def get_alerts(user_id, page=1, per_page=None):
