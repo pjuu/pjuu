@@ -461,7 +461,7 @@ button:hover {
 }
 
 #profile .content {
-    margin: 0 0 0 112px;
+    margin: 0 0 0 5em;
     padding: 0;
 }
 
@@ -542,7 +542,7 @@ button:hover {
 }
 
 #post .content {
-    margin: 0 3em 0 112px;
+    margin: 0 3em 0 5em;
     padding: 0;
 }
 
@@ -1128,16 +1128,7 @@ input[type="file"] {
         width: 98%;
     }
 
-    /* ACTION BUTTON ======================================================= */
     /* PROFILE ============================================================= */
-    #profile .avatar {
-        height: 24px;
-        width: 24px;
-    }
-
-    #profile .content {
-        margin: 0 0 0 44px;
-    }
 
     #profile .username {
         line-height: 1em;

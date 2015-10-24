@@ -5,7 +5,7 @@
 {% block main %}
 <div id="profile" class="block clearfix">
     <div class="top clearfix">
-        <img class="avatar size96" src="{{ url_for('users.avatar', username=profile.username) }}"/>
+        <img class="avatar size48" src="{{ url_for('users.avatar', username=profile.username) }}"/>
         <div class="content clearfix">
                 <div class="username">
                     {{ profile.username|capitalize }}
