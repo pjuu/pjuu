@@ -52,12 +52,14 @@ URL_RE_PATTERN = (
 )
 URL_RE = re.compile(URL_RE_PATTERN)
 
+DELIMITERS = r'\(\)\[\]\{\}\.\;\,\:\?\!\ \t\r\n'
+
 MENTION_RE = re.compile(
-    r'(?:^|(?<=[\(\[\{ \t\r\n]))@(\w{3,16})(?:$|(?=[.;,:?\)\]\} \t\r\n]))'
+    r'(?:^|(?<=[{0}]))@(\w{{3,16}})(?:$|(?=[{0}]))'.format(DELIMITERS)
 )
 
 HASHTAG_RE = re.compile(
-    r'(?:^|(?<=[\(\[\{ \t\r\n]))#(\w{2,32})(?:$|(?=[.;,:?\)\]\} \t\r\n]))'
+    r'(?:^|(?<=[{0}]))#(\w{{2,32}})(?:$|(?=[{0}]))'.format(DELIMITERS)
 )
 
 
