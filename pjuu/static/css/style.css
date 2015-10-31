@@ -516,7 +516,7 @@ button:hover {
     border-radius: 3px;
     font-weight: 700;
     float: right;
-    margin: 0.25em 0;
+    margin: 0.25em;
     padding: 0.25em 0;
     text-align: center;
     width: 100px;
@@ -1157,6 +1157,7 @@ input[type="file"] {
     #profile .action {
         width: 100%;
         float: none;
+        margin: 0;
         padding: 0.5em 0;
     }
 
