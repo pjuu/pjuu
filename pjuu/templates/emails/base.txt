@@ -7,6 +7,4 @@ Pjuu
 
 You are seeing this minimal e-mail because you are using an e-mail client which has a preference towards plain text messages.
 
-It may be worth getting a newer e-mail client. It may be a good idea to search for Mozilla Thunderbird. It's really good.
-
 Sent by Pjuu
