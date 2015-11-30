@@ -12,14 +12,13 @@ from datetime import datetime
 import math
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request, url_for,
-                   Blueprint, current_app as app, send_file)
+                   Blueprint, current_app as app)
 # Pjuu imports
 from pjuu.auth import current_user
-from pjuu.auth.utils import get_uid, get_uid_username, get_user
+from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page
-from pjuu.lib.uploads import get_upload
 from pjuu.posts.backend import get_posts
 from pjuu.posts.forms import PostForm
 from pjuu.users.forms import ChangeProfileForm, SearchForm
@@ -175,22 +174,6 @@ def profile(username):
     post_form = PostForm()
     return render_template('posts.html', profile=_profile,
                            pagination=pagination, post_form=post_form)
-
-
-@users_bp.route('/<username>/avatar', methods=['GET'])
-@login_required
-def avatar(username):
-    """Return the users avatar image or the dafault."""
-    # Get the user
-    user = get_user(get_uid_username(username))
-
-    # If the user has an avatar set then get it from GridFS
-    if user.get('avatar') is not None:
-        return get_upload(user.get('avatar'), cache_for=0,
-                          collection='avatars')
-
-    # The user doesn't have one send them the default
-    return send_file('static/img/otter_avatar.png', cache_timeout=0)
 
 
 @users_bp.route('/<username>/following', methods=['GET'])

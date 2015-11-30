@@ -7,7 +7,11 @@
 <!-- view:post:{{ post._id }} -->
 {% endif %}
 <div id="post" class="block clearfix">
-    <img class="avatar size48" src="{{ url_for('users.avatar', username=post.username) }}"/>
+    {% if post.user_avatar %}
+    <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=post.user_avatar) }}"/>
+    {% else %}
+    <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
+    {% endif %}
 
     <div class="control">
         {% if post.user_id == current_user._id %}

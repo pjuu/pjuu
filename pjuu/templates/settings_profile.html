@@ -31,7 +31,13 @@
                         <!-- user:avatar:default -->
                         {% endif %}
                     {% endif %}
-                    <div><img src="{{ url_for('users.avatar', username=current_user.username) }}" /></div>
+                    <div>
+                        {% if current_user.avatar %}
+                        <img class="size96" src="{{ url_for('posts.get_upload', filename=current_user.avatar) }}" />
+                        {% else %}
+                        <img class="size96" src="{{ url_for('static', filename='img/otter_avatar.png') }}" />
+                        {% endif %}
+                    </div>
                     <div class="clearfix">
                         <label id="upload-label" for="upload" style="display: none;">
                             {{ form.upload(accept='image/*') }}

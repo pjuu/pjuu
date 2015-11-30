@@ -11,7 +11,6 @@ Redis and MongoDB.
 import re
 
 from flask import current_app as app, url_for
-import gridfs
 from jinja2.filters import do_capitalize
 import pymongo
 
@@ -20,7 +19,7 @@ from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp, fix_url
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.lib.uploads import process_upload
+from pjuu.lib.uploads import process_upload, delete_upload
 from pjuu.posts.backend import back_feed
 
 
@@ -80,14 +79,15 @@ def get_feed(user_id, page=1, per_page=None):
 
     # Get a list of unique `user_id`s from all the post.
     user_ids = list(set([post.get('user_id') for post in posts]))
-    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'email': True})
+    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'avatar': True})
     # Create a lookup dict `{username: email}`
-    user_emails = dict((user.get('_id'), user.get('email')) for user in cursor)
+    user_avatars = \
+        dict((user.get('_id'), user.get('avatar')) for user in cursor)
 
     # Add the e-mails to the posts
     processed_posts = []
     for post in posts:
-        post['user_email'] = user_emails.get(post.get('user_id'))
+        post['user_avatar'] = user_avatars.get(post.get('user_id'))
         processed_posts.append(post)
 
     # Clean up the list in Redis if the
@@ -237,8 +237,8 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
 
     avatar = None
     if upload:
-        filename = process_upload(user_id, upload, collection='avatars',
-                                  image_size=(96, 96))
+        filename = process_upload(upload, image_size=(96, 96),
+                                  thumbnail=False)
         if filename is not None:  # pragma: no cover
             avatar = filename
 
@@ -253,17 +253,14 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
     }
 
     if avatar is not None:
-        # Add the avatar to the dict
         update_dict['avatar'] = avatar
 
-        # Clean up any old avatars
-        # There is no update in GridFS
-        grid = gridfs.GridFS(m.db, collection='avatars')
-        # Get all old ones
-        cursor = grid.find(
-            {'filename': avatar}).sort('uploadDate', -1).skip(1)
-        for f in cursor:
-            grid.delete(f._id)
+        user = get_user(user_id)
+
+        if user.get('avatar'):
+            # Clean up any old avatars
+            # There is no update in GridFS
+            delete_upload(user.get('avatar'))
 
     # Update the users profile
     m.db.users.update({'_id': user_id}, {'$set': update_dict})

@@ -14,9 +14,11 @@ from PIL import Image as PILImage
 import gridfs
 
 from pjuu import mongo as m
+from pjuu.lib import get_uuid
 
 
-def process_upload(_id, upload, collection='uploads', image_size=(1280, 720)):
+def process_upload(upload, collection='uploads', image_size=(1280, 720),
+                   thumbnail=True):
     """Processes the uploaded images in the posts and also the users avatars.
     This should be extensible in future to support the uploading of videos,
     audio, etc...
@@ -29,24 +31,29 @@ def process_upload(_id, upload, collection='uploads', image_size=(1280, 720)):
     :type collection: str
     :param image_size: The max height and width for the upload
     :type image_size: Tuple length 2 of int
-
+    :param thumbnail: Is the image to have it's aspect ration kept?
+    :type thumbnail: bool
     """
-
     try:
         # StringIO to take the uploaded image to transport to GridFS
         output = io.BytesIO()
 
         # All images are passed through PIL and turned in to PNG files.
+        # Will change if they need thumbnailing or resizing.
         img = PILImage.open(upload)
-        img.thumbnail(image_size, PILImage.ANTIALIAS)
+        if thumbnail:
+            img.thumbnail(image_size, PILImage.ANTIALIAS)
+        else:
+            # Pillow `resize` returns an image unlike thumbnail
+            img = img.resize(image_size, PILImage.ANTIALIAS)
+
         img.save(output, format='PNG', quality=100)
 
         # Return the file pointer to the start
         output.seek(0)
 
-        # Create file name <post_id>.<upload_extension>
-        # Example: ab592809052325df927523952.png
-        filename = '{0}.{1}'.format(_id, 'png')
+        # Create a new file name <uuid>.<upload_extension>
+        filename = '{0}.{1}'.format(get_uuid(), 'png')
 
         # Place file inside GridFS
         m.save_file(filename, output, base=collection)

@@ -300,11 +300,11 @@ class PostFrontendTests(FrontendTestCase):
 
         post = get_post(post1)
 
-        # Try and get the post and ensure we are redirected because we are not
-        # logged in
+        # You can download an upload when you are NOT logged in
+        # This allows web tier caching
         resp = self.client.get(url_for('posts.get_upload',
                                        filename=post.get('upload')))
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
 
         # Log in as user1 and get the upload
         resp = self.client.post(url_for('auth.signin'), data={

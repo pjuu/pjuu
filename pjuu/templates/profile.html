@@ -5,7 +5,12 @@
 {% block main %}
 <div id="profile" class="block clearfix">
     <div class="top clearfix">
-        <img class="avatar size48" src="{{ url_for('users.avatar', username=profile.username) }}"/>
+        {% if profile.avatar %}
+        <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=profile.avatar) }}"/>
+        {% else %}
+        <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
+        {% endif %}
+
         <div class="content clearfix">
                 <div class="username">
                     {{ profile.username|capitalize }}

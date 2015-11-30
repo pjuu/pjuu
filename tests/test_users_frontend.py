@@ -543,12 +543,14 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.settings_profile',
                                username='user1'))
         self.assertIn('<!-- user:avatar:default -->', resp.data)
-        self.assertIn(url_for('users.avatar', username='user1'), resp.data)
+        self.assertIn(url_for('static', filename='img/otter_avatar.png'),
+                      resp.data)
 
         # Check the avatar for the default
         # We can't inspect it
-        resp = self.client.get(url_for('users.avatar',
-                               username='user1'))
+        user = get_user(user1)
+        resp = self.client.get(url_for('static',
+                                       filename='img/otter_avatar.png'))
         self.assertEqual(resp.status_code, 200)
 
         # Get the users object to check some things
@@ -570,12 +572,12 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- user:avatar:{} -->'.format(user.get('avatar')),
                       resp.data)
 
-        grid = gridfs.GridFS(m.db, collection='avatars')
+        grid = gridfs.GridFS(m.db, collection='uploads')
         self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
                          1)
 
-        resp = self.client.get(url_for('users.avatar',
-                               username='user1'))
+        resp = self.client.get(url_for('posts.get_upload',
+                               filename=user.get('avatar')))
         self.assertEqual(resp.status_code, 200)
 
         # upload another and ensure there is only one in GridFs
