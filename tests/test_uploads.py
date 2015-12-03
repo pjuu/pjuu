@@ -13,7 +13,6 @@ from os import listdir
 from os.path import isfile, join
 
 from pjuu import mongo as m
-from pjuu.lib import get_uuid
 from pjuu.lib.uploads import process_upload, get_upload, delete_upload
 
 from tests import FrontendTestCase
@@ -39,13 +38,10 @@ class PagesTests(FrontendTestCase):
 
         # Test each file in the upload directory
         for f in test_upload_files:
-            uuid = get_uuid()
             image = io.BytesIO(
                 open(f).read()
             )
-            filename = process_upload(uuid, image)
-
-            self.assertEqual(filename, '{}.png'.format(uuid))
+            filename = process_upload(image)
 
             # Get the upload these are designed for being served directly by
             # Flask. This is a Flask/Werkzeug response object
@@ -62,6 +58,5 @@ class PagesTests(FrontendTestCase):
             self.assertFalse(grid.exists({'filename': filename}))
 
         # Ensure that if we load a non-image file a None value is returned
-        uuid = get_uuid()
         image = io.BytesIO()
-        self.assertIsNone(process_upload(uuid, image))
+        self.assertIsNone(process_upload(image))

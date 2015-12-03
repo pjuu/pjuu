@@ -7,7 +7,11 @@
 <!-- list:user:{{item._id}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
-    <img class="avatar size48" src="{{ url_for('users.avatar', username=item.username) }}"/>
+    {% if item.avatar %}
+    <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.avatar) }}"/>
+    {% else %}
+    <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
+    {% endif %}
     <div class="control">
         {% if item._id == current_user._id %}
         <a href="{{ url_for('users.settings_profile') }}">

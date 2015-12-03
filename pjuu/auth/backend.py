@@ -311,7 +311,7 @@ def delete_account(user_id):
 
     # If the user has an avatar remove it
     if user.get('avatar'):
-        delete_upload(user['avatar'], 'avatars')
+        delete_upload(user.get('avatar'))
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.

@@ -183,7 +183,7 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
         # process_upload() can throw an Exception of UploadError. We will let
         # it fall through as a 500 is okay I think.
         # TODO: Turn this in to a Queue task at some point
-        filename = process_upload(post_id, upload)
+        filename = process_upload(upload)
 
         if filename is not None:
             # If the upload process was okay attach the filename to the doc
@@ -381,9 +381,9 @@ def get_post(post_id):
 
     if post is not None:
         user = m.db.users.find_one({'_id': post.get('user_id')},
-                                   {'email': True})
+                                   {'avatar': True})
         if user is not None:
-            post['user_email'] = user.get('email')
+            post['user_avatar'] = user.get('avatar')
 
     return post
 
@@ -395,7 +395,7 @@ def get_posts(user_id, page=1, per_page=None):
 
     # Get the user object we need the email for Gravatar.
     user = m.db.users.find_one({'_id': user_id},
-                               {'email': True})
+                               {'avatar': True})
 
     total = m.db.posts.find({
         'user_id': user_id,
@@ -409,7 +409,7 @@ def get_posts(user_id, page=1, per_page=None):
     for post in cursor:
         # This is not a nice solution but is needed for Gravatar
         if user is not None:  # pragma: no branch
-            post['user_email'] = user.get('email')
+            post['user_avatar'] = user.get('avatar')
 
         posts.append(post)
 
@@ -431,10 +431,10 @@ def get_replies(post_id, page=1, per_page=None):
         # We have to get the users email for each post for the gravatar
         user = m.db.users.find_one(
             {'_id': reply.get('user_id')},
-            {'email': True})
+            {'avatar': True})
 
         if user is not None:  # pragma: no branch
-            reply['user_email'] = user.get('email')
+            reply['user_avatar'] = user.get('avatar')
             replies.append(reply)
 
     return Pagination(replies, total, page, per_page)
@@ -457,10 +457,10 @@ def get_hashtagged_posts(hashtag, page=1, per_page=None):
     for post in cursor:
         user = m.db.users.find_one(
             {'_id': post.get('user_id')},
-            {'email': True})
+            {'avatar': True})
 
         if post is not None:  # pragma: no branch
-            post['user_email'] = user.get('email')
+            post['user_avatar'] = user.get('avatar')
             posts.append(post)
 
     return Pagination(posts, total, page, per_page)

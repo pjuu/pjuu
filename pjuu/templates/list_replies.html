@@ -7,7 +7,11 @@
 <!-- list:reply:{{item._id}} -->
 {% endif %}
 <li class="item{% if loop.last %} last{% endif %} clearfix">
-    <img class="avatar size48" src="{{ url_for('users.avatar', username=item.username) }}"/>
+    {% if item.user_avatar %}
+    <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.user_avatar) }}"/>
+    {% else %}
+    <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
+    {% endif %}
     <div class="control">
         {% if item.user_id == current_user._id or post.username == current_user.username %}
         {% if config.TESTING %}

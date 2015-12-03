@@ -201,7 +201,6 @@ def post(username=None, post_id=None):
 
 
 @posts_bp.route('/uploads/<path:filename>', methods=['GET'])
-@login_required
 def get_upload(filename):
     """Simple function to get the uploaded content from GridFS.
 
