@@ -106,3 +106,12 @@ class ParserTests(BackendTestCase):
         self.assertEqual(links[0]['link'], 'https://pjuu.com/user1')
         links = parse_links('https://pjuu.com/user1(awesome)')
         self.assertEqual(links[0]['link'], 'https://pjuu.com/user1(awesome)')
+
+    def test_quoting_mentions_hashtags(self):
+        """Parenthesis around items"""
+        links = parse_links('"https://pjuu.com/user1"')
+        self.assertEqual(links[0]['link'], 'https://pjuu.com/user1')
+        hashtags = parse_hashtags('"#pjuu"')
+        self.assertEqual(hashtags[0]['hashtag'], 'pjuu')
+        mentions = parse_mentions('"@joe"', check_user=False)
+        self.assertEqual(mentions[0]['username'], 'joe')
