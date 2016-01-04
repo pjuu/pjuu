@@ -10,7 +10,7 @@ posts.backend. Posts especially as this extends the alert object for its
 own purposes.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2015 Joe Doherty
+:copyright: 2014-2016 Joe Doherty
 
 """
 

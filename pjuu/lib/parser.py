@@ -6,7 +6,7 @@
          maintained more easily.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2015 Joe Doherty
+:copyright: 2014-2016 Joe Doherty
 
 """
 
