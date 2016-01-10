@@ -1,12 +1,8 @@
-{% extends 'list.html' %}
-
-{% block list %}
-{% if pagination.items %}
-{% for item in pagination.items %}
 {% if config.TESTING %}
-<!-- list:user:{{item._id}} -->
+    <!-- list:user:{{item._id}} -->
 {% endif %}
-<li class="item{% if loop.last %} last{% elif loop.first %} first{% endif %} user clearfix">
+
+<li class="item{% if loop_last %} last{% elif loop_first %} first{% endif %} user clearfix">
     {% if item.avatar %}
     <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.avatar) }}"/>
     {% else %}
@@ -38,8 +34,3 @@
         <div class="body">{{ item.about }}</div>
     </div>
 </li>
-{% endfor %}
-{% else %}
-<div class="empty">Empty</div>
-{% endif %}
-{% endblock %}

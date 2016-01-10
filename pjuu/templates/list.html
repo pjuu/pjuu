@@ -1,6 +1,23 @@
 <ul id="list">
-    {% block list %}
-    {% endblock %}
+    {% if pagination.items %}
+        {% for item in pagination.items %}
+
+            {% set loop_first = loop.first %}
+            {% set loop_last = loop.last %}
+
+            {% if item.alert_id %}
+                {% include 'list_alert.html' %}
+            {% elif item.user_id and not item.reply_to %}
+                {% include 'list_post.html' %}
+            {% elif item.user_id and item.reply_to %}
+                {% include 'list_reply.html' %}
+            {% elif item.email %}
+                {% include 'list_user.html' %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <div class="empty">Empty</div>
+    {% endif %}
 </ul>
 
 {# Pagination controls #}

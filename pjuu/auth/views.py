@@ -7,6 +7,8 @@
 
 """
 
+import time
+
 # 3rd party imports
 from flask import (current_app as app, flash, redirect, render_template,
                    request, url_for, session, jsonify, Blueprint, g,
@@ -61,6 +63,21 @@ def kick_banned_user():
     if current_user and current_user.get('banned', False):
         session.pop('user_id', None)
         flash('You\'re a very naughty boy!', 'error')
+
+
+@auth_bp.before_request
+def gather_time():
+    """This is used to measure the request time for each page"""
+    if app.debug and not app.testing:  # pragma: no cover
+        g.start_time = time.time()
+
+
+@auth_bp.after_request
+def display_time(response):
+    """This is will write the time to the console in DEBUG mode"""
+    if app.debug and not app.testing:  # pragma: no cover
+        print time.time() - g.start_time, 'secs'
+    return response
 
 
 @auth_bp.after_app_request

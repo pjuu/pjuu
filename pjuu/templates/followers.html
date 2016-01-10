@@ -1,10 +1,10 @@
 {% extends 'profile.html' %}
 
-{% block title %}Followers - {{ profile['username']|capitalize }}{{ user}}{% endblock %}
+{% block title %}Followers - {{ profile.username|capitalize }}{% endblock %}
 
 {% block content %}
 
 <h1>Followers</h1>
 
-{% include 'list_users.html' %}
+{% include 'list.html' %}
 {% endblock %}
