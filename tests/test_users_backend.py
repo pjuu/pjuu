@@ -235,14 +235,9 @@ class BackendTests(BackendTestCase):
         self.assertIn(post6, feed)
 
     def test_search(self):
-        """
-        Make sure users can actually find each other.
-
-        This will need a lot more work once we add in a proper search facility
-        rather than just the Redis KEYS command
-        """
+        """Make sure users can actually find things on the site."""
         # Create test user
-        create_account('user1', 'user1@pjuu.com', 'Password')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Ensure that the user can be found
         self.assertEqual(len(search('user1').items), 1)
         self.assertEqual(search('user1').total, 1)
@@ -256,20 +251,57 @@ class BackendTests(BackendTestCase):
         self.assertEqual(len(search('bob').items), 0)
         self.assertEqual(search('bob').total, 0)
 
-        # Create a second test user
+        # Create a second test user and a post with a hashtag and
+        # ensure both show in the results.
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        # Create the post as user1 as we are going to delete user2
+        create_post(user1, 'user1', '#user2')
         # Ensure the new user can be found
-        self.assertEqual(len(search('user2').items), 1)
-        self.assertEqual(search('user2').total, 1)
+        self.assertEqual(len(search('user2').items), 2)
+        self.assertEqual(search('user2').total, 2)
         # Ensure partial match returns both test1/2 users
-        self.assertEqual(len(search('use').items), 2)
-        self.assertEqual(search('use').total, 2)
+        self.assertEqual(len(search('use').items), 3)
+        self.assertEqual(search('use').total, 3)
 
-        # Delete the account test 2 and try searching again
-        # Adding in this test as it has stung us before
+        # Delete the account user2 and try searching again
+        # Only the hashtag should show
         delete_account(user2)
-        self.assertEqual(search('test2').total, 0)
+        self.assertEqual(search('user2').total, 1)
         # Done
+
+    def test_advanced_search(self):
+        """Cover using the `@` and `#` modifiers to limit
+        the search type.
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        create_post(user1, 'user1', '#pjuu #user2')
+        create_post(user2, 'user2', '#pjuu #user1')
+
+        for i in range(1, 101):
+            create_post(user1, 'user1', '#pagination{}'.format(i))
+
+        # Try come basic search terms
+        self.assertEqual(search('user').total, 4)
+        self.assertEqual(search('user1').total, 2)
+        self.assertEqual(search('user2').total, 2)
+        self.assertEqual(search('pjuu').total, 2)
+
+        # Users only
+        self.assertEqual(search('@user').total, 2)
+        self.assertEqual(search('@user1').total, 1)
+        # erroneous spacing doesn't matter
+        self.assertEqual(search('@    us').total, 2)
+
+        # Posts only
+        self.assertEqual(search('#user').total, 2)
+        self.assertEqual(search('#user1').total, 1)
+        self.assertEqual(search('#pjuu').total, 2)
+
+        # Test pagination in search
+        self.assertEqual(len(search('#pagination', 1, 50).items), 50)
+        self.assertEqual(len(search('#pagination', 2, 50).items), 50)
 
     def test_alerts(self):
         """

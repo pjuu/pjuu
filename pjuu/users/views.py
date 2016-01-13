@@ -279,12 +279,17 @@ def search():
 
     .. note: Should be _NO_ CSRF this will appear in the URL and look shit.
     """
+    # Pagination
+    page = handle_page(request)
+
     form = SearchForm(request.form)
 
     # Get the query string. If its not there return an empty string
     query = request.args.get('query', '')
 
-    _results = be_search(query)
+    _results = be_search(query, page,
+                         current_user.get('feed_pagination_size'))
+
     return render_template('search.html', form=form, query=query,
                            pagination=_results)
 

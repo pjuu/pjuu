@@ -72,3 +72,6 @@ SENTRY_DSN = ''
 FEED_ITEMS_PER_PAGE = 25
 REPLIES_ITEMS_PER_PAGE = 25
 ALERT_ITEMS_PER_PAGE = 50
+
+# Max search items is needed to work pagination across search terms
+MAX_SEARCH_ITEMS = 500
