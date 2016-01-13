@@ -194,37 +194,87 @@ def is_following(who_id, whom_id):
     return False
 
 
-# TODO Fix this!
-def search(query):
-    """Search for users. Will return a list as a pagination object.
+def search(query, page=1, per_page=None):
+    """Search for users / hashtagged posts (not replies)."""
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
 
-    .. note: Will block Redis whilst it runs.
-    """
-    per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+    # TODO: Refactor the max size of search items away
+    max_items = app.config.get('MAX_SEARCH_ITEMS', 500)
 
     # Clean up query string
-    query = query.lower()
+    query = query.lower().strip()
+
+    hashtags = True
+    users = True
+
+    if query.startswith('@'):
+        hashtags = False
+    elif query.startswith('#'):
+        users = False
+
     query = SEARCH_RE.sub('', query)
 
-    # Lets try and find some users
     if len(query) > 0:
-        # We will concatenate the glob pattern to the query
-        cursor = m.db.users.find(
-            {'username': {'$regex': '^{}'.format(query)}}).limit(per_page)
-
         # Get the total number of documents returned
-        total = 0
         results = []
-        for user in cursor:
-            total += 1
-            results.append(user)
+        total = 0
+
+        if users:
+            total += m.db.users.count({
+                'username': {'$regex': '^{}'.format(query)}
+            })
+
+            # We will concatenate the glob pattern to the query
+            cursor = m.db.users.find({
+                'username': {'$regex': '^{}'.format(query)}
+            }).sort(
+                'username', pymongo.ASCENDING
+            ).limit(max_items)
+
+            for user in cursor:
+                results.append(user)
+
+        if hashtags:
+            total += m.db.posts.count({
+                'hashtags.hashtag': {'$regex': '^{}'.format(query)},
+                'reply_to': {'$exists': False}
+            })
+
+            cursor = m.db.posts.find({
+                'hashtags.hashtag': {'$regex': '^{}'.format(query)},
+                'reply_to': {'$exists': False}
+            }).sort(
+                'hashtags.hashtag', pymongo.ASCENDING
+            ).limit(max_items)
+
+            for hashtag in cursor:
+                results.append(hashtag)
+
+        def sort_results(k):
+            """Allow sorting of the search results by closest matchng
+            then by date the item was created."""
+            if k.get('hashtags'):
+                for hashtag in k.get('hashtags'):  # pragma: no branch
+                    if hashtag.get('hashtag', '').startswith(query):
+                        return (hashtag.get('hashtag'),
+                                timestamp() - k.get('created', 0))
+            else:
+                return (k.get('username'),
+                        timestamp() - k.get('created', 0))
+
+        results = sorted(results, key=sort_results)
+
+        # Limit the mount of items in the response
+        results = results[(page - 1) * per_page:page * per_page]
+
     else:
         # If there was not query to search for 0 off everything
         results = []
         total = 0
 
     # Return our pagination object
-    return Pagination(results, total, 1, per_page)
+    return Pagination(results, total, page, per_page)
 
 
 def update_profile_settings(user_id, about="", hide_feed_images=False,
