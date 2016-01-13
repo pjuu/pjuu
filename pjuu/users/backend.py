@@ -221,9 +221,9 @@ def search(query, page=1, per_page=None):
         total = 0
 
         if users:
-            total += m.db.users.count({
+            total += m.db.users.find({
                 'username': {'$regex': '^{}'.format(query)}
-            })
+            }).count()
 
             # We will concatenate the glob pattern to the query
             cursor = m.db.users.find({
@@ -236,10 +236,10 @@ def search(query, page=1, per_page=None):
                 results.append(user)
 
         if hashtags:
-            total += m.db.posts.count({
+            total += m.db.posts.find({
                 'hashtags.hashtag': {'$regex': '^{}'.format(query)},
                 'reply_to': {'$exists': False}
-            })
+            }).count()
 
             cursor = m.db.posts.find({
                 'hashtags.hashtag': {'$regex': '^{}'.format(query)},
