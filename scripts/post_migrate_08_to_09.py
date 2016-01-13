@@ -17,10 +17,10 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import pymongo
+import pymongo  # noqa
 
-from pjuu import create_app
-from pjuu.lib.parser import parse_post
+from pjuu import create_app  # noqa
+from pjuu.lib.parser import parse_post  #noqa
 
 
 m = pymongo.MongoClient(host='localhost')
