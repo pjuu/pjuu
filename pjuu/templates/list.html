@@ -29,13 +29,13 @@
         {% if config.TESTING %}
         <!-- pagination:newest -->
         {% endif %}
-        <a href="{{ request.path + "?page=%s" % pagination.first_page }}">
+        <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('page', pagination.first_page)])) }}">
             <i class="fa fa-angle-double-left"></i>
         </a>
         {% if config.TESTING %}
         <!-- pagination:newer -->
         {% endif %}
-        <a href="{{ request.path + "?page=%s" % pagination.prev_page }}">
+        <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('page', pagination.prev_page)])) }}">
             <i class="fa fa-angle-left"></i>
         </a>
     </div>
@@ -45,13 +45,13 @@
         {% if config.TESTING %}
         <!-- pagination:older -->
         {% endif %}
-        <a href="{{ request.path + "?page=%s" % pagination.next_page }}">
+        <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('page', pagination.next_page)])) }}">
             <i class="fa fa-angle-right"></i>
         </a>
         {% if config.TESTING %}
         <!-- pagination:oldest -->
         {% endif %}
-        <a href="{{ request.path + "?page=%s" % pagination.last_page }}">
+        <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('page', pagination.last_page)])) }}">
             <i class="fa fa-angle-double-right"></i>
         </a>
     </div>
