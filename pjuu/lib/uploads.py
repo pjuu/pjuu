@@ -10,7 +10,7 @@ At this time this only includes images so Pillow and GridFS are used.
 """
 
 import io
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ExifTags
 import gridfs
 
 from pjuu import mongo as m
@@ -41,6 +41,40 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
         # All images are passed through PIL and turned in to PNG files.
         # Will change if they need thumbnailing or resizing.
         img = PILImage.open(upload)
+
+        # Check the exif data.
+        # If there is an orientation then transform the image so that
+        # it is always looking up.
+        try:
+            exif_data = {
+                ExifTags.TAGS[k]: v
+                for k, v in img._getexif().items()
+                if k in ExifTags.TAGS
+            }
+
+            orientation = exif_data.get('Orientation')
+
+            if orientation:  # pragma: no branch
+                if orientation == 2:
+                    img = img.transpose(PILImage.FLIP_LEFT_RIGHT)
+                if orientation == 3:
+                    img = img.transpose(PILImage.ROTATE_180)
+                elif orientation == 4:
+                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
+                elif orientation == 5:
+                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
+                    img = img.transpose(PILImage.ROTATE_270)
+                elif orientation == 6:
+                    img = img.transpose(PILImage.ROTATE_270)
+                elif orientation == 7:
+                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
+                    img = img.transpose(PILImage.ROTATE_90)
+                elif orientation == 8:
+                    img = img.transpose(PILImage.ROTATE_90)
+
+        except AttributeError:
+            pass
+
         if thumbnail:
             img.thumbnail(image_size, PILImage.ANTIALIAS)
         else:
