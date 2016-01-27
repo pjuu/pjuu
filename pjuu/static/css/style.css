@@ -658,10 +658,15 @@ input[type="file"] {
     border: 1px solid #666;
     border-radius: 3px;
     color: #666;
+    cursor: pointer;
     font-weight: 700;
     float: left;
     margin-right: 1em;
     padding: 0.25em 1em;
+}
+
+#upload-label:hover {
+    color: #333;
 }
 
 .has-file {
