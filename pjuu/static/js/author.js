@@ -30,4 +30,13 @@ $(document).ready(function() {
     } catch (error) {
         $('#upload-label').toggle();
     }
+
+    /*
+     * Allow Ctrl+Enter to submit the auth form
+     */
+    $('#author #body').keydown(function (event) {
+        if (event.ctrlKey && (event.keyCode == 10 || event.keyCode == 13)) {
+            $(this).closest('form').submit();
+        }
+    });
 });
