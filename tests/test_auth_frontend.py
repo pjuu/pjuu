@@ -216,7 +216,6 @@ class AuthFrontendTests(FrontendTestCase):
             'username': 'user1',
             'email': 'user1@pjuu.com',
             'password': 'Password',
-            'password2': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Yay! You\'ve signed up', resp.data)
@@ -239,13 +238,11 @@ class AuthFrontendTests(FrontendTestCase):
         self.assertIn('Invalid token', resp.data)
 
         # Try and signup with the same user and ensure we get the correct resp
-        # and error codes. We will also put mismatch passwords in just to test
-        # that all forms throw the correct error
+        # and error codes
         resp = self.client.post(url_for('auth.signup'), data={
             'username': 'user1',
             'email': 'user1@pjuu.com',
             'password': 'Password',
-            'password2': 'PasswordPassword'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Ensure there is an overall form error
@@ -253,14 +250,12 @@ class AuthFrontendTests(FrontendTestCase):
         # Ensure the form elements actually throw there own errors
         self.assertIn('User name already in use', resp.data)
         self.assertIn('E-mail address already in use', resp.data)
-        self.assertIn('Passwords must match', resp.data)
 
         # Try a few scenarios with email addresses we are not happy about.
         resp = self.client.post(url_for('auth.signup'), data={
             'username': 'user1',
             'email': 'user1#user1@pjuu.com',
             'password': 'Password',
-            'password2': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Ensure there is an overall form error
@@ -273,7 +268,6 @@ class AuthFrontendTests(FrontendTestCase):
             'username': 'user2',
             'email': 'user2+user2@pjuu.com',
             'password': 'Password',
-            'password2': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Yay! You\'ve signed up', resp.data)
