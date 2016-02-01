@@ -169,8 +169,11 @@ def signup():
                     html_body=render_template('emails/activate.html',
                                               token=token)
                 )
-                flash('Yay! You\'ve signed up<br/>Please check your e-mails '
-                      'to activate your account', 'success')
+                flash('Yay! You\'ve signed up<br/>'
+                      'We\'ve sent an e-mail to {}<br/>'
+                      'Please activate your account'.format(form.email.data),
+                      'success')
+
                 return redirect(url_for('auth.signin'))
 
         flash('Oh no! There are errors in your form. Please try again.',

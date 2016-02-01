@@ -111,12 +111,10 @@ class SignUpForm(Form):
         DataRequired()
     ])
     password = PasswordField('Password', [
-        EqualTo('password2', message='Passwords must match'),
         Length(min=6,
                message='Password must be at least 6 characters long'),
         DataRequired()
     ])
-    password2 = PasswordField('Confirm password')
 
     def validate_username(self, field):
         if not check_username(field.data):
