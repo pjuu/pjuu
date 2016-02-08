@@ -398,6 +398,73 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=comment2))
         self.assertEqual(resp.status_code, 404)
 
+    def test_reply_sort_order(self):
+        """Ensure that changing the reply sort order yields the desired
+        effect."""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+
+        # Sign in
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        post1 = create_post(user1, 'user1', 'Test post')
+
+        for i in xrange(100):
+            create_post(user1, 'user1', 'Reply {}'.format(i), post1)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1),
+                               follow_redirects=True)
+
+        # Check chronological sort link is present
+        self.assertIn('fa-sort-numeric-asc', resp.data)
+
+        for i in xrange(99, 75, -1):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        # Explicit default sort
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort=-1),
+                               follow_redirects=True)
+
+        for i in xrange(99, 75, -1):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        # Explicit chronological sort
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort=1),
+                               follow_redirects=True)
+
+        # Check reverse-chronological sort link is present
+        self.assertIn('fa-sort-numeric-desc', resp.data)
+
+        for i in xrange(24):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        # Update the user profile and test again.
+        # Should yield the same result as above but without expilict sort
+        self.client.post(url_for('users.settings_profile'), data={
+            'reply_sort_order': True,
+        }, follow_redirects=True)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1),
+                               follow_redirects=True)
+
+        for i in xrange(24):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        # Ensure an incorrect sort renders the user default
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort='cheese'),
+                               follow_redirects=True)
+
+        for i in xrange(24):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
     def test_replies(self):
         """
         Test commenting on a post. This is a lot simpler than making a post

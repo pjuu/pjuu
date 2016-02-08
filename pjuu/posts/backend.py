@@ -416,7 +416,7 @@ def get_posts(user_id, page=1, per_page=None):
     return Pagination(posts, total, page, per_page)
 
 
-def get_replies(post_id, page=1, per_page=None):
+def get_replies(post_id, page=1, per_page=None, sort_order=-1):
     """Returns all a posts replies as a pagination object."""
     if per_page is None:
         per_page = app.config.get('REPLIES_ITEMS_PER_PAGE')
@@ -424,7 +424,9 @@ def get_replies(post_id, page=1, per_page=None):
     total = m.db.posts.find_one({'_id': post_id}).get('comment_count')
     cursor = m.db.posts.find(
         {'reply_to': post_id}
-    ).sort([('created', -1)]).skip((page - 1) * per_page).limit(per_page)
+    ).sort(
+        [('created', sort_order)]
+    ).skip((page - 1) * per_page).limit(per_page)
 
     replies = []
     for reply in cursor:

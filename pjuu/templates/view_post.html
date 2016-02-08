@@ -124,7 +124,20 @@
 {% include 'author_reply.html' %}
 
 <div id="content" class="block clearfix">
-    <h1>Replies</h1>
+    <h1 class="clearfix">
+        <div class="left">Replies</div>
+        <div class="right">
+            {% if sort == -1 %}
+            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('sort', 1)])) }}">
+                <i class="fa fa-lg fa-sort-numeric-asc"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('sort', -1)])) }}">
+                <i class="fa fa-lg fa-sort-numeric-desc"></i>
+            </a>
+            {% endif %}
+        </div>
+    </h1>
     {% include 'list.html' %}
 </div>
 {% endblock %}

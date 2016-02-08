@@ -91,6 +91,10 @@
                     <div>
                         {{ form.alerts_pagination_size.label }} {{ form.alerts_pagination_size }}
                     </div>
+                    <div>
+                        {{ form.reply_sort_order(checked=current_user.reply_sort_order == 1 or False) }}
+                        {{ form.reply_sort_order.label }}
+                    </div>
                 </div>
             </div>
         </div>

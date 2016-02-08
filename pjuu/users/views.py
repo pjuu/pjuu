@@ -334,6 +334,14 @@ def settings_profile():
             current_user['alerts_pagination_size'] = \
                 int(form.alerts_pagination_size.data)
 
+            # Sort order but be 1 or -1 due to MongoDB requirements
+            if form.reply_sort_order.data:
+                reply_sort_order = 1
+            else:
+                reply_sort_order = -1
+
+            current_user['reply_sort_order'] = reply_sort_order
+
             current_user['homepage'] = form.homepage.data
             current_user['location'] = form.location.data
 
@@ -345,6 +353,7 @@ def settings_profile():
                 feed_size=form.feed_pagination_size.data,
                 replies_size=form.replies_pagination_size.data,
                 alerts_size=form.alerts_pagination_size.data,
+                reply_sort_order=reply_sort_order,
                 homepage=form.homepage.data,
                 location=form.location.data,
                 upload=upload

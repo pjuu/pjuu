@@ -35,6 +35,8 @@ class ChangeProfileForm(Form):
     alerts_pagination_size = SelectField('Number of alerts to show',
                                          choices=choices, default=50)
 
+    reply_sort_order = BooleanField('Show replies in chronological order')
+
     homepage = StringField('Home page', [
         Regexp(URL_RE,
                message='Please ensure the home page is a valid URL or empty'),

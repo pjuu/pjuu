@@ -307,6 +307,10 @@ class FrontendTests(FrontendTestCase):
             'password': 'Password'
         })
 
+        # If the user profile hasn't been saved the sort order should
+        user = m.db.users.find_one({'username': 'user1'})
+        self.assertIsNone(user.get('reply_sort_order'))
+
         # Go to our settings page and ensure everything is there
         resp = self.client.get(url_for('users.settings_profile'))
         self.assertIn('<div class="content">user1</div>', resp.data)
@@ -388,6 +392,23 @@ class FrontendTests(FrontendTestCase):
         self.assertIn(
             '<a href="https://pjuu.com"><i class="fa fa-globe fa-lg"></i></a>',
             resp.data)
+
+        # If the view before has been saved the default is -1 (unchecked)
+        user = m.db.users.find_one({'username': 'user1'})
+        self.assertEqual(user.get('reply_sort_order'), -1)
+
+        resp = self.client.post(url_for('users.settings_profile'), data={
+            'reply_sort_order': True,
+        }, follow_redirects=True)
+        user = m.db.users.find_one({'username': 'user1'})
+        self.assertEqual(user.get('reply_sort_order'), 1)
+
+        # You can not post the field as thats classed as a True value
+        resp = self.client.post(url_for('users.settings_profile'),
+                                data={'about': 'Test'},
+                                follow_redirects=True)
+        user = m.db.users.find_one({'username': 'user1'})
+        self.assertEqual(user.get('reply_sort_order'), -1)
 
     def test_alerts(self):
         """Check that alerts are displayed properly in the frontend."""
