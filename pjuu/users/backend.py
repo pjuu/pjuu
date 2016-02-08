@@ -279,7 +279,8 @@ def search(query, page=1, per_page=None):
 
 def update_profile_settings(user_id, about="", hide_feed_images=False,
                             feed_size=25, replies_size=25, alerts_size=50,
-                            homepage='', location='', upload=None):
+                            reply_sort_order=-1, homepage='', location='',
+                            upload=None):
     """Update all options on a users profile settings in MongoDB."""
     # Ensure the homepage URL is as valid as it can be
     if homepage != '':
@@ -298,6 +299,7 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
         'feed_pagination_size': int(feed_size),
         'replies_pagination_size': int(replies_size),
         'alerts_pagination_size': int(alerts_size),
+        'reply_sort_order': reply_sort_order,
         'homepage': homepage,
         'location': location,
     }

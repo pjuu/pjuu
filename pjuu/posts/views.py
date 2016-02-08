@@ -130,6 +130,17 @@ def view_post(username, post_id):
     # Pagination
     page = handle_page(request)
 
+    # Handle explicit sort order
+    # Fall back to user default else default
+    sort = request.args.get('sort', None)
+    if sort is None:
+        sort = current_user.get('reply_sort_order', -1)
+    else:
+        try:
+            sort = int(sort)
+        except ValueError:
+            sort = current_user.get('reply_sort_order', -1)
+
     # Get post and comments for the current page
     _post = get_post(post_id)
 
@@ -138,11 +149,13 @@ def view_post(username, post_id):
         return abort(404)
 
     pagination = get_replies(post_id, page,
-                             current_user.get('replies_pagination_size'))
+                             current_user.get('replies_pagination_size'),
+                             sort)
 
     post_form = PostForm()
     return render_template('view_post.html', post=_post,
-                           pagination=pagination, post_form=post_form)
+                           pagination=pagination, post_form=post_form,
+                           sort=sort)
 
 
 @posts_bp.route('/post', methods=['GET', 'POST'])
