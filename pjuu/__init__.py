@@ -15,7 +15,7 @@ from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
 from flask_wtf import CsrfProtect
-from raven.contrib.flask import Sentry
+from opbeat.contrib.flask import Opbeat
 # Pjuu imports
 from pjuu.lib.sessions import RedisSessionInterface
 
@@ -36,9 +36,6 @@ redis_sessions = Redis()
 
 # Cross Site Request Forgery protection
 csrf = CsrfProtect()
-
-# Raven global Sentry object for Flask
-sentry = Sentry()
 
 
 def create_app(config_filename='settings.py', config_dict=None):
@@ -71,12 +68,17 @@ def create_app(config_filename='settings.py', config_dict=None):
     # override all other Settings applied to Pjuu so long as you define them
     app.config.from_envvar('PJUU_SETTINGS', silent=True)
 
-    # Sentry logger
-    # We now only use Sentry for logging all our in application errors
+    # OpBeat
+    # We use OpBeat in production to log errors and performance of the code.
     # We do not need it if debug is True as we expect there could be errors
     # and we get full visibility.
     if not app.debug:  # pragma: no cover
-        sentry.init_app(app)
+        Opbeat(
+            app,
+            organization_id=app.config.get('OPBEAT_ORG_ID'),
+            app_id=app.config.get('OPBEAT_APP_ID'),
+            secret_token=app.config.get('OPBEAT_SECRET_TOKEN')
+        )
 
     # Initialize the PyMongo client
     mongo.init_app(app)

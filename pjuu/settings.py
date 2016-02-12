@@ -60,14 +60,6 @@ WTF_CSRF_ENABLED = True
 # Change this for extra security
 WTF_CSRF_SESSION_KEY = SECRET_KEY
 
-# Sentry settings
-# If you do not add a Sentry DSN you will not receive any logging information
-# If you do not run Sentry then you can add a custom logger in see the Flask
-# documentation: http://flask.pocoo.org/docs/errorhandling/
-# You will need to do add a custom one inside the __init__.py file within the
-# create_app() function.
-SENTRY_DSN = ''
-
 # Pagination
 FEED_ITEMS_PER_PAGE = 25
 REPLIES_ITEMS_PER_PAGE = 25
@@ -75,3 +67,8 @@ ALERT_ITEMS_PER_PAGE = 50
 
 # Max search items is needed to work pagination across search terms
 MAX_SEARCH_ITEMS = 500
+
+# OpBeat config
+OPBEAT_ORG_ID = ''
+OPBEAT_APP_ID = ''
+OPBEAT_SECRET_TOKEN = ''
