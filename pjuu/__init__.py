@@ -9,14 +9,15 @@ provide the create_app() function to build an instance of Pjuu.
 """
 
 import os
-# 3rd party imports
-from flask import Flask
+
+from flask import Flask, request, g
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
 from flask_wtf import CsrfProtect
 from opbeat.contrib.flask import Opbeat
-# Pjuu imports
+
+from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
 
 
@@ -48,7 +49,6 @@ def create_app(config_filename='settings.py', config_dict=None):
     ``settings_dict`` can be used to override any settings inside
     ``config_filename``. This is useful for testing. See run_tests.py for an
     example
-
     """
     # Pylint has suggested I don't set config_dict to a empty dict, we now have
     # to check if it is None and then assign an empty dict
@@ -98,9 +98,26 @@ def create_app(config_filename='settings.py', config_dict=None):
     # Set session handler to Redis
     app.session_interface = RedisSessionInterface(redis=redis_sessions)
 
-    # Static URLs will have an mtime appended as a query string as cache buster
+    # Generic handles
+    @app.before_request
+    def gather_time():
+        """This is used to measure the request time for each page"""
+        if app.debug and not app.testing:  # pragma: no cover
+            if request.endpoint != 'static':
+                g.start_time = timestamp()
+
+    @app.after_request
+    def display_time(response):
+        """This is will write the time to the console in DEBUG mode"""
+        if app.debug and not app.testing:  # pragma: no cover
+            if request.endpoint != 'static':
+                print request.path, request.endpoint, \
+                      str((timestamp() - g.start_time) * 100) + 'ms'
+        return response
+
     @app.url_defaults
     def cache_buster(endpoint, values):
+        """Static URLs will have an mtime appended as a query string"""
         if 'static' == endpoint or '.static' == endpoint[-7:]:
             filename = values.get('filename', None)
             if filename:  # pragma: no branch
@@ -120,19 +137,17 @@ def create_app(config_filename='settings.py', config_dict=None):
     from pjuu.lib.errors import register_errors
     register_errors(app)
 
-    with app.app_context():
-        # Import all Pjuu stuffs
-        # Load the blueprints
-        from pjuu.auth.views import auth_bp
-        app.register_blueprint(auth_bp)
-        from pjuu.posts.views import posts_bp
-        app.register_blueprint(posts_bp)
-        from pjuu.users.views import users_bp
-        app.register_blueprint(users_bp)
-        from pjuu.lib.dashboard import dashboard_bp
-        app.register_blueprint(dashboard_bp)
-        from pjuu.lib.pages import pages_bp
-        app.register_blueprint(pages_bp)
+    # Import all Pjuu blue prints
+    from pjuu.auth.views import auth_bp
+    app.register_blueprint(auth_bp)
+    from pjuu.posts.views import posts_bp
+    app.register_blueprint(posts_bp)
+    from pjuu.users.views import users_bp
+    app.register_blueprint(users_bp)
+    from pjuu.lib.dashboard import dashboard_bp
+    app.register_blueprint(dashboard_bp)
+    from pjuu.lib.pages import pages_bp
+    app.register_blueprint(pages_bp)
 
     # Return a nice shiny new Pjuu WSGI application :)
     return app
