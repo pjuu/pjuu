@@ -12,7 +12,7 @@ from flask import (current_app as app, flash, redirect, render_template,
                    request, url_for, session, jsonify, Blueprint, g,
                    _app_ctx_stack)
 # Pjuu imports
-from pjuu.lib import handle_next, timestamp
+from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth import current_user
@@ -61,21 +61,6 @@ def kick_banned_user():
     if current_user and current_user.get('banned', False):
         session.pop('user_id', None)
         flash('You\'re a very naughty boy!', 'error')
-
-
-@auth_bp.before_request
-def gather_time():
-    """This is used to measure the request time for each page"""
-    if app.debug and not app.testing:  # pragma: no cover
-        g.start_time = timestamp()
-
-
-@auth_bp.after_request
-def display_time(response):
-    """This is will write the time to the console in DEBUG mode"""
-    if app.debug and not app.testing:  # pragma: no cover
-        print timestamp() - g.start_time, 'secs'
-    return response
 
 
 @auth_bp.after_app_request
