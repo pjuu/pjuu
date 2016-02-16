@@ -492,7 +492,7 @@ class FrontendTests(FrontendTestCase):
                                follow_redirects=True)
         self.assertIn('Alert has been hidden', resp.data)
         self.assertNotIn('<!-- list:alert:{} -->'.format(alert1),
-                      resp.data)
+                         resp.data)
         self.assertIn('<!-- list:alert:{} -->'.format(alert2),
                       resp.data)
 
