@@ -12,7 +12,7 @@ from datetime import datetime
 import math
 # 3rd party imports
 from flask import (abort, flash, redirect, render_template, request, url_for,
-                   Blueprint, current_app as app)
+                   Blueprint, current_app as app, jsonify)
 # Pjuu imports
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
@@ -415,6 +415,4 @@ def new_alerts():
     uid = current_user.get('_id')
 
     # If a user has alerts then return a 200 else a 404
-    if be_new_alerts(uid):
-        return "", 200
-    return "", 404
+    return jsonify({'new_alerts': be_new_alerts(uid)})

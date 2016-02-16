@@ -8,13 +8,15 @@ $(document).ready(function() {
     // trying agin until the page is refreshed.
     function has_alerts() {
         $.get("/alerts/new", function(data) {
-            // Yey we have some alerts :-)
-            $("#alert").addClass('alert');
-        }).fail(function() {
-            // Oh no. We have no new alerts lets check again in a minute.
-            setTimeout(function() {
-                has_alerts();
-            }, 60000);
+            if (data.new_alerts > 0) {
+                // Yey we have some alerts :-)
+                $("#alert").addClass('alert');
+            } else {
+                // Oh no. We have no new alerts lets check again in a minute.
+                setTimeout(function() {
+                    has_alerts();
+                }, 60000);
+            }
         });
     }
 

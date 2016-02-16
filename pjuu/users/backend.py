@@ -395,5 +395,5 @@ def new_alerts(user_id):
     # sorted set newer than the last_checked timestamp, SIMPLES.
     #
     # Note: zrevrangebyscore has max and min the wrong way round :P
-    return bool(r.zrevrangebyscore(k.USER_ALERTS.format(user_id), '+inf',
-                alerts_last_checked, start=0, num=1))
+    return len(r.zrevrangebyscore(k.USER_ALERTS.format(user_id), '+inf',
+               alerts_last_checked))
