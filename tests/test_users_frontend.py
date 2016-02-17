@@ -11,6 +11,7 @@ import io
 
 from flask import url_for
 import gridfs
+import json
 
 from pjuu import mongo as m
 from pjuu.auth.backend import create_account, delete_account, activate
@@ -415,9 +416,11 @@ class FrontendTests(FrontendTestCase):
         # Create two test users
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # Activate
         activate(user1)
         activate(user2)
+        activate(user3)
 
         # Try an visit i-has-alerts when not logged in
         resp = self.client.get(url_for('users.new_alerts'))
@@ -432,7 +435,8 @@ class FrontendTests(FrontendTestCase):
         # Get I has alerts and check that it is false
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.data).get('new_alerts'), 0)
 
         # Ensure that /alerts returns nothing
         resp = self.client.get(url_for('users.alerts'))
@@ -446,6 +450,15 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.data).get('new_alerts'), 1)
+
+        # Ensure the count goes up correctly
+        follow_user(user3, user1)
+
+        resp = self.client.get(url_for('users.new_alerts'))
+        # Check the JSON response
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.data).get('new_alerts'), 2)
 
         resp = self.client.get(url_for('users.alerts'))
         # We don't know the alert ID but we can check that one is there by
@@ -460,11 +473,13 @@ class FrontendTests(FrontendTestCase):
         # We have now checked the alerts, ensure that i-has-alerts is False
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(json.loads(resp.data).get('new_alerts'), 0)
 
         # Check that we can delete the alert
-        # Get the alert id from the backend function
-        aid = get_alerts(user1).items[0].alert_id
+        # Get the both alert ids from the backend function
+        alert1 = get_alerts(user1).items[0].alert_id
+        alert2 = get_alerts(user1).items[1].alert_id
 
         # Check that we don't get a message if there was no alert to delete
         resp = self.client.get(url_for('users.delete_alert',
@@ -472,7 +487,17 @@ class FrontendTests(FrontendTestCase):
                                follow_redirects=True)
         self.assertNotIn('Alert has been hidden', resp.data)
 
-        resp = self.client.get(url_for('users.delete_alert', alert_id=aid),
+        # Delete both alerts
+        resp = self.client.get(url_for('users.delete_alert', alert_id=alert1),
+                               follow_redirects=True)
+        self.assertIn('Alert has been hidden', resp.data)
+        self.assertNotIn('<!-- list:alert:{} -->'.format(alert1),
+                         resp.data)
+        self.assertIn('<!-- list:alert:{} -->'.format(alert2),
+                      resp.data)
+
+        # Check when the last alert is deleted we get an empty list
+        resp = self.client.get(url_for('users.delete_alert', alert_id=alert2),
                                follow_redirects=True)
         self.assertIn('Alert has been hidden', resp.data)
         # Check that there are also no alerts now
