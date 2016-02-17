@@ -60,12 +60,12 @@
         </ul>
         {% if profile._id == current_user._id %}
         <a href="{{ url_for('users.settings_profile') }}">
-            <div onmouseover="this.innerHTML = 'Edit'" onmouseout="this.innerHTML = 'You'" class="action you">You</div>
+            <div class="action you">You</div>
         </a>
         {% elif profile|following %}
         <form action="{{ url_for('users.unfollow', username=profile.username, next=request.path) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-            <button onmouseover="this.innerHTML = 'Unfollow'" onmouseout="this.innerHTML = 'Following'" class="action unfollow">Following</button>
+            <button class="action unfollow">Following</button>
         </form>
         {% else %}
         <form action="{{ url_for('users.follow', username=profile.username, next=request.path) }}" method="post">
