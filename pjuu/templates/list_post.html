@@ -2,7 +2,7 @@
     <!-- list:post:{{item._id}} -->
 {% endif %}
 
-<li class="item{% if loop_last %} last{% endif %} clearfix">
+<li class="item{% if loop_last %} last{% endif %} post clearfix">
     {% if item.user_avatar %}
     <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.user_avatar) }}"/>
     {% else %}
