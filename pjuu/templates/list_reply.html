@@ -46,13 +46,14 @@
                     {{ item.score|millify }}
                 </li>
                 {% if item.user_id != current_user._id %}
+                {% set voted_on = item._id|voted %}
                 <li>
-                    {% if item._id|voted > 0 %}
+                    {% if voted_on > 0 %}
                     {% if config.TESTING %}
                     <!-- upvoted:reply:{{ item._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
-                    {% elif item._id|voted < 0 %}
+                    {% elif voted_on < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
@@ -65,12 +66,12 @@
                     {% endif %}
                 </li>
                 <li>
-                    {% if item._id|voted < 0 %}
+                    {% if voted_on < 0 %}
                     {% if config.TESTING %}
                     <!-- downvoted:reply:{{ item._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
-                    {% elif item._id|voted > 0 %}
+                    {% elif voted_on > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
