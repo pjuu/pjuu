@@ -51,13 +51,14 @@
                     <i class="fa fa-trophy fa-lg"></i> {{ post.score|millify }}
                 </li>
                 {% if post.user_id != current_user._id %}
+                {% set voted_on = post._id|voted %}
                 <li>
-                    {% if post._id|voted > 0 %}
+                    {% if voted_on > 0 %}
                     {% if config.TESTING %}
                     <!-- upvoted:post:{{ post._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-up fa-lg upvoted"></i>
-                    {% elif post._id|voted < 0 %}
+                    {% elif voted_on < 0 %}
                     <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
@@ -70,12 +71,12 @@
                     {% endif %}
                 </li>
                 <li>
-                    {% if post._id|voted < 0 %}
+                    {% if voted_on < 0 %}
                     {% if config.TESTING %}
                     <!-- downvoted:post:{{ post._id }} -->
                     {% endif %}
                     <i class="fa fa-arrow-down fa-lg downvoted"></i>
-                    {% elif post._id|voted > 0 %}
+                    {% elif voted_on > 0 %}
                     <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
                     {% if config.TESTING %}
