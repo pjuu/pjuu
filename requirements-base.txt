@@ -1,7 +1,7 @@
 Flask==0.10.1
 Flask-And-Redis==0.6
 Flask-Mail==0.9.1
-Flask-PyMongo==0.4.0
+Flask-PyMongo==0.4.1
 Flask-WTF==0.12
 Jinja2==2.8
 MarkupSafe==0.23
