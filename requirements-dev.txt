@@ -1,5 +1,5 @@
 -r requirements-base.txt
-CherryPy==5.0.1
+CherryPy==5.1.0
 Sphinx==1.3.6
 coverage==4.0.3
 flake8==2.5.4
