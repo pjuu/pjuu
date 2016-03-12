@@ -274,7 +274,7 @@ class FrontendTests(FrontendTestCase):
 
         # Lets check to see if inactive users show up. THEY SHOULD
         resp = self.client.get(url_for('users.search', query='fil'))
-        self.assertIn('<!-- list:user:%s -->' % user5, resp.data)
+        self.assertNotIn('<!-- list:user:%s -->' % user5, resp.data)
 
         # Lets check that we can find ant because we are going to delete him
         # to ensure he goes! This has caused issues on the live site

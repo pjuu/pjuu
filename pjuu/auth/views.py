@@ -201,12 +201,11 @@ def activate(token):
 @auth_bp.route('/forgot', methods=['GET', 'POST'])
 @anonymous_required
 def forgot():
-    """
-    """
+    """Allow users to get a password reset link"""
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
-        user = get_user(get_uid(form.username.data))
+        user = get_user(get_uid(form.username.data, non_active=True))
         if user is not None:
             # Only send e-mails to user which exist.
             token = generate_token({'action': 'reset', 'uid': user.get('_id')})

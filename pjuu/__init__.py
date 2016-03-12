@@ -112,7 +112,7 @@ def create_app(config_filename='settings.py', config_dict=None):
         if app.debug and not app.testing:  # pragma: no cover
             if request.endpoint != 'static':
                 print request.path, request.endpoint, \
-                      str((timestamp() - g.start_time) * 100) + 'ms'
+                    str((timestamp() - g.start_time) * 100) + 'ms'
         return response
 
     @app.url_defaults

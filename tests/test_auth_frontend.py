@@ -314,6 +314,14 @@ class AuthFrontendTests(FrontendTestCase):
         # not be generated for a non existant user
         self.assertIsNone(resp.headers.get('X-Pjuu-Token'))
 
+        # Same test with e-mail
+        resp = self.client.post(url_for('auth.forgot'), data={
+            'username': 'user1@pjuu.com'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('If we\'ve found your account we\'ve', resp.data)
+        self.assertIsNone(resp.headers.get('X-Pjuu-Token'))
+
         # Lets do this again but with a user (this is the only way to test
         # password resetting)
         create_account('user1', 'user1@pjuu.com', 'Password')
@@ -325,6 +333,15 @@ class AuthFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn('If we\'ve found your account we\'ve', resp.data)
         # This time we should have a token
+        token = resp.headers.get('X-Pjuu-Token')
+        self.assertIsNotNone(token)
+
+        # Same test with e-mail
+        resp = self.client.post(url_for('auth.forgot'), data={
+            'username': 'user1@pjuu.com'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('If we\'ve found your account we\'ve', resp.data)
         token = resp.headers.get('X-Pjuu-Token')
         self.assertIsNotNone(token)
 

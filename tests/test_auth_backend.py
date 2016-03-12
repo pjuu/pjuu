@@ -60,7 +60,10 @@ class AuthBackendTests(BackendTestCase):
         self.assertIsNone(
             create_account('help', 'userX@pjuu.com', 'Password'))
 
-        # Check lookup keys exist
+        # You can't get a UID for a non-activated user
+        self.assertEqual(get_uid('user1'), None)
+
+        activate(user1)
         self.assertEqual(get_uid('user1'), user1)
         self.assertEqual(get_uid('user1@pjuu.com'), user1)
 
@@ -82,13 +85,16 @@ class AuthBackendTests(BackendTestCase):
         self.assertEqual(get_uid_username('user1'), user1)
         self.assertEqual(get_uid_email('user1@pjuu.com'), user1)
 
+        # Create a new user to check the defaults
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
         # Are values set as expected?
-        user = get_user(user1)
+        user = get_user(user2)
 
         self.assertIsNotNone(user)
-        self.assertEqual(user.get('_id'), user1)
-        self.assertEqual(user.get('username'), 'user1')
-        self.assertEqual(user.get('email'), 'user1@pjuu.com')
+        self.assertEqual(user.get('_id'), user2)
+        self.assertEqual(user.get('username'), 'user2')
+        self.assertEqual(user.get('email'), 'user2@pjuu.com')
         self.assertEqual(user.get('last_login'), -1)
         self.assertFalse(user.get('active'))
         self.assertFalse(user.get('banned'))
@@ -243,6 +249,9 @@ class AuthBackendTests(BackendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         # Test email lookup key
+        self.assertEqual(get_uid_email('user1@pjuu.com'), None)
+
+        activate(user1)
         self.assertEqual(get_uid_email('user1@pjuu.com'), user1)
         # Check correct email
         self.assertEqual(get_user(user1).get('email'), 'user1@pjuu.com')

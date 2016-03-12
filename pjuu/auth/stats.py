@@ -25,14 +25,21 @@ def get_stats():
     total_op = m.db.users.find({'op': True}).count()
 
     newest_users_cur = m.db.users.find(
-        {}, {'_id': False, 'username': True}
+        {}, {'_id': False, 'username': True, 'active': True}
     ).sort(
         [('created', pymongo.DESCENDING)]
-    ).limit(5)
+    ).limit(10)
     newest_users = []
     for user in newest_users_cur:
-        link = '<a href="{0}">{1}</a>'.format(
+        # If the user is active show a green circle else red
+        if user.get('active'):
+            active_string = 'green'
+        else:
+            active_string = 'red'
+
+        link = '<a href="{0}"><i class="fa fa-circle {1}"></i> {2}</a>'.format(
             url_for('users.profile', username=user.get('username')),
+            active_string,
             user.get('username')
         )
         newest_users.append(link)

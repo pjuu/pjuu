@@ -10,7 +10,7 @@
 from flask import current_app as app
 
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import create_account, delete_account
+from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k
 from pjuu.lib.alerts import BaseAlert
 from pjuu.posts.backend import create_post
@@ -239,8 +239,14 @@ class BackendTests(BackendTestCase):
         # Create test user
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         # Ensure that the user can be found
+        self.assertEqual(len(search('user1').items), 0)
+        self.assertEqual(search('user1').total, 0)
+
+        # Users will not appear unless they are active.
+        activate(user1)
         self.assertEqual(len(search('user1').items), 1)
         self.assertEqual(search('user1').total, 1)
+
         # Ensure partial match
         self.assertEqual(len(search('use').items), 1)
         self.assertEqual(search('use').total, 1)
@@ -254,6 +260,7 @@ class BackendTests(BackendTestCase):
         # Create a second test user and a post with a hashtag and
         # ensure both show in the results.
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user2)
         # Create the post as user1 as we are going to delete user2
         create_post(user1, 'user1', '#user2')
         # Ensure the new user can be found
@@ -270,17 +277,24 @@ class BackendTests(BackendTestCase):
         # Done
 
     def test_advanced_search(self):
-        """Cover using the `@` and `#` modifiers to limit
-        the search type.
-        """
+        """Cover using the `@` and `#` modifiers to limit the search type."""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        # We have to activate the accounts to appear in the search
+        activate(user1)
+        activate(user2)
 
         create_post(user1, 'user1', '#pjuu #user2')
         create_post(user2, 'user2', '#pjuu #user1')
 
         for i in range(1, 101):
             create_post(user1, 'user1', '#pagination{}'.format(i))
+
+        # No user should appear because they are not active!
+        self.assertEqual(search('user').total, 4)
+        self.assertEqual(search('user1').total, 2)
+        self.assertEqual(search('user2').total, 2)
 
         # Try come basic search terms
         self.assertEqual(search('user').total, 4)

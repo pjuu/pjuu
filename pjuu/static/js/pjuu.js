@@ -67,7 +67,7 @@ $(document).ready(function() {
      * Handle checking for new alerts
      */
     // The amount of time between checking for alerts
-    var alert_timeout = 5000;
+    var alert_timeout = 30000;
 
     // This uses a timeout so that if it fails (auth pages) it won't bother
     // trying agin until the page is refreshed.

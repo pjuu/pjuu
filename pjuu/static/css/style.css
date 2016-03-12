@@ -1001,6 +1001,14 @@ input[type="file"] {
     cursor: pointer;
 }
 
+.red {
+    color: #F00;
+}
+
+.green {
+    color: #0F0;
+}
+
 /* FOOTER ================================================================== */
 #footer {
     margin: 2em 0 0.5em 0;
