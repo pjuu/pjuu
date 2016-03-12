@@ -7,7 +7,7 @@
 
 """
 
-from pjuu.auth.backend import create_account
+from pjuu.auth.backend import create_account, activate
 from pjuu.lib.parser import (parse_hashtags, parse_links, parse_mentions,
                              parse_post)
 
@@ -78,6 +78,7 @@ class ParserTests(BackendTestCase):
     def test_mention_real_user(self):
         """Find a user mentions (user does exist)"""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password1')
+        activate(user1)
         mentions = parse_mentions('@user1 @user2')
         self.assertEqual(len(mentions), 1)
         self.assertEqual(mentions[0]['username'], 'user1')
@@ -86,7 +87,8 @@ class ParserTests(BackendTestCase):
 
     def test_unicode_character(self):
         """Do unicode characters break things."""
-        create_account('user1', 'user1@pjuu.com', 'Password1')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password1')
+        activate(user1)
         links, mentions, hashtags = parse_post('၍ @user1, ☂pjuu.com, 㒅 #hash')
         self.assertEqual(links[0]['link'], 'http://pjuu.com')
         self.assertEqual(mentions[0]['username'], 'user1')
@@ -94,7 +96,8 @@ class ParserTests(BackendTestCase):
 
     def test_surrounding_characters(self):
         """Can parse objects be in parenthesis"""
-        create_account('user1', 'user1@pjuu.com', 'Password1')
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password1')
+        activate(user1)
         links, mentions, hashtags = parse_post('(@user1), (pjuu.com), (#hash)')
         self.assertEqual(links[0]['link'], 'http://pjuu.com')
         self.assertEqual(mentions[0]['username'], 'user1')

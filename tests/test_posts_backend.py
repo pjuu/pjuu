@@ -13,7 +13,7 @@ import gridfs
 from flask import current_app as app
 
 from pjuu import mongo as m, redis as r
-from pjuu.auth.backend import create_account, delete_account
+from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K
 from pjuu.posts.backend import (
@@ -481,6 +481,10 @@ class PostBackendTests(BackendTestCase):
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         user3 = create_account('user3', 'user3@pjuu.com', 'Password')
 
+        activate(user1)
+        activate(user2)
+        activate(user3)
+
         # Post as user 1 and ensure user 1 exists in Redis
         post1 = create_post(user1, 'user1', 'Test post 1')
         self.assertIsNotNone(r.zrank(K.POST_SUBSCRIBERS.format(post1), user1))
@@ -572,6 +576,10 @@ class PostBackendTests(BackendTestCase):
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         user3 = create_account('user3', 'user3@pjuu.com', 'Password')
         # No need to activate the accounts
+
+        activate(user1)
+        activate(user2)
+        activate(user3)
 
         # User1 tag user2 in a post
         post1 = create_post(user1, 'user1', 'Hello @user2')
