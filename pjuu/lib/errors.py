@@ -7,8 +7,11 @@
 
 """
 
-from flask import render_template
+from flask import render_template, abort
+from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException, InternalServerError
+
+from pjuu import csrf
 
 
 custom_error_messages = {
@@ -32,6 +35,27 @@ def handle_error(error):
     return render_template('errors.html', error=error), error.code
 
 
+@csrf.error_handler
+def handler_csrf_error(reason):  # pragma: no cover
+    """Show a custom CSRF failure error
+
+    .. note: CSRF is VERY hard to test programmatically.
+    """
+    error = {}
+    error['code'] = 400
+    error['name'] = 'Invalid security token'
+    error['custom_message'] = (
+        'You may not have refreshed the page in a while. '
+        'This is the main cause of the issue. However if you came here from '
+        'anoth site some one may be trying to make you perform an action on '
+        'Pjuu. Be safe. For more details search CSRF for an explanation.'
+    )
+    return abort(Response(render_template('errors.html', error=error),
+                          status=400, content_type='text/html'))
+
+
 def register_errors(app):
     for error in [403, 404, 405, 500]:
         app.error_handler_spec[None][error] = handle_error
+
+    csrf.error_handler = handler_csrf_error
