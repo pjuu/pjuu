@@ -68,6 +68,9 @@ ALERT_ITEMS_PER_PAGE = 50
 # Max search items is needed to work pagination across search terms
 MAX_SEARCH_ITEMS = 500
 
+# Line cap (the number of lines to show in a feed before 'Read more...' shows)
+LINE_CAP = 5
+
 # OpBeat config
 OPBEAT_ORG_ID = ''
 OPBEAT_APP_ID = ''

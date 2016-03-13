@@ -258,6 +258,78 @@ class PostFrontendTests(FrontendTestCase):
                                                   filename=post.get('upload')),
                       resp.data)
 
+    def test_posts_lines(self):
+        """Ensure posts are truncated to `LINE_CAP` on feeds and profiles"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.post(url_for('posts.post',
+                                        next=url_for('users.feed')),
+                                data={
+            'body': '\n'.join([
+                'Line 0',
+                'Line 1',
+                'Line 2',
+                'Line 3',
+                'Line 4',
+                'Line 5',
+                'Line 6',
+                'Line 7',
+                'Line 8',
+                'Line 9',
+            ])
+        }, follow_redirects=True)
+
+        self.assertIn('Line 0<br/>', resp.data)
+        # The last line wil NOT have a <br/> attached.
+        self.assertIn('Line 4', resp.data)
+        self.assertIn('Read more ...', resp.data)
+
+        self.assertNotIn('Line 5', resp.data)
+        self.assertNotIn('Line 9', resp.data)
+
+        # Ensure the same thing happens on the users profile.
+        resp = self.client.get(url_for('users.profile', username='user1'))
+
+        self.assertIn('Line 0<br/>', resp.data)
+        # The last line wil NOT have a <br/> attached.
+        self.assertIn('Line 4', resp.data)
+        self.assertIn('Read more ...', resp.data)
+
+        self.assertNotIn('Line 5', resp.data)
+        self.assertNotIn('Line 9', resp.data)
+
+        # Ensure the post shows in full on the actual post page
+        post1 = create_post(user1, 'user1', '\n'.join([
+            'Line 0',
+            'Line 1',
+            'Line 2',
+            'Line 3',
+            'Line 4',
+            'Line 5',
+            'Line 6',
+            'Line 7',
+            'Line 8',
+            'Line 9',
+        ]))
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+
+        self.assertIn('Line 0<br/>', resp.data)
+        self.assertIn('Line 4<br/>', resp.data)
+        self.assertIn('Line 5<br/>', resp.data)
+        # Last item has no <br/>
+        self.assertIn('Line 9', resp.data)
+
+        self.assertNotIn('Read more ...', resp.data)
+
+        self.assertEqual(resp.status_code, 200)
+
     def test_hide_feed_images(self):
         """"""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
