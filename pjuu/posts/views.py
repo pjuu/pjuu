@@ -29,7 +29,7 @@ posts_bp = Blueprint('posts', __name__)
 
 
 @posts_bp.app_template_filter('postify')
-def postify_filter(post):
+def postify_filter(post, limit_lines=False):
     """Will highlight everything that is stored along with the post: link,
     mentions and hash tags.
 
@@ -84,6 +84,12 @@ def postify_filter(post):
 
         offset += len(html) - (item['span'][1] - item['span'][0])
         post_body = post_body[:left] + html + post_body[right:]
+
+    if limit_lines:
+        post_body = '\n'.join(post_body.splitlines()[:5])
+
+    # Enable new lines to show
+    post_body = post_body.replace("\n", "<br/>")
 
     return post_body
 

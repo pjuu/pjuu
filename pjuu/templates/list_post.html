@@ -33,9 +33,22 @@
             <span class="created">{{ item.created|timeify }}</span>
         </div>
         <div class="body">
+            {% set line_count = item.body.count('\n') %}
             {% autoescape false %}
-            {{ item|postify }}
+                {% if line_count > config.LINE_CAP %}
+                    {{ item|postify(limit_lines=True) }}
+                {% else %}
+                    {{ item|postify }}
+                {% endif %}
             {% endautoescape %}
+
+            {% if line_count > config.LINE_CAP %}
+            <p>
+                <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}">
+                    Read more ...
+                </a>
+            </p>
+            {% endif %}
         </div>
         {% if item.upload %}
             {% if config.TESTING %}
