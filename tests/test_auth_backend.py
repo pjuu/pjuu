@@ -7,6 +7,7 @@
 
 """
 
+import json
 
 from flask import current_app as app, session
 
@@ -345,13 +346,14 @@ class AuthBackendTests(BackendTestCase):
 
         """
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
 
         data = dump_account(user1)
         self.assertIsNotNone(data)
 
         # Got data?
         self.assertEqual('user1', data['user']['username'])
-        self.assertFalse(data['user']['active'])
+        self.assertTrue(data['user']['active'])
 
         # Has sensitive data been removed?
         self.assertEqual('<UID>', data['user']['_id'])
@@ -392,6 +394,22 @@ class AuthBackendTests(BackendTestCase):
 
         # Testing running dump account with a non-existent user
         self.assertIsNone(dump_account(K.NIL_VALUE))
+
+        # Test that user id's a hidden in mentions
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user2)
+
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
+        activate(user3)
+
+        post1 = create_post(user1, 'user1', 'Hello @user2')
+        post_json = json.dumps(dump_account(user1))
+        self.assertNotIn(user2, post_json)
+
+        post2 = create_post(user1, 'user1', 'Hello @user2 and @user3')
+        post_json = json.dumps(dump_account(user1))
+        self.assertNotIn(user2, post_json)
+        self.assertNotIn(user3, post_json)
 
     def test_stats(self):
         """Ensure the ``pjuu.auth.stats``s exposed stats are correct.

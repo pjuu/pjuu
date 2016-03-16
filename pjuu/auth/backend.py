@@ -375,9 +375,8 @@ def dump_account(user_id):
     At the moment this WILL just dump account, posts and comments. ALL you have
     not deleted.
 
-    TODO This will need to become streaming or a background process one day.
-         This will be incredibly resource intensive.
-
+    .. note: This will need to become streaming or a background process one
+             day. This will be incredibly resource intensive.
     """
     # Attempt to get the users account
     user = m.db.users.find_one({'_id': user_id})
@@ -400,6 +399,11 @@ def dump_account(user_id):
         # Hide the uid from the post. The pid is okay to add as this is part of
         # the URL anyway
         post['user_id'] = '<UID>'
+
+        # Clear the user_id's from mentions
+        if post.get('mentions'):
+            for i in xrange(len(post['mentions'])):
+                post['mentions'][i]['user_id'] = '<UID>'
         posts.append(post)
 
     # Return the dict of the above, this will be turned in to JSON by the view
