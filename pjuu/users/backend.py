@@ -205,13 +205,13 @@ def search(query, page=1, per_page=None):
     # Clean up query string
     query = query.lower().strip()
 
-    hashtags = True
-    users = True
+    search_hashtags = True
+    search_users = True
 
     if query.startswith('@'):
-        hashtags = False
+        search_hashtags = False
     elif query.startswith('#'):
-        users = False
+        search_users = False
 
     query = SEARCH_RE.sub('', query)
 
@@ -220,7 +220,8 @@ def search(query, page=1, per_page=None):
         results = []
         total = 0
 
-        if users:
+        users = []
+        if search_users:
             # We will concatenate the glob pattern to the query
             cursor = m.db.users.find({
                 'username': {'$regex': '^{}'.format(query)},
@@ -233,9 +234,10 @@ def search(query, page=1, per_page=None):
             total += cursor.count()
 
             for user in cursor:
-                results.append(user)
+                users.append(user)
 
-        if hashtags:
+        posts = []
+        if search_hashtags:
             cursor = m.db.posts.find({
                 'hashtags.hashtag': {'$regex': '^{}'.format(query)},
                 'reply_to': {'$exists': False}
@@ -245,8 +247,26 @@ def search(query, page=1, per_page=None):
 
             total += cursor.count()
 
+            preprocessed_posts = []
+            user_ids = []
+
             for hashtag in cursor:
-                results.append(hashtag)
+                user_ids.append(hashtag.get('user_id'))
+                preprocessed_posts.append(hashtag)
+
+            cursor = m.db.users.find(
+                {'_id': {'$in': user_ids}}, {'avatar': True}
+            )
+            # Create a lookup dict `{username: email}`
+            user_avatars = \
+                dict((user.get('_id'), user.get('avatar')) for user in cursor)
+
+            # Add the e-mails to the posts
+            for post in preprocessed_posts:
+                post['user_avatar'] = user_avatars.get(post.get('user_id'))
+                posts.append(post)
+
+        results = users + posts
 
         def sort_results(k):
             """Allow sorting of the search results by closest matchng

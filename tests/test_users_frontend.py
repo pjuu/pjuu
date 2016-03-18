@@ -281,12 +281,48 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.search', query='ant'))
         self.assertIn('<!-- list:user:%s -->' % user4, resp.data)
 
+        # Lets check that we can find ant because we are going to delete him
+        # to ensure he goes! This has caused issues on the live site
+        resp = self.client.get(url_for('users.search', query='ant'))
+        self.assertIn('<!-- list:user:%s -->' % user4, resp.data)
+
         # We will just backend delete the account.
         delete_account(user4)
         # Account is gone, lets ensure this has gone
         resp = self.client.get(url_for('users.search', query='ant'))
         self.assertNotIn('<!-- list:user:%s -->' % user4, resp.data)
         # Done for now!
+
+    def test_avatars_hashtag_search(self):
+        """Ensure user avatars appear when searching for posts with a hashtag
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        # Activate it
+        activate(user1)
+
+        # Signin
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        # Ensure user avatar appear in the search when searching for hashtags
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+
+        self.client.post(url_for('users.settings_profile'), data={
+            'upload': (image, 'otter.png')
+        }, follow_redirects=True)
+
+        # Get the user so we can see if the avatar is appearing
+        user = get_user(user1)
+
+        # Create a post to search for
+        post1 = create_post(user1, 'user1', 'Hello #pjuuie\'s')
+
+        resp = self.client.get(url_for('users.search', query='#pjuuie'))
+        self.assertIn('<!-- list:post:%s -->' % post1, resp.data)
+        self.assertIn(url_for('posts.get_upload', filename=user.get('avatar')),
+                      resp.data)
 
     def test_settings_profile(self):
         """Ensure users have the ability to see some information about there
