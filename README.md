@@ -23,28 +23,17 @@ Pjuu is written in Python/Flask and uses Redis and MongoDB as the data stores.
 
 ### Getting started
 
-Getting started working on Pjuu or deploying it yourself is quite easy. We will only cover development here and the following documentation is for Debian 7 (Wheezy) Linux (we are big fans), this should work with Ubuntu also.
+Getting started working on Pjuu or deploying it yourself is quite easy if you are familiar with Python. We will only cover development here and the following documentation is for Debian 8 (Jessie) Linux (we are big fans). Pjuu should work with and any other Linux distribution, however you will need to change the commands to fit. It has also been tested with FreeBSD, but this is beyond the scope of the README.
 
 We are presuming a fresh installation, this will setup the environment:
 
-Note: This will install Redis from wheezy-backports you may want to change this. Wheezy backports uses Redis version 2.8, you may already have a newer version, in Ubuntu for example.
-
-Note: This will install MongoDB from 10gen's own Debian repository. This is not always needed and your own distributions repository may do.
-
 ```
-$ sudo sh -c 'echo "deb http://ftp.uk.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list'
-
-$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-
-$ sudo sh -c 'echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" >> /etc/apt/sources.list'
-
 $ sudo apt-get update
 
-$ sudo apt-get install build-essential python-dev python-setuptools
+$ sudo apt-get install build-essential python-dev python-setuptools redis-server mongodb
 
-$ sudo apt-get install -t wheezy-backports redis-server
-
-$ sudo apt-get install mongodb-org
+# Install the Pillow dependencies
+$ sudo apt-get install libtiff5-dev libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk 
 
 $ sudo easy_install virtualenv
 
@@ -65,7 +54,7 @@ Running the unit tests with coverage:
 $ make test
 ```
 
-Obtain a coverage report
+Obtain a code coverage report
 
 ```
 $ make coverage
@@ -88,8 +77,9 @@ You can view the site by visiting: http://localhost:5000
 You can now play with the code base :)
 
 ```
-This may not be 100% complete. If you find any issues with these instructions
-please open an Issue or send us a pull request :)
+**IMPORTANT** You do NOT need to setup an SMTP server. To activate your an account you can look in the response header for X-Pjuu-Token. If you copy this and visit `/activate/<token>` that will give the same effect as pressing an e-mail link. The same applies for any other action requiring confirmation (forgotten password), it will however be a different URL you need to append the token to.
+
+This only works if `TESTING = True` in your settings.
 ```
 
 ### Contributing
