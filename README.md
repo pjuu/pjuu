@@ -76,11 +76,11 @@ You can view the site by visiting: http://localhost:5000
 
 You can now play with the code base :)
 
-```
+#### Creating test accounts
+
 **IMPORTANT** You do NOT need to setup an SMTP server. To activate your an account you can look in the response header for X-Pjuu-Token. If you copy this and visit `/activate/<token>` that will give the same effect as pressing an e-mail link. The same applies for any other action requiring confirmation (forgotten password), it will however be a different URL you need to append the token to.
 
 This only works if `TESTING = True` in your settings.
-```
 
 ### Contributing
 
