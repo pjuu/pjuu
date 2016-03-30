@@ -11,7 +11,7 @@
 from flask_wtf import Form
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import BooleanField, TextAreaField, SelectField, StringField
-from wtforms.validators import Length, Optional, Regexp
+from wtforms.validators import DataRequired, Length, Optional, Regexp
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
 from pjuu.lib.parser import URL_RE
@@ -58,3 +58,13 @@ class SearchForm(Form):
     This form is really simple. It is here to keep all forms at WTFroms
     """
     query = StringField("Query")
+
+
+class CreateRompForm(Form):
+    """Simply allow the user to create a romp"""
+    romp_name = StringField("Romp Name", [
+        DataRequired('A name is required.'),
+        Length(max=MAX_POST_LENGTH,
+               message='Romp names can be no longer than '
+                       '{} characters'.format(32))
+    ])

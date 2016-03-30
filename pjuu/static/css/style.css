@@ -353,6 +353,17 @@ button:hover {
     content: "Unfollow";
 }
 
+.action.delete {
+    background-color: #FFF;
+    border: 1px solid #C00;
+    color: #C00;
+}
+
+.action.delete:hover {
+    background-color: #C00;
+    color: #FFF;
+}
+
 .username a {
     color: #333;
 }
@@ -766,6 +777,10 @@ input[type="file"] {
     margin: 0 2em 0 5em;
 }
 
+#list .content.romp {
+    margin: 0 9em 0 1em;
+}
+
 #list .content.user {
     margin: 0 9em 0 5em;
 }
@@ -782,6 +797,10 @@ input[type="file"] {
 #list .body {
     margin: 0.75em 0 1em;
     word-wrap: break-word;
+}
+
+#list .romp .body {
+    margin: 0.5em 0;
 }
 
 #list .user .body {

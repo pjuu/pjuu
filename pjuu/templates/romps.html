@@ -1,0 +1,14 @@
+{% extends 'profile.html' %}
+
+{% block title %}Romps - {{ profile.username|capitalize }}{% endblock %}
+
+{% block form %}
+{% include 'romp_create.html' %}
+{% endblock %}
+
+{% block content %}
+
+<h1>Romps</h1>
+
+{% include 'list.html' %}
+{% endblock %}

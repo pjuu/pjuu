@@ -1,0 +1,10 @@
+{% extends 'profile.html' %}
+
+{% block title %}{{ romp_name|capitalize }} - {{ profile.username|capitalize }}{% endblock %}
+
+{% block content %}
+
+<h1>{{ romp_name|capitalize }}</h1>
+
+{% include 'list.html' %}
+{% endblock %}

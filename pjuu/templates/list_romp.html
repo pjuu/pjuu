@@ -1,0 +1,25 @@
+{% if config.TESTING %}
+    <!-- list:romp:{{item._id}} -->
+{% endif %}
+
+<li class="item{% if loop_last %} last{% elif loop_first %} first{% endif %} romp clearfix">
+    <div class="control">
+        {% if item.system %}
+        <form action="{{ url_for('users.follow', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+            <button class="action delete">Delete</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="content romp clearfix">
+        <div class="username">
+            {% if item.system %}
+                <i class="fa fa-lock fa-fw"></i>
+            {% endif %}
+            <a href="{{ url_for('users.romp', username=profile.username, romp_name=item.name) }}">
+                {{ item.name|capitalize }}
+            </a>
+        </div>
+        <div class="body">Followers: {{ item.follower_count }}</div>
+    </div>
+</li>

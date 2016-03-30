@@ -46,6 +46,9 @@ USER_FOLLOWERS = "{{user:{0}}}:followers"
 USER_FOLLOWING = "{{user:{0}}}:following"
 
 # Returns: zset
+USER_ROMP = "{{romp:{0}}}"
+
+# Returns: zset
 USER_ALERTS = "{{user:{0}}}:alerts"
 
 # Post related keys

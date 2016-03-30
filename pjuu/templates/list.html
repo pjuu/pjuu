@@ -7,6 +7,8 @@
 
             {% if item.alert_id %}
                 {% include 'list_alert.html' %}
+            {% elif item.user_id and item.name %}
+                {% include 'list_romp.html' %}
             {% elif item.user_id and not item.reply_to %}
                 {% include 'list_post.html' %}
             {% elif item.user_id and item.reply_to %}
