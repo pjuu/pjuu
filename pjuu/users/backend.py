@@ -196,18 +196,25 @@ def is_following(who_id, whom_id):
     return False
 
 
-def get_romp(user_id, romp_name, page=1, per_page=None):
+def romp_exists(user_id, romp_name):
+    """Checks to see if a romp exists"""
+    return bool(m.db.romps.find_one({'user_id': user_id, 'name': romp_name}))
+
+
+def get_romp(user_id, name, page=1, per_page=None):
     """Returns all the followers in a romp or None if the romp doesn't"""
-    if romp_name not in ['public', 'pjuu']:
-        romp = m.romps.find({
+    if name not in ['public', 'pjuu']:
+        romp = m.db.romps.find_one({
             'user_id': user_id,
-            'romp_name': romp_name
+            'name': name
         })
 
         if romp is None:
             return None
 
-        total = r.zcard(k.USER_FOLLOWERS.format(uid))
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        total = r.zcard(k.USER_ROMP.format(user_id))
         fids = r.zrevrange(k.USER_ROMP.format(romp.get('_id')),
                            (page - 1) * per_page, (page * per_page) - 1)
         users = []
@@ -217,8 +224,8 @@ def get_romp(user_id, romp_name, page=1, per_page=None):
                 users.append(user)
             else:
                 # Self cleaning sorted sets
-                r.zrem(k.USER_FOLLOWERS.format(uid), fid)
-                total = r.zcard(k.USER_FOLLOWERS.format(uid))
+                r.zrem(k.USER_FOLLOWERS.format(user_id), fid)
+                total = r.zcard(k.USER_FOLLOWERS.format(user_id))
         return Pagination(users, total, page, per_page)
     else:
         return get_followers(user_id)
@@ -277,9 +284,11 @@ def create_romp(user_id, name, special=False):
         return False
 
 
-def delete_romp(romp_id):
-    """"""
-    pass
+def delete_romp(user_id, romp_name):
+    """Removes a romp along with the list of followers assigned to it."""
+    return bool(m.db.romps.remove({
+        'user_id': user_id, 'name': romp_name.lower(), 'special': False
+    }))
 
 
 def search(query, page=1, per_page=None):

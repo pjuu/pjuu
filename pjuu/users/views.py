@@ -7,13 +7,12 @@
 
 """
 
-# Stdlib imports
 from datetime import datetime
 import math
-# 3rd party imports
+
 from flask import (abort, flash, redirect, render_template, request, url_for,
                    Blueprint, current_app as app, jsonify)
-# Pjuu imports
+
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
@@ -27,7 +26,8 @@ from pjuu.users.backend import (
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
     remove_from_feed as be_rem_from_feed, update_profile_settings,
-    get_romps, get_romp, create_romp
+    get_romps, get_romp, create_romp, delete_romp as be_delete_romp,
+    romp_exists
 )
 
 
@@ -196,8 +196,6 @@ def following(username):
     _following = get_following(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('following.html', profile=_profile,
                            pagination=_following)
 
@@ -221,8 +219,6 @@ def followers(username):
     _followers = get_followers(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('followers.html', profile=_profile,
                            pagination=_followers)
 
@@ -288,9 +284,6 @@ def romps(username):
 
     form = CreateRompForm(request.form)
     if request.method == 'POST':
-        redirect_url = handle_next(request, url_for('users.romps',
-                                                    username=username))
-
         if form.validate():
             romp_name = form.romp_name.data
             if create_romp(current_user['_id'], romp_name):
@@ -338,10 +331,24 @@ def romp(username, romp_name):
                            pagination=_followers, romp_name=romp_name)
 
 
-@users_bp.route('/<username>/romps/<romp_name>', methods=['POST'])
+@users_bp.route('/<username>/romps/<romp_name>/delete', methods=['POST'])
 def delete_romp(username, romp_name):
     """"""
-    pass
+    user_id = get_uid(username)
+
+    if user_id is None:
+        abort(404)
+
+    redirect_url = handle_next(request, url_for('users.romps',
+                                                username=username))
+
+    if romp_exists(user_id, romp_name):
+        flash('Deleted romp {}'.format(romp_name), 'success')
+        print be_delete_romp(user_id, romp_name)
+    else:
+        flash('Romp {} does not exist'.format(romp_name), 'error')
+
+    return redirect(redirect_url)
 
 
 @users_bp.route('/search', methods=['GET'])
