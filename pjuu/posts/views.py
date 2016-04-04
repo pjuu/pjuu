@@ -9,6 +9,7 @@
 
 from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint)
+from jinja2 import escape
 
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid
@@ -203,7 +204,7 @@ def post(username=None, post_id=None):
 
         # Create the post
         if create_post(current_user['_id'], current_user['username'],
-                       form.body.data, post_id, upload):
+                       unicode(escape(form.body.data)), post_id, upload):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
         else:
