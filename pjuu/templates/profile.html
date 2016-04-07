@@ -57,6 +57,16 @@
                     Following: <b>{{ profile.following_count|millify }}</b>
                 </a>
             </li>
+            <li>
+                {% if profile._id == current_user._id %}
+                    {% if config.TESTING %}
+                    <!-- romps:{{ profile.romp_count }} -->
+                    {% endif %}
+                    <a href="{{ url_for('users.romps', username=profile.username) }}">
+                        Romps: <b>{{ profile.romp_count|millify }}</b>
+                    </a>
+                {% endif %}
+            </li>
         </ul>
         {% if profile._id == current_user._id %}
         <a href="{{ url_for('users.settings_profile') }}">
@@ -76,9 +86,11 @@
     </div>
 </div>
 
-{% if profile._id == current_user._id %}
-    {% include 'author_post.html' %}
-{% endif %}
+{% block form %}
+    {% if post_form and profile._id == current_user._id %}
+        {% include 'author_post.html' %}
+    {% endif %}
+{% endblock %}
 
 <div id="content" class="block clearfix">
 {% block content %}

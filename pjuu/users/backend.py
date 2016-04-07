@@ -16,7 +16,7 @@ import pymongo
 
 from pjuu import mongo as m, redis as r
 from pjuu.auth.utils import get_user
-from pjuu.lib import keys as k, timestamp, fix_url
+from pjuu.lib import keys as k, timestamp, fix_url, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
 from pjuu.lib.uploads import process_upload, delete_upload
@@ -50,6 +50,8 @@ def get_profile(user_id):
         # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(k.USER_FOLLOWERS.format(user_id))
         profile['following_count'] = r.zcard(k.USER_FOLLOWING.format(user_id))
+        profile['romp_count'] = m.db.romps.find(
+            {'user_id': user_id}).count()
 
     return profile if profile else None
 
@@ -192,6 +194,101 @@ def is_following(who_id, whom_id):
     if r.zrank(k.USER_FOLLOWING.format(who_id), whom_id) is not None:
         return True
     return False
+
+
+def romp_exists(user_id, romp_name):
+    """Checks to see if a romp exists"""
+    return bool(m.db.romps.find_one({'user_id': user_id, 'name': romp_name}))
+
+
+def get_romp(user_id, name, page=1, per_page=None):
+    """Returns all the followers in a romp or None if the romp doesn't"""
+    if name not in ['public', 'pjuu']:
+        romp = m.db.romps.find_one({
+            'user_id': user_id,
+            'name': name
+        })
+
+        if romp is None:
+            return None
+
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
+        total = r.zcard(k.USER_ROMP.format(user_id))
+        fids = r.zrevrange(k.USER_ROMP.format(romp.get('_id')),
+                           (page - 1) * per_page, (page * per_page) - 1)
+        users = []
+        for fid in fids:
+            user = get_user(fid)
+            if user:
+                users.append(user)
+            else:
+                # Self cleaning sorted sets
+                r.zrem(k.USER_FOLLOWERS.format(user_id), fid)
+                total = r.zcard(k.USER_FOLLOWERS.format(user_id))
+        return Pagination(users, total, page, per_page)
+    else:
+        return get_followers(user_id)
+
+
+def get_romps(user_id, page=1, per_page=None):
+    """Return a users romps"""
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
+    total = m.db.romps.find({
+        'user_id': user_id
+    }).count()
+
+    cursor = m.db.romps.find({
+        'user_id': user_id,
+    }).sort(
+        [('special', -1), ('created', 1)]
+    ).skip((page - 1) * per_page).limit(per_page)
+
+    romps = []
+    for romp in cursor:
+        if romp.get('special'):
+            follower_count = r.zcard(k.USER_FOLLOWERS.format(user_id))
+        else:
+            follower_count = r.zcard(k.USER_ROMP.format(romp.get('_id')))
+        romp['follower_count'] = follower_count
+        romps.append(romp)
+
+    return Pagination(romps, total, page, per_page)
+
+
+def create_romp(user_id, name, special=False):
+    """Create a new romp for the user
+
+    :param user_id: User ID which will own the romp
+    :param name: The name of the Romp
+    :param special: Special romps are reserved for the 'Public' and 'Pjuu'
+                    romps. Which a user can not assign too or delete.
+                    They are just an alias to the entire followers list.
+    """
+    name = name.lower()
+
+    romp = {
+        '_id': get_uuid(),
+        'user_id': user_id,
+        'name': name,
+        'special': special,
+        'created': timestamp(),
+    }
+
+    try:
+        m.db.romps.insert(romp)
+        return True
+    except pymongo.errors.DuplicateKeyError:
+        return False
+
+
+def delete_romp(user_id, romp_name):
+    """Removes a romp along with the list of followers assigned to it."""
+    return bool(m.db.romps.remove({
+        'user_id': user_id, 'name': romp_name.lower(), 'special': False
+    }))
 
 
 def search(query, page=1, per_page=None):

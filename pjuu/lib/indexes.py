@@ -54,3 +54,9 @@ def ensure_indexes():
     m.db.posts.ensure_index(
         [('hashtags.hashtag', pymongo.DESCENDING)]
     )
+
+    # Ensure romp names and user_id combinations are unique
+    m.db.romps.ensure_index(
+        [('user_id', pymongo.DESCENDING), ('name', pymongo.DESCENDING)],
+        unique=True
+    )

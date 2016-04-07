@@ -7,13 +7,12 @@
 
 """
 
-# Stdlib imports
 from datetime import datetime
 import math
-# 3rd party imports
+
 from flask import (abort, flash, redirect, render_template, request, url_for,
                    Blueprint, current_app as app, jsonify)
-# Pjuu imports
+
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
@@ -21,12 +20,14 @@ from pjuu.lib import handle_next, timestamp
 from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import get_posts
 from pjuu.posts.forms import PostForm
-from pjuu.users.forms import ChangeProfileForm, SearchForm
+from pjuu.users.forms import ChangeProfileForm, SearchForm, CreateRompForm
 from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_rem_from_feed, update_profile_settings
+    remove_from_feed as be_rem_from_feed, update_profile_settings,
+    get_romps, get_romp, create_romp, delete_romp as be_delete_romp,
+    romp_exists
 )
 
 
@@ -195,10 +196,8 @@ def following(username):
     _following = get_following(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('following.html', profile=_profile,
-                           pagination=_following, post_form=post_form)
+                           pagination=_following)
 
 
 @users_bp.route('/<username>/followers', methods=['GET'])
@@ -220,10 +219,8 @@ def followers(username):
     _followers = get_followers(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('followers.html', profile=_profile,
-                           pagination=_followers, post_form=post_form)
+                           pagination=_followers)
 
 
 @users_bp.route('/<username>/follow', methods=['POST'])
@@ -272,13 +269,92 @@ def unfollow(username):
     return redirect(redirect_url)
 
 
+@users_bp.route('/<username>/romps', methods=['GET', 'POST'])
+@login_required
+def romps(username):
+    """Used to get a list of Romps or create a new romp"""
+    user_id = get_uid(username)
+
+    if user_id is None:
+        abort(404)
+
+    # You're not allowed to view other users romps
+    if user_id != current_user['_id']:
+        abort(403)
+
+    form = CreateRompForm(request.form)
+    if request.method == 'POST':
+        if form.validate():
+            romp_name = form.romp_name.data
+            if create_romp(current_user['_id'], romp_name):
+                flash('Successfully created romp {}'.format(romp_name),
+                      'success')
+            else:
+                flash('Can not create two romps with the same name',
+                      'error')
+        else:
+            flash('Invalid Romp name. Ensure you entered a name and '
+                  'it is no longer than 32 characters', 'error')
+
+    _profile = get_profile(user_id)
+
+    # Pagination
+    page = handle_page(request)
+
+    _romps = get_romps(user_id, page,
+                       current_user.get('feed_pagination_size'))
+
+    return render_template('romps.html', profile=_profile,
+                           pagination=_romps, romp_form=form)
+
+
+@users_bp.route('/<username>/romps/<romp_name>', methods=['GET'])
+@login_required
+def romp(username, romp_name):
+    """Get all the users in an individual romp"""
+    user_id = get_uid(username)
+
+    if user_id is None:
+        abort(404)
+
+    # You're not allowed to view other users romps
+    if user_id != current_user['_id']:
+        abort(403)
+
+    _profile = get_profile(user_id)
+    _followers = get_romp(user_id, romp_name)
+
+    if _followers is None:
+        abort(404)
+
+    return render_template('romp.html', profile=_profile,
+                           pagination=_followers, romp_name=romp_name)
+
+
+@users_bp.route('/<username>/romps/<romp_name>/delete', methods=['POST'])
+def delete_romp(username, romp_name):
+    """"""
+    user_id = get_uid(username)
+
+    if user_id is None:
+        abort(404)
+
+    redirect_url = handle_next(request, url_for('users.romps',
+                                                username=username))
+
+    if romp_exists(user_id, romp_name):
+        flash('Deleted romp {}'.format(romp_name), 'success')
+        print be_delete_romp(user_id, romp_name)
+    else:
+        flash('Romp {} does not exist'.format(romp_name), 'error')
+
+    return redirect(redirect_url)
+
+
 @users_bp.route('/search', methods=['GET'])
 @login_required
 def search():
-    """Search for a users. This is all done via a GET query.
-
-    .. note: Should be _NO_ CSRF this will appear in the URL and look shit.
-    """
+    """Search for a users. This is all done via a GET query."""
     # Pagination
     page = handle_page(request)
 

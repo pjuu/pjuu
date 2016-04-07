@@ -42,9 +42,16 @@ $(document).ready(function() {
     /*
      * Delete/Hide confirmations
      */
-    $(".delete").click(function(event) {
+    $(".post .delete, #post .delete").click(function(event) {
         event.stopPropagation();
         if(!confirm("Do you want to delete this post?")) {
+            event.preventDefault();
+        }
+    });
+
+    $(".romp .delete").click(function(event) {
+        event.stopPropagation();
+        if(!confirm("Do you want to delete this romp?\n\nFollowers will be removed from this group")) {
             event.preventDefault();
         }
     });

@@ -1,0 +1,12 @@
+{% if config.TESTING %}
+<!-- create romp -->
+{% endif %}
+<div id="author" class="block post clearfix">
+    <form action="{{ url_for('users.romps', username=profile.username) }}" method="post">
+        {{ romp_form.romp_name(maxlength=romp_form.romp_name.validators[1].max, placeholder="New romp name...") }}
+        {{ romp_form.csrf_token }}
+        <div id="action">
+            <button type="submit"><i class="fa fa-users"></i> Create</button>
+        </div>
+    </form>
+</div>
