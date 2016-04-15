@@ -16,7 +16,7 @@ try:
 except ImportError:  # pragma: no cover
     import pickle
 from datetime import timedelta
-from uuid import uuid1
+from uuid import uuid4
 # 3rd party imports
 from werkzeug.datastructures import CallbackDict
 from flask.sessions import SessionInterface, SessionMixin
@@ -54,7 +54,7 @@ class RedisSessionInterface(SessionInterface):
         """
         Create a session id from the hex repr of a uuid1
         """
-        return str(uuid1().hex)
+        return str(uuid4().hex)
 
     def get_redis_expiration_time(self, app, session):
         if session.permanent:
