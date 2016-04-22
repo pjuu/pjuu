@@ -30,6 +30,15 @@
     <div class="content post clearfix">
         <div class="username">
             <a href="{{ url_for('users.profile', username=item.username) }}">{{ item.username|capitalize }}</a>
+            <span class="permission">
+                {% if item.permission == 0 %}
+                    <i class="fa fa-fw fa-globe"></i>
+                {% elif item.permission == 1 %}
+                    <i class="fa fa-fw fa-circle-o"></i>
+                {% elif item.permission == 2 %}
+                    <i class="fa fa-fw fa-check"></i>
+                {% endif %}
+            </span>
             <span class="created">{{ item.created|timeify }}</span>
         </div>
         <div class="body">

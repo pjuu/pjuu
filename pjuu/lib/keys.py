@@ -24,6 +24,12 @@ EXPIRE_4WKS = 28 * 24 * 60 * 60
 # We will use the lua repr for None
 NIL_VALUE = str(None)
 
+# Pjuu permissions on posts.
+# Defines who can see a post
+PERM_PUBLIC = 0
+PERM_PJUU = 1
+PERM_APPROVED = 2
+
 # This is to define the patterns for all the keys used inside Redis
 # This is best method I can think of to stop the DUPLICATION of strings
 # around the code base
@@ -44,6 +50,9 @@ USER_FOLLOWERS = "{{user:{0}}}:followers"
 
 # Returns: zset
 USER_FOLLOWING = "{{user:{0}}}:following"
+
+# Returns: zset
+USER_APPROVED = "{{user:{0}}}:approved"
 
 # Returns: zset
 USER_ALERTS = "{{user:{0}}}:alerts"

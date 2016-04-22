@@ -401,16 +401,15 @@ class PostFrontendTests(FrontendTestCase):
         activate(user1)
         activate(user2)
 
-        # Create a post as user1. We need this to ensure that we can not get
-        # to the endpoint if we are logged out
         post1 = create_post(user1, 'user1', 'Test post')
 
         # Ensure we can't hit the endpoing
+        # We should be able to see the endpoint due to privacy changes.
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1),
                                follow_redirects=True)
-        # Ensure we didn't get anything
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Test post', resp.data)
 
         # Sign in
         self.client.post(url_for('auth.signin'), data={
@@ -477,15 +476,49 @@ class PostFrontendTests(FrontendTestCase):
         activate(user1)
 
         # Sign in
-        self.client.post(url_for('auth.signin'), data={
-            'username': 'user1',
-            'password': 'Password'
-        }, follow_redirects=True)
 
         post1 = create_post(user1, 'user1', 'Test post')
 
         for i in xrange(100):
             create_post(user1, 'user1', 'Reply {}'.format(i), post1)
+
+        # Test reply sort order for logged out users
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1),
+                               follow_redirects=True)
+
+        self.assertIn('fa-sort-numeric-asc', resp.data)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort=-1),
+                               follow_redirects=True)
+
+        for i in xrange(99, 75, -1):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort=1),
+                               follow_redirects=True)
+
+        # Check reverse-chronological sort link is present
+        self.assertIn('fa-sort-numeric-desc', resp.data)
+
+        for i in xrange(24):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        # Ensure an invalid sort order is treated correctly.
+        # Default is reverse chronological
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1, sort="bob"),
+                               follow_redirects=True)
+
+        for i in xrange(99, 75, -1):
+            self.assertIn('Reply {}'.format(i), resp.data)
+
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
 
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1),
@@ -694,6 +727,15 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Only "gif", "jpg", "jpeg" and "png" files are '
                       'supported', resp.data)
 
+        # Check a user can not reply to an invalid post
+        resp = self.client.post(
+            url_for('posts.post', username='user2', post_id=post1),
+            data={
+                'body': 'Test',
+            },
+            follow_redirects=True
+        )
+        self.assertEqual(resp.status_code, 404)
         # Done for now
 
     def test_up_down_vote(self):
@@ -1305,7 +1347,6 @@ class PostFrontendTests(FrontendTestCase):
 
         .. note: This is not intended to test the parsing but simply that what
                  is parsed is rendered correctly.
-
         """
         # We need a user to post as.
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -1397,3 +1438,71 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<h1>Hashtag: ace</h1>', resp.data)
         self.assertIn('This is a new hashtag <a href="{0}">#ace</a>'.format(
             url_for('posts.hashtags', hashtag='ace')), resp.data)
+
+    def test_permissions_post_actions(self):
+        """Ensure permission prevent actions"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user1)
+        activate(user2)
+
+        post1 = create_post(user1, 'user1', 'Approved post',
+                            permission=k.PERM_APPROVED)
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                               post_id=post1))
+        self.assertEqual(resp.status_code, 403)
+
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=post1, next='/'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You do not have permission to vote on this post',
+                      resp.data)
+
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post1, next='/'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You do not have permission to vote on this post',
+                      resp.data)
+
+        resp = self.client.post(url_for('posts.flag', username='user1',
+                                        post_id=post1, next='/'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You do not have permission to flag this post',
+                      resp.data)
+
+        # Ensure user 2 can't comment on post1
+        resp = self.client.post(url_for('posts.post', username='user1',
+                                post_id=post1), data={
+            'body': '`Test'
+        })
+        self.assertEqual(resp.status_code, 403)
+
+    def test_posting_with_permissions(self):
+        """Ensure only the correct permissions can be applied to a post"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Test post',
+            'permission': 4
+        }, follow_redirects=True)
+        self.assertIn('Not a valid choic', resp.data)
+
+        resp = self.client.post(url_for('posts.post'), data={
+            'body': 'Test post',
+            'permission': 'cheese'
+        }, follow_redirects=True)
+        self.assertIn('Not a valid choic', resp.data)

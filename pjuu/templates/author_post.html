@@ -7,6 +7,30 @@
         {{ post_form.csrf_token }}
         <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
         <div id="action">
+            {% set permission = current_user.get('default_permission', 0) %}
+            <ul id="permission">
+                <li>
+                    <label>
+                        <input name="permission"
+                            {% if permission == 0 %}checked="true"{% endif %} value="0" type="radio" />
+                        <i title="Public" class="fa fa-fw fa-globe"></i>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input name="permission"
+                            {% if permission == 1 %}checked="true"{% endif %} value="1" type="radio" />
+                        <i title="Pjuu" class="fa fa-fw fa-circle-o"></i>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input name="permission"
+                            {% if permission == 2 %}checked="true"{% endif %} value="2" type="radio" />
+                        <i title="Approved" class="fa fa-fw fa-check"></i>
+                    </label>
+                </li>
+            </ul>
             <label id="upload-label" for="upload" style="display: none;">
                 {{ post_form.upload(accept='image/*') }}
                 <i class="fa fa-picture-o"></i>

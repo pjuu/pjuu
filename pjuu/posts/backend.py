@@ -135,7 +135,8 @@ class CommentingAlert(PostingAlert):
                        sr)
 
 
-def create_post(user_id, username, body, reply_to=None, upload=None):
+def create_post(user_id, username, body, reply_to=None, upload=None,
+                permission=k.PERM_PUBLIC):
     """Creates a new post
 
     This handled both posts and what used to be called comments. If the
@@ -152,6 +153,8 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
     :type reply_to: str
     :param upload:
     :returns: The post id of the new post
+    :param permission: Who can see/interact with the post you are posting
+    :type permission: int
     :rtype: str or None
 
     """
@@ -175,6 +178,8 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
     else:
         # Replies don't need a comment count
         post['comment_count'] = 0
+        # Set the permission a user needs to view
+        post['permission'] = permission
 
     # TODO: Make the upload process better at dealing with issues
     if upload:
@@ -223,8 +228,12 @@ def create_post(user_id, username, body, reply_to=None, upload=None):
             # Alert everyone tagged in the post
             alert_tagees(mentions, user_id, post_id)
 
-            # Append to all followers feeds
-            populate_followers_feeds(user_id, post_id, post_time)
+            # Append to all followers feeds or approved followers based
+            # on the posts permission
+            if permission < k.PERM_APPROVED:
+                populate_followers_feeds(user_id, post_id, post_time)
+            else:
+                populate_approved_followers_feeds(user_id, post_id, post_time)
 
         else:
             # To reduce database look ups on the read path we will increment
@@ -267,6 +276,19 @@ def populate_followers_feeds(user_id, post_id, timestamp):
     """
     # Get a list of ALL users who are following a user
     followers = r.zrange(k.USER_FOLLOWERS.format(user_id), 0, -1)
+    # This is not transactional as to not hold Redis up.
+    for follower_id in followers:
+        # Add the pid to the list
+        r.zadd(k.USER_FEED.format(follower_id), timestamp, post_id)
+        # Stop followers feeds from growing to large, doesn't matter if it
+        # doesn't exist
+        r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
+
+
+def populate_approved_followers_feeds(user_id, post_id, timestamp):
+    """Fan out a post_id to all the users approved followers."""
+    # Get a list of ALL users who are following a user
+    followers = r.zrange(k.USER_APPROVED.format(user_id), 0, -1)
     # This is not transactional as to not hold Redis up.
     for follower_id in followers:
         # Add the pid to the list
@@ -328,11 +350,12 @@ def back_feed(who_id, whom_id):
     :returns: None
 
     """
-    # Get followee's last 5 posts (doesn't matter if there isn't any)
+    # Get followee's last 5 un-approved posts (doesn't matter if isn't any)
     # We only need the IDs and the created time
     posts = m.db.posts.find(
-        {'user_id': whom_id, 'reply_to': None},
-        {'_id': True, 'created': True}
+        {'user_id': whom_id, 'reply_to': None,
+         'permission': {'$lte': k.PERM_PJUU}},
+        {'_id': True, 'created': True},
     ).sort('created', -1).limit(5)
 
     # Iterate the cursor and append the posts to the users feed
@@ -388,7 +411,7 @@ def get_post(post_id):
     return post
 
 
-def get_posts(user_id, page=1, per_page=None):
+def get_posts(user_id, page=1, per_page=None, perm=0):
     """Returns a users posts as a pagination object."""
     if per_page is None:
         per_page = app.config.get('FEED_ITEMS_PER_PAGE')
@@ -397,13 +420,16 @@ def get_posts(user_id, page=1, per_page=None):
     user = m.db.users.find_one({'_id': user_id},
                                {'avatar': True})
 
-    total = m.db.posts.find({
-        'user_id': user_id,
-        'reply_to': {'$exists': False}}).count()
-    cursor = m.db.posts.find({
+    lookup_dict = {
         'user_id': user_id,
         'reply_to': {'$exists': False}
-    }).sort('created', -1).skip((page - 1) * per_page).limit(per_page)
+    }
+
+    lookup_dict['permission'] = {'$lte': perm}
+
+    total = m.db.posts.find(lookup_dict).count()
+    cursor = m.db.posts.find(lookup_dict).sort(
+        'created', -1).skip((page - 1) * per_page).limit(per_page)
 
     posts = []
     for post in cursor:

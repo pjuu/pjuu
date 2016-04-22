@@ -353,6 +353,34 @@ button:hover {
     content: "Unfollow";
 }
 
+.approve {
+    margin-top: 0.5em;
+    background-color: #FFF;
+    border: 1px solid #FFEA39;
+    color: #000;
+}
+
+.approve:hover {
+    background-color: #FFEA39;
+    border: 1px solid #FFEA39;
+    color: #000;
+}
+
+.unapprove {
+    margin-top: 0.5em;
+    background-color: #FFEA39;
+    border: 1px solid #FFEA39;
+    color: #000;
+    content: "Approved";
+}
+
+.unapprove:hover {
+    background-color: #C00;
+    border: 1px solid #C00;
+    color: #FFF;
+    content: "Un-approve";
+}
+
 .username a {
     color: #333;
 }
@@ -575,6 +603,14 @@ button:hover {
     margin: 1em 0 0;
 }
 
+#post .permission {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+
 #post .control {
     float: right;
 }
@@ -653,6 +689,50 @@ input[type="file"] {
     left: -9999px;
 }
 
+#author #permission {
+    float: left;
+    padding: 0;
+    margin: 0 1em 0 0;
+    list-style: none;
+}
+
+#author #permission label {
+    cursor: pointer;
+    display: block;
+    padding: 0.25em 0.5em;
+}
+
+#author #permission input[type=radio]:checked + i {
+    color: #0C0;
+}
+
+#author #permission li:first-child {
+    border-radius: 3px 0 0 3px;
+    border-right: 0;
+}
+
+#author #permission li:last-child {
+    border-radius: 0 3px 3px 0;
+    border-right: 1px solid #666;
+}
+
+#author #permission li {
+    border: 1px solid #666;
+    border-right: 0;
+    color: #666;
+    background-color: #FFF;
+    float: left;
+}
+
+#author #permission li:hover {
+    color: #333;
+}
+
+#author #permission input[type=radio] {
+    position: absolute;
+    left: -9999px;
+}
+
 #upload-label {
     background-color: #FFF;
     border: 1px solid #666;
@@ -675,7 +755,7 @@ input[type="file"] {
 
 #count {
     float: left;
-    padding: 0.25em;
+    padding: 0.5em 0.25em;
 }
 
 #author #action {
@@ -810,6 +890,13 @@ input[type="file"] {
 }
 
 #list .created {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+#list .permission {
     color: #BBB;
     font-size: 11px;
     font-weight: 400;
@@ -958,6 +1045,49 @@ input[type="file"] {
 
 #setting .warning {
     color: #F00;
+}
+
+#setting #permission {
+    padding: 0;
+    margin: 0 1em 0 0;
+    list-style: none;
+}
+
+#setting #permission label {
+    cursor: pointer;
+    display: block;
+    padding: 0.25em 0.5em;
+}
+
+#setting #permission input[type=radio]:checked + i {
+    color: #0C0;
+}
+
+#setting #permission li:first-child {
+    border-radius: 3px 0 0 3px;
+    border-right: 0;
+}
+
+#setting #permission li:last-child {
+    border-radius: 0 3px 3px 0;
+    border-right: 1px solid #666;
+}
+
+#setting #permission li {
+    border: 1px solid #666;
+    border-right: 0;
+    color: #666;
+    background-color: #FFF;
+    float: left;
+}
+
+#setting #permission li:hover {
+    color: #333;
+}
+
+#setting #permission input[type=radio] {
+    position: absolute;
+    left: -9999px;
 }
 
 /* DASHBOARD =============================================================== */

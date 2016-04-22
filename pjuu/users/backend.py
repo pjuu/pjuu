@@ -38,6 +38,26 @@ class FollowAlert(BaseAlert):
                        do_capitalize(self.user.get('username')))
 
 
+def get_user_permission(who_id, whom_id):
+    """Returns the permission level user with `who_id` has when looking at
+    `whom_id`'s profile/posts.
+
+    :param who_id: User to get permissions of
+    :type who_id: str
+    :param whom_id: User to check against what permission `who_id` has
+    :type whom_id: str
+    :rtype: int
+
+    """
+    if who_id is not None and whom_id is not None:
+        if who_id == whom_id or is_approved(who_id, whom_id):
+            return k.PERM_APPROVED
+        else:
+            return k.PERM_PJUU
+
+    return k.PERM_PUBLIC
+
+
 def get_profile(user_id):
     """Returns a user dict with add post_count, follow_count and following."""
     profile = m.db.users.find_one({'_id': user_id})
@@ -138,6 +158,35 @@ def unfollow_user(who_uid, whom_uid):
     r.zrem(k.USER_FOLLOWING.format(who_uid), whom_uid)
     r.zrem(k.USER_FOLLOWERS.format(whom_uid), who_uid)
 
+    # Delete the user from the approved list
+    unapprove_user(whom_uid, who_uid)
+
+    return True
+
+
+def approve_user(who_uid, whom_uid):
+    """Allow a user to approve a follower"""
+    # Check that the user is actually following.
+    # Fail if not
+    if r.zrank(k.USER_FOLLOWERS.format(who_uid), whom_uid) is None:
+        return False
+
+    # Add the user to the approved list
+    # No alert is generated
+    r.zadd(k.USER_APPROVED.format(who_uid), timestamp(), whom_uid)
+
+    return True
+
+
+def unapprove_user(who_uid, whom_uid):
+    """Allow a user to un-approve a follower"""
+    # Check the follower is actually approved
+    if r.zrank(k.USER_APPROVED.format(who_uid), whom_uid) is None:
+        return False
+
+    # No alert for un-approved
+    r.zrem(k.USER_APPROVED.format(who_uid), whom_uid)
+
     return True
 
 
@@ -190,6 +239,13 @@ def is_following(who_id, whom_id):
 
     """
     if r.zrank(k.USER_FOLLOWING.format(who_id), whom_id) is not None:
+        return True
+    return False
+
+
+def is_approved(who_id, whom_id):
+    """Is the current user approved by the user with who_id"""
+    if r.zrank(k.USER_APPROVED.format(who_id), whom_id) is not None:
         return True
     return False
 
@@ -297,7 +353,7 @@ def search(query, page=1, per_page=None):
 def update_profile_settings(user_id, about="", hide_feed_images=False,
                             feed_size=25, replies_size=25, alerts_size=50,
                             reply_sort_order=-1, homepage='', location='',
-                            upload=None):
+                            upload=None, permission=0):
     """Update all options on a users profile settings in MongoDB."""
     # Ensure the homepage URL is as valid as it can be
     if homepage != '':
@@ -319,6 +375,7 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
         'reply_sort_order': reply_sort_order,
         'homepage': homepage,
         'location': location,
+        'default_permission': int(permission)
     }
 
     if avatar is not None:

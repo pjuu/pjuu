@@ -17,7 +17,9 @@ from pjuu import mongo as m
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
-from pjuu.users.backend import follow_user, get_alerts, get_user
+from pjuu.users.backend import (
+    follow_user, get_alerts, get_user, approve_user, is_approved
+)
 from pjuu.users.views import timeify_filter
 
 from tests import FrontendTestCase
@@ -221,13 +223,87 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('<!-- list:user:%s -->' % user2, resp.data)
         # Done for now
 
+    def test_approve_unapprove(self):
+        """Ensure the user can approve and un-approve users"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
+        activate(user1)
+        activate(user2)
+        activate(user3)
+
+        # User 2 is the only user following user1
+        follow_user(user2, user1)
+
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        resp = self.client.get(url_for('users.followers', username='user1'),
+                               follow_redirects=True)
+        self.assertIn('<!-- list:user:%s -->' % user2, resp.data)
+        self.assertIn(url_for('users.approve', username='user2'), resp.data)
+
+        # Approve user2
+        resp = self.client.post(url_for('users.approve', username='user2'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(url_for('users.unapprove', username='user2'), resp.data)
+
+        # Unapprove user2
+        resp = self.client.post(url_for('users.unapprove', username='user2'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(url_for('users.approve', username='user2'), resp.data)
+
+        # Try to unapprove user2 again
+        resp = self.client.post(url_for('users.unapprove', username='user2'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You can\'t unapprove a user which is not approved',
+                      resp.data)
+
+        # Try and approve a user who is not following you
+        resp = self.client.post(url_for('users.approve', username='user3'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You can\'t approve a user who is not following you',
+                      resp.data)
+
+        # Try again but you are following the user (wont-work)
+        follow_user(user1, user3)
+        resp = self.client.post(url_for('users.approve', username='user3'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You can\'t approve a user who is not following you',
+                      resp.data)
+
+        # Try and approve yourself
+        resp = self.client.post(url_for('users.approve', username='user1'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You can\'t approve your self', resp.data)
+
+        # Try and unapprove self
+        resp = self.client.post(url_for('users.unapprove', username='user1'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('You can\'t unapprove your self', resp.data)
+
+        # Try and approve/unapprove a user that doesn't exist
+        resp = self.client.post(url_for('users.approve', username='user5'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)
+        resp = self.client.post(url_for('users.unapprove', username='user5'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)
+
     def test_search(self):
-        """
-        Ensure the search works and users are shown correctly.
-        """
+        """Ensure the search works and users are shown correctly."""
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
-        resp = self.client.get('users.search', follow_redirects=True)
+        resp = self.client.get(url_for('users.search'), follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # We need some users with usernames different enough that we can test
@@ -330,7 +406,8 @@ class FrontendTests(FrontendTestCase):
         """
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
-        resp = self.client.get('settings_profile', follow_redirects=True)
+        resp = self.client.get(url_for('users.settings_profile'),
+                               follow_redirects=True)
         self.assertIn('You need to be logged in to view that', resp.data)
 
         # Create a test user
@@ -678,3 +755,76 @@ class FrontendTests(FrontendTestCase):
         delete_account(user1)
         self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
                          0)
+
+    def test_permissions(self):
+        """Ensure only users with the correct permissions can see posts"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        post1 = create_post(user1, 'user1', 'Test public', permission=0)
+        post2 = create_post(user1, 'user1', 'Test pjuu', permission=1)
+        post3 = create_post(user1, 'user1', 'Test approved', permission=2)
+
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('Test public', resp.data)
+        self.assertNotIn('Test pjuu', resp.data)
+        self.assertNotIn('Test approved', resp.data)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post2))
+        self.assertEqual(resp.status_code, 403)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post3))
+        self.assertEqual(resp.status_code, 403)
+
+        # Create a user and check we can see the Pjuu-wide post
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user2)
+
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        })
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('Test public', resp.data)
+        self.assertIn('Test pjuu', resp.data)
+        self.assertNotIn('Test approved', resp.data)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post2))
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post3))
+        self.assertEqual(resp.status_code, 403)
+
+        # Have user1 approve user2 and ensure he can see all posts
+        # User2 needs to be following user1
+        follow_user(user2, user1)
+        approve_user(user1, user2)
+        self.assertTrue(is_approved(user1, user2))
+
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('Test public', resp.data)
+        self.assertIn('Test pjuu', resp.data)
+        self.assertIn('Test approved', resp.data)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post1))
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post2))
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get(url_for('posts.view_post', username='user1',
+                                       post_id=post3))
+        self.assertEqual(resp.status_code, 200)
