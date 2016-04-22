@@ -47,7 +47,7 @@ def handler_csrf_error(reason):  # pragma: no cover
     error['custom_message'] = (
         'You may not have refreshed the page in a while. '
         'This is the main cause of the issue. However if you came here from '
-        'anoth site some one may be trying to make you perform an action on '
+        'another site some one may be trying to make you perform an action on '
         'Pjuu. Be safe. For more details search CSRF for an explanation.'
     )
     return abort(Response(render_template('errors.html', error=error),
