@@ -22,7 +22,9 @@ from pjuu.posts.backend import (
     get_replies, is_subscribed, subscribe, unsubscribe, vote_post,
     get_hashtagged_posts)
 from pjuu.posts.stats import get_stats
-from pjuu.users.backend import follow_user, get_alerts, get_feed
+from pjuu.users.backend import (
+    follow_user, get_alerts, get_feed, approve_user
+)
 
 from tests import BackendTestCase
 
@@ -78,6 +80,23 @@ class PostBackendTests(BackendTestCase):
         self.assertIsNone(post3)
         post3 = get_post(post3)
         self.assertIsNone(post3)
+
+    def test_approved_feed_population(self):
+        """Ensure only approved users get approved posts but in there feed."""
+        # Create a user to test creating post
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
+
+        follow_user(user2, user1)
+        follow_user(user3, user1)
+        approve_user(user1, user2)
+
+        create_post(user1, 'user1', 'Test post',
+                    permission=K.PERM_APPROVED)
+
+        self.assertEqual(len(get_feed(user2).items), 1)
+        self.assertEqual(len(get_feed(user3).items), 0)
 
     def test_create_reply(self):
         """Test that a reply can be made on a post
@@ -652,7 +671,6 @@ class PostBackendTests(BackendTestCase):
         """Ensure the correct number of hashtagged posts are returned when
         pagination sizes have been changed.
         """
-        """Ensure get_posts works with various pagination sizes"""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         # Create loads of posts
@@ -669,3 +687,21 @@ class PostBackendTests(BackendTestCase):
             len(get_hashtagged_posts('test', per_page=50).items), 50)
         self.assertEqual(
             len(get_hashtagged_posts('test', per_page=100).items), 100)
+
+    def test_permission_setting(self):
+        """Test that a post can have correct permissions set"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+
+        # Create post with each permission
+        post1 = create_post(user1, 'user1', 'Test post', permission=0)
+        post2 = create_post(user1, 'user1', 'Test post', permission=1)
+        post3 = create_post(user1, 'user1', 'Test post', permission=2)
+
+        post = get_post(post1)
+        self.assertEqual(post.get('permission'), 0)
+
+        post = get_post(post2)
+        self.assertEqual(post.get('permission'), 1)
+
+        post = get_post(post3)
+        self.assertEqual(post.get('permission'), 2)

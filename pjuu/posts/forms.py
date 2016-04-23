@@ -10,7 +10,7 @@
 # 3rd party imports
 from flask_wtf import Form
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import TextAreaField
+from wtforms import TextAreaField, RadioField
 from wtforms.validators import DataRequired, Length
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
@@ -26,9 +26,16 @@ class PostForm(Form):
         Length(max=MAX_POST_LENGTH,
                message='Posts can not be larger than '
                        '{} characters'.format(MAX_POST_LENGTH))
+
     ])
 
     upload = FileField('Upload', [
         FileAllowed(['gif', 'jpg', 'jpeg', 'png'],
                     'Only "gif", "jpg", "jpeg" and "png" files are supported')
     ])
+
+    permission = RadioField('Permission', choices=[
+        ('0', 'Public'),
+        ('1', 'Pjuu'),
+        ('2', 'Approved')
+    ], default=0)

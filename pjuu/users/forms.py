@@ -10,7 +10,9 @@
 # 3rd party imports
 from flask_wtf import Form
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import BooleanField, TextAreaField, SelectField, StringField
+from wtforms import (
+    BooleanField, TextAreaField, SelectField, StringField, RadioField
+)
 from wtforms.validators import Length, Optional, Regexp
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
@@ -51,6 +53,12 @@ class ChangeProfileForm(Form):
                        '{} characters'.format(MAX_POST_LENGTH))
 
     ])
+
+    permission = RadioField('Permission', choices=[
+        ('0', 'Public'),
+        ('1', 'Pjuu'),
+        ('2', 'Approved')
+    ], default=0)
 
 
 class SearchForm(Form):

@@ -26,7 +26,8 @@ from pjuu.users.backend import (
     follow_user, unfollow_user, get_profile, get_feed, get_followers,
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
-    remove_from_feed as be_rem_from_feed, update_profile_settings
+    remove_from_feed as be_rem_from_feed, update_profile_settings,
+    get_user_permission, is_approved, approve_user, unapprove_user
 )
 
 
@@ -36,7 +37,15 @@ users_bp = Blueprint('users', __name__)
 @users_bp.app_template_filter('following')
 def following_filter(_profile):
     """Checks if current user is following the user piped to filter."""
-    return is_following(current_user.get('_id'), _profile.get('_id'))
+    if current_user:
+        return is_following(current_user.get('_id'), _profile.get('_id'))
+    return False
+
+
+@users_bp.app_template_filter('approved')
+def approved_filter(_profile):
+    """Checks if current user has approved the user piped to filter."""
+    return is_approved(current_user.get('_id'), _profile.get('_id'))
 
 
 @users_bp.app_template_filter('millify')
@@ -153,9 +162,11 @@ def remove_from_feed(post_id):
 
 
 @users_bp.route('/<username>', methods=['GET'])
-@login_required
 def profile(username):
-    """It will show the users posts. Referred to as "posts" on the site."""
+    """It will show the users posts. Referred to as "posts" on the site.
+
+    .. note: Viewable to public! (Only public posts)
+    """
     uid = get_uid_username(username)
 
     if uid is None:
@@ -166,14 +177,27 @@ def profile(username):
 
     # Pagination
     page = handle_page(request)
+
+    # Get the page sizes taking in to account non-logged in users
+    if current_user:
+        page_size = current_user.get('feed_pagination_size',
+                                     app.config.get('FEED_ITEMS_PER_PAGE', 25))
+    else:
+        page_size = app.config.get('FEED_ITEMS_PER_PAGE', 25)
+
     # Get the posts pagination
-    pagination = get_posts(uid, page,
-                           current_user.get('feed_pagination_size'))
+    if current_user:
+        current_user_id = current_user.get('_id')
+    else:
+        current_user_id = None
+    permission = get_user_permission(_profile.get('_id'), current_user_id)
+
+    _posts = get_posts(uid, page, page_size, perm=permission)
 
     # Post form
     post_form = PostForm()
     return render_template('posts.html', profile=_profile,
-                           pagination=pagination, post_form=post_form)
+                           pagination=_posts, post_form=post_form)
 
 
 @users_bp.route('/<username>/following', methods=['GET'])
@@ -195,10 +219,8 @@ def following(username):
     _following = get_following(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('following.html', profile=_profile,
-                           pagination=_following, post_form=post_form)
+                           pagination=_following)
 
 
 @users_bp.route('/<username>/followers', methods=['GET'])
@@ -220,10 +242,8 @@ def followers(username):
     _followers = get_followers(user_id, page,
                                current_user.get('feed_pagination_size'))
 
-    # Post form
-    post_form = PostForm()
     return render_template('followers.html', profile=_profile,
-                           pagination=_followers, post_form=post_form)
+                           pagination=_followers)
 
 
 @users_bp.route('/<username>/follow', methods=['POST'])
@@ -268,6 +288,56 @@ def unfollow(username):
             flash('You are no longer following %s' % username, 'success')
     else:
         flash('You can\'t follow/unfollow yourself', 'information')
+
+    return redirect(redirect_url)
+
+
+@users_bp.route('/<username>/approve', methods=['POST'])
+@login_required
+def approve(username):
+    """Follow a user."""
+    redirect_url = handle_next(request, url_for('users.followers',
+                               username=current_user.get('username')))
+
+    user_id = get_uid(username)
+
+    # If we don't get a uid from the username the page doesn't exist
+    if user_id is None:
+        abort(404)
+
+    if user_id != current_user.get('_id'):
+        if approve_user(current_user.get('_id'), user_id):
+            flash('You have approved %s' % username, 'success')
+        else:
+            flash('You can\'t approve a user who is not following you',
+                  'information')
+    else:
+        flash('You can\'t approve your self', 'information')
+
+    return redirect(redirect_url)
+
+
+@users_bp.route('/<username>/unapprove', methods=['POST'])
+@login_required
+def unapprove(username):
+    """Unfollow a user"""
+    redirect_url = handle_next(request, url_for('users.followers',
+                               username=current_user.get('username')))
+
+    user_id = get_uid(username)
+
+    # If we don't get a uid from the username the page doesn't exist
+    if user_id is None:
+        abort(404)
+
+    if user_id != current_user.get('_id'):
+        if unapprove_user(current_user.get('_id'), user_id):
+            flash('You have un-approved %s' % username, 'success')
+        else:
+            flash('You can\'t unapprove a user which is not approved',
+                  'information')
+    else:
+        flash('You can\'t unapprove your self', 'information')
 
     return redirect(redirect_url)
 
@@ -344,6 +414,7 @@ def settings_profile():
 
             current_user['homepage'] = form.homepage.data
             current_user['location'] = form.location.data
+            current_user['default_permission'] = int(form.permission.data)
 
             # Update the user in the database
             user = update_profile_settings(
@@ -356,7 +427,8 @@ def settings_profile():
                 reply_sort_order=reply_sort_order,
                 homepage=form.homepage.data,
                 location=form.location.data,
-                upload=upload
+                upload=upload,
+                permission=form.permission.data
             )
 
             # Reload the current_user

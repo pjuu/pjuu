@@ -8,13 +8,12 @@
 """
 
 from flask import (abort, flash, redirect, request, url_for, render_template,
-                   Blueprint)
+                   Blueprint, current_app as app)
 from jinja2 import escape
 
 from pjuu.auth import current_user
-from pjuu.auth.utils import get_uid
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next
+from pjuu.lib import handle_next, keys as k
 from pjuu.lib.pagination import handle_page
 from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
@@ -24,6 +23,8 @@ from .backend import (create_post, check_post, has_voted, is_subscribed,
                       flag_post, has_flagged, CantFlagOwn, AlreadyFlagged,
                       unflag_post as be_unflag_post)
 from .forms import PostForm
+from pjuu.auth.utils import get_user, get_uid
+from pjuu.users.backend import get_user_permission
 
 
 posts_bp = Blueprint('posts', __name__)
@@ -107,7 +108,9 @@ def voted_filter(post_id):
     Will return 1 on upvote, -1 on downvote and 0 if not voted
 
     """
-    return has_voted(current_user.get('_id'), post_id) or 0
+    if current_user:
+        return has_voted(current_user.get('_id'), post_id) or 0
+    return False
 
 
 @posts_bp.app_template_filter('subscribed')
@@ -115,38 +118,28 @@ def subscribed_filter(post_id):
     """A simple filter to check if the current user is subscribed to a post
 
     """
-    return is_subscribed(current_user.get('_id'), post_id)
+    if current_user:
+        return is_subscribed(current_user.get('_id'), post_id)
+    return False
 
 
 @posts_bp.app_template_filter('flagged')
 def flagged_filter(post_id):
     """Check if a user flagged the post with post id"""
-    return has_flagged(current_user.get('_id'), post_id)
+    if current_user:
+        return has_flagged(current_user.get('_id'), post_id)
+    return False
 
 
 @posts_bp.route('/<username>/<post_id>', methods=['GET'])
-@login_required
 def view_post(username, post_id):
-    """
-    Displays a post along with its comments paginated. I am not sure if this
+    """Displays a post along with its comments paginated. I am not sure if this
     should be here or in the 'posts' app.
+
+    .. note: Viewable to the public if the post is public!
     """
     if not check_post(get_uid(username), post_id):
         return abort(404)
-
-    # Pagination
-    page = handle_page(request)
-
-    # Handle explicit sort order
-    # Fall back to user default else default
-    sort = request.args.get('sort', None)
-    if sort is None:
-        sort = current_user.get('reply_sort_order', -1)
-    else:
-        try:
-            sort = int(sort)
-        except ValueError:
-            sort = current_user.get('reply_sort_order', -1)
 
     # Get post and comments for the current page
     _post = get_post(post_id)
@@ -155,9 +148,49 @@ def view_post(username, post_id):
     if 'reply_to' in _post:
         return abort(404)
 
-    pagination = get_replies(post_id, page,
-                             current_user.get('replies_pagination_size'),
-                             sort)
+    _user = get_user(get_uid(username))
+
+    # Only get the permission if the post is not owned by the current user
+    if current_user:
+        current_user_id = current_user.get('_id')
+    else:
+        current_user_id = None
+
+    permission = get_user_permission(_user.get('_id'), current_user_id)
+
+    if permission < _post.get('permission', k.PERM_PUBLIC):
+        return abort(403)
+
+    # Pagination
+    page = handle_page(request)
+
+    # Handle explicit sort order
+    # Fall back to user default else default
+    sort = request.args.get('sort', None)
+    if sort is None:
+        if current_user:
+            sort = current_user.get('reply_sort_order', -1)
+        else:
+            sort = -1
+    else:
+        try:
+            sort = 1 if int(sort) > 0 else -1
+        except ValueError:
+            if current_user:
+                sort = current_user.get('reply_sort_order', -1)
+            else:
+                sort = -1
+
+    # Get the page sizes taking in to account non-logged in users
+    if current_user:
+        page_size = current_user.get(
+            'replies_pagination_size',
+            app.config.get('REPLIES_ITEMS_PER_PAGE', 25)
+        )
+    else:
+        page_size = app.config.get('REPLIES_ITEMS_PER_PAGE', 25)
+
+    pagination = get_replies(post_id, page, page_size, sort)
 
     post_form = PostForm()
     return render_template('view_post.html', post=_post,
@@ -173,12 +206,23 @@ def post(username=None, post_id=None):
 
     This view accepts GET and POST yet only acts on a POST. This is so that the
     Werkzeug router does not treat this like a profile lookup.
-
     """
     # Rather than just 404 if someone tries to GET this URL (which is default),
     # we will throw a 405.
     if request.method == 'GET':
         return abort(405)
+
+    # Stop un-approved users posting comments if permissions do not let them.
+    if post_id is not None:
+        if not check_post(get_uid(username), post_id):
+            return abort(404)
+
+        _post = get_post(post_id)
+
+        permission = get_user_permission(current_user, _post.get('_id'))
+
+        if permission < _post.get('permission', k.PERM_PUBLIC):
+            return abort(403)
 
     # Set the default redirect URLs depending on type of post it is
     if post_id is None:
@@ -202,9 +246,21 @@ def post(username=None, post_id=None):
         else:
             upload = None
 
+        try:
+            permission = int(form.permission.data)
+        except ValueError:  # pragma: no cover
+            permission = -1
+
+        # WTForms should stop this ever, ever firing
+        if not (k.PERM_PUBLIC <= permission <=  # pragma: no cover
+                k.PERM_APPROVED):  # pragma: no cover
+            flash('Invalid post permission set', 'error')
+            return redirect(redirect_url)
+
         # Create the post
         if create_post(current_user['_id'], current_user['username'],
-                       unicode(escape(form.body.data)), post_id, upload):
+                       unicode(escape(form.body.data)), post_id, upload,
+                       permission=permission):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
         else:
@@ -238,9 +294,19 @@ def upvote(username, post_id, reply_id=None):
     redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
 
-    user_id = get_uid(username)
-    if not check_post(user_id, post_id, reply_id):
+    if not check_post(get_uid(username), post_id, reply_id):
         return abort(404)
+
+    _post = get_post(post_id)
+
+    # Ensuer user has permission to perform the action
+    current_user_id = current_user.get('_id')
+    permission = get_user_permission(_post.get('user_id'), current_user_id)
+
+    if permission < _post.get('permission', k.PERM_PUBLIC):
+        flash('You do not have permission to vote on this post',
+              'error')
+        return redirect(redirect_url)
 
     try:
         if reply_id is None:
@@ -268,9 +334,19 @@ def downvote(username, post_id, reply_id=None):
     redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
 
-    user_id = get_uid(username)
-    if not check_post(user_id, post_id, reply_id):
+    if not check_post(get_uid(username), post_id, reply_id):
         return abort(404)
+
+    _post = get_post(post_id)
+
+    # Ensue user has permission to perform the action
+    current_user_id = current_user.get('_id')
+    permission = get_user_permission(_post.get('user_id'), current_user_id)
+
+    if permission < _post.get('permission', k.PERM_PUBLIC):
+        flash('You do not have permission to vote on this post',
+              'error')
+        return redirect(redirect_url)
 
     try:
         if reply_id is None:
@@ -333,13 +409,12 @@ def unsubscribe(username, post_id):
     """Unsubscribes a user from a post
 
     """
+    if not check_post(get_uid(username), post_id):
+        return abort(404)
+
     # The default URL is to go back to the posts view
     redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
-
-    user_id = get_uid(username)
-    if not check_post(user_id, post_id):
-        return abort(404)
 
     # Unsubscribe the user from the post, only show them a message if they
     # were actually unsubscribed
@@ -356,6 +431,11 @@ def flag(username, post_id):
 
     .. note: This is a requirement to enter the Apple app store.
     """
+    if not check_post(get_uid(username), post_id):
+        return abort(404)
+
+    _post = get_post(post_id)
+
     # Ensure the default redirect is to the correct location.
     reply_id = get_post(post_id).get('reply_to')
 
@@ -368,10 +448,14 @@ def flag(username, post_id):
                                    username=reply.get('username'),
                                    post_id=reply_id))
 
-    user_id = get_uid(username)
+    # Ensue user has permission to perform the action
+    current_user_id = current_user.get('_id')
+    permission = get_user_permission(_post.get('user_id'), current_user_id)
 
-    if not check_post(user_id, post_id):
-        return abort(404)
+    if permission < _post.get('permission', k.PERM_PUBLIC):
+        flash('You do not have permission to flag this post',
+              'error')
+        return redirect(redirect_url)
 
     try:
         flag_post(current_user['_id'], post_id)

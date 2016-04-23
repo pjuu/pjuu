@@ -24,6 +24,19 @@
             <button class="action follow">Follow</button>
         </form>
         {% endif %}
+        {% if request.endpoint == 'users.followers' and profile._id == current_user._id %}
+            {% if item|approved %}
+            <form action="{{ url_for('users.unapprove', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                <button class="action unapprove">Approved</button>
+            </form>
+            {% else %}
+            <form action="{{ url_for('users.approve', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                <button class="action approve">Approve</button>
+            </form>
+            {% endif %}
+        {% endif %}
     </div>
     <div class="content user clearfix">
         <div class="username">

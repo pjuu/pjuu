@@ -17,7 +17,7 @@ from pjuu.posts.backend import create_post
 from pjuu.users.backend import (
     get_profile, search, is_following, get_following, get_followers,
     new_alerts, FollowAlert, get_alerts, follow_user, unfollow_user,
-    delete_alert, get_user
+    delete_alert, get_user, approve_user, unapprove_user, is_approved
 )
 
 from tests import BackendTestCase
@@ -167,6 +167,50 @@ class BackendTests(BackendTestCase):
         # is not there
         self.assertEqual(get_followers(user2).total, 0)
         self.assertEqual(get_following(user2).total, 0)
+
+    def test_approved_unapproved_is_approved(self):
+        """Ensure a user can approve and unapprove a follower. Also test the
+        checking of this state"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user3@pjuu.com', 'Password')
+
+        # User should not be following a user
+        self.assertFalse(is_approved(user1, user2))
+
+        # User can't approve a user he is not following
+        self.assertFalse(approve_user(user1, user2))
+
+        # Follow wrong way round. The user to be approved must follow you
+        follow_user(user1, user2)
+        self.assertFalse(approve_user(user1, user2))
+        self.assertFalse(is_approved(user1, user2))
+
+        # Correct way round
+        follow_user(user2, user1)
+        self.assertTrue(approve_user(user1, user2))
+        self.assertTrue(is_approved(user1, user2))
+
+        # Try an un-approved a non follower
+        self.assertFalse(is_approved(user1, user3))
+        self.assertFalse(unapprove_user(user1, user3))
+
+        # Try and un-approve a non approved follower
+        follow_user(user3, user1)
+        self.assertFalse(is_approved(user1, user3))
+        self.assertFalse(unapprove_user(user1, user3))
+
+        # Un-approve an approved folloer
+        self.assertTrue(is_approved(user1, user2))
+        self.assertTrue(unapprove_user(user1, user2))
+        self.assertFalse(is_approved(user1, user2))
+
+        # Ensure a user is un-approved if they stop following you
+        # and you had approved them
+        self.assertTrue(approve_user(user1, user2))
+        self.assertTrue(is_approved(user1, user2))
+        unfollow_user(user2, user1)
+        self.assertFalse(is_approved(user1, user2))
 
     def test_followers_and_unfollowers_pagination_sizes(self):
         """Ensure that the followers and unfollowers feeds are correct if

@@ -180,27 +180,8 @@ class AuthFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
-        # Find the Set-Cookie header so we can parse then delete it
-        session_id = None
-        for header in resp.headers:
-            if header[0] == 'Set-Cookie':
-                session_id = parse_cookie(header[1])['session']
-                rs.delete(session_id)
-
-        resp = self.client.get(url_for('users.profile', username='user3'),
-                               follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
-
-        # Find the Set-Cookie header so we can parse it and check the session
-        # identifier has been updated
-        for header in resp.headers:
-            if header[0] == 'Set-Cookie':
-                self.assertNotEqual(session_id,
-                                    parse_cookie(header[1])['session'])
-
     def test_signup_activate(self):
-        """
-        Tests the signup and activate endpoint inside Pjuu.
+        """Tests the signup and activate endpoint inside Pjuu.
 
         There are some limitations to this! We can not test e-mail sending as
         this will not be available on Travis.
@@ -644,3 +625,30 @@ class AuthFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Oops! wrong password', resp.data)
+
+    def test_session_fixation(self):
+        """Ensure if session is empty that a new session is given."""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        session_id = None
+        for header in resp.headers:
+            if header[0] == 'Set-Cookie':
+                session_id = parse_cookie(header[1])['session']
+                rs.delete(session_id)
+
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        # Find the Set-Cookie header so we can parse it and check the session
+        # identifier has been updated
+        for header in resp.headers:
+            if header[0] == 'Set-Cookie':
+                self.assertNotEqual(session_id,
+                                    parse_cookie(header[1])['session'])
