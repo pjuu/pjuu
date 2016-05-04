@@ -33,7 +33,7 @@ $ sudo apt-get update
 $ sudo apt-get install build-essential python-dev python-setuptools redis-server mongodb
 
 # Install the Pillow dependencies
-$ sudo apt-get install libtiff5-dev libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk 
+$ sudo apt-get install libtiff5-dev libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk
 
 $ sudo easy_install virtualenv
 
@@ -46,6 +46,14 @@ $ virtualenv venv
 $ source venv/bin/activate
 
 $ pip install -r requirements-dev.txt
+```
+
+You can also use [Vagrant](https://www.vagrantup.com/) to setup the environment:
+
+```
+$ vagrant up
+
+$ vagrant ssh
 ```
 
 Running the unit tests with coverage:
@@ -69,7 +77,7 @@ $ make flake
 Running the development server (CherryPy):
 
 ```
-$ make run 
+$ make run
 ```
 
 You can view the site by visiting: http://localhost:5000
