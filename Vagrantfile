@@ -26,8 +26,8 @@ $script = <<SCRIPT
   echo "Activating virtualenv and installing Python dependencies..."
   sudo -u vagrant PYTHONUNBUFFERED=1 sh -c ". venv/bin/activate && pip install -r requirements-dev.txt"
 
-  echo "Writing to /home/vagrant/.bash_profile so that every time virtualenv is activated..."
-  echo "cd /vagrant\n. venv/bin/activate" > /home/vagrant/.bash_profile
+  echo "Writing to /home/vagrant/.bash_profile so that every boot virtualenv is activated..."
+  echo "cd /vagrant\nvirtualenv venv\n. venv/bin/activate\npip install -r requirements-dev.txt" > /home/vagrant/.bash_profile
 SCRIPT
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
