@@ -8,9 +8,11 @@
 """
 
 import io
+from time import sleep
 
 from flask import url_for
 
+import pjuu  # Used to monkey patch VOTE_TIMEOUT
 from pjuu import mongo as m
 from pjuu.auth.backend import create_account, activate, mute, bite
 from pjuu.lib import keys as k
@@ -788,11 +790,13 @@ class PostFrontendTests(FrontendTestCase):
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You upvoted the post', resp.data)
-        # Now that we have voted we should only see the arrow pointing to what
-        # we voted. Check for up_arrow and ensure down_arrow is not there
+        # You can reverse votes so the downvote button should still
+        # be present on the page.
+        # So shoudl the upvote button button it should be marked as
+        # Upvoted.
         self.assertIn('<!-- upvoted:post:%s -->' % post2, resp.data)
         self.assertNotIn('<!-- upvote:post:%s -->' % post2, resp.data)
-        self.assertNotIn('<!-- downvote:post:%s -->' % post2, resp.data)
+        self.assertIn('<!-- downvote:post:%s -->' % post2, resp.data)
         self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.data)
 
         # Let's try and vote on that post again
@@ -801,9 +805,8 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
-        # Now that we have voted we should only see the arrow pointing to what
-        # we voted. Check for up_arrow and ensure down_arrow is not there
-        self.assertIn('You have already voted on this post', resp.data)
+        # The vote shoudl have been reversed and we should be informed
+        self.assertIn('You reversed your vote on the post', resp.data)
 
         # Visit our own post and ensure that user 2s comment is there
         # There will be only one set of arrows as we can't vote on our own post
@@ -825,8 +828,8 @@ class PostFrontendTests(FrontendTestCase):
                       resp.data)
         self.assertNotIn('<!-- downvote:reply:{0} -->'.format(comment1),
                          resp.data)
-        self.assertNotIn('<!-- upvote:reply:{0} -->'.format(comment1),
-                         resp.data)
+        self.assertIn('<!-- upvote:reply:{0} -->'.format(comment1),
+                      resp.data)
         self.assertNotIn('<!-- downvote:reply:{0} -->'.format(comment1),
                          resp.data)
 
@@ -834,7 +837,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post1, reply_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You have already voted on this post', resp.data)
+        self.assertIn('You reversed your vote on the comment', resp.data)
 
         # Now lets double check we can't vote on our own comments or posts
         # We will visit post 3 first and ensure there is no buttons being shown
@@ -905,7 +908,48 @@ class PostFrontendTests(FrontendTestCase):
                                         post_id=post4),
                                 follow_redirects=True)
         self.assertIn('You can not vote on your own posts', resp.data)
-        # Done for now
+
+        # Log back in as user1 and vote on the previous posts we
+        # reversed. Becasue we reversed them there is no vote logged so
+        # no time out.
+        self.client.get(url_for('auth.signout'), follow_redirects=True)
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.post(url_for('posts.upvote', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
+        self.assertIn('You upvoted the post', resp.data)
+
+        resp = self.client.post(url_for('posts.upvote', username='user1',
+                                        post_id=post1, reply_id=comment1),
+                                follow_redirects=True)
+        self.assertIn('You upvoted the comment', resp.data)
+
+        # With the new time based vote reversal/revote it is VERY hard
+        # to test from the front end that you have already voted because
+        # they run to quickly.
+        # We are going to have to change the k.VOTE_TIMEOUT value to a
+        # more managable number and sleep. (1 sec)
+        # Please DO NOT follow my lead. This is duck punching/monkey
+        # patching to the point of stupidity.
+        pjuu.lib.keys.VOTE_TIMEOUT = 1
+        sleep(1)
+
+        resp = self.client.post(url_for('posts.upvote', username='user2',
+                                        post_id=post2),
+                                follow_redirects=True)
+        self.assertIn('You have already voted on this post', resp.data)
+
+        resp = self.client.post(url_for('posts.downvote', username='user1',
+                                        post_id=post1, reply_id=comment1),
+                                follow_redirects=True)
+        self.assertIn('You have already voted on this post', resp.data)
+
+        # Reset the value just in case we change it
+        pjuu.lib.keys.VOTE_TIMEOUT = k.VOTE_TIMEOUT
 
     def test_flagging(self):
         """Ensure flagging works as expected"""

@@ -13,7 +13,7 @@ from jinja2 import escape
 
 from pjuu.auth import current_user
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next, keys as k
+from pjuu.lib import handle_next, keys as k, timestamp
 from pjuu.lib.pagination import handle_page
 from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
@@ -111,6 +111,15 @@ def voted_filter(post_id):
     if current_user:
         return has_voted(current_user.get('_id'), post_id) or 0
     return False
+
+
+@posts_bp.app_template_filter('reversable')
+def reversable_filter(vote):
+    """The time voted `vote` has to be newer than VOTE_TIMEOUT
+
+    """
+    vote = 0 if not vote else vote
+    return abs(vote) + k.VOTE_TIMEOUT > timestamp()
 
 
 @posts_bp.app_template_filter('subscribed')
@@ -310,16 +319,21 @@ def upvote(username, post_id, reply_id=None):
 
     try:
         if reply_id is None:
-            vote_post(current_user['_id'], post_id, amount=1)
+            result = vote_post(current_user['_id'], post_id, amount=1)
         else:
-            vote_post(current_user['_id'], reply_id, amount=1)
+            result = vote_post(current_user['_id'], reply_id, amount=1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You upvoted the ' + ("comment" if reply_id else "post"),
-              'success')
+        if result > 0:
+            flash('You upvoted the ' + ("comment" if reply_id else "post"),
+                  'success')
+        else:
+            flash('You reversed your vote on the ' + ("comment" if reply_id
+                                                      else "post"),
+                  'success')
 
     return redirect(redirect_url)
 
@@ -350,16 +364,21 @@ def downvote(username, post_id, reply_id=None):
 
     try:
         if reply_id is None:
-            vote_post(current_user['_id'], post_id, amount=-1)
+            result = vote_post(current_user['_id'], post_id, amount=-1)
         else:
-            vote_post(current_user['_id'], reply_id, amount=-1)
+            result = vote_post(current_user['_id'], reply_id, amount=-1)
     except AlreadyVoted:
         flash('You have already voted on this post', 'error')
     except CantVoteOnOwn:
         flash('You can not vote on your own posts', 'error')
     else:
-        flash('You downvoted the ' + ("comment" if reply_id else "post"),
-              'success')
+        if result < 0:
+            flash('You downvoted the ' + ("comment" if reply_id else "post"),
+                  'success')
+        else:
+            flash('You reversed your vote on the ' + ("comment" if reply_id
+                                                      else "post"),
+                  'success')
 
     return redirect(redirect_url)
 

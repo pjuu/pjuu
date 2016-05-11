@@ -15,12 +15,12 @@ from flask import current_app as app
 from pjuu import mongo as m, redis as r
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.auth.utils import get_user
-from pjuu.lib import keys as K
+from pjuu.lib import keys as K, timestamp
 from pjuu.posts.backend import (
     AlreadyVoted, CantVoteOnOwn, CommentingAlert, SubscriptionReasons,
     TaggingAlert, check_post, create_post, delete_post, get_post, get_posts,
     get_replies, is_subscribed, subscribe, unsubscribe, vote_post,
-    get_hashtagged_posts)
+    get_hashtagged_posts, has_voted)
 from pjuu.posts.stats import get_stats
 from pjuu.users.backend import (
     follow_user, get_alerts, get_feed, approve_user
@@ -344,69 +344,127 @@ class PostBackendTests(BackendTestCase):
         # Create a post by user 1
         post1 = create_post(user1, 'user1', 'Test post')
 
-        # Get user 3 to downvote, this will test that the user can not go
-        # negative yet the post can
-        self.assertIsNone(vote_post(user3, post1, amount=-1))
+        # Get user 3 to downvote
+        self.assertEqual(vote_post(user3, post1, amount=-1), -1)
         # Ensure post score has been adjusted
         self.assertEqual(get_post(post1).get('score'), -1)
-        # Ensure user score has NOT been adjusted
+        # Ensure user score has been adjusted
+        self.assertEqual(get_user(user1).get('score'), -1)
+
+        # Check that a user can reverse their vote within TIMEOUT
+        self.assertEqual(vote_post(user3, post1, amount=-1), 0)
+        self.assertEqual(get_post(post1).get('score'), 0)
         self.assertEqual(get_user(user1).get('score'), 0)
 
         # Get user 2 to upvote
-        self.assertIsNone(vote_post(user2, post1))
+        self.assertEqual(vote_post(user2, post1), 1)
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(post1).get('score'), 0)
+        self.assertEqual(get_post(post1).get('score'), 1)
         # Ensure user score has been adjusted
         self.assertEqual(get_user(user1).get('score'), 1)
 
         # Ensure user 1 can not vote on there own post
         self.assertRaises(CantVoteOnOwn, lambda: vote_post(user1, post1))
         # Ensure the scores have not been adjusted
-        self.assertEqual(get_post(post1).get('score'), 0)
+        self.assertEqual(get_post(post1).get('score'), 1)
         self.assertEqual(get_user(user1).get('score'), 1)
 
-        # Check to see if a user can vote twice on a post
-        self.assertRaises(AlreadyVoted, lambda: vote_post(user2, post1))
-        # Ensure the scores have not been adjusted
+        # Ensure the user has voted
+        self.assertTrue(has_voted(user2, post1))
+
+        # Check that a user can reverse their vote within TIMEOUT
+        self.assertEqual(vote_post(user2, post1), 0)
         self.assertEqual(get_post(post1).get('score'), 0)
+        self.assertEqual(get_user(user1).get('score'), 0)
+
+        # Ensure the user has voted
+        self.assertFalse(has_voted(user2, post1))
+
+        # Check that the score reflects an opposite vote within TIMEOUT
+        self.assertEqual(vote_post(user2, post1, 1), 1)
+        self.assertEqual(get_post(post1).get('score'), 1)
         self.assertEqual(get_user(user1).get('score'), 1)
+
+        self.assertTrue(has_voted(user2, post1))
+
+        self.assertEqual(vote_post(user2, post1, -1), -1)
+        self.assertEqual(get_post(post1).get('score'), -1)
+        self.assertEqual(get_user(user1).get('score'), -1)
+
+        self.assertTrue(has_voted(user2, post1))
+
+        # Check that a user can not reverse there vote after the TIMEOUT
+        self.assertRaises(AlreadyVoted,
+                          lambda: vote_post(user2, post1, -1,
+                                            timestamp() + K.VOTE_TIMEOUT + 1))
+
+        self.assertRaises(AlreadyVoted,
+                          lambda: vote_post(user2, post1, 1,
+                                            timestamp() + K.VOTE_TIMEOUT + 1))
 
         # Repeat the same tests on a comment
         # Create a comment by user 1
         comment1 = create_post(user1, 'user1', 'Test comment', post1)
 
-        # Let's cheat and set user1's score back to 0 so we can check it will
-        # not be lowered in the user3 downvote
+        # Let's cheat and set user1's score back to 0
         m.db.users.update({'_id': user1},
                           {'$set': {'score': 0}})
 
         # Get user 3 to downvote
-        self.assertIsNone(vote_post(user3, comment1, amount=-1))
+        self.assertEqual(vote_post(user3, comment1, amount=-1), -1)
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(comment1)['score'], -1)
-        # Ensure user score has NOT been adjusted
-        self.assertEqual(get_user(user1)['score'], 0)
+        self.assertEqual(get_post(comment1).get('score'), -1)
+        self.assertEqual(get_user(user1).get('score'), -1)
 
-        # Get user 2 to upvote
-        self.assertIsNone(vote_post(user2, comment1))
-        # Ensure post score has been adjusted
+        # Reverse user3's vote just so it's not confusing
+        self.assertEqual(vote_post(user3, comment1, amount=-1), 0)
         self.assertEqual(get_post(comment1).get('score'), 0)
-        # Ensure user score has been adjusted
-        self.assertEqual(get_user(user1).get('score'), 1)
+        self.assertEqual(get_user(user1).get('score'), 0)
 
         # Ensure user 1 can not vote on there own comment
         self.assertRaises(CantVoteOnOwn, lambda: vote_post(user1, comment1))
         # Ensure post score has been adjusted
         self.assertEqual(get_post(comment1).get('score'), 0)
         # Ensure user score has been adjusted
-        self.assertEqual(get_user(user1).get('score'), 1)
+        self.assertEqual(get_user(user1).get('score'), 0)
 
-        # Check to see if a user can vote twice on a comment
-        self.assertRaises(AlreadyVoted, lambda: vote_post(user2, comment1))
+        # Get user 2 to upvote
+        self.assertEqual(vote_post(user2, comment1), 1)
         # Ensure post score has been adjusted
-        self.assertEqual(get_post(comment1).get('score'), 0)
+        self.assertEqual(get_post(comment1).get('score'), 1)
         # Ensure user score has been adjusted
         self.assertEqual(get_user(user1).get('score'), 1)
+
+        self.assertTrue(has_voted(user2, comment1))
+
+        # Check that a user can reverse their vote within TIMEOUT
+        self.assertEqual(vote_post(user2, comment1), 0)
+        self.assertEqual(get_post(comment1).get('score'), 0)
+        self.assertEqual(get_user(user1).get('score'), 0)
+
+        self.assertFalse(has_voted(user2, comment1))
+
+        # Check that the score reflects an opposite vote within TIMEOUT
+        self.assertEqual(vote_post(user2, comment1, -1), -1)
+        self.assertEqual(get_post(comment1).get('score'), -1)
+        self.assertEqual(get_user(user1).get('score'), -1)
+
+        self.assertTrue(has_voted(user2, comment1))
+
+        self.assertEqual(vote_post(user2, comment1, 1), 1)
+        self.assertEqual(get_post(comment1).get('score'), 1)
+        self.assertEqual(get_user(user1).get('score'), 1)
+
+        self.assertTrue(has_voted(user2, comment1))
+
+        # Check that a user can not reverse there vote after the TIMEOUT
+        self.assertRaises(AlreadyVoted,
+                          lambda: vote_post(user2, comment1, -1,
+                                            timestamp() + K.VOTE_TIMEOUT + 1))
+
+        self.assertRaises(AlreadyVoted,
+                          lambda: vote_post(user2, comment1, 1,
+                                            timestamp() + K.VOTE_TIMEOUT + 1))
 
     def test_delete(self):
         """
