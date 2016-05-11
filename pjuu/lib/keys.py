@@ -17,6 +17,10 @@ EXPIRE_MILLISECONDS = EXPIRE_SECONDS * 1000
 EXPIRE_24HRS = 24 * 60 * 60
 EXPIRE_4WKS = 28 * 24 * 60 * 60
 
+# Vote expiration timeout
+# You can remove your vote within this time (5mins)
+VOTE_TIMEOUT = 300
+
 # Standard contants
 # We occasionally need to set a key to something which is invalid and which
 # we can test for. For example when a user is deleted there username is

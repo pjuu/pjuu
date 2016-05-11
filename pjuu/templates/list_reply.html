@@ -48,39 +48,41 @@
                 {% if item.user_id != current_user._id %}
                 {% set voted_on = item._id|voted %}
                 <li>
-                    {% if voted_on > 0 %}
-                    {% if config.TESTING %}
-                    <!-- upvoted:reply:{{ item._id }} -->
-                    {% endif %}
-                    <i class="fa fa-arrow-up fa-lg upvoted"></i>
-                    {% elif voted_on < 0 %}
-                    <i class="fa fa-arrow-up fa-lg inactive"></i>
+                    {% if voted_on > 0 and not voted_on|reversable %}
+                        <i class="fa fa-arrow-up fa-lg upvoted"></i>
+                    {% elif voted_on < 0 and not voted_on|reversable %}
+                        <i class="fa fa-arrow-up fa-lg inactive"></i>
                     {% else %}
-                    {% if config.TESTING %}
-                    <!-- upvote:reply:{{ item._id }} -->
-                    {% endif %}
-                    <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
-                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button title="Up vote" class="fa fa-arrow-up fa-lg link upvote buttonlink"></button>
-                    </form>
+                        {% if config.TESTING %}
+                            {% if voted_on > 0 %}
+                            <!-- upvoted:reply:{{ item._id }} -->
+                            {% else %}
+                            <!-- upvote:reply:{{ item._id }} -->
+                            {% endif %}
+                        {% endif %}
+                        <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                            <button title="Up vote" class="fa fa-arrow-up fa-lg link {% if voted_on > 0 %}upvoted{% else %}upvote{% endif %}  buttonlink"></button>
+                        </form>
                     {% endif %}
                 </li>
                 <li>
-                    {% if voted_on < 0 %}
-                    {% if config.TESTING %}
-                    <!-- downvoted:reply:{{ item._id }} -->
-                    {% endif %}
-                    <i class="fa fa-arrow-down fa-lg downvoted"></i>
-                    {% elif voted_on > 0 %}
-                    <i class="fa fa-arrow-down fa-lg inactive"></i>
+                    {% if voted_on < 0 and not voted_on|reversable %}
+                        <i class="fa fa-arrow-up fa-lg downvoted"></i>
+                    {% elif voted_on > 0 and not voted_on|reversable %}
+                        <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
-                    {% if config.TESTING %}
-                    <!-- downvote:reply:{{ item._id }} -->
-                    {% endif %}
-                    <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
-                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button title="Down vote" class="fa fa-arrow-down fa-lg link downvote buttonlink"></button>
-                    </form>
+                        {% if config.TESTING %}
+                            {% if voted_on < 0 %}
+                            <!-- downvoted:reply:{{ item._id }} -->
+                            {% else %}
+                            <!-- downvote:reply:{{ item._id }} -->
+                            {% endif %}
+                        {% endif %}
+                        <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                            <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                            <button title="Down vote" class="fa fa-arrow-down fa-lg link {% if voted_on < 0 %}downvoted{% else %}downvote{% endif %} buttonlink"></button>
+                        </form>
                     {% endif %}
                 </li>
                 {% endif %}

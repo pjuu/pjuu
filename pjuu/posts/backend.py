@@ -501,34 +501,85 @@ def has_voted(user_id, post_id):
     return r.zscore(k.POST_VOTES.format(post_id), user_id)
 
 
-def vote_post(user_id, post_id, amount=1):
+def vote_post(user_id, post_id, amount=1, ts=None):
     """Handles voting on posts
 
+    :param user_id: User who is voting
+    :type user_id: str
+    :param post_id: ID of the post the user is voting on
+    :type post_id: int
+    :param amount: The way to vote (-1 or 1)
+    :type amount: int
+    :param ts: Timestamp to use for vote (ONLY FOR TESTING)
+    :type ts: int
+    :returns: -1 if downvote, 0 if reverse vote and +1 if upvote
+
     """
+    if ts is None:
+        ts = timestamp()
+
     # Get the comment so we can check who the author is
     author_uid = get_post(post_id).get('user_id')
 
-    if not has_voted(user_id, post_id):
+    # Votes can ONLY ever be -1 or 1 and nothing else
+    # we use the sign to store the time and score in one zset score
+    amount = 1 if amount >= 0 else -1
+
+    voted = has_voted(user_id, post_id)
+
+    if not voted:
         if author_uid != user_id:
-            r.zadd(k.POST_VOTES.format(post_id), amount, user_id)
-            # Increment the score by amount (can be negative)
-            # Post score can go lower than 0
+            # Store the timestamp of the vote with the sign of the vote
+            r.zadd(k.POST_VOTES.format(post_id), amount * timestamp(), user_id)
+
+            # Update post score
             m.db.posts.update({'_id': post_id},
                               {'$inc': {'score': amount}})
 
-            if amount < 0:
-                # Don't decrement the users score if it is already at 0
-                # we use a query to ONLY find user if the score if greater than
-                # 0. This might seem stange but it is in the only way to keep
-                # this atomic
-                m.db.users.update({'_id': author_uid, 'score': {'$gt': 0}},
-                                  {'$inc': {'score': amount}})
-            else:
-                # If its an increment it doesn't really matter
-                m.db.users.update({'_id': author_uid},
-                                  {'$inc': {'score': amount}})
+            # Update user score
+            m.db.users.update({'_id': author_uid},
+                              {'$inc': {'score': amount}})
+
+            return amount
         else:
             raise CantVoteOnOwn
+    elif voted and abs(voted) + k.VOTE_TIMEOUT > ts:
+        # No need to check if user is current user because it can't
+        # happen in the first place
+        # Remove the vote from Redis
+        r.zrem(k.POST_VOTES.format(post_id), user_id)
+
+        previous_vote = -1 if voted < 0 else 1
+
+        # Calculate how much to increment/decrement the scores by
+        # Saves multiple trips to Mongo
+        if amount == previous_vote:
+            if previous_vote < 0:
+                amount = 1
+                result = 0
+            else:
+                amount = -1
+                result = 0
+        else:
+            # We will only register the new vote if it is NOT a vote reversal.
+            r.zadd(k.POST_VOTES.format(post_id), amount * timestamp(), user_id)
+
+            if previous_vote < 0:
+                amount = 2
+                result = 1
+            else:
+                amount = -2
+                result = -1
+
+        # Update post score
+        m.db.posts.update({'_id': post_id},
+                          {'$inc': {'score': amount}})
+
+        # Update user score
+        m.db.users.update({'_id': author_uid},
+                          {'$inc': {'score': amount}})
+
+        return result
     else:
         raise AlreadyVoted
 
