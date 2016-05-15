@@ -261,14 +261,14 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('users.unapprove', username='user2'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t unapprove a user which is not approved',
+        self.assertIn('You can\'t untrust a user who is not trusted',
                       resp.data)
 
         # Try and approve a user who is not following you
         resp = self.client.post(url_for('users.approve', username='user3'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t approve a user who is not following you',
+        self.assertIn('You can\'t trust a user who is not following you',
                       resp.data)
 
         # Try again but you are following the user (wont-work)
@@ -276,20 +276,20 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('users.approve', username='user3'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t approve a user who is not following you',
+        self.assertIn('You can\'t trust a user who is not following you',
                       resp.data)
 
         # Try and approve yourself
         resp = self.client.post(url_for('users.approve', username='user1'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t approve your self', resp.data)
+        self.assertIn('You should already trust yourself ;-P', resp.data)
 
         # Try and unapprove self
         resp = self.client.post(url_for('users.unapprove', username='user1'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t unapprove your self', resp.data)
+        self.assertIn('You can\'t untrust your self', resp.data)
 
         # Try and approve/unapprove a user that doesn't exist
         resp = self.client.post(url_for('users.approve', username='user5'),

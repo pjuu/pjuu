@@ -371,14 +371,14 @@ button:hover {
     background-color: #FFEA39;
     border: 1px solid #FFEA39;
     color: #000;
-    content: "Approved";
+    content: "Trusted";
 }
 
 .unapprove:hover {
     background-color: #C00;
     border: 1px solid #C00;
     color: #FFF;
-    content: "Un-approve";
+    content: "Untrust";
 }
 
 .username a {
@@ -1053,41 +1053,37 @@ input[type="file"] {
     list-style: none;
 }
 
-#setting #permission label {
+#setting #permission li {
+    margin-top: 1em;
+}
+
+#setting #permission li label {
     cursor: pointer;
     display: block;
     padding: 0.25em 0.5em;
 }
 
-#setting #permission input[type=radio]:checked + i {
-    color: #0C0;
-}
-
-#setting #permission li:first-child {
-    border-radius: 3px 0 0 3px;
-    border-right: 0;
-}
-
-#setting #permission li:last-child {
-    border-radius: 0 3px 3px 0;
-    border-right: 1px solid #666;
-}
-
-#setting #permission li {
+#setting #permission li label {
+    float: left;
     border: 1px solid #666;
-    border-right: 0;
+    border-radius: 3px;
     color: #666;
     background-color: #FFF;
-    float: left;
+    margin-right: 1em;
 }
 
-#setting #permission li:hover {
-    color: #333;
+#setting #permission li div {
+    padding: 0;
+    margin-left: 4em;
 }
 
 #setting #permission input[type=radio] {
     position: absolute;
     left: -9999px;
+}
+
+#setting #permission input[type=radio]:checked + i {
+    color: #0C0;
 }
 
 /* DASHBOARD =============================================================== */

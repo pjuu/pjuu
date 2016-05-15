@@ -51,6 +51,26 @@
                 </div>
             </div>
         </div>
+
+        <div class="details clearfix">
+            <div class="detail">
+                <div class="header">{{ form.about.label }}</div>
+                <div class="content">
+                    <textarea id="about" name="about" rows="5" maxlength="{{ form.about.validators[0].max }}" placeholder="Set your about me...">{{ current_user.about }}</textarea>
+                    <div id="count">
+                        {{ current_user.about|length }} / {{ form.about.validators[0].max }}
+                    </div>
+                    {% if form.about.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.about.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         <div class="details">
             <div class="detail">
                 <div class="header">Additional information</div>
@@ -72,6 +92,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="detail">
                 <div class="header">
                     Display settings
@@ -100,11 +121,10 @@
 
             <div class="detail clearfix">
                 <div class="header">
-                    Post settings
+                    Default post permission
                 </div>
                 <div class="content">
                     <div>
-                        Default post permission:
                         <ul id="permission">
                             <li>
                                 <label>
@@ -112,6 +132,9 @@
                                         {% if current_user.default_permission == 0 %}checked="true"{% endif %} value="0" type="radio" />
                                     <i title="Public" class="fa fa-fw fa-globe"></i>
                                 </label>
+                                <div>
+                                Allow all users including non-pjuu users to view the post and see it on your profile.
+                                </div>
                             </li>
                             <li>
                                 <label>
@@ -119,6 +142,9 @@
                                         {% if current_user.default_permission == 1 %}checked="true"{% endif %} value="1" type="radio" />
                                     <i title="Pjuu" class="fa fa-fw fa-circle-o"></i>
                                 </label>
+                                <div>
+                                Only allow Pjuu users to view the post and see it on your profile.
+                                </div>
                             </li>
                             <li>
                                 <label>
@@ -126,27 +152,12 @@
                                         {% if current_user.default_permission == 2 %}checked="true"{% endif %} value="2" type="radio" />
                                     <i title="Approved" class="fa fa-fw fa-check"></i>
                                 </label>
+                                <div>
+                                Only allow users you have marked as trusted followers to view the post and see it on your profile.
+                                </div>
                             </li>
                         </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="details">
-            <div class="detail">
-                <div class="header">{{ form.about.label }}</div>
-                <div class="content">
-                    <textarea id="about" name="about" rows="5" maxlength="{{ form.about.validators[0].max }}" placeholder="Set your about me...">{{ current_user.about }}</textarea>
-                    <div id="count">
-                        {{ current_user.about|length }} / {{ form.about.validators[0].max }}
-                    </div>
-                    {% if form.about.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.about.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
                 </div>
             </div>
         </div>

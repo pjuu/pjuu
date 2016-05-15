@@ -23,6 +23,7 @@ $(document).ready(function() {
     /*
      * Remove image upload field if it is set in the JS. Mainly for Android.
      * If there is a function defined within the Android app this will not show.
+     * This feature does not work in Kitkat!
      */
     try {
         $('#upload-label').toggle(!Android.hideImageUpload());
@@ -31,7 +32,7 @@ $(document).ready(function() {
     }
 
     /*
-     * Allow Ctrl+Enter to submit the auth form
+     * Allow Ctrl+Enter to submit the post form
      */
     $('#author #body').keydown(function (event) {
         if (event.ctrlKey && (event.keyCode == 10 || event.keyCode == 13)) {
@@ -110,6 +111,18 @@ $(document).ready(function() {
         },
         function() {
             $(this).html("You");
+        }
+    );
+
+    /*
+     * Change the trusted button on mouse actions.
+     */
+    $(".action.unapprove").hover (
+        function() {
+            $(this).html("Untrust")
+        },
+        function() {
+            $(this).html("Trusted");
         }
     );
 
