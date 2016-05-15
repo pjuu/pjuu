@@ -307,12 +307,12 @@ def approve(username):
 
     if user_id != current_user.get('_id'):
         if approve_user(current_user.get('_id'), user_id):
-            flash('You have approved %s' % username, 'success')
+            flash('You have put your trust %s' % username, 'success')
         else:
-            flash('You can\'t approve a user who is not following you',
-                  'information')
+            flash('You can\'t trust a user who is not following you',
+                  'error')
     else:
-        flash('You can\'t approve your self', 'information')
+        flash('You should already trust yourself ;-P', 'information')
 
     return redirect(redirect_url)
 
@@ -332,12 +332,12 @@ def unapprove(username):
 
     if user_id != current_user.get('_id'):
         if unapprove_user(current_user.get('_id'), user_id):
-            flash('You have un-approved %s' % username, 'success')
+            flash('You have untrusted %s' % username, 'success')
         else:
-            flash('You can\'t unapprove a user which is not approved',
-                  'information')
+            flash('You can\'t untrust a user who is not trusted',
+                  'error')
     else:
-        flash('You can\'t unapprove your self', 'information')
+        flash('You can\'t untrust your self', 'information')
 
     return redirect(redirect_url)
 
