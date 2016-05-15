@@ -107,7 +107,7 @@
                 </li>
                 <li>
                     {% if voted_on < 0 and not voted_on|reversable %}
-                        <i class="fa fa-arrow-up fa-lg downvoted"></i>
+                        <i class="fa fa-arrow-down fa-lg downvoted"></i>
                     {% elif voted_on > 0 and not voted_on|reversable %}
                         <i class="fa fa-arrow-down fa-lg inactive"></i>
                     {% else %}
