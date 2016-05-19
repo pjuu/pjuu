@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <form action="" method="post" enctype="multipart/form-data">
+    <form action="{{ url_for('users.settings_profile') }}" method="post" enctype="multipart/form-data">
         <div class="details">
             <div class="detail avatar">
                 <div class="header">Avatar</div>
@@ -160,9 +160,34 @@
                     </div>
                 </div>
             </div>
+            <div class="detail clearfix">
+                {{ form.csrf_token }}
+                <button type="submit"><i class="fa fa-edit"></i> Update Profile</button>
+            </div>
         </div>
-        {{ form.csrf_token }}
-        <button type="submit"><i class="fa fa-edit"></i> Update Profile</button>
     </form>
+    <div class="details">
+        <div class="detail clearfix">
+            <div class="header">Tips</div>
+            <div class="content">
+                {% if config.TESTING  %}
+                    {% if current_user.avatar %}
+                    <!-- user:avatar:{{ current_user.avatar }} -->
+                    {% else %}
+                    <!-- user:avatar:default -->
+                    {% endif %}
+                {% endif %}
+                <div>
+                    Reset all tip's on the site as if you had never seen them.
+                </div>
+            </div>
+        </div>
+        <div class="detail clearfix">
+            <form action="{{ url_for('users.reset_tips') }}" method="post">
+                {{ form.csrf_token }}
+                <button type="submit"><i class="fa fa-undo"></i> Reset tips</button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

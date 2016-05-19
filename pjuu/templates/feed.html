@@ -3,7 +3,12 @@
 {% block title %}Feed{% endblock %}
 
 {% block main %}
+{% if current_user.tip_welcome %}
+    {% include 'tip_welcome.html' %}
+{% endif %}
+
 {% include 'author_post.html' %}
+
 <div id="content" class="block clearfix">
     <h1>Feed</h1>
     {% include 'list.html' %}

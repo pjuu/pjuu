@@ -114,6 +114,10 @@ def create_account(username, email, password):
                 'ttl': datetime.utcnow()
             }
 
+            # Set all the tips for new users
+            for tip_name in k.VALID_TIP_NAMES:
+                user['tip_{}'.format(tip_name)] = True
+
             # Insert the new user in to Mongo. If this fails a None will be
             # returned
             result = m.db.users.insert(user)

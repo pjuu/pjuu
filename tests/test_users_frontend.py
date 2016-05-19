@@ -828,3 +828,40 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post3))
         self.assertEqual(resp.status_code, 200)
+
+    def test_tip_system(self):
+        """Ensure tips show when they are set to and they can be hidden
+        and reset as needs
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+
+        # Ensure the tip shows for new users
+        resp = self.client.get(url_for('users.feed'))
+        self.assertIn('tip:welcome', resp.data)
+        self.assertIn(url_for('users.hide_tip', tip_name='welcome'),
+                      resp.data)
+
+        # Ensure we can hide the tip
+        resp = self.client.post(url_for('users.hide_tip', tip_name='welcome'),
+                                follow_redirects=True)
+        self.assertNotIn('tip:welcome', resp.data)
+        self.assertNotIn(url_for('users.hide_tip', tip_name='welcome'),
+                         resp.data)
+
+        # Ensure resetting the tips shows them again
+        resp = self.client.post(url_for('users.reset_tips', tip_name='welcome',
+                                        next=url_for('users.feed')),
+                                follow_redirects=True)
+        self.assertIn('tip:welcome', resp.data)
+        self.assertIn(url_for('users.hide_tip', tip_name='welcome'),
+                      resp.data)
+
+        # Try and remove a tip that isn't valid
+        resp = self.client.post(url_for('users.hide_tip', tip_name='cheese'),
+                                follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)

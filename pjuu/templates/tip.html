@@ -1,0 +1,15 @@
+<div class="tip clearfix">
+	<div class="left no-mobile">
+		<img class="logo" src="{{ url_for('static', filename='img/logo_otter.png') }}" width="80" />
+	</div>
+	<div class="right">
+		<form action="{{ url_for('users.hide_tip', tip_name=tip_name) }}" method="post">
+			<input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+			<button title="Hide tip" class="fa fa-remove fa-lg hide"></button>
+		</form>
+	</div>
+	<div class="content">
+		{% block tip %}
+		{% endblock %}
+	</div>
+</div>

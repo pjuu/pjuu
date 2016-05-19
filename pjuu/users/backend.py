@@ -124,6 +124,18 @@ def remove_from_feed(post_id, user_id):
     return bool(r.zrem(k.USER_FEED.format(user_id), post_id))
 
 
+def top_users_by_score(limit=5):
+    """Get the top 5 users by score.
+    Used to show names on the welcome message.
+    """
+    cursor = m.db.users.find(
+        {}, {'_id': -1, 'username': 1}).sort('score', -1).limit(limit)
+    users = []
+    for user in cursor:
+        users.append(user)
+    return users
+
+
 def follow_user(who_uid, whom_uid):
     """Add whom to who's following zset and who to whom's followers zset.
     Generate an alert for this action.
@@ -471,3 +483,25 @@ def new_alerts(user_id):
     # Note: zrevrangebyscore has max and min the wrong way round :P
     return len(r.zrevrangebyscore(k.USER_ALERTS.format(user_id), '+inf',
                alerts_last_checked))
+
+
+def remove_tip(user_id, tip_name):
+    """Sets the tip with `tip_name` to False so it doesn't show
+
+    .. note: The tipname needs to be checked at the front end
+    """
+    return m.db.users.update({'_id': user_id}, {'$set': {
+        'tip_{}'.format(tip_name): False
+    }})
+
+
+def reset_tips(user_id):
+    """Reset all tips as if you had never seen them"""
+    update_dict = {}
+
+    # Create a Mongo update dictionary of all VALID_TIP_NAMES
+    for tip_name in k.VALID_TIP_NAMES:
+        update_dict['tip_{}'.format(tip_name)] = True
+
+    m.db.users.update({'_id': user_id}, {'$set': update_dict})
+    return True
