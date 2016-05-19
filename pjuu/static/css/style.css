@@ -1188,7 +1188,7 @@ input[type="file"] {
     color: #36F;
 }
 
-/* ERRORS ================================================================== */
+/* PAGES =================================================================== */
 #pages {
     margin: 0.5em 1em;
 }
@@ -1228,6 +1228,39 @@ input[type="file"] {
 
 #pages li {
     margin: 0 0 1em 0;
+}
+
+/* TIPS ==================================================================== */
+.tip {
+    background-color: #F5FAE6;
+    border: 1px solid #680;
+    border-radius: 6px;
+    margin-bottom: 1em;
+    padding: 1em 1em 0 1em;
+}
+
+.tip .content {
+    margin: 0 32px 0 100px;
+}
+
+.tip .content h1 {
+    font-size: 1.5em;
+    margin-top: 0;
+}
+
+.tip button {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+.tip .hide {
+    color: #680;
+}
+
+.tip .hide:hover {
+    color: #C00;
 }
 
 /* MEDIA QUERIES =========================================================== */
@@ -1317,5 +1350,10 @@ input[type="file"] {
         border: 0;
         float: none;
         padding: 0.5em 1em;
+    }
+
+    /* TIPS ================================================================ */
+    .tip .content {
+        margin: 0 32px 0 0;
     }
 }

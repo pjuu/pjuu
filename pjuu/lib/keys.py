@@ -82,3 +82,10 @@ ALERT = "{{alert:{0}}}"
 # Authentication tokens
 # Return: str
 TOKEN = "{{token:{0}}}"
+
+# Tip names
+# Uses around the site to discover valid tip name
+# NOT TECHNICALLY A KEY BUT WE NEED TO KNOW
+VALID_TIP_NAMES = [
+    'welcome'
+]

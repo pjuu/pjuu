@@ -1,0 +1,21 @@
+{% set tip_name = 'welcome' %}
+{% extends 'tip.html' %}
+
+{% block tip %}
+	{% if config.TESTING %}
+		<!-- tip:welcome -->
+	{% endif %}
+	<h1>Welcome to Pjuu!</h2>
+	<p>
+		Glad you could join us! Pjuu is an open-source application with all development taking place in public. We will not analyse you or sell you adverts, ever, it's a promise! Privacy is our primary focus.
+	</p>
+	<p>
+		As you have just signed up, this may look like a stark place. It's only because you are not following anyone yet. Why not follow some of our more active users?
+		{% for user in top_users_by_score() %}
+			<a href="{{ url_for('users.profile', username=user.username) }}">@{{ user.username }}</a>{% if not loop.last %},{% endif %}
+		{% endfor %}
+	</p>
+	<p>
+		We are constantly working to improve the site so any feed back would be great.
+	</p>
+{% endblock %}

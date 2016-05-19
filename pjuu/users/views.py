@@ -17,7 +17,7 @@ from flask import (abort, flash, redirect, render_template, request, url_for,
 from pjuu.auth import current_user
 from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next, timestamp
+from pjuu.lib import handle_next, timestamp, keys as k
 from pjuu.lib.pagination import handle_page
 from pjuu.posts.backend import get_posts
 from pjuu.posts.forms import PostForm
@@ -27,11 +27,18 @@ from pjuu.users.backend import (
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
     remove_from_feed as be_rem_from_feed, update_profile_settings,
-    get_user_permission, is_approved, approve_user, unapprove_user
+    get_user_permission, is_approved, approve_user, unapprove_user,
+    top_users_by_score, remove_tip, reset_tips as be_reset_tips
 )
 
 
 users_bp = Blueprint('users', __name__)
+
+
+@users_bp.before_app_request
+def load_jinja2_functions():
+    """Load anything needed into Jinja2 globals"""
+    app.jinja_env.globals.update(top_users_by_score=top_users_by_score)
 
 
 @users_bp.app_template_filter('following')
@@ -488,3 +495,31 @@ def new_alerts():
 
     # If a user has alerts then return a 200 else a 404
     return jsonify({'new_alerts': be_new_alerts(uid)})
+
+
+@users_bp.route('/tips/<tip_name>/hide', methods=['POST'])
+@login_required
+def hide_tip(tip_name):
+    """Will set a tip with `tip_name` to false for the `current_user`"""
+    if tip_name not in k.VALID_TIP_NAMES:
+        return abort(404)
+
+    # Set the tip to False inside Mongo
+    remove_tip(current_user.get('_id'), tip_name)
+
+    redirect_url = handle_next(request, url_for('users.feed'))
+
+    return redirect(redirect_url)
+
+
+@users_bp.route('/tips/reset', methods=['POST'])
+@login_required
+def reset_tips():
+    """Allow a user to reset all the tips from their settings page"""
+    redirect_url = handle_next(request, url_for('users.settings_profile'))
+
+    # Actually reset the tips in the database
+    be_reset_tips(current_user.get('_id'))
+    flash('Tip\'s have successfully been reset', 'success')
+
+    return redirect(redirect_url)
