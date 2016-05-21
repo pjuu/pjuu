@@ -11,9 +11,9 @@
 	</p>
 	<p>
 		As you have just signed up, this may look like a stark place. It's only because you are not following anyone yet. Why not follow some of our more active users?
-		{% for user in top_users_by_score() %}
-			<a href="{{ url_for('users.profile', username=user.username) }}">@{{ user.username }}</a>{% if not loop.last %},{% endif %}
-		{% endfor %}
+		{% for user in top_users_by_score() -%}
+        {% if loop.last %} or{% elif not loop.first  %},{% endif %} <a href="{{ url_for('users.profile', username=user.username) }}">@{{ user.username }}</a>
+		{%- endfor %}
 	</p>
 	<p>
 		We are constantly working to improve the site so any feed back would be great.
