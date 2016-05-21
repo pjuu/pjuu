@@ -15,9 +15,9 @@ from pjuu import csrf
 
 
 custom_error_messages = {
-    403: 'You\'re not allowed to do that',
-    404: 'We can\'t find what you\'re looking for',
-    405: 'We won\'t do that. No matter how much you love us',
+    403: 'You\'re not allowed to do that.',
+    404: 'We can\'t find what you\'re looking for.',
+    405: 'We won\'t do that. No matter how much you love us.',
     500: 'WTF have you done?... Only joking!<br/>'
          'This a serious issue and we are looking in to it now.'
 }
