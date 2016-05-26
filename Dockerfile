@@ -31,4 +31,4 @@ EXPOSE 8000
 
 # Run Gunicorn
 ENTRYPOINT ["venv/bin/gunicorn"]
-CMD ["-c/app/conf/gunicorn.py", "pjuu/wsgi"]
+CMD ["-c/app/conf/gunicorn.py", "pjuu.wsgi"]
