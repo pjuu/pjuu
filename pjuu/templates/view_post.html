@@ -57,7 +57,8 @@
         <div class="panel clearfix">
             <ul class="left">
                 <li>
-                    <i class="fa fa-trophy fa-lg"></i> {{ post.score|millify }}
+                    <i class="fa fa-trophy fa-lg"></i>
+                    <span class="score">{{ post.score|millify }}</span>
                 </li>
                 {% if post.user_id != current_user._id %}
                 {% set voted_on = post._id|voted %}

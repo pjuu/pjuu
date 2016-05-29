@@ -2,7 +2,7 @@
     <!-- list:reply:{{item._id}} -->
 {% endif %}
 
-<li class="item{% if loop_last %} last{% endif %} clearfix">
+<li class="item{% if loop_last %} last{% endif %} post clearfix">
     {% if item.user_avatar %}
     <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.user_avatar) }}"/>
     {% else %}
@@ -43,7 +43,7 @@
             <ul class="left">
                 <li>
                     <i class="fa fa-trophy fa-lg"></i>
-                    {{ item.score|millify }}
+                    <span class="score">{{ item.score|millify }}</span>
                 </li>
                 {% if item.user_id != current_user._id %}
                 {% set voted_on = item._id|voted %}

@@ -138,6 +138,18 @@ button:hover {
 }
 
 /* FLASH MESSAGES ========================================================== */
+/* Javascript message container */
+.js-messages {
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    width: 100%;
+}
+
+.js-messages .message {
+    margin: 0 1em 1em;
+}
+
 .message {
     border-radius: 6px;
     font-weight: 700;
@@ -146,22 +158,22 @@ button:hover {
     text-align: center;
 }
 
-.messages .error {
+.message.error {
     background-color: #FF4136;
     color: white;
 }
 
-.messages .information {
+.message.information {
     background-color: #39F;
     color: #1A4C80;
 }
 
-.messages .success {
+.message.success {
     background-color: #0F0;
     color: #080;
 }
 
-.messages .warning {
+.message.warning {
     background-color: #FFC;
     color: #880;
 }
