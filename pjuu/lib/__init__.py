@@ -12,6 +12,8 @@ from time import time
 from urlparse import urlparse, urljoin
 from uuid import uuid1
 
+from flask import request, flash
+
 
 def is_safe_url(host_url, target):
     """Ensure the url is safe to redirect.
@@ -54,3 +56,9 @@ def fix_url(url):
         url = 'http://' + url
         _url = urlparse(url, scheme='http')
     return _url.geturl()
+
+
+def xflash(message, category='message'):
+    """Will only flash the message if the request is NOT XHR"""
+    if not request.is_xhr:
+        flash(message, category)

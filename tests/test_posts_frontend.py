@@ -8,6 +8,7 @@
 """
 
 import io
+import json
 from time import sleep
 
 from flask import url_for
@@ -951,6 +952,103 @@ class PostFrontendTests(FrontendTestCase):
         # Reset the value just in case we change it
         pjuu.lib.keys.VOTE_TIMEOUT = k.VOTE_TIMEOUT
 
+    def test_up_down_vote_xhr(self):
+        """Ensure we get the correct responses if we vote via XHR"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+
+        activate(user1)
+        activate(user2)
+
+        post1 = create_post(user1, 'user1', 'Post user 1')
+        post2 = create_post(user2, 'user2', 'Post user 2')
+
+        resp = self.client.post(url_for('auth.signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        # Ensure we can up vote via XHR
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'), 'You upvoted the post')
+
+        # Ensure we can reverse a vote
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You reversed your vote on the post')
+
+        # Ensure we can downvote the post
+        resp = self.client.post(
+            url_for('posts.downvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'), 'You downvoted the post')
+
+        resp = self.client.post(
+            url_for('posts.downvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You reversed your vote on the post')
+
+        # Test failure conditions
+        # Missing vote (invalid ID's)
+        resp = self.client.post(
+            url_for('posts.downvote', username='user1', post_id='cheese'),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'), 'Post not found')
+
+        # Vote on own
+        resp = self.client.post(
+            url_for('posts.downvote', username='user2', post_id=post2),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You can not vote on your own posts')
+
+        # Upvote so there is a vote
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+
+        # Vote time out. See above test case for more details
+        pjuu.lib.keys.VOTE_TIMEOUT = 1
+        sleep(1)
+
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You have already voted on this post')
+
+        resp = self.client.post(
+            url_for('posts.downvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You have already voted on this post')
+
+        # Reset the value just in case we change it
+        pjuu.lib.keys.VOTE_TIMEOUT = k.VOTE_TIMEOUT
+
     def test_flagging(self):
         """Ensure flagging works as expected"""
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -1515,6 +1613,23 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('You do not have permission to vote on this post',
                       resp.data)
 
+        # Test voting with XHR
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You do not have permission to vote on this post')
+
+        resp = self.client.post(
+            url_for('posts.downvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+        resp_json = json.loads(resp.data)
+        self.assertEqual(resp_json.get('message'),
+                         'You do not have permission to vote on this post')
+
         resp = self.client.post(url_for('posts.flag', username='user1',
                                         post_id=post1, next='/'),
                                 follow_redirects=True)
@@ -1543,10 +1658,10 @@ class PostFrontendTests(FrontendTestCase):
             'body': 'Test post',
             'permission': 4
         }, follow_redirects=True)
-        self.assertIn('Not a valid choic', resp.data)
+        self.assertIn('Not a valid choice', resp.data)
 
         resp = self.client.post(url_for('posts.post'), data={
             'body': 'Test post',
             'permission': 'cheese'
         }, follow_redirects=True)
-        self.assertIn('Not a valid choic', resp.data)
+        self.assertIn('Not a valid choice', resp.data)

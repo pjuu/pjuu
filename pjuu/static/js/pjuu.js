@@ -1,6 +1,39 @@
 $(document).ready(function() {
 
     /*
+     * Flash messages from Javascript
+     */
+    function bind_message_removal() {
+        $(".js-messages .message").click(function(event) {
+            $(this).remove();
+        });
+    }
+
+    function flash(message, category) {
+        $(".js-messages .container").append("<div class=\"message " + category + "\">" + message + "</div>");
+        bind_message_removal();
+    }
+
+    function clear_flashed_messages() {
+        $(".js-messages .container").empty();
+    }
+
+    /*
+     * Get the CSRF token for the user.
+     */
+    var csrftoken = $('meta[name=csrf-token]').attr('content')
+
+    // Inject the post in to ALL POST ajax requests
+    // http://flask-wtf.readthedocs.io/en/latest/csrf.html#ajax
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken)
+            }
+        }
+    });
+
+    /*
      * Author actions
      */
     $('textarea').bind('input propertychange', function() {
@@ -71,7 +104,7 @@ $(document).ready(function() {
     var alert_timeout = 30000;
 
     // This uses a timeout so that if it fails (auth pages) it won't bother
-    // trying agin until the page is refreshed.
+    // trying again until the page is refreshed.
     function has_alerts() {
         $.get("/alerts/new", function(data) {
             if (data.new_alerts > 0) {
@@ -126,4 +159,87 @@ $(document).ready(function() {
         }
     );
 
+    /*
+     * AJAX site actions
+     */
+
+    function ajaxAction(object, event, success) {
+        event.preventDefault();
+        form = object.parent("form");
+        action = form.attr("action");
+        method = form.attr("method");
+        $.ajax(action, {
+            method: method,
+        }).success(function(data, textStatus, jqXHR) {
+            clear_flashed_messages();
+            flash(data.message, "success");
+            success();
+        }).error(function(jqXHR, textStatus, errorThrown) {
+            data = jqXHR.responseJSON;
+            flash(data.message, "error");
+        });
+    }
+
+    // Voting
+    $("body").on("click", "li.item.post form .upvote, #post li form .upvote", function(event) {
+        upvote_button = $(this);
+        downvote_button = $(this).closest("ul").find("form .downvoted");
+        score = $(this).closest("ul").find(".score");
+        ajaxAction(upvote_button, event, function() {
+            upvote_button.removeClass("upvote");
+            upvote_button.addClass("upvoted");
+
+            if (!isNaN(Number(score.text()))) {
+                amount = downvote_button.length ? 2 : 1;
+                score.text(Number(score.text()) + amount);
+            }
+
+            downvote_button.removeClass("downvoted");
+            downvote_button.addClass("downvote");
+        });
+    });
+
+    $("body").on("click", "li.item.post form .upvoted, #post li form .upvoted", function(event) {
+        upvote_button = $(this);
+        score = $(this).closest("ul").find(".score");
+        ajaxAction(upvote_button, event, function() {
+            upvote_button.removeClass("upvoted");
+            upvote_button.addClass("upvote");
+
+            if (!isNaN(Number(score.text()))) {
+                score.text(Number(score.text()) - 1)
+            }
+        });
+    });
+
+    $("body").on("click", "li.item.post form .downvote, #post li form .downvote", function(event) {
+        downvote_button = $(this);
+        upvote_button = $(this).closest("ul").find("form .upvoted");
+        score = $(this).closest("ul").find(".score");
+        ajaxAction(downvote_button, event, function() {
+            downvote_button.removeClass("downvote");
+            downvote_button.addClass("downvoted");
+
+            if (!isNaN(Number(score.text()))) {
+                amount = upvote_button.length ? 2 : 1;
+                score.text(Number(score.text()) - amount);
+            }
+
+            upvote_button.removeClass("upvoted");
+            upvote_button.addClass("upvote");
+        });
+    });
+
+    $("body").on("click", "li.item.post form .downvoted, #post li form .downvoted", function(event) {
+        downvote_button = $(this);
+        score = $(this).closest("ul").find(".score");
+        ajaxAction(downvote_button, event, function() {
+            downvote_button.removeClass("downvoted");
+            downvote_button.addClass("downvote");
+
+            if (!isNaN(Number(score.text()))) {
+                score.text(Number(score.text()) + 1)
+            }
+        });
+    });
 });

@@ -82,7 +82,7 @@
             <ul class="left">
                 <li>
                     <i class="fa fa-trophy fa-lg"></i>
-                    {{ item.score|millify }}
+                    <span class="score">{{ item.score|millify }}</span>
                 </li>
                 {% if item.user_id != current_user._id %}
                 {% set voted_on = item._id|voted %}

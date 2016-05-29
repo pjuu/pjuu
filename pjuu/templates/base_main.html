@@ -32,17 +32,17 @@
                 <i class="fa fa-cog fa-fw fa-lg"></i>
                 <span class="no-mobile">Settings</span>
             </li></a>
-            <a href="{{ url_for('auth.signout') }}"><li></span>
+            <a href="{{ url_for('auth.signout') }}"><li>
                 <i class="fa fa-sign-out fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Out</span>
             </li></a>
             {% else %}
             <!-- menu: not logged in -->
-            <a href="{{ url_for('auth.signin') }}"><li></span>
+            <a href="{{ url_for('auth.signin') }}"><li>
                 <i class="fa fa-sign-in fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign In</span>
             </li></a>
-            <a href="{{ url_for('auth.signup') }}"><li></span>
+            <a href="{{ url_for('auth.signup') }}"><li>
                 <i class="fa fa-smile-o fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign Up</span>
             </li></a>

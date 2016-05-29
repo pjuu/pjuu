@@ -8,12 +8,12 @@
 """
 
 from flask import (abort, flash, redirect, request, url_for, render_template,
-                   Blueprint, current_app as app)
+                   Blueprint, current_app as app, jsonify)
 from jinja2 import escape
 
 from pjuu.auth import current_user
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next, keys as k, timestamp
+from pjuu.lib import handle_next, keys as k, timestamp, xflash
 from pjuu.lib.pagination import handle_page
 from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
@@ -293,17 +293,28 @@ def get_upload(filename):
     return be_get_upload(filename)
 
 
-@posts_bp.route('/<username>/<post_id>/upvote', methods=['POST'])
-@posts_bp.route('/<username>/<post_id>/<reply_id>/upvote', methods=['POST'])
+@posts_bp.route('/<username>/<post_id>/upvote', methods=['POST'],
+                endpoint='upvote')
+@posts_bp.route('/<username>/<post_id>/<reply_id>/upvote', methods=['POST'],
+                endpoint='upvote')
+@posts_bp.route('/<username>/<post_id>/downvote', methods=['POST'],
+                endpoint='downvote')
+@posts_bp.route('/<username>/<post_id>/<reply_id>/downvote', methods=['POST'],
+                endpoint='downvote')
 @login_required
-def upvote(username, post_id, reply_id=None):
+def vote(username, post_id, reply_id=None):
     """Upvotes a post.
 
+    .. note: If the request is an XHR one the whole function will not run.
+             It will exit out and the first chance and return JSON.
     """
     redirect_url = handle_next(request, url_for('posts.view_post',
                                username=username, post_id=post_id))
 
     if not check_post(get_uid(username), post_id, reply_id):
+        if request.is_xhr:
+            return jsonify({'message': 'Post not found'}), 404
+
         return abort(404)
 
     _post = get_post(post_id)
@@ -312,73 +323,55 @@ def upvote(username, post_id, reply_id=None):
     current_user_id = current_user.get('_id')
     permission = get_user_permission(_post.get('user_id'), current_user_id)
 
+    # Since the upvote/downvote functions have been merged we need to
+    # identify which action is going to be performed.
+    if request.endpoint == 'posts.upvote':
+        action = 'upvoted'
+        amount = 1
+    else:
+        action = 'downvoted'
+        amount = -1
+
     if permission < _post.get('permission', k.PERM_PUBLIC):
-        flash('You do not have permission to vote on this post',
-              'error')
+        message = 'You do not have permission to vote on this post'
+
+        if request.is_xhr:
+            return jsonify({'message': message}), 403
+
+        xflash(message, 'error')
         return redirect(redirect_url)
 
     try:
         if reply_id is None:
-            result = vote_post(current_user['_id'], post_id, amount=1)
+            result = vote_post(current_user['_id'], post_id, amount=amount)
         else:
-            result = vote_post(current_user['_id'], reply_id, amount=1)
+            result = vote_post(current_user['_id'], reply_id, amount=amount)
     except AlreadyVoted:
-        flash('You have already voted on this post', 'error')
+        message = 'You have already voted on this post'
+
+        if request.is_xhr:
+            return jsonify({'message': message}), 400
+
+        xflash(message, 'error')
     except CantVoteOnOwn:
-        flash('You can not vote on your own posts', 'error')
+        message = 'You can not vote on your own posts'
+
+        if request.is_xhr:
+            return jsonify({'message': message}), 400
+
+        xflash(message, 'error')
     else:
-        if result > 0:
-            flash('You upvoted the ' + ("comment" if reply_id else "post"),
-                  'success')
+        if (amount > 0 < result) or (amount < 0 > result):
+            message = 'You {} the '.format(action) + ("comment" if reply_id
+                                                      else "post")
+            xflash(message, 'success')
         else:
-            flash('You reversed your vote on the ' + ("comment" if reply_id
-                                                      else "post"),
-                  'success')
+            message = 'You reversed your vote on the ' + ("comment" if reply_id
+                                                          else "post")
+            xflash(message, 'success')
 
-    return redirect(redirect_url)
-
-
-@posts_bp.route('/<username>/<post_id>/downvote', methods=['POST'])
-@posts_bp.route('/<username>/<post_id>/<reply_id>/downvote', methods=['POST'])
-@login_required
-def downvote(username, post_id, reply_id=None):
-    """Downvotes a post.
-
-    """
-    redirect_url = handle_next(request, url_for('posts.view_post',
-                               username=username, post_id=post_id))
-
-    if not check_post(get_uid(username), post_id, reply_id):
-        return abort(404)
-
-    _post = get_post(post_id)
-
-    # Ensue user has permission to perform the action
-    current_user_id = current_user.get('_id')
-    permission = get_user_permission(_post.get('user_id'), current_user_id)
-
-    if permission < _post.get('permission', k.PERM_PUBLIC):
-        flash('You do not have permission to vote on this post',
-              'error')
-        return redirect(redirect_url)
-
-    try:
-        if reply_id is None:
-            result = vote_post(current_user['_id'], post_id, amount=-1)
-        else:
-            result = vote_post(current_user['_id'], reply_id, amount=-1)
-    except AlreadyVoted:
-        flash('You have already voted on this post', 'error')
-    except CantVoteOnOwn:
-        flash('You can not vote on your own posts', 'error')
-    else:
-        if result < 0:
-            flash('You downvoted the ' + ("comment" if reply_id else "post"),
-                  'success')
-        else:
-            flash('You reversed your vote on the ' + ("comment" if reply_id
-                                                      else "post"),
-                  'success')
+    if request.is_xhr:
+        return jsonify({'message': message}), 200
 
     return redirect(redirect_url)
 
