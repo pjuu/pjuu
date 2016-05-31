@@ -3,15 +3,19 @@ $(document).ready(function() {
     /*
      * Flash messages from Javascript
      */
-    function bind_message_removal() {
-        $(".js-messages .message").click(function(event) {
-            $(this).remove();
-        });
-    }
+
+    // Clicking a JS flash message removes it
+    $("body").on("click", ".js-messages .message", function(event) {
+        $(this).remove();
+    });
+
+    // Make the messages also fade away after 10 seconds
+    $('body').on('DOMNodeInserted', '.js-messages .message', function () {
+          $(this).delay(10000).fadeTo("slow", 0);
+    });
 
     function flash(message, category) {
         $(".js-messages .container").append("<div class=\"message " + category + "\">" + message + "</div>");
-        bind_message_removal();
     }
 
     function clear_flashed_messages() {
@@ -23,7 +27,7 @@ $(document).ready(function() {
      */
     var csrftoken = $('meta[name=csrf-token]').attr('content')
 
-    // Inject the post in to ALL POST ajax requests
+    // Inject the token in to ALL POST ajax requests
     // http://flask-wtf.readthedocs.io/en/latest/csrf.html#ajax
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -163,83 +167,98 @@ $(document).ready(function() {
      * AJAX site actions
      */
 
-    function ajaxAction(object, event, success) {
+    function voteAction(btn, event, vote) {
+        // Stop the default action
         event.preventDefault();
-        form = object.parent("form");
-        action = form.attr("action");
-        method = form.attr("method");
+
+        form = $(btn).parent("form");
+        list = $(btn).closest("ul");
+
+        // Get all the buttons and data we will for all vote actions
+        var upvoteBtn = list.find("form .upvote, form .upvoted"),
+            downvoteBtn = list.find("form .downvote, form .downvoted"),
+            action = form.attr("action"),
+            method = form.attr("method"),
+            score = list.find(".score");
+
+        // Disable all vote buttons on the post
+        upvoteBtn.prop("disabled", true);
+        downvoteBtn.prop("disabled", true);
+
         $.ajax(action, {
             method: method,
+            timeout: 2000,
         }).success(function(data, textStatus, jqXHR) {
             clear_flashed_messages();
             flash(data.message, "success");
-            success();
+
+            console.log(vote);
+            amount = 0;
+
+            switch (vote) {
+                case 'upvote':
+                    amount = downvoteBtn.hasClass("downvoted") ? 2 : 1;
+                    upvoteBtn.removeClass("upvote");
+                    upvoteBtn.addClass("upvoted");
+                    downvoteBtn.removeClass("downvoted");
+                    downvoteBtn.addClass("downvote");
+                    break;
+                case 'upvoteReverse':
+                    amount = -1;
+                    upvoteBtn.removeClass("upvoted");
+                    upvoteBtn.addClass("upvote");
+                    downvoteBtn.removeClass("downvoted");
+                    downvoteBtn.addClass("downvote");
+                    break;
+                case 'downvote':
+                    amount = upvoteBtn.hasClass("upvoted") ? -2 : -1;
+                    downvoteBtn.removeClass("downvote");
+                    downvoteBtn.addClass("downvoted");
+                    upvoteBtn.removeClass("upvoted");
+                    upvoteBtn.addClass("upvote");
+                    break;
+                case 'downvoteReverse':
+                    amount = 1;
+                    downvoteBtn.removeClass("downvoted");
+                    downvoteBtn.addClass("downvote");
+                    upvoteBtn.removeClass("upvoted");
+                    upvoteBtn.addClass("upvote");
+                    break;
+            }
+
+            if (!isNaN(Number(score.text()))) {
+                score.text(Number(score.text()) + amount);
+            }
         }).error(function(jqXHR, textStatus, errorThrown) {
+            clear_flashed_messages();
             data = jqXHR.responseJSON;
             flash(data.message, "error");
+        }).always(function() {
+            // Enable all votes buttons again and un-focus (blur) them
+            upvoteBtn.blur();
+            downvoteBtn.blur();
+            upvoteBtn.prop("disabled", false);
+            downvoteBtn.prop("disabled", false);
         });
     }
 
-    // Voting
+    // Upvote
     $("body").on("click", "li.item.post form .upvote, #post li form .upvote", function(event) {
-        upvote_button = $(this);
-        downvote_button = $(this).closest("ul").find("form .downvoted");
-        score = $(this).closest("ul").find(".score");
-        ajaxAction(upvote_button, event, function() {
-            upvote_button.removeClass("upvote");
-            upvote_button.addClass("upvoted");
-
-            if (!isNaN(Number(score.text()))) {
-                amount = downvote_button.length ? 2 : 1;
-                score.text(Number(score.text()) + amount);
-            }
-
-            downvote_button.removeClass("downvoted");
-            downvote_button.addClass("downvote");
-        });
+        voteAction(this, event, 'upvote');
     });
 
+    // Reverse upvote
     $("body").on("click", "li.item.post form .upvoted, #post li form .upvoted", function(event) {
-        upvote_button = $(this);
-        score = $(this).closest("ul").find(".score");
-        ajaxAction(upvote_button, event, function() {
-            upvote_button.removeClass("upvoted");
-            upvote_button.addClass("upvote");
-
-            if (!isNaN(Number(score.text()))) {
-                score.text(Number(score.text()) - 1)
-            }
-        });
+        voteAction(this, event, 'upvoteReverse');
     });
 
+    // Downvote
     $("body").on("click", "li.item.post form .downvote, #post li form .downvote", function(event) {
-        downvote_button = $(this);
-        upvote_button = $(this).closest("ul").find("form .upvoted");
-        score = $(this).closest("ul").find(".score");
-        ajaxAction(downvote_button, event, function() {
-            downvote_button.removeClass("downvote");
-            downvote_button.addClass("downvoted");
-
-            if (!isNaN(Number(score.text()))) {
-                amount = upvote_button.length ? 2 : 1;
-                score.text(Number(score.text()) - amount);
-            }
-
-            upvote_button.removeClass("upvoted");
-            upvote_button.addClass("upvote");
-        });
+        voteAction(this, event, 'downvote');
     });
 
+    // Reverse downvote
     $("body").on("click", "li.item.post form .downvoted, #post li form .downvoted", function(event) {
-        downvote_button = $(this);
-        score = $(this).closest("ul").find(".score");
-        ajaxAction(downvote_button, event, function() {
-            downvote_button.removeClass("downvoted");
-            downvote_button.addClass("downvote");
-
-            if (!isNaN(Number(score.text()))) {
-                score.text(Number(score.text()) + 1)
-            }
-        });
+        voteAction(this, event, 'downvoteReverse');
     });
 });
