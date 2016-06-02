@@ -1,4 +1,4 @@
-Flask==0.10.1
+Flask==0.11
 Flask-And-Redis==0.6
 Flask-Mail==0.9.1
 Flask-PyMongo==0.4.1

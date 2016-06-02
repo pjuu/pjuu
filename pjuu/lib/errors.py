@@ -56,6 +56,7 @@ def handler_csrf_error(reason):  # pragma: no cover
 
 def register_errors(app):
     for error in [403, 404, 405, 500]:
-        app.error_handler_spec[None][error] = handle_error
+        app.errorhandler(error)(handle_error)
+    app.errorhandler(Exception)(handle_error)
 
     csrf.error_handler = handler_csrf_error
