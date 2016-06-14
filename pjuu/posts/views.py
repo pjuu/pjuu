@@ -228,7 +228,9 @@ def post(username=None, post_id=None):
 
         _post = get_post(post_id)
 
-        permission = get_user_permission(current_user, _post.get('_id'))
+        # Ensuer user has permission to perform the action
+        current_user_id = current_user.get('_id')
+        permission = get_user_permission(_post.get('user_id'), current_user_id)
 
         if permission < _post.get('permission', k.PERM_PUBLIC):
             return abort(403)
