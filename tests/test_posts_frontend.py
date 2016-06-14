@@ -19,7 +19,9 @@ from pjuu.auth.backend import create_account, activate, mute, bite
 from pjuu.lib import keys as k
 from pjuu.posts.backend import (create_post, get_post, MAX_POST_LENGTH,
                                 has_flagged, flag_post)
-from pjuu.users.backend import follow_user, update_profile_settings
+from pjuu.users.backend import (
+    follow_user, update_profile_settings, approve_user
+)
 from pjuu.users.views import millify_filter, timeify_filter
 
 from tests import FrontendTestCase
@@ -1640,9 +1642,35 @@ class PostFrontendTests(FrontendTestCase):
         # Ensure user 2 can't comment on post1
         resp = self.client.post(url_for('posts.post', username='user1',
                                 post_id=post1), data={
-            'body': '`Test'
+            'body': 'Test'
         })
         self.assertEqual(resp.status_code, 403)
+
+        # Have user2 follow user1 and have user1 approve user2
+        follow_user(user2, user1)
+        approve_user(user1, user2)
+
+        resp = self.client.post(url_for('posts.post', username='user1',
+                                post_id=post1), data={
+            'body': 'Test'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Test', resp.data)
+
+        # Signout as user2 and ensure user1 can comment on the post.
+        self.client.get(url_for('auth.signout'))
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.post(url_for('posts.post', username='user1',
+                                post_id=post1), data={
+            'body': 'Cheese'
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Test', resp.data)
+        self.assertIn('Cheese', resp.data)
 
     def test_posting_with_permissions(self):
         """Ensure only the correct permissions can be applied to a post"""
