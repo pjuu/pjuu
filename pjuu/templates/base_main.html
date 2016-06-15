@@ -18,9 +18,9 @@
             </li></a>
             <a href="{{ url_for('users.alerts') }}"><li>
                 {% if current_user._id|new_alerts %}
-                <i id="alert" class="fa fa-bell fa-fw fa-lg alert"></i>
+                <i id="alert" class="fa fa-bell fa-fw fa-lg new-alert"></i>
                 {% else %}
-                <i id="alert" class="fa fa-bell fa-fw fa-lg"></i>
+                <i id="alert" class="fa fa-bell-o fa-fw fa-lg"></i>
                 {% endif %}
                 <span class="no-mobile">Alerts</span>
             </li></a>

@@ -113,7 +113,8 @@ $(document).ready(function() {
         $.get("/alerts/new", function(data) {
             if (data.new_alerts > 0) {
                 // Yey we have some alerts :-)
-                $("#alert").addClass('alert');
+                $("#alert").removeClass('fa-bell-o');
+                $("#alert").addClass('fa-bell new-alert');
             } else {
                 // Oh no. We have no new alerts lets check again in a minute.
                 setTimeout(function() {

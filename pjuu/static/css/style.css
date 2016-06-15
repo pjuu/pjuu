@@ -308,8 +308,15 @@ button:hover {
     padding: 0 1em;
 }
 
-#header .menu .alert {
+/* rotate 15 degrees to highlight new alert */
+.new-alert {
     color: #F00;
+    text-shadow: 0 0 3px #FFF;
+    -webkit-transform: rotate(15deg);
+    -moz-transform: rotate(15deg);
+    -ms-transform: rotate(15deg);
+    -o-transform: rotate(15deg);
+    transform: rotate(15deg);
 }
 
 /* MAIN ==================================================================== */
