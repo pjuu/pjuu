@@ -8,6 +8,7 @@
 """
 
 # Stdlib imports
+from __future__ import division
 from datetime import datetime
 import math
 # 3rd party imports
@@ -68,10 +69,13 @@ def millify_filter(n):
         millnames = ['', 'K', 'M', 'B', 'T', 'Q', 'Qt']
         millidx = max(0, min(len(millnames) - 1,
                       int(math.floor(math.log10(abs(number)) / 3.0))))
-        result = '%.0f%s' % (number / 10 ** (3 * millidx), millnames[millidx])
+        result = '{0:.1f}'.format(
+            number / 10 ** (3 * millidx)).rstrip('0').rstrip('.')
+
         if n < 0:
-            return '-' + result
-        return result
+            result = '-' + result
+
+        return result + millnames[millidx]
     except (TypeError, ValueError):
         return "Err"
 

@@ -1485,6 +1485,15 @@ class PostFrontendTests(FrontendTestCase):
         num_str = millify_filter(-1000)
         self.assertEqual(num_str, "-1K")
 
+        num_str = millify_filter(12500000)
+        self.assertEqual(num_str, "12.5M")
+
+        num_str = millify_filter(-1200)
+        self.assertEqual(num_str, "-1.2K")
+
+        num_str = millify_filter(3800)
+        self.assertEqual(num_str, "3.8K")
+
     def test_postify(self):
         """Test that postify renders posts correctly when the correct
         informations is attached.
