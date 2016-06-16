@@ -56,19 +56,15 @@ def check_token(tid, preserve=False):
         try:
             # Attempt to get the pickled object back
             data = jsonpickle.decode(data)
-            return data
+            result = data
         except (TypeError, ValueError):
             # There was a problem pulling the data out of Redis.
-            return None
+            result = None
         finally:
-            # What the actual fuck coverage? It says this is a partial yet
-            # there is a specific test for this. Must be something to do with
-            # the finally block. The else is POINTLESS but works.
             if not preserve:
                 # Delete the token if preserve is False
                 r.delete(K.TOKEN.format(tid))
-            else:
-                pass
+        return result
 
     # If we didn't get data in the first place no need to delete.
     return None
