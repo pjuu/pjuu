@@ -1,17 +1,19 @@
 As a general guide line its preferred that the the issue tracker be reserved for bug reports and enhancements.
- For general questions and discussion, we would recommend making use of our [gitter chat room](https://gitter.im/pjuu/pjuu) or [pjuu](https://pjuu.com) itself
+ For general questions and discussion, we would recommend making use of our gitter chat room or on Pjuu itself
+Our Gitter chat room can be found here: https://gitter.im/pjuu/pjuu
+Pjuu can be found here: https://pjuu.com
 
 ### Version
-If you are having issues it would be useful to know what verson of the code you are using.
+If you are having issues it would be useful to know what version of the code you are using.
 The Commit ID from Git would be a good identifier.
 
 ### Operating system
 The OS you are running pjuu on
 
-### Expected behavior
+### Expected behaviour
 What should have happened?
 
-### Actual behavior
+### Actual behaviour
 What actually happened?
 
 ### Steps to reproduce
