@@ -3,23 +3,24 @@
 {% block title %}Sign In{% endblock %}
 
 {% block form %}
-<form id="sign-in" action="" method="post" autocomplete="off">
+<form action="" method="post" autocomplete="off">
     <div class="form-group">
         {{ form.username.label }}
         {{ form.username }}
         {{ form.password.label }}
         {{ form.password }}
     </div>
-    {{ form.csrf_token }}
-    <input type="submit" value="Sign In">
 
     <div class="form-group">
         {{ form.keep_signed_in }}
         {{ form.keep_signed_in.label }}
     </div>
+
+    {{ form.csrf_token }}
+    <input type="submit" value="Sign In">
 </form>
 {% endblock %}
 {% block links %}
-<a href="{{ url_for('auth.signup') }}" class="link">Sign Up</a>
-<a href="{{ url_for('auth.forgot') }}" class="link">Forgot Password</a>
+<div class="link">Forgotten your password? <a href="{{ url_for('auth.forgot') }}">Recover it here</a></div>
+<div class="link">Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign up here</a></div>
 {% endblock %}

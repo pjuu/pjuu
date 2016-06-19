@@ -12,10 +12,13 @@ from __future__ import division
 from datetime import datetime
 import math
 # 3rd party imports
-from flask import (abort, flash, redirect, render_template, request, url_for,
-                   Blueprint, current_app as app, jsonify)
+from flask import (
+    abort, flash, redirect, render_template, request, url_for,
+    Blueprint, current_app as app, jsonify
+)
 # Pjuu imports
 from pjuu.auth import current_user
+from pjuu.auth.forms import SignInForm
 from pjuu.auth.utils import get_uid, get_uid_username
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, timestamp, keys as k
@@ -146,7 +149,8 @@ def feed():
 
     """
     if not current_user:
-        return redirect(url_for('auth.signin'))
+        form = SignInForm(request.form)
+        return render_template('landing.html', form=form)
 
     # Pagination
     page = handle_page(request)

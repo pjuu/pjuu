@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Open social networking{% endblock %}
+
+{% block layout %}
+<div id="landing" class="clearfix">
+	<div id="auth" class="left">
+		<a href="{{ url_for('users.feed') }}">
+            <img class="logo" src="{{ url_for('static', filename='img/logo_otter.png') }}" width="150">
+        </a>
+        <div class="motto"><strong>Pjuu</strong> - <i>The open social network</i></div>
+        {% include 'messages.html' %}
+        <div class="form clearfix">
+            <form action="{{ url_for('auth.signin') }}" method="post" autocomplete="off">
+			    <div class="form-group">
+			        {{ form.username.label }}
+			        {{ form.username }}
+			        {{ form.password.label }}
+			        {{ form.password }}
+			    </div>
+
+			    <div class="form-group">
+			        {{ form.keep_signed_in }}
+			        {{ form.keep_signed_in.label }}
+			    </div>
+
+			    {{ form.csrf_token }}
+			    <input type="submit" value="Sign In">
+			</form>
+
+			<div class="link">Forgotten your password? <a href="{{ url_for('auth.forgot') }}">Recover it here</a></div>
+        </div>
+	</div>
+	<div id="blurb" class="right">
+		<h1>Welcome to Pjuu!</h1>
+		<p>We are an open social network. Our ethos is to provide good privacy and be as transparent as possible.</p>
+		<p>Our code is open and accessible. View, edit or run it yourself. The website, iPhone, iPad and Android applications are all released under licences that make them most useful to you and the free software community.</p>
+		<p>We believe social networks should protect you, not sell to you. To that extent we will never advertise, analyse your activity or sell your data.
+		<p>Like the sound of it? Why not...</p>
+		<a id="join-us" href="{{ url_for('auth.signup') }}">Join Us</a>
+	</div>
+	<div id="app-icons">
+		<a href="https://f-droid.org/app/com.pjuu.otterdroid" target="_blank">
+			<img class="logo" src="{{ url_for('static', filename='img/get-fdroid.png') }}" width="150">
+		</a>
+		<a href="https://play.google.com/store/apps/details?id=com.pjuu.otterdroid" target="_blank">
+			<img class="logo" src="{{ url_for('static', filename='img/get-google-play.png') }}" width="150">
+		</a>
+		<a href="https://itunes.apple.com/gb/app/pjuu/id1041701677" target="blank">
+			<img class="logo" src="{{ url_for('static', filename='img/get-apple-app.png') }}" width="150">
+		</a>
+	</div>
+</div>
+{% endblock %}

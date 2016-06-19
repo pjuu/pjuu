@@ -16,6 +16,7 @@
     <div id="wrapper">
         {% block layout %}{% endblock %}
     </div>
+    {% include 'footer.html' %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.12.4.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/pjuu.js') }}"></script>

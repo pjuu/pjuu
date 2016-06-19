@@ -28,11 +28,15 @@
 }
 
 /* GLOBAL ================================================================== */
+* {
+    margin: 0;
+}
 html, body {
     /* background-color: #F5FAE6; */
     font-family: Helvetica, Arial, sans-serif;
     font-size: 13px;
     font-weight: 400;
+    height: 100%;
     line-height: 18px;
 }
 
@@ -64,7 +68,15 @@ html[xmlns] .clearfix {
 }
 
 #wrapper {
+    margin-bottom: -60px;
+    min-height: 100%;
     width: 100%;
+}
+
+#wrapper:after {
+    content: "";
+    display: block;
+    height: 60px; 
 }
 
 .external-link {
@@ -151,7 +163,7 @@ button:hover {
 }
 
 .message {
-    border-radius: 6px;
+    border-radius: 3px;
     font-weight: 700;
     margin: 0 0 1em;
     padding: 0.5em;
@@ -178,24 +190,134 @@ button:hover {
     color: #880;
 }
 
+/* LANDING ================================================================= */
+#landing {
+    margin: 0 auto;
+    text-align: center;
+    width: 900px;
+}
+
+#landing .left {
+    float: left;
+    width: 46%;
+}
+
+#landing .right {
+    float: right;
+    text-align: left;
+    width: 46%;
+}
+
+#landing #blurb {
+    font-family: Lato, 'Open Sans', sans-serif;
+}
+
+#landing #blurb h1 {
+    margin: 1em 0 0.67em;
+}
+
+#landing #blurb p {
+    line-height: 2em;
+    margin: 2em 0;
+}
+
+#landing #blurb #join-us {
+    background-color: #06F;
+    border: 1px solid #06F;
+    border-radius: 3px;
+    color: #FFF;
+    display: block;
+    line-height: normal;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 0.5em 0.75em;
+}
+
+#landing #blurb #join-us:hover {
+    background-color: #FFF;
+    color: #06F;
+}
+
+#landing #app-icons {
+    clear: both;
+    padding: 4em 0 2em;
+}
+
+@media only screen and (max-width: 900px) {
+    #landing {
+        width: 32em;
+    }
+
+    #landing .left {
+        clear: both;
+        margin: 0 auto;
+        width: 32em;
+    }
+
+    #landing .right {
+        clear: both;
+        margin: 0 auto;
+        width: 32em;
+    }
+}
+
+@media only screen and (max-width: 420px) {
+    #landing {
+        width: 98%;
+    }
+
+    #landing .left {
+        width: 100%;
+    }
+
+    #landing .right {
+        width: 100%;
+    }
+}
+
 /* AUTHENTICATION ========================================================== */
 #auth {
     font-family: Lato, 'Open Sans', sans-serif;
-    margin: 20px 10px;
     text-align: center;
 }
 
+#auth label {
+    display: block;
+    text-align: left;
+}
+
+#auth label[for="keep_signed_in"] {
+    display: inline;
+    padding-left: 0.5em;
+}
+
 #auth form {
-    margin: 3em auto;
-    width: 32em;
+    margin: 2em 0 1em;
+}
+
+#auth h1 {
+    margin: 1em 0 2em;
+}
+
+#auth .logo {
+    margin-top: 1em;
 }
 
 #auth .motto {
     color: #333;
-    font-size: 26px;
+    font-size: 18px;
     font-weight: 300;
     line-height: 1.15em;
     padding: 1em 0;
+}
+
+#auth .link {
+    color: #000;
+}
+
+#auth .container {
+    margin: 0 auto 2em;
+    width: 32em
 }
 
 #auth .motto span {
@@ -207,10 +329,10 @@ button:hover {
 }
 
 #auth input {
-    border: 2px solid #9C0;
+    border: 1px solid #9C0;
     -webkit-border-radius: 20px;
     -moz-border-radius: 20px;
-    border-radius: 20px;
+    border-radius: 3px;
     padding: 0.5em 0.75em;
 }
 
@@ -219,8 +341,8 @@ button:hover {
     color: white;
     margin: 1em auto;
     text-transform: uppercase;
-
     width: 100%;
+    font-weight: 400;
 
     -webkit-transition: all 300ms;
     -moz-transition: all 300ms;
@@ -229,27 +351,24 @@ button:hover {
     transition: all 300ms;
 }
 
-#auth input[type=submit]:hover {
+#auth input[type=submit]:hover,
+#auth input[type=submit]:focus {
     background-color: white;
     color: #9C0;
 }
 
 #auth .link {
-    display: inline-block;
-    font-size: 16px;
+    display: block;
     padding: 8px;
-    text-transform: uppercase;
 }
 
 #auth .messages {
     margin: 0 auto;
-    width: 32em;
 }
 
 @media (min-width: 800px) {
     #auth .container {
-        margin: auto;
-        width: 70%;
+        width: 32em;
     }
 }
 
@@ -321,7 +440,7 @@ button:hover {
 
 /* MAIN ==================================================================== */
 #main {
-    margin: 4em 0 0 0;
+    padding: 4em 0 0 0;
     width: 100%;
 }
 
@@ -1156,7 +1275,8 @@ input[type="file"] {
 
 /* FOOTER ================================================================== */
 #footer {
-    margin: 2em 0 0.5em 0;
+    height: 60px;
+    /*padding: 2em 0 0.5em 0;*/
     text-align: center;
 }
 
