@@ -56,9 +56,11 @@ class FrontendTests(FrontendTestCase):
         # We now have 60 posts on each feed
 
         # Try and visit the feed when not logged in
+        # We should see the landing page rendered
         # There is no flash message to check.
         resp = self.client.get(url_for('users.feed'))
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Welcome to Pjuu!', resp.data)
 
         # Log in as user 1 and check that they can see a couple of posts on the
         # first page

@@ -8,26 +8,27 @@
 """
 
 # 3rd party imports
-from flask import (current_app as app, flash, redirect, render_template,
-                   request, url_for, session, jsonify, Blueprint, g,
-                   _app_ctx_stack)
+from flask import (
+    current_app as app, flash, redirect, render_template, request, url_for,
+    session, jsonify, Blueprint, g, _app_ctx_stack
+)
 # Pjuu imports
 from pjuu.lib import handle_next
 from pjuu.lib.mail import send_mail
 from pjuu.lib.tokens import generate_token, check_token
 from pjuu.auth import current_user
-from pjuu.auth.backend import (authenticate, signin as be_signin,
-                               signout as be_signout, create_account,
-                               activate as be_activate,
-                               change_password as be_change_password,
-                               change_email as be_change_email,
-                               delete_account as be_delete_account,
-                               dump_account as be_dump_account)
+from pjuu.auth.backend import (
+    authenticate, signin as be_signin, signout as be_signout, create_account,
+    activate as be_activate, change_password as be_change_password,
+    change_email as be_change_email, delete_account as be_delete_account,
+    dump_account as be_dump_account
+)
 from pjuu.auth.utils import get_uid, get_user
 from pjuu.auth.decorators import anonymous_required, login_required
-from pjuu.auth.forms import (ForgotForm, SignInForm, ResetForm, SignUpForm,
-                             ChangeEmailForm, ChangePasswordForm,
-                             ConfirmPasswordForm)
+from pjuu.auth.forms import (
+    ForgotForm, SignInForm, ResetForm, SignUpForm, ChangeEmailForm,
+    ChangePasswordForm, ConfirmPasswordForm
+)
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -116,6 +117,7 @@ def signin():
                 flash('Invalid user name or password', 'error')
         else:
             flash('Invalid user name or password', 'error')
+
     return render_template('signin.html', form=form)
 
 
