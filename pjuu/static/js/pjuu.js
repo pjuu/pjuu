@@ -102,6 +102,23 @@ $(document).ready(function() {
     });
 
     /*
+     * Un-follow/un-trust confirmation
+     */
+    $(".action.unfollow").click(function(event) {
+        event.stopPropagation();
+        if(!confirm("Are you sure you want to un-follow this user?")) {
+            event.preventDefault();
+        }
+    });
+
+    $(".action.unapprove").click(function(event) {
+        event.stopPropagation();
+        if(!confirm("Are you sure you no longer trust this user?")) {
+            event.preventDefault();
+        }
+    });
+
+    /*
      * Handle checking for new alerts
      */
     // The amount of time between checking for alerts
