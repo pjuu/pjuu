@@ -5,7 +5,6 @@ Flask-PyMongo==0.4.1
 Flask-WTF==0.12
 Jinja2==2.8
 MarkupSafe==0.23
-Pillow==3.2.0
 WTForms==2.1.0
 Werkzeug==0.11.10
 blinker==1.4
@@ -14,3 +13,4 @@ itsdangerous==0.24
 jsonpickle==0.9.3
 redis==2.10.5
 opbeat==3.3.3
+Wand==0.4.3

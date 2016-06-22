@@ -33,10 +33,7 @@ For a fresh installation these commands will setup the environment:
 ```
 $ sudo apt-get update
 
-$ sudo apt-get install build-essential python-dev python-setuptools redis-server mongodb
-
-# Install the Pillow dependencies
-$ sudo apt-get install libtiff5-dev libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.5-dev tk8.5-dev python-tk
+$ sudo apt-get install build-essential python-dev python-setuptools libmagickwand-dev redis-server mongodb
 
 $ sudo easy_install virtualenv
 

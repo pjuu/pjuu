@@ -2,7 +2,7 @@
 
 """Handles processing and fetching of uploaded files.
 
-At this time this only includes images so Pillow and GridFS are used.
+At this time this only includes images so Wand and GridFS are used.
 
 :license: AGPL v3, see LICENSE for more details
 :copyright: 2014-2016 Joe Doherty
@@ -10,7 +10,7 @@ At this time this only includes images so Pillow and GridFS are used.
 """
 
 import io
-from PIL import Image as PILImage, ExifTags
+from wand.image import Image
 import gridfs
 
 from pjuu import mongo as m
@@ -38,56 +38,70 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
         # StringIO to take the uploaded image to transport to GridFS
         output = io.BytesIO()
 
-        # All images are passed through PIL and turned in to PNG files.
+        # All images are passed through Wand and turned in to PNG files.
+        # Unless the image is a GIF and its format is kept
         # Will change if they need thumbnailing or resizing.
-        img = PILImage.open(upload)
+        img = Image(file=upload)
+
+        # If the input file if a GIF then we need to know
+        gif = True if img.format == 'GIF' else False
 
         # Check the exif data.
         # If there is an orientation then transform the image so that
         # it is always looking up.
         try:
             exif_data = {
-                ExifTags.TAGS[k]: v
-                for k, v in img._getexif().items()
-                if k in ExifTags.TAGS
+                k[5:]: v
+                for k, v in img.metadata.items()
+                if k.startswith('exif:')
             }
 
             orientation = exif_data.get('Orientation')
 
+            try:
+                orientation = int(orientation)
+            except TypeError, ValueError:
+                orientation = 0
+
             if orientation:  # pragma: no branch
                 if orientation == 2:
-                    img = img.transpose(PILImage.FLIP_LEFT_RIGHT)
+                    img.flop()
                 if orientation == 3:
-                    img = img.transpose(PILImage.ROTATE_180)
+                    img.rotate(180)
                 elif orientation == 4:
-                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
+                    img.flip()
                 elif orientation == 5:
-                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
-                    img = img.transpose(PILImage.ROTATE_270)
+                    img.flip()
+                    img.rotate(90)
                 elif orientation == 6:
-                    img = img.transpose(PILImage.ROTATE_270)
+                    img.rotate(90)
                 elif orientation == 7:
-                    img = img.transpose(PILImage.FLIP_TOP_BOTTOM)
-                    img = img.transpose(PILImage.ROTATE_90)
+                    img.flip()
+                    img.rotate(270)
                 elif orientation == 8:
-                    img = img.transpose(PILImage.ROTATE_90)
+                    img.rotate(270)
 
         except AttributeError:
             pass
 
         if thumbnail:
-            img.thumbnail(image_size, PILImage.ANTIALIAS)
+            # Transform the image keeping the aspect ratio
+            img.transform("", "{0}x{1}>".format(*image_size))
         else:
-            # Pillow `resize` returns an image unlike thumbnail
-            img = img.resize(image_size, PILImage.ANTIALIAS)
+            # Just sample the image to the correct size
+            img.sample(*image_size)
 
-        img.save(output, format='PNG', quality=100)
+        if gif:
+            img.format = 'GIF'
+            filename = '{0}.{1}'.format(get_uuid(), 'gif')
+        else:
+            img.format = 'PNG'
+            filename = '{0}.{1}'.format(get_uuid(), 'png')
+
+        img.save(file=output)
 
         # Return the file pointer to the start
         output.seek(0)
-
-        # Create a new file name <uuid>.<upload_extension>
-        filename = '{0}.{1}'.format(get_uuid(), 'png')
 
         # Place file inside GridFS
         m.save_file(filename, output, base=collection)
