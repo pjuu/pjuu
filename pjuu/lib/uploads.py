@@ -60,7 +60,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
 
             try:
                 orientation = int(orientation)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 orientation = 0
 
             if orientation:  # pragma: no branch

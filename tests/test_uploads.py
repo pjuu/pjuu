@@ -10,7 +10,7 @@
 import gridfs
 import io
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, splitext
 
 from pjuu import mongo as m
 from pjuu.lib.uploads import process_upload, get_upload, delete_upload
@@ -47,7 +47,14 @@ class PagesTests(FrontendTestCase):
             # Flask. This is a Flask/Werkzeug response object
             image = get_upload(filename)
             self.assertTrue(grid.exists({'filename': filename}))
-            self.assertEqual(image.headers['Content-Type'], 'image/png')
+
+            _, file_extension = splitext(f)
+            if file_extension.lower() == '.gif':
+                file_type = 'image/gif'
+            else:
+                file_type = 'image/png'
+
+            self.assertEqual(image.headers['Content-Type'], file_type)
 
             # Test deletion
             # Ensure file is present (it will be)
