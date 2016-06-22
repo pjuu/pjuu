@@ -58,10 +58,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
 
             orientation = exif_data.get('Orientation')
 
-            try:
-                orientation = int(orientation)
-            except (TypeError, ValueError):
-                orientation = 0
+            orientation = int(orientation)
 
             if orientation:  # pragma: no branch
                 if orientation == 2:
@@ -81,7 +78,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
                 elif orientation == 8:
                     img.rotate(270)
 
-        except AttributeError:
+        except (AttributeError, TypeError, AttributeError):
             pass
 
         if thumbnail:
