@@ -63,7 +63,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
             if orientation:  # pragma: no branch
                 if orientation == 2:
                     img.flop()
-                if orientation == 3:
+                elif orientation == 3:
                     img.rotate(180)
                 elif orientation == 4:
                     img.flip()
@@ -83,7 +83,17 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
 
         if thumbnail:
             # Transform the image keeping the aspect ratio
-            img.transform("", "{0}x{1}>".format(*image_size))
+            if gif:
+                # We need to transform each frame in the image for animated
+                # GIFs. We will just do it for all gifs.
+                output_image = Image()
+                for frame in img.sequence:
+                    frame.transform(resize="{0}x{1}>".format(*image_size))
+                    # Directly append the frame to the output image
+                    output_image.sequence.append(frame)
+                img = output_image
+            else:
+                img.transform(resize="{0}x{1}>".format(*image_size))
         else:
             # Just sample the image to the correct size
             img.sample(*image_size)
