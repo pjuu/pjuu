@@ -74,12 +74,23 @@ class PostBackendTests(BackendTestCase):
         self.assertIn('upload', post)
         self.assertIsNotNone(post.get('upload'))
 
+        image = io.BytesIO(open('tests/upload_test_files/otter.gif').read())
+        post3 = create_post(user1, 'user1', 'Test post #2', upload=image)
+
+        self.assertIsNotNone(post3)
+
+        post = get_post(post3)
+        self.assertIn('upload', post)
+        self.assertIn('upload_animated', post)
+        self.assertIsNotNone(post.get('upload'))
+        self.assertIsNotNone(post.get('upload_animated'))
+
         # Create a post with a broken image, ensure it's handled correctly
         image = io.BytesIO()
-        post3 = create_post(user1, 'user1', 'Test post #3', upload=image)
-        self.assertIsNone(post3)
-        post3 = get_post(post3)
-        self.assertIsNone(post3)
+        post4 = create_post(user1, 'user1', 'Test post #3', upload=image)
+        self.assertIsNone(post4)
+        post4 = get_post(post4)
+        self.assertIsNone(post4)
 
     def test_approved_feed_population(self):
         """Ensure only approved users get approved posts but in there feed."""

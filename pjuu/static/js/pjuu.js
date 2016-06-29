@@ -279,4 +279,9 @@ $(document).ready(function() {
     $("body").on("click", "li.item.post form .downvoted, #post li form .downvoted", function(event) {
         voteAction(this, event, 'downvoteReverse');
     });
+
+    /*
+     * gifplayer
+     */
+    $('.gif').gifplayer();
 });

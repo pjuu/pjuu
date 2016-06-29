@@ -11,6 +11,7 @@ At this time this only includes images so Wand and GridFS are used.
 
 import io
 from wand.image import Image
+from wand.exceptions import MissingDelegateError
 import gridfs
 
 from pjuu import mongo as m
@@ -45,6 +46,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
 
         # If the input file if a GIF then we need to know
         gif = True if img.format == 'GIF' else False
+        animated_gif = True if gif and len(img.sequence) > 1 else False
 
         # Check the exif data.
         # If there is an orientation then transform the image so that
@@ -82,41 +84,48 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
             pass
 
         if thumbnail:
-            # Transform the image keeping the aspect ratio
-            if gif:
-                # We need to transform each frame in the image for animated
-                # GIFs. We will just do it for all gifs.
-                output_image = Image()
+            # If the GIF was known to be animated then save the animated
+            # then cycle through the frames, transforming them and save the
+            # output
+            if animated_gif:
+                animated_image = Image()
                 for frame in img.sequence:
-                    frame.transform(resize="{0}x{1}>".format(*image_size))
+                    frame.transform(resize='{0}x{1}>'.format(*image_size))
                     # Directly append the frame to the output image
-                    output_image.sequence.append(frame)
-                img = output_image
-            else:
-                img.transform(resize="{0}x{1}>".format(*image_size))
+                    animated_image.sequence.append(frame)
+
+                animated_output = io.BytesIO()
+                animated_output.format = 'GIF'
+                animated_image.save(file=animated_output)
+                animated_output.seek(0)
+
+            img.transform(resize='{0}x{1}>'.format(*image_size))
         else:
             # Just sample the image to the correct size
             img.sample(*image_size)
+            # Turn off animated GIF
+            animated_gif = False
 
-        if gif:
-            img.format = 'GIF'
-            filename = '{0}.{1}'.format(get_uuid(), 'gif')
-        else:
-            img.format = 'PNG'
-            filename = '{0}.{1}'.format(get_uuid(), 'png')
-
-        img.save(file=output)
+        img.format = 'PNG'
+        uuid = get_uuid()
+        filename = '{0}.{1}'.format(uuid, 'png')
 
         # Return the file pointer to the start
+        img.save(file=output)
         output.seek(0)
 
         # Place file inside GridFS
         m.save_file(filename, output, base=collection)
 
-        return filename
-    except (IOError):
+        animated_filename = ''
+        if animated_gif:
+            animated_filename = '{0}.{1}'.format(uuid, 'gif')
+            m.save_file(animated_filename, animated_output, base=collection)
+
+        return filename, animated_filename
+    except (IOError, MissingDelegateError):
         # File will not have been uploaded
-        return None
+        return None, None
 
 
 def get_upload(filename, collection='uploads', cache_for=3600):

@@ -181,18 +181,19 @@ def create_post(user_id, username, body, reply_to=None, upload=None,
         # Set the permission a user needs to view
         post['permission'] = permission
 
-    # TODO: Make the upload process better at dealing with issues
     if upload:
         # If there is an upload along with this post it needs to go for
         # processing.
         # process_upload() can throw an Exception of UploadError. We will let
         # it fall through as a 500 is okay I think.
         # TODO: Turn this in to a Queue task at some point
-        filename = process_upload(upload)
+        filename, animated_filename = process_upload(upload)
 
         if filename is not None:
             # If the upload process was okay attach the filename to the doc
             post['upload'] = filename
+            if animated_filename:
+                post['upload_animated'] = animated_filename
         else:
             # Stop the image upload process here if something went wrong.
             return None
