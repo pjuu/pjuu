@@ -373,8 +373,8 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
 
     avatar = None
     if upload:
-        filename = process_upload(upload, image_size=(96, 96),
-                                  thumbnail=False)
+        filename, _ = process_upload(upload, image_size=(96, 96),
+                                     thumbnail=False)
         if filename is not None:  # pragma: no cover
             avatar = filename
 

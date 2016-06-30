@@ -10,7 +10,7 @@
 import gridfs
 import io
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, splitext
 
 from pjuu import mongo as m
 from pjuu.lib.uploads import process_upload, get_upload, delete_upload
@@ -38,16 +38,26 @@ class PagesTests(FrontendTestCase):
 
         # Test each file in the upload directory
         for f in test_upload_files:
+            # Don't read non image files in the directory
+            _, ext = splitext(f)
+            if ext not in ('.gif', '.jpg', '.jpeg', '.png'):
+                continue
+
             image = io.BytesIO(
                 open(f).read()
             )
-            filename = process_upload(image)
+            filename, animated = process_upload(image)
 
             # Get the upload these are designed for being served directly by
             # Flask. This is a Flask/Werkzeug response object
             image = get_upload(filename)
             self.assertTrue(grid.exists({'filename': filename}))
             self.assertEqual(image.headers['Content-Type'], 'image/png')
+
+            if animated:
+                image = get_upload(animated)
+                self.assertTrue(grid.exists({'filename': animated}))
+                self.assertEqual(image.headers['Content-Type'], 'image/gif')
 
             # Test deletion
             # Ensure file is present (it will be)
@@ -59,4 +69,4 @@ class PagesTests(FrontendTestCase):
 
         # Ensure that if we load a non-image file a None value is returned
         image = io.BytesIO()
-        self.assertIsNone(process_upload(image))
+        self.assertEqual(process_upload(image), (None, None))

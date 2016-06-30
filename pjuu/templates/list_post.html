@@ -73,7 +73,7 @@
                 </div>
                 {% else %}
                 <a href="{{ url_for('posts.view_post', username=item.username, post_id=item._id) }}">
-                    <img src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
+                    <img{% if item.upload_animated %} class="gif"{% endif %} src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
                 </a>
                 {% endif %}
             </div>

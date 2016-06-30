@@ -5,8 +5,7 @@ MAINTAINER Joe Doherty <joe@pjuu.com>
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
     apt-get -y -qq install openssl ca-certificates build-essential python-dev python-setuptools \
-    libtiff5-dev libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev liblcms2-dev \
-    libwebp-dev tcl8.5-dev tk8.5-dev python-tk && apt-get clean && rm -rf /var/lib/apt/lists/*
+    libmagickwand-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN easy_install virtualenv
 RUN mkdir -p /app/conf /app/pjuu
