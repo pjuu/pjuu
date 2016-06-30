@@ -156,6 +156,7 @@ button:hover {
     left: 0;
     position: fixed;
     width: 100%;
+    z-index: 4;
 }
 
 .js-messages .message {
