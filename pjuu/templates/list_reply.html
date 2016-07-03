@@ -34,7 +34,7 @@
         <!-- upload:reply:{{ item._id }} -->
         {% endif %}
         <div class="image">
-            <a href="{{ url_for('posts.get_upload', filename=item.upload_animated if item.upload_animated else post.upload) }}">
+            <a href="{{ url_for('posts.get_upload', filename=item.upload_animated if item.upload_animated else item.upload) }}">
                 <img{% if item.upload_animated %} class="gif"{% endif %} src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
             </a>
         </div>
