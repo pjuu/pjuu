@@ -39,6 +39,7 @@
 		<p>Like the sound of it? Why not...</p>
 		<a id="join-us" href="{{ url_for('auth.signup') }}">Join Us</a>
 	</div>
+	{% if request.headers.get('User-Agent', '').find("iOtter") == -1 %}
 	<div id="app-icons">
 		<a href="https://f-droid.org/app/com.pjuu.otterdroid" target="_blank">
 			<img class="logo" src="{{ url_for('static', filename='img/get-fdroid.png') }}" width="150">
@@ -50,5 +51,6 @@
 			<img class="logo" src="{{ url_for('static', filename='img/get-apple-app.png') }}" width="150">
 		</a>
 	</div>
+	{% endif %}
 </div>
 {% endblock %}
