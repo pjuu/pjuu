@@ -1,7 +1,7 @@
 -r requirements-base.txt
-CherryPy==6.0.2
-Sphinx==1.4.4
-coverage==4.1
-flake8==2.6.2
+CherryPy==7.1.0
+Sphinx==1.4.5
+coverage==4.2
+flake8==3.0.2
 sphinx-readable-theme==1.3.0
 codecov==2.0.5
