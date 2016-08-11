@@ -3,9 +3,9 @@
 {% endif %}
 <div id="author" class="block comment clearfix">
     <form action="{{ url_for('posts.post', username=post.username, post_id=post._id, next=request.path) }}" method="post" enctype="multipart/form-data">
-        {{ post_form.body(rows=2, maxlength=post_form.body.validators[1].max, placeholder="Leave a comment...") }}
+        {{ post_form.body(rows=2, maxlength=post_form.MAX_POST_LENGTH, placeholder="Leave a comment...") }}
         {{ post_form.csrf_token }}
-        <div id="count">0 / {{ post_form.body.validators[1].max }}</div>
+        <div id="count">0 / {{ post_form.MAX_POST_LENGTH }}</div>
         <div id="action">
             <label id="upload-label" for="upload" style="display: none;">
                 {{ post_form.upload(accept='image/*') }}
