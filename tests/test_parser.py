@@ -118,3 +118,14 @@ class ParserTests(BackendTestCase):
         self.assertEqual(hashtags[0]['hashtag'], 'pjuu')
         mentions = parse_mentions('"@joe"', check_user=False)
         self.assertEqual(mentions[0]['username'], 'joe')
+
+    def test_delimited(self):
+        """Ensure hashtags can be delimited"""
+        hashtags = parse_hashtags('#pjuu\'s test')
+        self.assertEqual(hashtags[0]['hashtag'], 'pjuu')
+
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password1')
+        activate(user1)
+        mentions = parse_mentions('@user1\'s')
+        self.assertEqual(mentions[0]['username'], 'user1')
+        self.assertEqual(mentions[0]['user_id'], user1)
