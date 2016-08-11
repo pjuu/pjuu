@@ -10,8 +10,8 @@
 # 3rd party imports
 from flask_wtf import Form
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import TextAreaField, RadioField
-from wtforms.validators import DataRequired, Length
+from wtforms import TextAreaField, RadioField, ValidationError
+from wtforms.validators import DataRequired
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
 
@@ -20,13 +20,10 @@ class PostForm(Form):
     """Handle the input from the web for posts and replies.
 
     """
+    MAX_POST_LENGTH = MAX_POST_LENGTH
 
     body = TextAreaField('Post', [
         DataRequired('A message is required.'),
-        Length(max=MAX_POST_LENGTH,
-               message='Posts can not be larger than '
-                       '{} characters'.format(MAX_POST_LENGTH))
-
     ])
 
     upload = FileField('Upload', [
@@ -39,3 +36,8 @@ class PostForm(Form):
         ('1', 'Pjuu'),
         ('2', 'Approved')
     ], default=0)
+
+    def validate_body(self, field):
+        if len(field.data.replace('\r\n', '\n')) > MAX_POST_LENGTH:
+            raise ValidationError('Posts can not be larger than '
+                                  '{} characters'.format(MAX_POST_LENGTH))
