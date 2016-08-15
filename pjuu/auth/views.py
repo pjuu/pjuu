@@ -207,21 +207,26 @@ def forgot():
     form = ForgotForm(request.form)
     # We always go to /signin after a POST
     if request.method == 'POST':
-        user = get_user(get_uid(form.username.data, non_active=True))
-        if user is not None:
-            # Only send e-mails to user which exist.
-            token = generate_token({'action': 'reset', 'uid': user.get('_id')})
-            send_mail(
-                'Pjuu Account Notification - Password Reset',
-                [user.get('email')],
-                text_body=render_template('emails/forgot.txt',
-                                          token=token),
-                html_body=render_template('emails/forgot.html',
-                                          token=token)
-            )
-        flash('If we\'ve found your account we\'ve e-mailed you',
-              'information')
-        return redirect(url_for('auth.signin'))
+        if form.validate():
+            user = get_user(get_uid(form.username.data, non_active=True))
+            if user is not None:
+                # Only send e-mails to user which exist.
+                token = generate_token({'action': 'reset', 'uid': user.get('_id')})
+                send_mail(
+                    'Pjuu Account Notification - Password Reset',
+                    [user.get('email')],
+                    text_body=render_template('emails/forgot.txt',
+                                              token=token),
+                    html_body=render_template('emails/forgot.html',
+                                              token=token)
+                )
+            flash('If we\'ve found your account we\'ve e-mailed you',
+                  'information')
+            return redirect(url_for('auth.signin'))
+        else:
+            flash('Please enter a username or e-mail address',
+                  'error')
+
     return render_template('forgot.html', form=form)
 
 

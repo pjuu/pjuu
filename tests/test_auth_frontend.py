@@ -367,6 +367,12 @@ class AuthFrontendTests(FrontendTestCase):
         # we can't auth with the old password
         self.assertFalse(authenticate('test', 'Password'))
 
+        # Test an error is thrown if not username or email in entered
+        resp = self.client.post(url_for('auth.forgot'), data={
+            'username': ''
+        }, follow_redirects=True)
+        self.assertIn('Please enter a username or e-mail address', resp.data)
+
     def test_change_confirm_email(self):
         """
         Test changing your e-mail address from the frontend. This is the last

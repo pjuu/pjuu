@@ -22,7 +22,9 @@ class ForgotForm(Form):
     """Form for when you have forgotten your password
 
     """
-    username = StringField('User name or E-Mail')
+    username = StringField('User name or E-Mail', [
+        DataRequired()
+    ])
 
 
 class SignInForm(Form):
