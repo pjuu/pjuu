@@ -211,7 +211,10 @@ def forgot():
             user = get_user(get_uid(form.username.data, non_active=True))
             if user is not None:
                 # Only send e-mails to user which exist.
-                token = generate_token({'action': 'reset', 'uid': user.get('_id')})
+                token = generate_token({
+                    'action': 'reset',
+                    'uid': user.get('_id')
+                })
                 send_mail(
                     'Pjuu Account Notification - Password Reset',
                     [user.get('email')],
