@@ -28,7 +28,7 @@ class PagesTests(FrontendTestCase):
         resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>About Us</h1>', resp.data)
+        self.assertIn('<h1>About Pjuu</h1>', resp.data)
 
         # Terms
         resp = self.client.get(url_for('pages.terms'))
@@ -40,7 +40,7 @@ class PagesTests(FrontendTestCase):
         resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>Privacy</h1>', resp.data)
+        self.assertIn('<h1>Privacy bothers us!</h1>', resp.data)
 
     def test_logged_in(self):
         """Check the pages work when logged in
@@ -60,7 +60,7 @@ class PagesTests(FrontendTestCase):
         resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>About Us</h1>', resp.data)
+        self.assertIn('<h1>About Pjuu</h1>', resp.data)
 
         # Terms
         resp = self.client.get(url_for('pages.terms'))
@@ -72,4 +72,4 @@ class PagesTests(FrontendTestCase):
         resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>Privacy</h1>', resp.data)
+        self.assertIn('<h1>Privacy bothers us!</h1>', resp.data)
