@@ -3,106 +3,102 @@
 {% block title %}About Us{% endblock %}
 
 {% block main %}
-<div id="content" class="block clearfix">
-    <h1>About Us</h1>
-    <div id="pages">
-        <h1>Overview</h1>
+<div id="pages" class="block clearfix">
+    <h1>About Pjuu</h1>
 
-        <p>Pjuu is an open-source social networking application released under a "free as in freedom" license, the <a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU AGPLv3</a>.</p>
+    <p>Pjuu is an open-source social networking application released under a "free as in freedom" license, the <a href="http://www.gnu.org/licenses/agpl-3.0.html">GNU AGPLv3</a>.</p>
 
-        <p>We all love choice and Pjuu is another option in the social networking world. It may not be as feature-heavy as other social networking websites, so if you want something simple it's a good option.</p>
+    <p>We all love choice and Pjuu is another option in the social networking world. It may not be as feature-heavy as other social networking websites, so if you want something simple it's a good option.</p>
 
-        <p>As Pjuu is open source, you can take the Pjuu code and run it on your own server. Anyone who is sensitive about the data they post on social networks can host it themseleves. These new servers can define their own terms of service and privacy policy, and look after the data themselves. In the future we plan to allow these self-hosted Pjuu servers to communicate with one another.</p>
+    <p>As Pjuu is open source, you can take the Pjuu code and run it on your own server. Anyone who is sensitive about the data they post on social networks can host it themselves. These new servers can define their own terms of service and privacy policy, and look after the data themselves. In the future we plan to allow these self-hosted Pjuu servers to communicate with one another.</p>
 
-        <p>If you are interested in seeing how Pjuu is build (its rather simple), check out our <a target="_blank" href="https://github.com/pjuu/pjuu">Github</a> page.</p>
+    <p>If you are interested in seeing how Pjuu is build (its rather simple), check out our <a target="_blank" href="https://github.com/pjuu/pjuu">Github</a> page.</p>
 
-        <h1>About The Developers</h1>
+    <h2>About The Developers</h2>
 
-        <p><b>Joe Doherty</b> I am the main developer of Pjuu. I created it to gain experience when I was learning a new Python framework. I thought "why not release it and see what happens?". I haven't stopped working on it since. I am a computer programmer in the United Kingdom, having previously worked as a Linux engineer in hosting.</p>
+    <p><b>Joe Doherty</b> I am the main developer of Pjuu. I created it to gain experience when I was learning a new Python framework. I thought "why not release it and see what happens?". I haven't stopped working on it since. I am a computer programmer in the United Kingdom, having previously worked as a Linux engineer in hosting.</p>
 
-        <p><b>Ant Kenworthy</b> I'm the server wrangler for Pjuu and I look after the herd of servers that keep Pjuu online. I'm a systems engineer by day, also from the UK.</p>
+    <p><b>Ant Kenworthy</b> I'm the server wrangler for Pjuu and I look after the herd of servers that keep Pjuu on-line. I'm a systems engineer by day, also from the UK.</p>
 
-        <h1>Future Plans</h1>
+    <h2>Future Plans</h2>
 
-        <p>There is still a lot of features we want to implement into Pjuu. The following details what we want to do before version 1.0:</p>
+    <p>There is still a lot of features we want to implement into Pjuu. The following details what we want to do before version 1.0:</p>
 
+    <ul>
+        <li><b>Groups</b> It would be nice to have a group feature like those found on other social networks. This is still in the early stages of the process to keep it super simple and easy to use.</li>
+
+        <li><b>Private Messages</b> Although private messaging is not a very social thing to do, it is a must. We will be adding this in before version 1.0</li>
+    </ul>
+
+    <p>If you have any ideas or something you would like to see inside Pjuu, open an issue over at <a target="_blank" href="https://github.com/pjuu/pjuu">Github</a>, or create it yourself and send us a pull request.</p>
+
+    <h2>Technology</h2>
+
+    <p>Pjuu is a pretty simple software project, we have made some good decisions and some not so good, which we will have fixed before version 1.0. Below is a list of everything we use within Pjuu.</p>
+
+    <p>
+        <h3>Services</h3>
         <ul>
-            <li><b>Permissions</b> Currently all users of the site have the ability to view your profile. To see a Pjuu profile you need to be signed up to see anything from any user. This will change in the future and you will be able to choose who can see your data, follow you, and tag you in posts.</li>
-
-            <li><b>Groups</b> It would be nice to have a group feature like those found on other social networks. This is still in the early stages of the process to keep it super simple and easy to use.</li>
-
-            <li><b>Private Messages</b> Although private messaging is not a very social thing to do, it is a must. We will be adding this in before version 1.0</li>
+            <li>
+                <div><b>DigitalOcean</b></div>
+                <div>Runs our infrastructure at a great price. We also use CloudConfig (user-data) to provision our servers and services.</div>
+                <div><a href="https://www.digitalocean.com" target="_blank">https://www.digitalocean.com</a></div>
+            </li>
+            <li>
+                <div><b>Opbeat</b></div>
+                <div>Monitors the Pjuu application for errors and performance. If there are any issues we know straight away. We can also see a high level view of how Pjuu the software is performing.</div>
+                <div><a href="https://opbeat.com" target="_blank">https://opbeat.com</a></div>
+            </li>
+            <li>
+                <div><b>Mailgun</b></div>
+                <div>Send all emails from Pjuu.</div>
+                <div><a href="https://www.mailgun.com/" target="_blank">https://www.mailgun.com/</a></div>
+            </li>
+            <li>
+                <div><b>Github</b></div>
+                <div>Stores all code for our various projects: The website, the Android and the iOS application.</div>
+                <div><a href="https://github.com/" target="_blank">https://github.com/</a></div>
+            </li>
         </ul>
+    </p>
 
-        <p>If you have any ideas or something you would like to see inside Pjuu, open an issue over at <a target="_blank" href="https://github.com/pjuu/pjuu">Github</a>, or create it yourself and send us a pull request.</p>
+    <p>
+        <h3>Software</h3>
+        <ul>
+            <li>
+                <div><b>Python</b></div>
+                <div>A great open-source programming language.</div>
+                <div><a href="https://www.python.org" target="_blank">https://www.python.org</a></div>
+            </li>
+            <li>
+                <div><b>Debian</b></div>
+                <div>All our guests run Linux and we love the Debian project.</div>
+                <div><a href="https://www.debian.org" target="_blank">https://www.debian.org</a></div>
+            </li>
+            <li>
+                <div><b>Nginx</b></div>
+                <div>Awesome, rock solid, easy to use web server.</div>
+                <div><a href="http://nginx.org" target="_blank">http://nginx.org</a></div>
+            </li>
+            <li>
+                <div><b>Gunicorn</b></div>
+                <div>Brilliant WSGI server for Python.</div>
+                <div><a href="http://gunicorn.org" target="_blank">http://gunicorn.org</a></div>
+            </li>
+            <li>
+                <div><b>Redis</b></div>
+                <div>Formerly Pjuu's sole data store. Redis is amazing! Super fast and super flexible.</div>
+                <div><a href="http://redis.io" target="_blank">http://redis.io</a></div>
+            </li>
+            <li>
+                <div><b>MongoDB</b>*</div>
+                <div>A great document-based database. Allows easy scalability with sharding.</div>
+                <div><a href="http://www.mongodb.com" target="_blank">http://www.mongodb.com</a></div>
+            </li>
+        </ul>
+    </p>
+    <p>We may use more in the future but not the time being this will allow us to scale up.</p>
 
-        <h1>Technology</h1>
-
-        <p>Pjuu is a pretty simple software project, we have made some good decisions and some not so good, which we will have fixed before version 1.0. Below is a list of everything we use within Pjuu.</p>
-
-        <p>
-            <h2>Services</h2>
-            <ul>
-                <li>
-                    <div><b>Linode</b></div>
-                    <div>Our awesome web hosting company, the entire Pjuu website runs on top of Linode.</div>
-                    <div><a href="https://www.linode.com" target="_blank">https://www.linode.com</a></div>
-                </li>
-                <li>
-                    <div><b>DigitalOcean</b></div>
-                    <div>Our backup and monitoring solution is hosted on a tiny node living on DO. This allows us to separate the components on Pjuu.</div>
-                    <div><a href="https://www.digitalocean.com" target="_blank">https://www.digitalocean.com</a></div>
-                </li>
-                <li>
-                    <div><b>Sentry</b></div>
-                    <div>Monitors the Pjuu application. If there are any issues we know straight away.</div>
-                    <div><a href="https://getsentry.com" target="_blank">https://getsentry.com</a></div>
-                </li>
-            </ul>
-        </p>
-
-        <p>
-            <h2>Software</h2>
-            <ul>
-                <li>
-                    <div><b>Python</b></div>
-                    <div>A great open-source programming language.</div>
-                    <div><a href="https://www.python.org" target="_blank">https://www.python.org</a></div>
-                </li>
-                <li>
-                    <div><b>Debian</b></div>
-                    <div>All our guests run Linux and we love the Debian project.</div>
-                    <div><a href="https://www.debian.org" target="_blank">https://www.debian.org</a></div>
-                </li>
-                <li>
-                    <div><b>Ansible</b></div>
-                    <div>Server orchestration software. Makes deploying servers a breeze.</div>
-                    <div><a href="http://www.ansible.com" target="_blank">http://www.ansible.com</a></div>
-                </li>
-                <li>
-                    <div><b>Nginx</b></div>
-                    <div>Awesome, rock solid, easy to use web server.</div>
-                    <div><a href="http://nginx.org" target="_blank">http://nginx.org</a></div>
-                </li>
-                <li>
-                    <div><b>Gunicorn</b></div>
-                    <div>Brilliant WSGI server for Python.</div>
-                    <div><a href="http://gunicorn.org" target="_blank">http://gunicorn.org</a></div>
-                </li>
-                <li>
-                    <div><b>Redis</b></div>
-                    <div>Formerly Pjuu's sole data store. Redis is amazing! Super fast and super flexible.</div>
-                    <div><a href="http://redis.io" target="_blank">http://redis.io</a></div>
-                </li>
-                <li>
-                    <div><b>MongoDB</b></div>
-                    <div>A great document-based database. Allows easy scalability with sharding.</div>
-                    <div><a href="http://www.mongodb.com" target="_blank">http://www.mongodb.com</a></div>
-                </li>
-            </ul>
-        </p>
-        <p>We may use more in the future but fot the time being this will allow us to scale up.</p>
-        <p>Please don't ask the question; "Why no SQL?". We are big fans of SQL and use it all the time in our day to day lives. We have however decided to go down the NoSQL route. If this one day doesn't live up to our scalability expectations we will be jumping straight back on the SQL train. FYI I am a big fan of <a href="https://www.mariadb.org" target="_blank">MariaDB</a>.</p>
-    </div>
+    <p>* - There is plans to replace MongoDB with PostgreSQL in the very near future. This is going to allow us to some tools with a specific to a RDBMS. <a href="https://github.com/pjuu/pjuu/issues/275" target="_blank">https://github.com/pjuu/pjuu/issues/275</a></p>
 </div>
 {% endblock %}

@@ -448,7 +448,7 @@ button:hover {
 
 #main .container {
     margin: 0 auto;
-    min-width: 300px;
+    min-width: 280px;
     max-width: 700px;
 }
 
@@ -1331,26 +1331,21 @@ input[type="file"] {
 
 /* PAGES =================================================================== */
 #pages {
+    font-family: Lato, 'Open Sans', sans-serif;
     margin: 0.5em 1em;
 }
 
 #pages h1 {
-    background-color: #FFF;
-    border: 0;
-    border-bottom: 1px solid #333;
     color: #333;
-    font-size: 1.5em;
-    margin: 1em 0;
+    font-size: 2em;
+    margin: 0.25em 0 0.5em;
     padding: 0 0 0.25em 0;
 }
 
 #pages h2 {
-    background-color: #FFF;
-    border: 0;
-    color: #666;
-    font-size: 1.25em;
-    font-weight: 400;
-    margin: 0;
+    color: #9C0;
+    font-size: 1.5em;
+    margin: 2em 0 1em;
     padding: 0;
 }
 
@@ -1369,6 +1364,16 @@ input[type="file"] {
 
 #pages li {
     margin: 0 0 1em 0;
+}
+
+#pages p {
+    margin: 0 3px 1em;
+}
+
+#pages .end {
+    color: #9C0;
+    text-align: center;
+    margin-bottom: 2em;
 }
 
 /* TIPS ==================================================================== */
