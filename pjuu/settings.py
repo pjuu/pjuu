@@ -16,7 +16,7 @@ DEBUG = True
 # you can find them in Headers as X-Pjuu-Token on the return from a function.
 # Note: It will be attached to the 302 is most cases so ensure you check the
 # correct response to find this
-TESTING = True
+TESTING = False
 
 # In the case of testing we need a server name, so here's one:
 # SERVER_NAME = 'localhost'
@@ -46,6 +46,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
 
 # Flask-Mail
+MAIL_SUPPRESS_SEND = DEBUG
 MAIL_SERVER = 'localhost'
 MAIL_PORT = 25
 MAIL_USE_TLS = False

@@ -70,7 +70,7 @@ def inject_token_header(response):
     Will only ever do this if testing mode is on!
 
     """
-    if app.testing:  # pragma: no branch
+    if app.debug or app.testing:  # pragma: no branch
         token = g.get('token')
         if token:
             response.headers['X-Pjuu-Token'] = token

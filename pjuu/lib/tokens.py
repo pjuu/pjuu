@@ -35,7 +35,7 @@ def generate_token(data):
     # For testing if a token is generated add it as a HTTP Header for us to
     # check with the test client.
     # Only ever do this in testing mode
-    if app.testing:  # pragma: no branch
+    if app.debug or app.testing:  # pragma: no branch
         g.token = tid
 
     return tid

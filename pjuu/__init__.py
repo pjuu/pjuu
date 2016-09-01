@@ -133,9 +133,10 @@ def create_app(config_filename='settings.py', config_dict=None):
                 values[param_name] = int(os.stat(
                     os.path.join(static_folder, filename)).st_mtime)
 
-    # Register error handlers
-    from pjuu.lib.errors import register_errors
-    register_errors(app)
+    if not app.debug or (app.debug and app.testing):  # pragma: no branch
+        # Register error handlers
+        from pjuu.lib.errors import register_errors
+        register_errors(app)
 
     # Import all Pjuu blue prints
     from pjuu.auth.views import auth_bp
