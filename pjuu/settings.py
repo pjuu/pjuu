@@ -46,7 +46,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
 
 # Flask-Mail
-MAIL_SUPPRESS_SEND = DEBUG
+# Ensure this is True in production to send e-mails
+MAIL_SUPPRESS_SEND = DEBUG or TESTING
 MAIL_SERVER = 'localhost'
 MAIL_PORT = 25
 MAIL_USE_TLS = False
