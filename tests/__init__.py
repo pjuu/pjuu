@@ -28,7 +28,7 @@ class BackendTestCase(unittest.TestCase):
         """
         # Create flask app and context
         self.app = create_app(config_dict={
-            'TESTING': 'True',
+            'TESTING': True,
             'SERVER_NAME': 'localhost',
             'WTF_CSRF_ENABLED': False,
             'MONGO_DBNAME': 'pjuu_testing',

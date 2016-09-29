@@ -12,8 +12,9 @@ import os
 
 from flask import Flask, request, g
 from flask_mail import Mail
-from flask_pymongo import PyMongo
+from flask_migrate import Migrate
 from flask_redis import Redis
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CsrfProtect
 from opbeat.contrib.flask import Opbeat
 
@@ -28,8 +29,9 @@ __version__ = 'master'
 
 # Global Flask-Mail object
 mail = Mail()
-# Global MongoDB object
-mongo = PyMongo()
+# SQL alchemy
+db = SQLAlchemy()
+migrations = Migrate()
 # Global Redis objects
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
@@ -39,7 +41,7 @@ redis_sessions = Redis()
 csrf = CsrfProtect()
 
 
-def create_app(config_filename='settings.py', config_dict=None):
+def create_app(info=None, config_filename='settings.py', config_dict=None):
     """Creates a Pjuu WSGI application with the passed in config_filename.
 
     ``config_filename`` should be a Python file as per the default. To
@@ -80,8 +82,9 @@ def create_app(config_filename='settings.py', config_dict=None):
             secret_token=app.config.get('OPBEAT_SECRET_TOKEN')
         )
 
-    # Initialize the PyMongo client
-    mongo.init_app(app)
+    # Initialize the SQLAlchemy and Alembric
+    db.init_app(app)
+    migrations.init_app(app)
 
     # This is the _MAIN_ redis client. ONLY STORE DATA HERE
     redis.init_app(app)
