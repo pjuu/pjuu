@@ -7,15 +7,15 @@ python:
 sudo: false
 
 services:
-  - mongodb
+  - postgresql
   - redis-server
 
 install:
   - pip install -r requirements-dev.txt
 
 script:
-  - make flake
-  - make test 
+  - python manage.py flake
+  - python manage.py test
 
 after_success:
   - codecov
