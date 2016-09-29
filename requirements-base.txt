@@ -1,8 +1,10 @@
 Flask==0.11.1
 Flask-And-Redis==0.6
 Flask-Mail==0.9.1
+Flask-Migrate==2.0.0
 Flask-PyMongo==0.4.1
 Flask-WTF==0.13
+Flask-SQLAlchemy==2.1
 Jinja2==2.8
 MarkupSafe==0.23
 WTForms==2.1.0

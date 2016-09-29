@@ -22,7 +22,7 @@ This is the primary code base for https://pjuu.com, the website is deployed dire
 
 The main goal of Pjuu as an application is privacy.
 
-Pjuu is written in Python/Flask and uses Redis and MongoDB as the data stores.
+Pjuu is written in Python/Flask and uses Redis and PostgreSQL as the data stores.
 
 ### Getting started
 
@@ -63,27 +63,27 @@ $ vagrant ssh
 To run the unit tests with coverage the following commands can be used:
 
 ```
-$ make test
+$ python manage.py test
 ```
 
 To obtain a code coverage report
 
 ```
-$ make coverage
+$ python manage.py coverage
 ```
 
 Checking code quality and PEP8 compliance:
 
 ```
-$ make flake
+$ python manage.py flake
 ```
 
 #### Development server
 
-To Run the development server ( CherryPy ) type the following command:
+To Run the development server type the following command:
 
 ```
-$ make run
+$ python manage.py run
 ```
 
 You can then view the site by visiting: http://localhost:5000
@@ -93,7 +93,7 @@ You can now play with the code base :)
 #### Creating test accounts
 
 **IMPORTANT Note:**
-While testing You do NOT need to setup an SMTP server. To activate your an account you can look in the response header for X-Pjuu-Token. If you copy this and visit `/activate/<token>` that will have the same effect as clicking the link in the activate account email. The same applies for any other action requiring confirmation (forgotten password), it will however be a different URL you need to append the token to.
+While testing You do NOT need to setup an SMTP server. To activate your account you can look in the response header for X-Pjuu-Token. If you copy this and visit `/activate/<token>` that will have the same effect as clicking the link in the activate account email. The same applies for any other action requiring confirmation (forgotten password), it will however be a different URL you need to append the token to.
 
 This only works if `TESTING = True` in your settings.
 
@@ -107,4 +107,5 @@ All software has bugs in and Pjuu is no different. These may have security impli
 
 ### Credits
 
-James Rand - illustrating our Otter logo :)
+James Rand - illustrating the original Otter logo
+Jonathan Trengrove - updating the Otter logo
