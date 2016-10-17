@@ -249,8 +249,12 @@ $(document).ready(function() {
             }
         }).error(function(jqXHR, textStatus, errorThrown) {
             clear_flashed_messages();
-            data = jqXHR.responseJSON;
-            flash(data.message, "error");
+            if (jqXHR.status == 403) {
+                flash("You need to be signed in to perform this action", "warning");
+            } else {
+                data = jqXHR.responseJSON;
+                flash(data.message, "error");
+            }
         }).always(function() {
             // Enable all votes buttons again and un-focus (blur) them
             upvoteBtn.blur();

@@ -21,7 +21,7 @@ from .backend import (create_post, check_post, has_voted, is_subscribed,
                       get_replies, unsubscribe as be_unsubscribe,
                       CantVoteOnOwn, AlreadyVoted, get_hashtagged_posts,
                       flag_post, has_flagged, CantFlagOwn, AlreadyFlagged,
-                      unflag_post as be_unflag_post)
+                      unflag_post as be_unflag_post, get_global_feed)
 from .forms import PostForm
 from pjuu.auth.utils import get_user, get_uid
 from pjuu.users.backend import get_user_permission
@@ -525,3 +525,28 @@ def hashtags(hashtag=None):
 
     return render_template('hashtags.html', hashtag=hashtag,
                            pagination=pagination)
+
+
+@posts_bp.route('/global', methods=['GET'])
+def global_feed():
+    """Show a weighted list of public/pjuu only posts depending if the user is
+    logged in or not
+    """
+    if current_user:
+        page_size = current_user.get('feed_pagination_size',
+                                     app.config.get('FEED_ITEMS_PER_PAGE', 25))
+    else:
+        page_size = app.config.get('FEED_ITEMS_PER_PAGE', 25)
+
+    if current_user:
+        permission = 1
+    else:
+        permission = 0
+
+    page = handle_page(request)
+
+    _posts = get_global_feed(page, page_size, perm=permission)
+
+    post_form = PostForm()
+    return render_template('global_feed.html', pagination=_posts,
+                           post_form=post_form)

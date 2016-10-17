@@ -9,7 +9,7 @@
 
 # 3rd party imports
 from functools import wraps
-from flask import redirect, request, url_for, flash
+from flask import abort, redirect, request, url_for, flash
 # Pjuu imports
 from pjuu.auth import current_user
 
@@ -34,7 +34,10 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:
-            flash('You need to be logged in to view that', 'information')
+            if request.is_xhr:
+                return abort(403)
+
+            flash('You need to be signed in to view that', 'information')
             return redirect(url_for('auth.signin', next=request.path))
         return func(*args, **kwargs)
 

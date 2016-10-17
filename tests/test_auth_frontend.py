@@ -18,6 +18,7 @@ from pjuu.auth.backend import (
     activate, authenticate, ban, create_account, delete_account
 )
 from pjuu.auth.utils import get_uid_username
+from pjuu.posts.backend import create_post
 # Test imports
 from tests import FrontendTestCase
 
@@ -386,7 +387,7 @@ class AuthFrontendTests(FrontendTestCase):
         # We will just ensure we have been redirected to /signin
         self.assertEqual(resp.status_code, 200)
         # We should see a message saying we need to signin
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Let's create a user an login
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -481,7 +482,7 @@ class AuthFrontendTests(FrontendTestCase):
         # We will just ensure we have been redirected to /signin
         self.assertEqual(resp.status_code, 200)
         # We should see a message saying we need to signin
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Let's create a user an login
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -545,7 +546,7 @@ class AuthFrontendTests(FrontendTestCase):
         # We will just ensure we have been redirected to /signin
         self.assertEqual(resp.status_code, 200)
         # We should see a message saying we need to signin
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Let's create a user an login
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -658,3 +659,18 @@ class AuthFrontendTests(FrontendTestCase):
             if header[0] == 'Set-Cookie':
                 self.assertNotEqual(session_id,
                                     parse_cookie(header[1])['session'])
+
+    def test_xhr_decorators(self):
+        """Ensure we get a 403 if we XHR request something we need to logged
+        in for.
+        """
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        post1 = create_post(user1, 'user1', 'Test')
+        activate(user1)
+
+        resp = self.client.post(
+            url_for('posts.upvote', username='user1', post_id=post1),
+            headers=[('X-Requested-With', 'XMLHttpRequest')]
+        )
+
+        self.assertEqual(resp.status_code, 403)

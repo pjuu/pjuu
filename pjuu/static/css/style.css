@@ -241,7 +241,24 @@ button:hover {
 
 #landing #app-icons {
     clear: both;
-    padding: 4em 0 2em;
+}
+
+#landing #global-feed {
+    clear: both;
+    font-size: 1.25em;
+    padding: 3em 0 2em;
+}
+
+#landing #global-feed a {
+    background-color: #EEE;
+    border-radius: 3px;
+    color: #333;
+    padding: 1em 2em;
+}
+
+#landing #global-feed a:hover {
+    border: 1px solid #333;
+    color: #333;
 }
 
 @media only screen and (max-width: 900px) {
@@ -1409,6 +1426,10 @@ input[type="file"] {
     color: #C00;
 }
 
+.tip p {
+    margin-bottom: 1em;
+}
+
 /* GIFPLAYER =============================================================== */
 
 ins.play-gif{
@@ -1479,7 +1500,7 @@ ins.play-gif:hover{
 }
 
 /* MEDIA QUERIES =========================================================== */
-@media only screen and (max-width: 650px) {
+@media only screen and (max-width: 750px) {
     .no-mobile {
         display: none;
     }

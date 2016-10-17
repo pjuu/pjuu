@@ -887,12 +887,12 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.upvote', username='user1',
                                         post_id=post3),
                                 follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
         # Vote on a comment
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post3, reply_id=comment2),
                                 follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Log in as user3 and try and catch some situations which are missing
         # from coverage.
@@ -1555,7 +1555,7 @@ class PostFrontendTests(FrontendTestCase):
         # Ensure you can't get to the end point when no logged in.
         resp = self.client.get(url_for('posts.hashtags', hashtag='test'),
                                follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Sign in
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -1702,3 +1702,48 @@ class PostFrontendTests(FrontendTestCase):
             'permission': 'cheese'
         }, follow_redirects=True)
         self.assertIn('Not a valid choice', resp.data)
+
+    def test_global_feeds(self):
+        """"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        activate(user1)
+        activate(user2)
+
+        for i in [('public', 0), ('pjuu', 1), ('trusted', 2)]:
+            for j in xrange(1, 4):
+                create_post(user1, 'user1', '{} post #{}'.format(i[0], j),
+                            permission=i[1])
+
+        # Test a non-logged in use
+        resp = self.client.get(url_for('posts.global_feed'))
+        self.assertIn('public post #1', resp.data)
+        self.assertIn('public post #2', resp.data)
+        self.assertIn('public post #3', resp.data)
+
+        self.assertNotIn('pjuu post #1', resp.data)
+        self.assertNotIn('pjuu post #2', resp.data)
+        self.assertNotIn('pjuu post #3', resp.data)
+
+        self.assertNotIn('trusted post #1', resp.data)
+        self.assertNotIn('trusted post #2', resp.data)
+        self.assertNotIn('trusted post #3', resp.data)
+
+        # Test logged in user
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user2',
+            'password': 'Password'
+        }, follow_redirects=True)
+
+        resp = self.client.get(url_for('posts.global_feed'))
+        self.assertIn('public post #1', resp.data)
+        self.assertIn('public post #2', resp.data)
+        self.assertIn('public post #3', resp.data)
+
+        self.assertIn('pjuu post #1', resp.data)
+        self.assertIn('pjuu post #2', resp.data)
+        self.assertIn('pjuu post #3', resp.data)
+
+        self.assertNotIn('trusted post #1', resp.data)
+        self.assertNotIn('trusted post #2', resp.data)
+        self.assertNotIn('trusted post #3', resp.data)

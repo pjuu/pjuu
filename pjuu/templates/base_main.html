@@ -12,6 +12,10 @@
                 <i class="fa fa-bars fa-fw fa-lg"></i>
                 <span class="no-mobile">Feed</span>
             </li></a>
+            <a href="{{ url_for('posts.global_feed') }}"><li>
+                <i class="fa fa-globe fa-fw fa-lg"></i>
+                <span class="no-mobile">Global Feed</span>
+            </li></a>
             <a href="{{ url_for('users.profile', username=current_user.username) }}"><li>
                 <i class="fa fa-user fa-lg fa-fw"></i>
                 <span class="no-mobile">{{ current_user.username|capitalize }}</span>
@@ -38,13 +42,17 @@
             </li></a>
             {% else %}
             <!-- menu: not logged in -->
+            <a href="{{ url_for('posts.global_feed') }}"><li>
+                <i class="fa fa-globe fa-fw fa-lg"></i>
+                <span class="no-mobile">Global Feed</span>
+            </li></a>
             <a href="{{ url_for('auth.signin') }}"><li>
                 <i class="fa fa-sign-in fa-fw fa-lg"></i>
                 <span class="no-mobile">Sign In</span>
             </li></a>
             <a href="{{ url_for('auth.signup') }}"><li>
                 <i class="fa fa-smile-o fa-fw fa-lg"></i>
-                <span class="no-mobile">Sign Up</span>
+                <span class="no-mobile">Create an Account</span>
             </li></a>
             {% endif %}
         </ul>

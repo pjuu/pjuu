@@ -131,16 +131,16 @@ class FrontendTests(FrontendTestCase):
         # We should not be able to see it
         resp = self.client.post(url_for('users.follow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
         resp = self.client.post(url_for('users.unfollow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
         resp = self.client.get(url_for('users.following', username='user1'),
                                follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
         resp = self.client.get(url_for('users.followers', username='user1'),
                                follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Ensure that test1 can follow and unfollow test2
         # Signin
@@ -306,7 +306,7 @@ class FrontendTests(FrontendTestCase):
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
         resp = self.client.get(url_for('users.search'), follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # We need some users with usernames different enough that we can test
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -410,7 +410,7 @@ class FrontendTests(FrontendTestCase):
         # We should not be able to see it
         resp = self.client.get(url_for('users.settings_profile'),
                                follow_redirects=True)
-        self.assertIn('You need to be logged in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.data)
 
         # Create a test user
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
