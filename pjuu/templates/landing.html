@@ -39,6 +39,9 @@
 		<p>Like the sound of it? Why not...</p>
 		<a id="join-us" href="{{ url_for('auth.signup') }}">Join Us</a>
 	</div>
+    <div id="global-feed">
+        <a href="{{ url_for('posts.global_feed') }}"><i class="fa fa-globe"></i> View Public Feed</a>
+    </div>
 	<div id="app-icons">
 		{% if request.headers.get('User-Agent', '').find("iOtter") == -1 %}
 		<a href="https://f-droid.org/app/com.pjuu.otterdroid" target="_blank">

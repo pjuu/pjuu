@@ -1,0 +1,32 @@
+{% extends 'base_main.html' %}
+
+{% block title %}Global Feed{% endblock %}
+
+{% block main %}
+
+{% if not current_user %}
+<div class="tip clearfix">
+    <div class="left no-mobile">
+        <img class="logo" src="{{ url_for('static', filename='img/logo_otter_v2.png') }}" width="80" />
+    </div>
+    <div class="content">
+        <h1>Welcome to Pjuu!</h2>
+        <p>
+            Glad you could join us! Pjuu is an open-source application with all development taking place in public. We will not analyse you or sell you adverts, ever, it's a promise! Privacy is our primary focus.        </p>
+        <p>
+            This is a feed of all posts our users have made public. If you <a href="{{ url_for('auth.signin') }}">sign in</a> you will also see all posts that users have limited to only Pjuu users.
+        </p>
+        <p>
+            We are constantly working to improve the site so any feed back would be great.
+        </p>
+    </div>
+</div>
+{% else %}
+    {% include 'author_post.html' %}
+{% endif %}
+
+<div id="content" class="block clearfix">
+    <h1>Global Feed</h1>
+    {% include 'list.html' %}
+</div>
+{% endblock %}

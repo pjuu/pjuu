@@ -412,6 +412,39 @@ def get_post(post_id):
     return post
 
 
+def get_global_feed(page=1, per_page=None, perm=0):
+    if per_page is None:  # pragma: no cover
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
+    lookup_dict = {
+        'reply_to': {'$exists': False},
+        'permission': {'$lte': perm}
+    }
+
+    total = m.db.posts.find(lookup_dict).count()
+    cursor = m.db.posts.find(lookup_dict).sort(
+        'created', -1).skip((page - 1) * per_page).limit(per_page)
+
+    posts = []
+    for post in cursor:
+        posts.append(post)
+
+    # Get a list of unique `user_id`s from all the post.
+    user_ids = list(set([post.get('user_id') for post in posts]))
+    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'avatar': True})
+    # Create a lookup dict `{username: email}`
+    user_avatars = \
+        dict((user.get('_id'), user.get('avatar')) for user in cursor)
+
+    # Add the e-mails to the posts
+    processed_posts = []
+    for post in posts:
+        post['user_avatar'] = user_avatars.get(post.get('user_id'))
+        processed_posts.append(post)
+
+    return Pagination(posts, total, page, per_page)
+
+
 def get_posts(user_id, page=1, per_page=None, perm=0):
     """Returns a users posts as a pagination object."""
     if per_page is None:
@@ -434,10 +467,7 @@ def get_posts(user_id, page=1, per_page=None, perm=0):
 
     posts = []
     for post in cursor:
-        # This is not a nice solution but is needed for Gravatar
-        if user is not None:  # pragma: no branch
-            post['user_avatar'] = user.get('avatar')
-
+        post['user_avatar'] = user.get('avatar')
         posts.append(post)
 
     return Pagination(posts, total, page, per_page)
