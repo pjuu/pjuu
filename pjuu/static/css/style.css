@@ -425,7 +425,7 @@ button:hover {
 
 #header .menu {
     float: right;
-    font-size: 1em;
+    font-size: 0.85em;
     font-weight: 700;
     margin: 0;
     padding: 0 0.5em;
@@ -1532,6 +1532,10 @@ ins.play-gif:hover{
     #header .container {
         margin: 0;
         width: 100%;
+    }
+
+    #header .menu {
+        font-size: 1em;
     }
 
     #header .menu li {
