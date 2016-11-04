@@ -8,7 +8,7 @@
 """
 
 # 3rd party imports
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import BooleanField, PasswordField, StringField, ValidationError
 from wtforms.validators import EqualTo, Length, Regexp, DataRequired
 
@@ -18,7 +18,7 @@ from pjuu.auth.backend import (check_email, check_username, authenticate,
                                EMAIL_PATTERN, USERNAME_PATTERN)
 
 
-class ForgotForm(Form):
+class ForgotForm(FlaskForm):
     """Form for when you have forgotten your password
 
     """
@@ -27,7 +27,7 @@ class ForgotForm(Form):
     ])
 
 
-class SignInForm(Form):
+class SignInForm(FlaskForm):
     """Form to allow users to login
 
     """
@@ -46,7 +46,7 @@ class SignInForm(Form):
         field.data = field.data.strip()
 
 
-class ResetForm(Form):
+class ResetForm(FlaskForm):
     """Form to reset your password.
 
     """
@@ -59,7 +59,7 @@ class ResetForm(Form):
     password2 = PasswordField('Confirm password')
 
 
-class ChangePasswordForm(Form):
+class ChangePasswordForm(FlaskForm):
     """Allow users to change their own password
 
     """
@@ -77,7 +77,7 @@ class ChangePasswordForm(Form):
             raise ValidationError('Invalid password')
 
 
-class ChangeEmailForm(Form):
+class ChangeEmailForm(FlaskForm):
     """Allow users to change their own e-mail address
 
     """
@@ -97,7 +97,7 @@ class ChangeEmailForm(Form):
             raise ValidationError('Invalid password')
 
 
-class SignUpForm(Form):
+class SignUpForm(FlaskForm):
     """Allow users to signup.
 
     """
@@ -127,7 +127,7 @@ class SignUpForm(Form):
             raise ValidationError('E-mail address already in use')
 
 
-class ConfirmPasswordForm(Form):
+class ConfirmPasswordForm(FlaskForm):
     """Allow users to delete their own account
 
     """

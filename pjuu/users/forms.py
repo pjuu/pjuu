@@ -8,7 +8,7 @@
 """
 
 # 3rd party imports
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import (
     BooleanField, TextAreaField, SelectField, StringField, RadioField
@@ -19,7 +19,7 @@ from pjuu.posts.backend import MAX_POST_LENGTH
 from pjuu.lib.parser import URL_RE
 
 
-class ChangeProfileForm(Form):
+class ChangeProfileForm(FlaskForm):
     """This is the form used to update your about information"""
     upload = FileField('Upload', [
         FileAllowed(['gif', 'jpg', 'jpeg', 'png'],
@@ -61,7 +61,7 @@ class ChangeProfileForm(Form):
     ], default=0)
 
 
-class SearchForm(Form):
+class SearchForm(FlaskForm):
     """
     This form is really simple. It is here to keep all forms at WTFroms
     """
