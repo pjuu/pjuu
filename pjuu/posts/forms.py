@@ -8,7 +8,7 @@
 """
 
 # 3rd party imports
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import TextAreaField, RadioField, ValidationError
 from wtforms.validators import DataRequired
@@ -16,7 +16,7 @@ from wtforms.validators import DataRequired
 from pjuu.posts.backend import MAX_POST_LENGTH
 
 
-class PostForm(Form):
+class PostForm(FlaskForm):
     """Handle the input from the web for posts and replies.
 
     """
