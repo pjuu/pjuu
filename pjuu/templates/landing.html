@@ -8,7 +8,7 @@
 		<a href="{{ url_for('users.feed') }}">
             <img class="logo" src="{{ url_for('static', filename='img/logo_otter_v2.png') }}" width="150">
         </a>
-        <div class="motto"><strong>Pjuu</strong> - <i>Gracie &amp;  Sarah's Social Network</i></div>
+        <div class="motto"><strong>Pjuu</strong> - <i>The open social network</i></div>
         {% include 'messages.html' %}
         <div class="form clearfix">
             <form action="{{ url_for('auth.signin') }}" method="post" autocomplete="off">
