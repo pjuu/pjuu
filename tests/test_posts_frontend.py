@@ -212,7 +212,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('Posts can not be larger than '
                       '{0} characters'.format(MAX_POST_LENGTH), resp.data)
 
-        # Ensure that posting an image with no text still doesn't allow it
+        # Ensure that posting an image with no text allows it
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
         resp = self.client.post(
             url_for('posts.post'),
@@ -223,7 +223,6 @@ class PostFrontendTests(FrontendTestCase):
             follow_redirects=True
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('A message is required.', resp.data)
 
         # Test posting with an image
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
@@ -262,6 +261,15 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
                                                   filename=post.get('upload')),
                       resp.data)
+
+        # Test posting with no data
+        resp = self.client.post(url_for('posts.post',
+                                        next=url_for('users.feed')),
+                                data={
+            'body': ''
+        }, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Sorry. A message or an image is required.', resp.data)
 
     def test_posts_lines(self):
         """Ensure posts are truncated to `LINE_CAP` on feeds and profiles"""
@@ -705,7 +713,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<img src="%s"/>' % url_for(
             'posts.get_upload', filename=reply.get('upload')), resp.data)
 
-        # Ensure that posting an image with no text still doesn't allow it
+        # Ensure that posting an image with no text allows it
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
         resp = self.client.post(
             url_for('posts.post', username='user1', post_id=post1),
@@ -716,7 +724,6 @@ class PostFrontendTests(FrontendTestCase):
             follow_redirects=True
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('A message is required.', resp.data)
 
         # Ensure that an invalid filename is stopped by the forms
         image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
