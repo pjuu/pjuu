@@ -3,7 +3,7 @@
 """Flask endpoints for interacting with the posting system
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2016 Joe Doherty
+:copyright: 2014-2017 Joe Doherty
 
 """
 

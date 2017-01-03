@@ -4,7 +4,7 @@
 it will have no effect on indexes which are already there.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2016 Joe Doherty
+:copyright: 2014-2017 Joe Doherty
 
 """
 

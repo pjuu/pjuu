@@ -6,7 +6,7 @@ This is just a simple system for loading an application. If you rename this
 file too .wsgi rather than .py it should work with Apache also.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2016 Joe Doherty
+:copyright: 2014-2017 Joe Doherty
 
 """
 
