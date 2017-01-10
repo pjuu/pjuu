@@ -17,13 +17,11 @@ from pjuu.posts.backend import MAX_POST_LENGTH
 
 class PostForm(FlaskForm):
     """Handle the input from the web for posts and replies."""
-    MAX_POST_LENGTH = MAX_POST_LENGTH
-
     body = TextAreaField('Post')
 
     upload = FileField('Upload', [
         FileAllowed(['gif', 'jpg', 'jpeg', 'png'],
-                    'Only "gif", "jpg", "jpeg" and "png" files are supported')
+                    'Only "gif", "jpg", "jpeg" and "png" files are supported'),
     ])
 
     permission = RadioField('Permission', choices=[
