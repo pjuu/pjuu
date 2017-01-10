@@ -17,6 +17,9 @@ from pjuu.posts.backend import MAX_POST_LENGTH
 
 class PostForm(FlaskForm):
     """Handle the input from the web for posts and replies."""
+    # Expose this through the form so that we can use it in the template
+    MAX_POST_LENGTH = MAX_POST_LENGTH
+
     body = TextAreaField('Post')
 
     upload = FileField('Upload', [
