@@ -14,7 +14,7 @@ from flask import Flask, request, g
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
-from flask_wtf import CsrfProtect
+from flask_wtf import CSRFProtect
 from opbeat.contrib.flask import Opbeat
 
 from pjuu.lib import timestamp
@@ -36,7 +36,7 @@ redis = Redis()
 redis_sessions = Redis()
 
 # Cross Site Request Forgery protection
-csrf = CsrfProtect()
+csrf = CSRFProtect()
 
 
 def create_app(config_filename='settings.py', config_dict=None):

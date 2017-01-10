@@ -9,9 +9,10 @@
 
 # 3rd party imports
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileField
+from flask_wtf.file import FileAllowed
 from wtforms import (
-    BooleanField, TextAreaField, SelectField, StringField, RadioField
+    BooleanField, TextAreaField, SelectField, StringField, RadioField,
+    FileField
 )
 from wtforms.validators import Length, Optional, Regexp
 # Pjuu imports

@@ -8,10 +8,9 @@
 """
 
 from flask import render_template, abort
+from flask_wtf.csrf import CSRFError
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException, InternalServerError
-
-from pjuu import csrf
 
 
 custom_error_messages = {
@@ -35,7 +34,6 @@ def handle_error(error):
     return render_template('errors.html', error=error), error.code
 
 
-@csrf.error_handler
 def handler_csrf_error(reason):  # pragma: no cover
     """Show a custom CSRF failure error
 
@@ -58,5 +56,4 @@ def register_errors(app):
     for error in [403, 404, 405, 500]:
         app.errorhandler(error)(handle_error)
     app.errorhandler(Exception)(handle_error)
-
-    csrf.error_handler = handler_csrf_error
+    app.errorhandler(CSRFError)(handler_csrf_error)
