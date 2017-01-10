@@ -7,9 +7,8 @@
 
 """
 
-from flask import render_template, abort
+from flask import render_template
 from flask_wtf.csrf import CSRFError
-from werkzeug.wrappers import Response
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 
@@ -24,7 +23,6 @@ custom_error_messages = {
 
 def handle_error(error):
     """Generically handle error messages with custom messages"""
-
     # Handle exceptions that are not Internal Server Errors
     if not isinstance(error, HTTPException):
         error = InternalServerError()  # pragma: no cover
@@ -34,7 +32,7 @@ def handle_error(error):
     return render_template('errors.html', error=error), error.code
 
 
-def handler_csrf_error(reason):  # pragma: no cover
+def handle_csrf_error(_):  # pragma: no cover
     """Show a custom CSRF failure error
 
     .. note: CSRF is VERY hard to test programmatically.
@@ -48,12 +46,12 @@ def handler_csrf_error(reason):  # pragma: no cover
         'another site some one may be trying to make you perform an action on '
         'Pjuu. Be safe. For more details search CSRF for an explanation.'
     )
-    return abort(Response(render_template('errors.html', error=error),
-                          status=400, content_type='text/html'))
+    return render_template('errors.html', error=error), 400
 
 
 def register_errors(app):
     for error in [403, 404, 405, 500]:
         app.errorhandler(error)(handle_error)
+
+    app.errorhandler(CSRFError)(handle_csrf_error)
     app.errorhandler(Exception)(handle_error)
-    app.errorhandler(CSRFError)(handler_csrf_error)
