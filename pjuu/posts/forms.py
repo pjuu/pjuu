@@ -9,8 +9,8 @@
 
 # 3rd party imports
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
-from wtforms import TextAreaField, RadioField, ValidationError, FileField
+from flask_wtf.file import FileAllowed, FileField
+from wtforms import TextAreaField, RadioField, ValidationError
 # Pjuu imports
 from pjuu.posts.backend import MAX_POST_LENGTH
 
