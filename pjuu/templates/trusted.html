@@ -1,0 +1,10 @@
+{% extends 'profile.html' %}
+
+{% block title %}Trusted - {{ profile.username|capitalize }}{% endblock %}
+
+{% block content %}
+
+<h1>Trusted</h1>
+
+{% include 'list.html' %}
+{% endblock %}
