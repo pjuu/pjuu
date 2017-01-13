@@ -6,7 +6,7 @@ all: flake cover
 
 test:
 	@echo 'Running test suite...'
-	coverage run --source=pjuu --omit=pjuu/wsgi.py,*.html,*.txt --branch run_tests.py
+	coverage run --source=pjuu --omit=pjuu/wsgi.py,pjuu/celery_app.py,*.html,*.txt --branch run_tests.py
 
 coverage:
 	@echo 'Generating code coverage report...'

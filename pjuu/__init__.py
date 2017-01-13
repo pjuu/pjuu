@@ -15,8 +15,10 @@ from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
 from flask_wtf import CSRFProtect
+from celery import Celery
 from opbeat.contrib.flask import Opbeat
 
+from pjuu.settings import CELERY_BROKER_URL
 from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
 
@@ -34,6 +36,8 @@ mongo = PyMongo()
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
 redis_sessions = Redis()
+
+celery = Celery(__name__, broker=CELERY_BROKER_URL)
 
 # Cross Site Request Forgery protection
 csrf = CSRFProtect()
@@ -79,6 +83,20 @@ def create_app(config_filename='settings.py', config_dict=None):
             app_id=app.config.get('OPBEAT_APP_ID'),
             secret_token=app.config.get('OPBEAT_SECRET_TOKEN')
         )
+
+    # Configure Celery
+    celery.conf.update(app.config)
+
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
 
     # Initialize the PyMongo client
     mongo.init_app(app)
