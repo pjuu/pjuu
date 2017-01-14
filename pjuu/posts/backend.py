@@ -14,7 +14,7 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 
 # Pjuu imports
-from pjuu import mongo as m, redis as r
+from pjuu import mongo as m, redis as r, celery
 from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.lua import zadd_member_nx
@@ -232,9 +232,11 @@ def create_post(user_id, username, body, reply_to=None, upload=None,
             # Append to all followers feeds or approved followers based
             # on the posts permission
             if permission < k.PERM_APPROVED:
-                populate_followers_feeds(user_id, post_id, post_time)
+                populate_followers_feeds.delay(user_id, post_id, post_time)
             else:
-                populate_approved_followers_feeds(user_id, post_id, post_time)
+                populate_approved_followers_feeds.delay(
+                    user_id, post_id, post_time
+                )
 
         else:
             # To reduce database look ups on the read path we will increment
@@ -269,6 +271,7 @@ def create_post(user_id, username, body, reply_to=None, upload=None,
     return None  # pragma: no cover
 
 
+@celery.task()
 def populate_followers_feeds(user_id, post_id, timestamp):
     """Fan out a post_id to all the users followers.
 
@@ -286,6 +289,7 @@ def populate_followers_feeds(user_id, post_id, timestamp):
         r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
 
 
+@celery.task()
 def populate_approved_followers_feeds(user_id, post_id, timestamp):
     """Fan out a post_id to all the users approved followers."""
     # Get a list of ALL users who are following a user

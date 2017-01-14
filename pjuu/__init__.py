@@ -15,8 +15,10 @@ from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
 from flask_wtf import CSRFProtect
+from celery import Celery
 from opbeat.contrib.flask import Opbeat
 
+from pjuu.configurator import load
 from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
 
@@ -25,6 +27,9 @@ from pjuu.lib.sessions import RedisSessionInterface
 __author__ = 'Joe Doherty <joe@pjuu.com>'
 __version__ = 'master'
 
+# Load configuration
+# We need this for initializing the Celery broker
+config = load("settings.py")
 
 # Global Flask-Mail object
 mail = Mail()
@@ -35,11 +40,13 @@ mongo = PyMongo()
 redis = Redis()
 redis_sessions = Redis()
 
+celery = Celery(__name__, broker=config.get('CELERY_BROKER_URL', ''))
+
 # Cross Site Request Forgery protection
 csrf = CSRFProtect()
 
 
-def create_app(config_filename='settings.py', config_dict=None):
+def create_app(config_dict=None):
     """Creates a Pjuu WSGI application with the passed in config_filename.
 
     ``config_filename`` should be a Python file as per the default. To
@@ -50,23 +57,18 @@ def create_app(config_filename='settings.py', config_dict=None):
     ``config_filename``. This is useful for testing. See run_tests.py for an
     example
     """
-    # Pylint has suggested I don't set config_dict to a empty dict, we now have
-    # to check if it is None and then assign an empty dict
-    if config_dict is None:  # pragma: no cover
-        config_dict = {}
-
     # Create application
     app = Flask(__name__)
 
-    # Load configuration from the Python file passed as config_filename
-    app.config.from_pyfile(config_filename)
-    # Override the settings from config_filename, even add new ones :)
-    # This is useful for testing, we use it for Travis-CI, see run_tests.py
-    app.config.update(config_dict)
+    # Load the configuration from the previously created Config object
+    app.config.update(config)
 
-    # You can also set an environment variable called PJUU_SETTINGS this will
-    # override all other Settings applied to Pjuu so long as you define them
-    app.config.from_envvar('PJUU_SETTINGS', silent=True)
+    # Override the settings, even add new ones :)
+    # This is useful for testing, we use it for Travis-CI, see run_tests.py
+    # Pylint has suggested I don't set config_dict to a empty dict, we now have
+    # to check if it is None and then assign an empty dict
+    if config_dict is not None:  # pragma: no cover
+        app.config.update(config_dict)
 
     # OpBeat
     # We use OpBeat in production to log errors and performance of the code.
@@ -79,6 +81,20 @@ def create_app(config_filename='settings.py', config_dict=None):
             app_id=app.config.get('OPBEAT_APP_ID'),
             secret_token=app.config.get('OPBEAT_SECRET_TOKEN')
         )
+
+    # Configure Celery
+    celery.conf.update(app.config)
+
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
 
     # Initialize the PyMongo client
     mongo.init_app(app)
