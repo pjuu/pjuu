@@ -13,6 +13,7 @@ from flask_mail import Message
 # Pjuu imports
 from pjuu import celery, mail
 
+
 def send_mail(subject, recipients, sender=None,
               text_body='', html_body=''):
     """Wrapper to send mail async over celery"""
