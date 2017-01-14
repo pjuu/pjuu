@@ -15,4 +15,5 @@ application = create_app()
 application.app_context().push()
 
 # Simply uses the import so it's not un-used
+# There may be a nicer way of doing this `pragma: noqa` doesn't seem to work
 celery = celery
