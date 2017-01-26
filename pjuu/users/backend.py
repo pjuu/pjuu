@@ -50,7 +50,7 @@ def get_user_permission(who_id, whom_id):
 
     """
     if who_id is not None and whom_id is not None:
-        if who_id == whom_id or is_approved(who_id, whom_id):
+        if who_id == whom_id or is_trusted(who_id, whom_id):
             return k.PERM_APPROVED
         else:
             return k.PERM_PJUU
@@ -279,7 +279,7 @@ def is_following(who_id, whom_id):
     return False
 
 
-def is_approved(who_id, whom_id):
+def is_trusted(who_id, whom_id):
     """Is the current user approved by the user with who_id"""
     if r.zrank(k.USER_APPROVED.format(who_id), whom_id) is not None:
         return True

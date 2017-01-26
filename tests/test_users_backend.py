@@ -17,8 +17,10 @@ from pjuu.posts.backend import create_post
 from pjuu.users.backend import (
     get_profile, search, is_following, get_following, get_followers,
     new_alerts, FollowAlert, get_alerts, follow_user, unfollow_user,
-    delete_alert, get_user, approve_user, unapprove_user, is_approved
+    delete_alert, get_user, approve_user, unapprove_user, is_trusted,
+    get_trusted
 )
+from pjuu.auth.utils import get_uid_username
 
 from tests import BackendTestCase
 
@@ -168,49 +170,50 @@ class BackendTests(BackendTestCase):
         self.assertEqual(get_followers(user2).total, 0)
         self.assertEqual(get_following(user2).total, 0)
 
-    def test_approved_unapproved_is_approved(self):
-        """Ensure a user can approve and unapprove a follower. Also test the
-        checking of this state"""
+    def test_approved_unapproved_is_trusted(self):
+        """Ensure a user can trust and un-trust a follower. Also test the
+        checking of this state
+        """
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
         user3 = create_account('user3', 'user3@pjuu.com', 'Password')
 
         # User should not be following a user
-        self.assertFalse(is_approved(user1, user2))
+        self.assertFalse(is_trusted(user1, user2))
 
         # User can't approve a user he is not following
         self.assertFalse(approve_user(user1, user2))
 
-        # Follow wrong way round. The user to be approved must follow you
+        # Follow wrong way round. The user to be trusted must follow you
         follow_user(user1, user2)
         self.assertFalse(approve_user(user1, user2))
-        self.assertFalse(is_approved(user1, user2))
+        self.assertFalse(is_trusted(user1, user2))
 
         # Correct way round
         follow_user(user2, user1)
         self.assertTrue(approve_user(user1, user2))
-        self.assertTrue(is_approved(user1, user2))
+        self.assertTrue(is_trusted(user1, user2))
 
         # Try an un-approved a non follower
-        self.assertFalse(is_approved(user1, user3))
+        self.assertFalse(is_trusted(user1, user3))
         self.assertFalse(unapprove_user(user1, user3))
 
         # Try and un-approve a non approved follower
         follow_user(user3, user1)
-        self.assertFalse(is_approved(user1, user3))
+        self.assertFalse(is_trusted(user1, user3))
         self.assertFalse(unapprove_user(user1, user3))
 
         # Un-approve an approved folloer
-        self.assertTrue(is_approved(user1, user2))
+        self.assertTrue(is_trusted(user1, user2))
         self.assertTrue(unapprove_user(user1, user2))
-        self.assertFalse(is_approved(user1, user2))
+        self.assertFalse(is_trusted(user1, user2))
 
         # Ensure a user is un-approved if they stop following you
         # and you had approved them
         self.assertTrue(approve_user(user1, user2))
-        self.assertTrue(is_approved(user1, user2))
+        self.assertTrue(is_trusted(user1, user2))
         unfollow_user(user2, user1)
-        self.assertFalse(is_approved(user1, user2))
+        self.assertFalse(is_trusted(user1, user2))
 
     def test_followers_and_unfollowers_pagination_sizes(self):
         """Ensure that the followers and unfollowers feeds are correct if
@@ -472,3 +475,29 @@ class BackendTests(BackendTestCase):
         self.assertEqual(len(get_alerts(user1, per_page=25).items), 25)
         self.assertEqual(len(get_alerts(user1, per_page=50).items), 50)
         self.assertEqual(len(get_alerts(user1, per_page=100).items), 100)
+
+    def test_get_trusted(self):
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        activate(user1)
+
+        # Create loads of users have the follow user1 and have them trusted
+        for i in range(2, 102):
+            user = create_account('user{}'.format(i),
+                                  'user{}@pjuu.com'.format(i),
+                                  'password')
+            activate(user)
+            follow_user(user, user1)
+            approve_user(user1, user)
+
+        self.assertEqual(get_trusted(user1).total, 100)
+
+        for i in range(2, 102, 2):
+            delete_account(get_uid_username('user{}'.format(i)))
+
+        self.assertEqual(get_trusted(user1).total, 50)
+
+        # Test per page
+        trusted_pagination = get_trusted(user1, per_page=10)
+        self.assertEqual(trusted_pagination.total, 50)
+        # The answer is 5 because of the self cleaning action
+        self.assertEqual(len(trusted_pagination.items), 5)

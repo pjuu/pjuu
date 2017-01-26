@@ -18,9 +18,9 @@ from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
 from pjuu.users.backend import (
-    follow_user, get_alerts, get_user, approve_user, is_approved
+    follow_user, get_alerts, get_user, approve_user, is_trusted
 )
-from pjuu.users.views import timeify_filter
+from pjuu.users.views import timeify_filter, trusted_filter, follower_filter
 
 from tests import FrontendTestCase
 
@@ -812,7 +812,7 @@ class FrontendTests(FrontendTestCase):
         # User2 needs to be following user1
         follow_user(user2, user1)
         approve_user(user1, user2)
-        self.assertTrue(is_approved(user1, user2))
+        self.assertTrue(is_trusted(user1, user2))
 
         resp = self.client.get(url_for('users.profile', username='user1'))
         self.assertIn('Test public', resp.data)
@@ -866,4 +866,78 @@ class FrontendTests(FrontendTestCase):
         # Try and remove a tip that isn't valid
         resp = self.client.post(url_for('users.hide_tip', tip_name='cheese'),
                                 follow_redirects=True)
+        self.assertEqual(resp.status_code, 404)
+
+    def test_new_trusted_buttons_profile(self):
+        """Ensure the new trusted buttons work on a users profile"""
+        user1 = create_account('user1', 'user1@pjuu.com', 'Password')
+        user2 = create_account('user2', 'user2@pjuu.com', 'Password')
+        user3 = create_account('user3', 'user2@pjuu.com', 'Password')
+
+        activate(user1)
+        activate(user2)
+        activate(user3)
+
+        # Test the 2 filters just so we know they work.
+        # This is a bit of a cheat they are NEVER used when logged out.
+        self.assertEqual(trusted_filter("None"), False)
+        self.assertEqual(follower_filter("None"), False)
+
+        # Check that the profile trust button does not show if you are not
+        # logged in
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertNotIn('trust:{}'.format(user1), resp.data)
+        self.assertNotIn('untrust:{}'.format(user1), resp.data)
+
+        # Ensure we can't see a users trusted list
+        # Should be redirected to login (we will test Forbidden)
+        resp = self.client.get(url_for('users.trusted', username='user1'))
+        self.assertEqual(resp.status_code, 302)
+
+        # Check that neither of the buttons appear if the user is not following
+        self.client.post(url_for('auth.signin'), data={
+            'username': 'user1',
+            'password': 'Password'
+        })
+        resp = self.client.get(url_for('users.profile', username='user2'))
+        self.assertNotIn('trust:{}'.format(user1), resp.data)
+        self.assertNotIn('untrust:{}'.format(user1), resp.data)
+
+        # user2 follows user1
+        follow_user(user2, user1)
+
+        resp = self.client.get(url_for('users.profile', username='user2'))
+        self.assertIn('<!-- trust:{} -->'.format(user2), resp.data)
+        self.assertNotIn('<!-- untrust:{} -->'.format(user2), resp.data)
+
+        # Ensure a trust count is none on our own profile
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('trusted:0', resp.data)
+
+        # Ensure user2 is not in our trusted list
+        resp = self.client.get(url_for('users.trusted', username='user1'))
+        self.assertNotIn('list:user:{}'.format(user2), resp.data)
+
+        # user1 trusts user2
+        approve_user(user1, user2)
+        self.assertTrue(is_trusted(user1, user2))
+
+        resp = self.client.get(url_for('users.profile', username='user2'))
+        self.assertIn('<!-- untrust:{} -->'.format(user2), resp.data)
+        self.assertNotIn('<!-- trust:{} -->'.format(user2), resp.data)
+
+        # Ensure our trust count has incremented
+        resp = self.client.get(url_for('users.profile', username='user1'))
+        self.assertIn('trusted:1', resp.data)
+
+        # Ensure user2 appears in our trusted list
+        resp = self.client.get(url_for('users.trusted', username='user1'))
+        self.assertIn('list:user:{}'.format(user2), resp.data)
+
+        # Ensure we can't see user2's trusted list
+        resp = self.client.get(url_for('users.trusted', username='user2'))
+        self.assertEqual(resp.status_code, 403)
+
+        # Attempt to look at the trusted for a non-existant user
+        resp = self.client.get(url_for('users.trusted', username='user0'))
         self.assertEqual(resp.status_code, 404)

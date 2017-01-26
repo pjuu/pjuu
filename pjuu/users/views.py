@@ -31,7 +31,7 @@ from pjuu.users.backend import (
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
     remove_from_feed as be_rem_from_feed, update_profile_settings,
-    get_user_permission, is_approved, approve_user, unapprove_user,
+    get_user_permission, is_trusted, approve_user, unapprove_user,
     top_users_by_score, remove_tip, reset_tips as be_reset_tips, get_trusted
 )
 
@@ -53,10 +53,20 @@ def following_filter(_profile):
     return False
 
 
-@users_bp.app_template_filter('approved')
-def approved_filter(_profile):
+@users_bp.app_template_filter('follower')
+def follower_filter(_profile):
+    """Checks if the user (_profile) is following the current user"""
+    if current_user:
+        return is_following(_profile.get('_id'), current_user.get('_id'))
+    return False
+
+
+@users_bp.app_template_filter('trusted')
+def trusted_filter(_profile):
     """Checks if current user has approved the user piped to filter."""
-    return is_approved(current_user.get('_id'), _profile.get('_id'))
+    if current_user:
+        return is_trusted(current_user.get('_id'), _profile.get('_id'))
+    return False
 
 
 @users_bp.app_template_filter('millify')

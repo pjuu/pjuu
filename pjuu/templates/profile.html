@@ -60,7 +60,7 @@
             {% if profile._id == current_user._id %}
             <li>
                 {% if config.TESTING %}
-                <!-- trusted:{{ profile.following_count }} -->
+                <!-- trusted:{{ profile.trusted_count }} -->
                 {% endif %}
                 <a href="{{ url_for('users.trusted', username=profile['username']) }}">
                     Trusted: <b>{{ profile.trusted_count|millify }}</b>
@@ -85,16 +85,24 @@
             </form>
             {% endif %}
 
-            {% if profile|approved %}
-            <form action="{{ url_for('users.unapprove', username=profile.username, next=request.path) }}" method="post">
-                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                <button class="action unapprove">Trusted</button>
-            </form>
-            {% else %}
-            <form action="{{ url_for('users.approve', username=profile.username, next=request.path) }}" method="post">
-                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                <button class="action approve">Trust</button>
-            </form>
+            {% if current_user %}
+                {% if profile|follower and profile|trusted %}
+                {% if config.TESTING %}
+                <!-- untrust:{{ profile._id }} -->
+                {% endif %}
+                <form action="{{ url_for('users.unapprove', username=profile.username, next=request.path) }}" method="post">
+                    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                    <button class="action unapprove">Trusted</button>
+                </form>
+                {% elif profile|follower and not profile|trusted %}
+                {% if config.TESTING %}
+                <!-- trust:{{ profile._id }} -->
+                {% endif %}
+                <form action="{{ url_for('users.approve', username=profile.username, next=request.path) }}" method="post">
+                    <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                    <button class="action approve">Trust</button>
+                </form>
+                {% endif %}
             {% endif %}
         {% endif %}
     </div>
