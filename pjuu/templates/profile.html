@@ -68,43 +68,52 @@
             </li>
             {% endif %}
         </ul>
-        {% if profile._id == current_user._id %}
-        <a href="{{ url_for('users.settings_profile') }}">
-            <div class="action you">You</div>
-        </a>
-        {% else %}
-            {% if profile|following %}
-            <form action="{{ url_for('users.unfollow', username=profile.username, next=request.path) }}" method="post">
-                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                <button class="action unfollow">Following</button>
-            </form>
+        <ul class="clearfix action-box right">
+            {% if profile._id == current_user._id %}
+            <li>
+                <a href="{{ url_for('users.settings_profile') }}">
+                    <div class="action you">You</div>
+                </a>
+            </li>
             {% else %}
-            <form action="{{ url_for('users.follow', username=profile.username, next=request.path) }}" method="post">
-                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                <button class="action follow">Follow</button>
-            </form>
-            {% endif %}
-
-            {% if current_user %}
-                {% if profile|follower and profile|trusted %}
-                {% if config.TESTING %}
-                <!-- untrust:{{ profile._id }} -->
+                {% if current_user %}
+                    {% if profile|follower and profile|trusted %}
+                    {% if config.TESTING %}
+                    <!-- untrust:{{ profile._id }} -->
+                    {% endif %}
+                    <li>
+                    <form action="{{ url_for('users.unapprove', username=profile.username, next=request.path) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="action unapprove">Trusted</button>
+                    </form>
+                    </li>
+                    {% elif profile|follower and not profile|trusted %}
+                    {% if config.TESTING %}
+                    <!-- trust:{{ profile._id }} -->
+                    {% endif %}
+                    <li>
+                    <form action="{{ url_for('users.approve', username=profile.username, next=request.path) }}" method="post">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+                        <button class="action approve">Trust</button>
+                    </form>
+                    </li>
+                    {% endif %}
                 {% endif %}
-                <form action="{{ url_for('users.unapprove', username=profile.username, next=request.path) }}" method="post">
+                <li>
+                {% if profile|following %}
+                <form action="{{ url_for('users.unfollow', username=profile.username, next=request.path) }}" method="post">
                     <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                    <button class="action unapprove">Trusted</button>
+                    <button class="action unfollow">Following</button>
                 </form>
-                {% elif profile|follower and not profile|trusted %}
-                {% if config.TESTING %}
-                <!-- trust:{{ profile._id }} -->
-                {% endif %}
-                <form action="{{ url_for('users.approve', username=profile.username, next=request.path) }}" method="post">
+                {% else %}
+                <form action="{{ url_for('users.follow', username=profile.username, next=request.path) }}" method="post">
                     <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                    <button class="action approve">Trust</button>
+                    <button class="action follow">Follow</button>
                 </form>
                 {% endif %}
+                </li>
             {% endif %}
-        {% endif %}
+        </ul>
     </div>
 </div>
 

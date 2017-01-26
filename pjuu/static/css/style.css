@@ -697,14 +697,25 @@ button:hover {
     padding: 0.5em 1em;
 }
 
+#profile .action-box {
+    float: right;
+}
+
+#profile .action-box li {
+    padding: 0.25em;
+}
+
+#profile .action-box .unapprove {
+    margin-top: 0;
+}
+
 #profile .action {
     border-radius: 3px;
     font-weight: 700;
-    float: right;
-    margin: 0.25em;
-    padding: 0.25em 0;
+    padding: 0.25em 1em;
     text-align: center;
     width: 100px;
+    text-align: center;
 }
 
 #profile .additional div {
