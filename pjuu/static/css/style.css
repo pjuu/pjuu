@@ -705,7 +705,7 @@ button:hover {
     padding: 0.25em;
 }
 
-#profile .action-box .unapprove {
+#profile .action-box .unapprove, #profile .action-box .approve {
     margin-top: 0;
 }
 
