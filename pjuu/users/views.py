@@ -31,8 +31,8 @@ from pjuu.users.backend import (
     get_following, is_following, get_alerts, search as be_search,
     new_alerts as be_new_alerts, delete_alert as be_delete_alert,
     remove_from_feed as be_rem_from_feed, update_profile_settings,
-    get_user_permission, is_approved, approve_user, unapprove_user,
-    top_users_by_score, remove_tip, reset_tips as be_reset_tips
+    get_user_permission, is_trusted, approve_user, unapprove_user,
+    top_users_by_score, remove_tip, reset_tips as be_reset_tips, get_trusted
 )
 
 
@@ -53,10 +53,20 @@ def following_filter(_profile):
     return False
 
 
-@users_bp.app_template_filter('approved')
-def approved_filter(_profile):
+@users_bp.app_template_filter('follower')
+def follower_filter(_profile):
+    """Checks if the user (_profile) is following the current user"""
+    if current_user:
+        return is_following(_profile.get('_id'), current_user.get('_id'))
+    return False
+
+
+@users_bp.app_template_filter('trusted')
+def trusted_filter(_profile):
     """Checks if current user has approved the user piped to filter."""
-    return is_approved(current_user.get('_id'), _profile.get('_id'))
+    if current_user:
+        return is_trusted(current_user.get('_id'), _profile.get('_id'))
+    return False
 
 
 @users_bp.app_template_filter('millify')
@@ -259,6 +269,33 @@ def followers(username):
 
     return render_template('followers.html', profile=_profile,
                            pagination=_followers)
+
+
+@users_bp.route('/<username>/trusted', methods=['GET'])
+@login_required
+def trusted(username):
+    """Returns all a users followers as a pagination object."""
+    user_id = get_uid(username)
+
+    if user_id is None:
+        abort(404)
+
+    # Only the user who's profile it is can see there trusted users
+    if user_id != current_user.get('_id'):
+        abort(403)
+
+    # Data
+    _profile = get_profile(user_id)
+
+    # Pagination
+    page = handle_page(request)
+
+    # Get a list of users you are following
+    _trusted = get_trusted(user_id, page,
+                           current_user.get('feed_pagination_size'))
+
+    return render_template('trusted.html', profile=_profile,
+                           pagination=_trusted)
 
 
 @users_bp.route('/<username>/follow', methods=['POST'])

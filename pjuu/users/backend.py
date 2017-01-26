@@ -50,7 +50,7 @@ def get_user_permission(who_id, whom_id):
 
     """
     if who_id is not None and whom_id is not None:
-        if who_id == whom_id or is_approved(who_id, whom_id):
+        if who_id == whom_id or is_trusted(who_id, whom_id):
             return k.PERM_APPROVED
         else:
             return k.PERM_PJUU
@@ -70,6 +70,7 @@ def get_profile(user_id):
         # Count followers and folowees in Redis
         profile['followers_count'] = r.zcard(k.USER_FOLLOWERS.format(user_id))
         profile['following_count'] = r.zcard(k.USER_FOLLOWING.format(user_id))
+        profile['trusted_count'] = r.zcard(k.USER_APPROVED.format(user_id))
 
     return profile if profile else None
 
@@ -246,6 +247,29 @@ def get_followers(uid, page=1, per_page=None):
     return Pagination(users, total, page, per_page)
 
 
+def get_trusted(uid, page=1, per_page=None):
+    """Returns a list of users who a user trusts.
+
+    """
+    if per_page is None:
+        per_page = app.config.get('FEED_ITEMS_PER_PAGE')
+
+    total = r.zcard(k.USER_APPROVED.format(uid))
+    fids = r.zrevrange(k.USER_APPROVED.format(uid), (page - 1) * per_page,
+                       (page * per_page) - 1)
+    users = []
+    for fid in fids:
+        user = get_user(fid)
+        if user:
+            users.append(user)
+        else:
+            # Self cleaning sorted sets
+            r.zrem(k.USER_FOLLOWERS.format(uid), fid)
+            total = r.zcard(k.USER_FOLLOWERS.format(uid))
+
+    return Pagination(users, total, page, per_page)
+
+
 def is_following(who_id, whom_id):
     """Check to see if who is following whom.
 
@@ -255,7 +279,7 @@ def is_following(who_id, whom_id):
     return False
 
 
-def is_approved(who_id, whom_id):
+def is_trusted(who_id, whom_id):
     """Is the current user approved by the user with who_id"""
     if r.zrank(k.USER_APPROVED.format(who_id), whom_id) is not None:
         return True
