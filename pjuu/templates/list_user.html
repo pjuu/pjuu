@@ -24,7 +24,7 @@
             <button class="action follow">Follow</button>
         </form>
         {% endif %}
-        {% if request.endpoint == 'users.followers' and profile._id == current_user._id %}
+        {% if (request.endpoint == 'users.followers' or request.endpoint == 'users.trusted') and profile._id == current_user._id %}
             {% if item|trusted %}
             <form action="{{ url_for('users.unapprove', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
