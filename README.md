@@ -108,4 +108,5 @@ All software has bugs in and Pjuu is no different. These may have security impli
 ### Credits
 
 James Rand - illustrating the original Otter logo.
+
 Jonathan Trengrove - modernizing the Otter logo.
