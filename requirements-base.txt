@@ -9,6 +9,8 @@ WTForms==2.1.0
 Werkzeug==0.12.1
 blinker==1.4
 celery==4.0.2
+gevent==1.2.1
+gunicorn==19.7.1
 hiredis==0.2.0
 itsdangerous==0.24
 jsonpickle==0.9.4

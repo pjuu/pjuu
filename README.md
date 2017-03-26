@@ -80,7 +80,7 @@ $ make flake
 
 #### Development server
 
-To Run the development server ( CherryPy ) type the following command:
+To Run the development server (Gunicorn with Gevent) type the following command:
 
 ```
 $ make run
