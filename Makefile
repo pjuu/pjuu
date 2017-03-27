@@ -17,5 +17,5 @@ flake:
 	flake8 --exclude=docs,venv,venv3,venvpypy .
 
 run:
-	@echo 'Starting Pjuu test server...'
-	python run_server.py
+	@echo 'Starting Pjuu (Gunicorn with Gevent)...'
+	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload dev_server:application
