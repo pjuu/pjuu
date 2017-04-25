@@ -1,9 +1,9 @@
-Flask==0.12
+Flask==0.12.1
 Flask-And-Redis==0.7
 Flask-Mail==0.9.1
 Flask-PyMongo==0.4.1
 Flask-WTF==0.14.2
-Jinja2==2.9.5
+Jinja2==2.9.6
 MarkupSafe==1.0
 WTForms==2.1.0
 Werkzeug==0.12.1
