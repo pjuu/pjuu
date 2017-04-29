@@ -28,5 +28,5 @@ VOLUME ["/data/conf"]
 EXPOSE 8000
 
 # Run Gunicorn
-ENTRYPOINT ["/data/venv/bin/gunicorn"]
+ENTRYPOINT ["/data/venv/bin/celery"]
 CMD ["multi", "start" "worker", "-A pjuu.celery_app", "--loglevel=INFO"]
