@@ -24,8 +24,8 @@ COPY ./pjuu /data/pjuu
 # Pjuu needs config from the host!
 VOLUME ["/data/conf"]
 
-ENV PJUU_SETTINGS /data/conf/pjuu.conf
+ADD ./worker-entrypoint.sh /data/worker-entrypoint.sh
+RUN chmod +x worker-entrypoint.sh
 
-# Run Gunicorn
-ENTRYPOINT ["/data/venv/bin/celery"]
-CMD ["worker", "-A pjuu.celery_app", "--loglevel=INFO"]
+# Run Celery
+ENTRYPOINT /data/worker-entrypoint.sh

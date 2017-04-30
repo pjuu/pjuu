@@ -1,0 +1,71 @@
+# This compose file is specific to https://pjuu.com itself.
+# If you would like to use it please change `volumes` to point to
+# correct locations on your Docker host.
+
+version: "3"
+services:
+  pjuu:
+    image: pjuu/pjuu:web
+    deploy:
+      restart_policy:
+        condition: any
+    container_name: pjuu
+    volumes:
+      - /var/config/pjuu:/data/conf
+    links:
+      - redis
+      - mongo
+    depends_on:
+      - mongo
+      - redis
+
+  redis:
+    image: redis:3.2
+    deploy:
+      restart_policy:
+        condition: any
+    container_name: redis
+    volumes:
+      - /mnt/volume-fra1-redis-01:/data
+
+  mongo:
+    image: mongo:3.4
+    deploy:
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          memory: 1G
+    container_name: mongo
+    volumes:
+      - /mnt/volume-fra1-mongo-01:/data/db
+
+  nginx:
+    image: nginx:1.12
+    deploy:
+      restart_policy:
+        condition: any
+    container_name: nginx
+    links:
+      - pjuu
+    volumes:
+      - /var/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /var/config/nginx/ssl/:/data/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+
+  worker:
+    image: pjuu/pjuu:worker
+    deploy:
+      restart_policy:
+        condition: any
+    volumes:
+      - /var/config/pjuu:/data/conf
+    links:
+      - redis
+      - mongo
+    container_name: worker
+    depends_on:
+      - redis
+      - mongo
