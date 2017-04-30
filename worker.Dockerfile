@@ -24,9 +24,8 @@ COPY ./pjuu /data/pjuu
 # Pjuu needs config from the host!
 VOLUME ["/data/conf"]
 
-# Gunicorn available to the Docker container
-EXPOSE 8000
+ENV PJUU_SETTINGS /data/conf/pjuu.conf
 
 # Run Gunicorn
 ENTRYPOINT ["/data/venv/bin/celery"]
-CMD ["multi", "start" "worker", "-A pjuu.celery_app", "--loglevel=INFO"]
+CMD ["worker", "-A pjuu.celery_app", "--loglevel=INFO"]
