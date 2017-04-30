@@ -51,6 +51,7 @@ services:
     volumes:
       - /var/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /var/config/nginx/ssl/:/data/ssl:ro
+      - /var/config/nginx/files:/data/files:ro
     ports:
       - "80:80"
       - "443:443"
