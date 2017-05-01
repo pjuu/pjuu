@@ -21,6 +21,7 @@ services:
 
   redis:
     image: redis:3.2
+    command: redis-server --appendonly yes
     deploy:
       restart_policy:
         condition: any
