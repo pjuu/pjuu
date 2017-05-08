@@ -1,7 +1,7 @@
 FROM alpine:latest
 LABEL maintainer ant@pjuu.com
 
-RUN apk add --no-cache --virtual .builddeps build-base python-dev wget curl git && \
+RUN apk add --no-cache --virtual .build-deps build-base python-dev wget curl git && \
     apk add --no-cache python py-virtualenv imagemagick
 
 RUN mkdir -p /data/conf /data/pjuu
@@ -14,4 +14,6 @@ ADD ./pjuu /data/pjuu
 
 RUN virtualenv /data/venv
 RUN /data/venv/bin/pip install -r /data/requirements-base.txt
+
+RUN apk del .build-deps
 
