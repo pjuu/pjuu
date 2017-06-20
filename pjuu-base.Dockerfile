@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.5
 LABEL maintainer ant@pjuu.com
 
 ENV MAGICK_HOME=/usr
