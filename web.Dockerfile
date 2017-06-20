@@ -1,4 +1,4 @@
-FROM pjuu:base
+FROM pjuu/pjuu:base
 LABEL maintainer Joe Doherty <joe@pjuu.com>
 
 # Gunicorn available to the Docker container
