@@ -2,7 +2,7 @@ FROM alpine:latest
 LABEL maintainer ant@pjuu.com
 
 RUN apk add --no-cache --virtual .build-deps build-base python-dev wget curl git && \
-    apk add --no-cache python py-virtualenv imagemagick
+    apk add --no-cache python py-virtualenv imagemagick imagemagick-dev
 
 RUN mkdir -p /data/conf /data/pjuu
 
