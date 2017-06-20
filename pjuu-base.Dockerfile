@@ -1,6 +1,8 @@
 FROM alpine:latest
 LABEL maintainer ant@pjuu.com
 
+ENV MAGICK_HOME=/usr
+
 RUN apk add --no-cache --virtual .build-deps build-base python-dev wget curl git && \
     apk add --no-cache python py-virtualenv imagemagick imagemagick-dev
 
