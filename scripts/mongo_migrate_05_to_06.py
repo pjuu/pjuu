@@ -8,7 +8,7 @@ This is only needed if moving from Pjuu <0.6 to >=0.6.
          this may corrupt your data.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2017 Joe Doherty
+:copyright: 2014-2018 Joe Doherty
 
 """
 
