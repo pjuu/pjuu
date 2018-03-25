@@ -64,3 +64,6 @@ tags
 
 # Vagrant
 .vagrant
+
+# VSCode
+.vscode
