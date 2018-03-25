@@ -23,15 +23,15 @@ class PaginationTests(BackendTestCase):
 
     def test_pagination(self):
         # Create a simple list of numbers to check pagination
-        l = [i for i in xrange(1000)]
+        ls = [i for i in xrange(1000)]
 
-        p = Pagination(l[:50], len(l), 1, 50)
+        p = Pagination(ls[:50], len(ls), 1, 50)
 
         # Check basic functionality
         self.assertEqual(p.total, 1000)
         # Read the number of items we have
         self.assertEqual(len(p.items), 50)
-        self.assertEqual(p.items, l[:50])
+        self.assertEqual(p.items, ls[:50])
         # The current page we are on
         self.assertEqual(p.page, 1)
         # Per page is how many items to show on each page
@@ -58,11 +58,11 @@ class PaginationTests(BackendTestCase):
         self.assertEqual(p.pages, 0)
 
         # Try creating a pagination object with a page lower than 1
-        p = Pagination(l[:50], len(l), -1, 50)
+        p = Pagination(ls[:50], len(ls), -1, 50)
         self.assertEqual(p.page, 1)
 
         # Try creating a pagination object with a page larger than
-        p = Pagination(l[:50], len(l), 4294967296, 50)
+        p = Pagination(ls[:50], len(ls), 4294967296, 50)
         self.assertEqual(p.page, 4294967295)
         self.assertIsNone(p.next_page)
         self.assertIsNotNone(p.prev_page)
