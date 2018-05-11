@@ -39,3 +39,11 @@ def privacy():
 
     """
     return render_template('pages/privacy.html')
+
+
+@pages_bp.route('/donations')
+def donations():
+    """Donations
+
+    """
+    return render_template('pages/donations.html')

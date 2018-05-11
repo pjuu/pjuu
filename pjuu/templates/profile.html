@@ -12,9 +12,12 @@
         {% endif %}
 
         <div class="content clearfix">
-                <div class="username">
-                    {{ profile.username|capitalize }}
-                </div>
+            <div class="username">
+                {{ profile.username|capitalize }}
+                {% if profile.donated %}
+                <i class="fa fa-fw fa-heart gold"></i>
+                {% endif %}
+            </div>
             <div class="body">{{ profile.about }}</div>
             {% if profile.hompage != '' or profile.location != '' %}
             <div class="additional clearfixr">

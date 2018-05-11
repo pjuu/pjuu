@@ -409,9 +409,10 @@ def get_post(post_id):
 
     if post is not None:
         user = m.db.users.find_one({'_id': post.get('user_id')},
-                                   {'avatar': True})
+                                   {'avatar': True, 'donated': True})
         if user is not None:
             post['user_avatar'] = user.get('avatar')
+            post['user_donated'] = user.get('donated', False)
 
     return post
 
@@ -435,15 +436,20 @@ def get_global_feed(page=1, per_page=None, perm=0):
 
     # Get a list of unique `user_id`s from all the post.
     user_ids = list(set([post.get('user_id') for post in posts]))
-    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'avatar': True})
+    cursor = m.db.users.find({'_id': {'$in': user_ids}},
+                             {'avatar': True, 'donated': True})
     # Create a lookup dict `{username: email}`
-    user_avatars = \
-        dict((user.get('_id'), user.get('avatar')) for user in cursor)
+    users = \
+        dict((user.get('_id'), {
+            'avatar': user.get('avatar'),
+            'donated': user.get('donated', False)
+        }) for user in cursor)
 
     # Add the e-mails to the posts
     processed_posts = []
     for post in posts:
-        post['user_avatar'] = user_avatars.get(post.get('user_id'))
+        post['user_avatar'] = users.get(post.get('user_id'))
+        post['user_donated'] = users.get(post.get('user_id'))
         processed_posts.append(post)
 
     return Pagination(posts, total, page, per_page)
@@ -456,7 +462,7 @@ def get_posts(user_id, page=1, per_page=None, perm=0):
 
     # Get the user object we need the email for Gravatar.
     user = m.db.users.find_one({'_id': user_id},
-                               {'avatar': True})
+                               {'avatar': True, 'donated': True})
 
     lookup_dict = {
         'user_id': user_id,
@@ -472,6 +478,7 @@ def get_posts(user_id, page=1, per_page=None, perm=0):
     posts = []
     for post in cursor:
         post['user_avatar'] = user.get('avatar')
+        post['user_donated'] = user.get('donated', False)
         posts.append(post)
 
     return Pagination(posts, total, page, per_page)
@@ -494,10 +501,11 @@ def get_replies(post_id, page=1, per_page=None, sort_order=-1):
         # We have to get the users email for each post for the gravatar
         user = m.db.users.find_one(
             {'_id': reply.get('user_id')},
-            {'avatar': True})
+            {'avatar': True, 'donated': True})
 
         if user is not None:  # pragma: no branch
             reply['user_avatar'] = user.get('avatar')
+            reply['user_donated'] = user.get('donated', False)
             replies.append(reply)
 
     return Pagination(replies, total, page, per_page)
