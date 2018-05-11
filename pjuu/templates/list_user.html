@@ -43,6 +43,9 @@
             <a href="{{ url_for('users.profile', username=item.username) }}">
                 {{ item.username|capitalize }}
             </a>
+            {% if item.donated %}
+            <i class="fa fa-fw fa-heart gold"></i>
+            {% endif %}
         </div>
         <div class="body">{{ item.about }}</div>
     </div>

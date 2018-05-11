@@ -100,15 +100,18 @@ def get_feed(user_id, page=1, per_page=None):
 
     # Get a list of unique `user_id`s from all the post.
     user_ids = list(set([post.get('user_id') for post in posts]))
-    cursor = m.db.users.find({'_id': {'$in': user_ids}}, {'avatar': True})
-    # Create a lookup dict `{username: email}`
-    user_avatars = \
-        dict((user.get('_id'), user.get('avatar')) for user in cursor)
+    cursor = m.db.users.find({'_id': {'$in': user_ids}},
+                             {'avatar': True, 'donated': True})
 
-    # Add the e-mails to the posts
+    users = dict((user.get('_id'), {
+        'avatar': user.get('avatar'),
+        'donated': user.get('donated', False)
+    }) for user in cursor)
+
     processed_posts = []
     for post in posts:
-        post['user_avatar'] = user_avatars.get(post.get('user_id'))
+        post['user_avatar'] = users.get(post.get('user_id')).get('avatar')
+        post['user_donated'] = users.get(post.get('user_id')).get('donated')
         processed_posts.append(post)
 
     # Clean up the list in Redis if the
@@ -346,16 +349,20 @@ def search(query, page=1, per_page=None):
                 user_ids.append(hashtag.get('user_id'))
                 preprocessed_posts.append(hashtag)
 
-            cursor = m.db.users.find(
-                {'_id': {'$in': user_ids}}, {'avatar': True}
-            )
-            # Create a lookup dict `{username: email}`
-            user_avatars = \
-                dict((user.get('_id'), user.get('avatar')) for user in cursor)
+            cursor = m.db.users.find({'_id': {'$in': user_ids}},
+                                     {'avatar': True, 'donated': True})
+
+            post_users = dict((user.get('_id'), {
+                'avatar': user.get('avatar'),
+                'donated': user.get('donated', False)
+            }) for user in cursor)
 
             # Add the e-mails to the posts
             for post in preprocessed_posts:
-                post['user_avatar'] = user_avatars.get(post.get('user_id'))
+                post['user_avatar'] = \
+                    post_users.get(post.get('user_id')).get('avatar')
+                post['user_donated'] = \
+                    post_users.get(post.get('user_id')).get('donated')
                 posts.append(post)
 
         results = users + posts

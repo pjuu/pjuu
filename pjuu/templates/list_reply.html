@@ -22,6 +22,9 @@
     <div class="content post clearfix">
         <div class="username">
             <a href="{{ url_for('users.profile', username=item.username) }}">{{ item.username|capitalize }}</a>
+            {% if item.user_donated %}
+            <i class="fa fa-fw fa-heart gold"></i>
+            {% endif %}
             <span class="created">{{ item.created|timeify }}</span>
         </div>
         <div class="body">

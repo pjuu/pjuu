@@ -1514,6 +1514,23 @@ ins.play-gif:hover{
     to {transform: rotate(359deg);}
 }
 
+.btn-donate {
+    background-color: #253B80;
+    color: #FFFFFF;
+    display: inline-block;
+    margin: 1rem auto 0 auto;
+    padding: 1rem;
+}
+
+.btn-donate:hover {
+    color: #2997D8;
+}
+
+.gold {
+    color: #FFD700;
+    font-size: 13px;
+}
+
 /* MEDIA QUERIES =========================================================== */
 @media only screen and (max-width: 750px) {
     .no-mobile {

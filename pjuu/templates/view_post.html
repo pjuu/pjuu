@@ -28,6 +28,9 @@
     <div class="content clearfix">
         <div class="username">
             <a href="{{ url_for('users.profile', username=post.username) }}">{{ post.username|capitalize }}</a>
+            {% if post.user_donated %}
+            <i class="fa fa-fw fa-heart gold"></i>
+            {% endif %}
             <span class="permission">
                 {% if post.permission == 0 %}
                     <i class="fa fa-fw fa-globe"></i>
