@@ -448,8 +448,8 @@ def get_global_feed(page=1, per_page=None, perm=0):
     # Add the e-mails to the posts
     processed_posts = []
     for post in posts:
-        post['user_avatar'] = users.get(post.get('user_id'))
-        post['user_donated'] = users.get(post.get('user_id'))
+        post['user_avatar'] = users.get(post.get('user_id')).get('avatar')
+        post['user_donated'] = users.get(post.get('user_id')).get('donated')
         processed_posts.append(post)
 
     return Pagination(posts, total, page, per_page)
