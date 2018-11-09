@@ -73,10 +73,8 @@ MAX_SEARCH_ITEMS = 500
 # Line cap (the number of lines to show in a feed before 'Read more...' shows)
 LINE_CAP = 5
 
-# OpBeat config
-OPBEAT_ORG_ID = ''
-OPBEAT_APP_ID = ''
-OPBEAT_SECRET_TOKEN = ''
+# Sentry
+SENTRY_DSN = ''
 
 # Celery config
 CELERY_BROKER_URL = ''
