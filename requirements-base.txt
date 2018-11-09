@@ -15,5 +15,5 @@ hiredis==0.2.0
 itsdangerous==0.24
 jsonpickle==0.9.6
 redis==2.10.6
-opbeat==3.6.1
+sentry-sdk==0.5.3
 Wand==0.4.4

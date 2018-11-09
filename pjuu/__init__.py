@@ -16,7 +16,8 @@ from flask_pymongo import PyMongo
 from flask_redis import Redis
 from flask_wtf import CSRFProtect
 from celery import Celery
-from opbeat.contrib.flask import Opbeat
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from pjuu.configurator import load
 from pjuu.lib import timestamp
@@ -70,16 +71,11 @@ def create_app(config_dict=None):
     if config_dict is not None:  # pragma: no cover
         app.config.update(config_dict)
 
-    # OpBeat
-    # We use OpBeat in production to log errors and performance of the code.
-    # We do not need it if debug is True as we expect there could be errors
-    # and we get full visibility.
+    # Sentry
     if not app.debug:  # pragma: no cover
-        Opbeat(
-            app,
-            organization_id=app.config.get('OPBEAT_ORG_ID'),
-            app_id=app.config.get('OPBEAT_APP_ID'),
-            secret_token=app.config.get('OPBEAT_SECRET_TOKEN')
+        sentry_sdk.init(
+            dsn=app.config.get('SENTRY_DSN'),
+            integrations=[FlaskIntegration()]
         )
 
     # Configure Celery
