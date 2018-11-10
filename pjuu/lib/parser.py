@@ -52,7 +52,7 @@ URL_RE_PATTERN = (
 )
 URL_RE = re.compile(URL_RE_PATTERN)
 
-DELIMITERS = '\(\)\[\]\{\}\.\;\,\:\?\!\ \t\r\n\'\"'
+DELIMITERS = r'\(\)\[\]\{\}\.\;\,\:\?\!\ \t\r\n\'\"'
 
 MENTION_RE = re.compile(
     r'(?:^|(?<=[{0}]))@(\w{{3,16}})(?:$|(?=[{0}]))'.format(DELIMITERS)
