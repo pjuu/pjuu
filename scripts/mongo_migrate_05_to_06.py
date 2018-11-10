@@ -52,9 +52,9 @@ ALERT = "{{alert:{0}}}"
 TOKEN = "{{token:{0}}}"
 
 
-USER_RE = re.compile("\{user\:([0-9a-f]*)\}$")
-POST_RE = re.compile("\{post\:([0-9a-f]*)\}$")
-COMMENT_RE = re.compile("\{comment\:([0-9a-f]*)\}$")
+USER_RE = re.compile(r"\{user\:([0-9a-f]*)\}$")
+POST_RE = re.compile(r"\{post\:([0-9a-f]*)\}$")
+COMMENT_RE = re.compile(r"\{comment\:([0-9a-f]*)\}$")
 
 
 def flag_to_bool(flag):

@@ -62,10 +62,10 @@ TOKEN = "{{token:{0}}}"
 # Regular expressions for identifying keys
 ###############################################################################
 
-USER_RE = re.compile("user\:([0-9a-f]*)$")
-POST_RE = re.compile("post\:([0-9a-f]*)$")
-COMMENT_RE = re.compile("comment\:([0-9a-f]*)$")
-ALERT_RE = re.compile("alert\:([0-9a-f]*)$")
+USER_RE = re.compile(r"user\:([0-9a-f]*)$")
+POST_RE = re.compile(r"post\:([0-9a-f]*)$")
+COMMENT_RE = re.compile(r"comment\:([0-9a-f]*)$")
+ALERT_RE = re.compile(r"alert\:([0-9a-f]*)$")
 
 
 if __name__ == "__main__":

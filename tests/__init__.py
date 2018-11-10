@@ -31,7 +31,7 @@ class BackendTestCase(unittest.TestCase):
             'TESTING': 'True',
             'SERVER_NAME': 'localhost',
             'WTF_CSRF_ENABLED': False,
-            'MONGO_DBNAME': 'pjuu_testing',
+            'MONGO_URI': 'mongodb://localhost:27017/pjuu_testing',
             'REDIS_DB': 2,
             'SESSION_REDIS_DB': 3
         })
@@ -51,7 +51,7 @@ class BackendTestCase(unittest.TestCase):
         r.flushdb()
 
         # Clean up Mongo only after each test.
-        m.cx.drop_database(app.config.get('MONGO_DBNAME'))
+        m.cx.drop_database('pjuu_testing')
 
         self.app_ctx.pop()
 

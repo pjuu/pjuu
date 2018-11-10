@@ -26,8 +26,7 @@ TESTING = False
 SECRET_KEY = 'Development Key'
 
 # MongoDB Settings
-MONGO_HOST = 'localhost'
-MONGO_DBNAME = 'pjuu'
+MONGO_URI = 'mongodb://localhost:27017/pjuu'
 
 # Redis settings (this is just the datastore, not sessions)
 REDIS_HOST = 'localhost'
