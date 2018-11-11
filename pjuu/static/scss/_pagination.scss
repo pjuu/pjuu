@@ -1,0 +1,37 @@
+#pagination {
+    background-color: #EEE;
+    border-top: 1px solid #666;
+    border-radius: 0 0 6px 6px;
+    color: #666;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 0;
+    padding: 0.5em;
+    vertical-align: middle;
+}
+
+#pagination a {
+    color: #666;
+}
+
+#pagination i {
+    font-size: 1.25em;
+    font-weight: 700;
+    padding: 0 0.5em;
+}
+
+#pagination .newer {
+    border-radius: 0 0 0 3px;
+    float: left;
+    text-align: left;
+}
+
+#pagination .older {
+    border-radius: 0 0 3px 0;
+    float: right;
+    text-align: right;
+}
+
+#pagination *:hover {
+    color: #333;
+}

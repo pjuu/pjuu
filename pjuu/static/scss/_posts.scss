@@ -1,0 +1,98 @@
+#post {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 0.5em;
+}
+
+#post .avatar {
+    display: block;
+    float: left;
+    margin: 0;
+}
+
+#post .content {
+    margin: 0 3em 0 5em;
+    padding: 0;
+}
+
+#post .username {
+    font-size: 1.5em;
+    line-height: 1em;
+}
+
+#post .body {
+    margin: 1em 0 1em;
+    word-wrap: break-word;
+}
+
+#post .image {
+    margin: 0 0 1em;
+}
+
+#post .image img {
+    border: 1px solid #666;
+    display: block;
+    max-height: 240px;
+    max-width: 100%;
+    width: auto;
+}
+
+#post .created {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+#post .permission {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+
+#post .control {
+    float: right;
+}
+
+#post .control .delete {
+    color: #CCC;
+    border-radius: 5px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.25em 0.5em;
+}
+
+#post .control .delete:hover {
+    color: #F00;
+}
+
+#post .panel {
+    color: #999;
+    border-radius: 0 0 6px 6px;
+    margin: 0.5em 0 0;
+    padding: 0.5em 0;
+}
+
+#post .panel ul {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+#post .panel li {
+    float: left;
+    font-weight: 700;
+    list-style: none;
+    margin: 0 1em 0 0;
+    padding: 0;
+}
+
+#post button {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    cursor: pointer;
+}

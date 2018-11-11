@@ -1,0 +1,58 @@
+input[type=text],
+input[type=password],
+textarea {
+    border: 1px solid #BBB;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    border-radius: 3px 3px 3px 3px;
+    margin: 0.5em 0 1em;
+    padding: 0.5em;
+    resize: none;
+    width: 100%;
+}
+
+textarea {
+    border-color: #666;
+    margin: 0.5em 0;
+}
+
+input[type=text],
+input[type=password] {
+    display: block;
+}
+
+input[type=text]:focus,
+input[type=password]:focus {
+    border: 1px solid #666;
+}
+
+input[type=text].error,
+input[type=password].error {
+    border: 1px solid #F50;
+}
+
+input[type=submit] {
+    border: 1px solid #666;
+    border-radius: 3px;
+    font-weight: 700;
+    padding: 0.5em 1em;
+}
+
+button {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    font-weight: 700;
+    float: right;
+    padding: 0.25em 1em;
+}
+
+button:hover {
+    border: 1px solid #333;
+    color: #333;
+}

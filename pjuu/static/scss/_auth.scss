@@ -1,0 +1,127 @@
+#auth {
+    font-family: Lato, 'Open Sans', sans-serif;
+    text-align: center;
+}
+
+#auth label {
+    display: block;
+    text-align: left;
+}
+
+#auth label[for="keep_signed_in"] {
+    display: inline;
+    padding-left: 0.5em;
+}
+
+#auth form {
+    margin: 2em 0 1em;
+}
+
+#auth h1 {
+    margin: 1em 0 2em;
+}
+
+#auth .logo {
+    margin-top: 1em;
+}
+
+#auth .motto {
+    color: #333;
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.15em;
+    padding: 1em 0;
+}
+
+#auth .link {
+    color: #000;
+}
+
+#auth .container {
+    margin: 0 auto 2em;
+    width: 32em
+}
+
+#auth .motto span {
+    font-size: 28px;
+}
+
+#auth .terms {
+    margin: 2em 0 1em;
+}
+
+#auth input {
+    border: 1px solid #9C0;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 3px;
+    padding: 0.5em 0.75em;
+}
+
+#auth input[type=submit] {
+    background-color: #9C0;
+    color: white;
+    margin: 1em auto;
+    text-transform: uppercase;
+    width: 100%;
+    font-weight: 400;
+
+    -webkit-transition: all 300ms;
+    -moz-transition: all 300ms;
+    -ms-transition: all 300ms;
+    -o-transition: all 300ms;
+    transition: all 300ms;
+}
+
+#auth input[type=submit]:hover,
+#auth input[type=submit]:focus {
+    background-color: white;
+    color: #9C0;
+}
+
+#auth .link {
+    display: block;
+    padding: 8px;
+}
+
+#auth .messages {
+    margin: 0 auto;
+}
+
+@media (min-width: 800px) {
+    #auth .container {
+        width: 32em;
+    }
+}
+
+@media only screen and (max-width: 750px) {
+    #auth .container {
+        width: 98%;
+    }
+
+    #auth form {
+        width: 100%;
+    }
+
+    #auth .messages {
+        width: 100%;
+    }
+
+    #auth .logo {
+        display: block;
+        margin: 1em auto 0;
+        padding: 0;
+    }
+
+    #auth .motto {
+        font-size: 18px;
+    }
+}
+
+/* Error list can be used anywhere */
+.errorlist {
+    color: #C00;
+    list-style: none;
+    margin: 1em 0.5em;
+    padding: 0;
+}

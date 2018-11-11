@@ -1,0 +1,24 @@
+#footer {
+    height: 60px;
+    text-align: center;
+}
+
+#footer a {
+    color: #333;
+    font-weight: 400;
+}
+
+#footer a:hover {
+    color: #000;
+    text-decoration: underline;
+}
+
+#footer .links {
+    font-size: 1em;
+    margin: 0 0 0.5em 0;
+}
+
+#footer .copyright {
+    color: #666;
+    font-size: 0.75em;
+}

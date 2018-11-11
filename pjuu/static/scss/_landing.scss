@@ -1,0 +1,100 @@
+#landing {
+    margin: 0 auto;
+    text-align: center;
+    width: 900px;
+}
+
+#landing .left {
+    float: left;
+    width: 46%;
+}
+
+#landing .right {
+    float: right;
+    text-align: left;
+    width: 46%;
+}
+
+#landing #blurb {
+    font-family: Lato, 'Open Sans', sans-serif;
+}
+
+#landing #blurb h1 {
+    margin: 1em 0 0.67em;
+}
+
+#landing #blurb p {
+    line-height: 2em;
+    margin: 2em 0;
+}
+
+#landing #blurb #join-us {
+    background-color: #06F;
+    border: 1px solid #06F;
+    border-radius: 3px;
+    color: #FFF;
+    display: block;
+    line-height: normal;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 0.5em 0.75em;
+}
+
+#landing #blurb #join-us:hover {
+    background-color: #FFF;
+    color: #06F;
+}
+
+#landing #app-icons {
+    clear: both;
+}
+
+#landing #global-feed {
+    clear: both;
+    font-size: 1.25em;
+    padding: 3em 0 2em;
+}
+
+#landing #global-feed a {
+    background-color: #EEE;
+    border-radius: 3px;
+    color: #333;
+    padding: 1em 2em;
+}
+
+#landing #global-feed a:hover {
+    border: 1px solid #333;
+    color: #333;
+}
+
+@media only screen and (max-width: 900px) {
+    #landing {
+        width: 32em;
+    }
+
+    #landing .left {
+        clear: both;
+        margin: 0 auto;
+        width: 32em;
+    }
+
+    #landing .right {
+        clear: both;
+        margin: 0 auto;
+        width: 32em;
+    }
+}
+
+@media only screen and (max-width: 420px) {
+    #landing {
+        width: 98%;
+    }
+
+    #landing .left {
+        width: 100%;
+    }
+
+    #landing .right {
+        width: 100%;
+    }
+}

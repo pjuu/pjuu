@@ -1,0 +1,104 @@
+#settings-menu {
+    background-color: #EEE;
+    border: 1px solid #666;
+    border-radius: 3px;
+    font-weight: 700;
+    margin: 0;
+    padding: 0;
+}
+
+#settings-menu li {
+    color: #666;
+    float: left;
+    font-weight: 700;
+    list-style: none;
+    margin: 0;
+    padding: 0.5em 1em;
+}
+
+#settings-menu li:hover {
+    color: #333;
+}
+
+#setting {
+    margin: 0 auto;
+    padding: 0.5em 0.5em 1em;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+#setting .details {
+    margin: 0 0 2em;
+}
+
+#setting .detail {
+    margin: 0 0 1em;
+    padding: 0;
+}
+
+#setting .detail .header {
+    font-weight: 700;
+}
+
+#setting .detail .content {
+    margin: 0.5em 1em 0;
+}
+
+#setting .detail .content div {
+    padding: 0.5em 0;
+}
+
+#setting .detail.avatar button {
+    float: left;
+}
+
+#setting .warning {
+    color: #F00;
+}
+
+#setting #permission {
+    padding: 0;
+    margin: 0 1em 0 0;
+    list-style: none;
+}
+
+#setting #permission li {
+    margin-top: 1em;
+}
+
+#setting #permission li label {
+    cursor: pointer;
+    display: block;
+    padding: 0.25em 0.5em;
+}
+
+#setting #permission li label {
+    float: left;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    background-color: #FFF;
+    margin-right: 1em;
+}
+
+#setting #permission li div {
+    padding: 0;
+    margin-left: 4em;
+}
+
+#setting #permission input[type=radio] {
+    position: absolute;
+    left: -9999px;
+}
+
+#setting #permission input[type=radio]:checked + i {
+    color: #0C0;
+}
+
+@media only screen and (max-width: 750px) {
+    #settings-menu li {
+        border: 0;
+        float: none;
+        padding: 0.5em 1em;
+    }
+}

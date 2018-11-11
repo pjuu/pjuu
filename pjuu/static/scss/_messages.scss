@@ -1,0 +1,40 @@
+/* Javascript message container */
+.js-messages {
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    width: 100%;
+    z-index: 4;
+}
+
+.js-messages .message {
+    margin: 0 1em 1em;
+}
+
+.message {
+    border-radius: 3px;
+    font-weight: 700;
+    margin: 0 0 1em;
+    padding: 0.5em;
+    text-align: center;
+}
+
+.message.error {
+    background-color: #FF4136;
+    color: white;
+}
+
+.message.information {
+    background-color: #39F;
+    color: #1A4C80;
+}
+
+.message.success {
+    background-color: #0F0;
+    color: #080;
+}
+
+.message.warning {
+    background-color: #FFC;
+    color: #880;
+}

@@ -1,0 +1,83 @@
+.you {
+    background-color: #39F;
+    color: #1A4C80;
+    content: "You";
+}
+
+.you:hover {
+    content: "Edit";
+}
+
+.follow {
+    background-color: #FFF;
+    border: 1px solid #3C3;
+    color: #3C3;
+}
+
+.follow:hover {
+    background-color: #3C3;
+    border: 1px solid #3C3;
+    color: #FFF;
+}
+
+.unfollow {
+    background-color: #3C3;
+    border: 1px solid #3C3;
+    color: #FFF;
+    content: "Following";
+}
+
+.unfollow:hover {
+    background-color: #C00;
+    border: 1px solid #C00;
+    color: #FFF;
+    content: "Unfollow";
+}
+
+.approve {
+    margin-top: 0.5em;
+    background-color: #FFF;
+    border: 1px solid #FFEA39;
+    color: #000;
+}
+
+.approve:hover {
+    background-color: #FFEA39;
+    border: 1px solid #FFEA39;
+    color: #000;
+}
+
+.unapprove {
+    margin-top: 0.5em;
+    background-color: #FFEA39;
+    border: 1px solid #FFEA39;
+    color: #000;
+    content: "Trusted";
+}
+
+.unapprove:hover {
+    background-color: #C00;
+    border: 1px solid #C00;
+    color: #FFF;
+    content: "Untrust";
+}
+
+.username a {
+    color: #333;
+}
+
+.username a:hover {
+    text-decoration: underline;
+}
+
+.btn-donate {
+    background-color: #253B80;
+    color: #FFFFFF;
+    display: inline-block;
+    margin: 1rem auto 0 auto;
+    padding: 1rem;
+}
+
+.btn-donate:hover {
+    color: #2997D8;
+}

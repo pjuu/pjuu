@@ -1,0 +1,11 @@
+{
+  "name": "pjuu",
+  "version": "0.0.0",
+  "description": "The open social network",
+  "license": "AGPL-v3",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-sass": "^4.0.2",
+    "node-sass": "^4.10.0"
+  }
+}

@@ -1,0 +1,143 @@
+#list {
+    margin: 0;
+    padding: 0;
+}
+
+#list .empty {
+    color: #BBB;
+    margin: 1em 0;
+    text-align: center;
+}
+
+#list .item {
+    border-bottom: 1px solid #DDD;
+    list-style: none;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+}
+
+#list .item .buttonlink {
+    background: none !important;
+    border: none;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+#list .last {
+    border-bottom: 0;
+    margin: 0 0 0.5em;
+}
+
+#list .new {
+    color: #F00;
+}
+
+#list .avatar {
+    float: left;
+}
+
+#list .content.post {
+    margin: 0 2em 0 5em;
+}
+
+#list .content.user {
+    margin: 0 9em 0 5em;
+}
+
+#list .content.alert {
+    margin: 0 2em 0 5em;
+    vertical-align: middle;
+}
+
+#list .username {
+    font-size: 1.25em;
+}
+
+#list .body {
+    margin: 0.75em 0 1em;
+    word-wrap: break-word;
+}
+
+#list .user .body {
+    margin: 0.75em 0 0;
+}
+
+#list .image {
+    margin: 0 0 1em;
+}
+
+#list .image .no-image {
+    font-size: 1.5em;
+    padding: 0.5em 0;
+}
+
+#list .image img {
+    border: 1px solid #666;
+    display: block;
+    max-height: 240px;
+    max-width: 100%;
+    width: auto;
+}
+
+#list .alert .body {
+    margin: 0;
+}
+
+#list .created {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+#list .permission {
+    color: #BBB;
+    font-size: 11px;
+    font-weight: 400;
+    margin: 1em 0 0;
+}
+
+#list .control {
+    float: right;
+    margin: 0;
+}
+
+#list .button {
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
+}
+
+#list .post .action {
+    float: right;
+    height: 24px;
+    width: 24px;
+}
+
+#list .user .action {
+    float: right;
+}
+
+#list .panel {
+    color: #999;
+    font-weight: 700;
+}
+
+#list .panel ul {
+    list-style: none;
+    padding: 0;
+}
+
+#list .panel li {
+    float: left;
+    margin: 0 1em 0 0;
+}
+
+#list .action {
+    border-radius: 3px;
+    font-weight: 700;
+    float: right;
+    padding: 0.25em 0;
+    text-align: center;
+    width: 100px;
+}

@@ -1,0 +1,47 @@
+#dash {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 0;
+}
+
+#dash h1 {
+    background-color: #EEE;
+    border-bottom: 1px solid #666;
+    border-radius: 6px 6px 0 0;
+    color: #666;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+    vertical-align: middle;
+}
+
+#dash dl {
+    margin: 1em;
+}
+
+#dash dd {
+    font-weight: 700;
+}
+
+#dash form {
+    display: inline;
+}
+
+#dash button {
+    background: none !important;
+    border: none;
+    display: inline;
+    float: none;
+    padding: 0 !important;
+    cursor: pointer;
+}
+
+.red {
+    color: #F00;
+}
+
+.green {
+    color: #0F0;
+}

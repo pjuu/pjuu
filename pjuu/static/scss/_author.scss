@@ -1,0 +1,106 @@
+#author {
+    border: 1px solid #666;
+    border-radius: 6px;
+    padding: 0.5em;
+}
+
+#author.comment {
+    background-color: #9CF;
+}
+
+#author.post {
+    background-color: #FE6;
+}
+
+#author textarea {
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin: 0 0 0.5em 0;
+    padding: 0.5em;
+    resize: vertical;
+}
+
+#author input[type="text"] {
+    border: 1px solid #666;
+    border-radius: 3px;
+    margin: 0 0 0.5em 0;
+}
+
+input[type="file"] {
+    position: absolute;
+    left: -9999px;
+}
+
+#author #permission {
+    float: left;
+    padding: 0;
+    margin: 0 1em 0 0;
+    list-style: none;
+}
+
+#author #permission label {
+    cursor: pointer;
+    display: block;
+    padding: 0.25em 0.5em;
+}
+
+#author #permission input[type=radio]:checked + i {
+    color: #0C0;
+}
+
+#author #permission li:first-child {
+    border-radius: 3px 0 0 3px;
+    border-right: 0;
+}
+
+#author #permission li:last-child {
+    border-radius: 0 3px 3px 0;
+    border-right: 1px solid #666;
+}
+
+#author #permission li {
+    border: 1px solid #666;
+    border-right: 0;
+    color: #666;
+    background-color: #FFF;
+    float: left;
+}
+
+#author #permission li:hover {
+    color: #333;
+}
+
+#author #permission input[type=radio] {
+    position: absolute;
+    left: -9999px;
+}
+
+#upload-label {
+    background-color: #FFF;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: #666;
+    cursor: pointer;
+    font-weight: 700;
+    float: left;
+    margin-right: 1em;
+    padding: 0.25em 1em;
+}
+
+#upload-label:hover {
+    color: #333;
+}
+
+.has-file {
+    color: #0C0 !important;
+}
+
+#count {
+    float: left;
+    padding: 0.5em 0.25em;
+}
+
+#author #action {
+    float: right;
+    padding: 0.25em;
+}
