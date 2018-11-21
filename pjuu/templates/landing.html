@@ -43,17 +43,12 @@
         <a href="{{ url_for('posts.global_feed') }}"><i class="fa fa-globe"></i> View Public Feed</a>
     </div>
 	<div id="app-icons">
-		{% if request.headers.get('User-Agent', '').find("iOtter") == -1 %}
 		<a href="https://f-droid.org/app/com.pjuu.otterdroid" target="_blank">
             <img class="logo" src="{{ url_for('static', filename='img/get-fdroid.png') }}" width="150">
         </a>
         <a href="https://play.google.com/store/apps/details?id=com.pjuu.otterdroid" target="_blank">
             <img class="logo" src="{{ url_for('static', filename='img/get-google-play.png') }}" width="150">
         </a>
-		<a href="https://itunes.apple.com/gb/app/pjuu/id1041701677" target="blank">
-            <img class="logo" src="{{ url_for('static', filename='img/get-apple-app.png') }}" width="150">
-        </a>
-		{% endif %}
 	</div>
 </div>
 {% endblock %}
