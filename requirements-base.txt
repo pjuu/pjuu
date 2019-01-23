@@ -13,7 +13,7 @@ gevent==1.4.0
 gunicorn==19.9.0
 hiredis==1.0.0
 itsdangerous==1.1.0
-jsonpickle==1.0
+jsonpickle==1.1
 redis==3.0.1
 sentry-sdk==0.6.9
 Wand==0.5.0
