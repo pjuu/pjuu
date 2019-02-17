@@ -14,6 +14,6 @@ gunicorn==19.9.0
 hiredis==1.0.0
 itsdangerous==1.1.0
 jsonpickle==1.1
-redis==3.0.1
-sentry-sdk==0.6.9
-Wand==0.5.0
+redis==3.1.0
+sentry-sdk==0.7.2
+Wand==0.5.1
