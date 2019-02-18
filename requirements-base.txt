@@ -1,5 +1,5 @@
 Flask==1.0.2
-Flask-And-Redis==0.7
+Flask-And-Redis==1.0.0
 Flask-Mail==0.9.1
 Flask-PyMongo==2.2.0
 Flask-WTF==0.14.2
