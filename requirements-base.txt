@@ -4,7 +4,7 @@ Flask-Mail==0.9.1
 Flask-PyMongo==2.2.0
 Flask-WTF==0.14.2
 Jinja2==2.10
-MarkupSafe==1.1.0
+MarkupSafe==1.1.1
 WTForms==2.2.1
 Werkzeug==0.14.1
 blinker==1.4
