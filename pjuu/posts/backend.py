@@ -17,7 +17,6 @@ from jinja2.filters import do_capitalize
 from pjuu import mongo as m, redis as r, celery
 from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
-from pjuu.lib.lua import zadd_member_nx
 from pjuu.lib.pagination import Pagination
 from pjuu.lib.parser import parse_post
 from pjuu.lib.uploads import process_upload, delete_upload
@@ -219,7 +218,7 @@ def create_post(user_id, username, body, reply_to=None, upload=None,
     if result:
         if reply_to is None:
             # Add post to authors feed
-            r.zadd(k.USER_FEED.format(user_id), post_time, post_id)
+            r.zadd(k.USER_FEED.format(user_id), {str(post_id): post_time})
             # Ensure the feed does not grow to large
             r.zremrangebyrank(k.USER_FEED.format(user_id), 0, -1000)
 
@@ -283,7 +282,7 @@ def populate_followers_feeds(user_id, post_id, timestamp):
     # This is not transactional as to not hold Redis up.
     for follower_id in followers:
         # Add the pid to the list
-        r.zadd(k.USER_FEED.format(follower_id), timestamp, post_id)
+        r.zadd(k.USER_FEED.format(follower_id), {str(post_id): timestamp})
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
         r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
@@ -297,7 +296,7 @@ def populate_approved_followers_feeds(user_id, post_id, timestamp):
     # This is not transactional as to not hold Redis up.
     for follower_id in followers:
         # Add the pid to the list
-        r.zadd(k.USER_FEED.format(follower_id), timestamp, post_id)
+        r.zadd(k.USER_FEED.format(follower_id), {str(post_id): timestamp})
         # Stop followers feeds from growing to large, doesn't matter if it
         # doesn't exist
         r.zremrangebyrank(k.USER_FEED.format(follower_id), 0, -1000)
@@ -368,7 +367,7 @@ def back_feed(who_id, whom_id):
         timestamp = post.get('created')
         post_id = post.get('_id')
         # Place on the feed
-        r.zadd(k.USER_FEED.format(who_id), timestamp, post_id)
+        r.zadd(k.USER_FEED.format(who_id), {str(post_id): timestamp})
         # Trim the feed to the 1000 max
         r.zremrangebyrank(k.USER_FEED.format(who_id), 0, -1000)
 
@@ -573,7 +572,9 @@ def vote_post(user_id, post_id, amount=1, ts=None):
     if not voted:
         if author_uid != user_id:
             # Store the timestamp of the vote with the sign of the vote
-            r.zadd(k.POST_VOTES.format(post_id), amount * timestamp(), user_id)
+            r.zadd(k.POST_VOTES.format(post_id), {
+                str(user_id): amount * timestamp()
+            })
 
             # Update post score
             m.db.posts.update({'_id': post_id},
@@ -605,7 +606,9 @@ def vote_post(user_id, post_id, amount=1, ts=None):
                 result = 0
         else:
             # We will only register the new vote if it is NOT a vote reversal.
-            r.zadd(k.POST_VOTES.format(post_id), amount * timestamp(), user_id)
+            r.zadd(k.POST_VOTES.format(post_id), {
+                str(user_id): amount * timestamp()
+            })
 
             if previous_vote < 0:
                 amount = 2
@@ -690,8 +693,9 @@ def subscribe(user_id, post_id, reason):
 
     # Only subscribe the user if the user is not already subscribed
     # this will mean the original reason is kept
-    return zadd_member_nx(keys=[k.POST_SUBSCRIBERS.format(post_id)],
-                          args=[reason, user_id])
+    return r.zadd(k.POST_SUBSCRIBERS.format(post_id), {
+        str(user_id): reason
+    }, nx=True)
 
 
 def unsubscribe(user_id, post_id):
@@ -714,7 +718,9 @@ def flag_post(user_id, post_id):
     if post.get('user_id') != user_id:
         if not has_flagged(user_id, post_id):
             # Increment the flag count by one and store the user name
-            r.zadd(k.POST_FLAGS.format(post_id), timestamp(), user_id)
+            r.zadd(k.POST_FLAGS.format(post_id), {
+                str(user_id): timestamp()
+            })
             m.db.posts.update({'_id': post_id},
                               {'$inc': {'flags': 1}})
         else:

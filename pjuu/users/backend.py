@@ -145,13 +145,13 @@ def follow_user(who_uid, whom_uid):
     Generate an alert for this action.
     """
     # Check that we are not already following the user
-    if r.zrank(k.USER_FOLLOWING.format(who_uid), whom_uid) is not None:
+    if r.zrank(k.USER_FOLLOWING.format(who_uid), str(whom_uid)) is not None:
         return False
 
     # Follow user
     # Score is based on UTC epoch time
-    r.zadd(k.USER_FOLLOWING.format(who_uid), timestamp(), whom_uid)
-    r.zadd(k.USER_FOLLOWERS.format(whom_uid), timestamp(), who_uid)
+    r.zadd(k.USER_FOLLOWING.format(who_uid), {str(whom_uid): timestamp()})
+    r.zadd(k.USER_FOLLOWERS.format(whom_uid), {str(who_uid): timestamp()})
 
     # Create an alert and inform whom that who is now following them
     alert = FollowAlert(who_uid)
@@ -189,7 +189,7 @@ def approve_user(who_uid, whom_uid):
 
     # Add the user to the approved list
     # No alert is generated
-    r.zadd(k.USER_APPROVED.format(who_uid), timestamp(), whom_uid)
+    r.zadd(k.USER_APPROVED.format(who_uid), {str(whom_uid): timestamp()})
 
     return True
 

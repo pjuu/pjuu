@@ -120,5 +120,6 @@ class AlertManager(object):
         r.expire(k.ALERT.format(alert.alert_id), k.EXPIRE_4WKS)
 
         for user_id in user_ids:
-            r.zadd(k.USER_ALERTS.format(user_id), alert.timestamp,
-                   alert.alert_id)
+            r.zadd(k.USER_ALERTS.format(user_id), {
+                str(alert.alert_id): alert.timestamp
+            })
