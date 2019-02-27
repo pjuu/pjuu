@@ -1,4 +1,4 @@
 -r requirements-base.txt
-coverage==4.5.1
-flake8==3.6.0
+coverage==4.5.2
+flake8==3.7.6
 codecov==2.0.15

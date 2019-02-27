@@ -707,7 +707,7 @@ class PostBackendTests(BackendTestCase):
         # To check that an invalid subscription reason returns the generic
         # reason. This should not happen on the site.
         # Manually change the score in Redis to a high number
-        r.zincrby(K.POST_SUBSCRIBERS.format(post1), user3, 100)
+        r.zincrby(K.POST_SUBSCRIBERS.format(post1), 100, user3)
         # Check the new prettify message
         alert = get_alerts(user3).items[0]
         self.assertTrue(isinstance(alert, CommentingAlert))
