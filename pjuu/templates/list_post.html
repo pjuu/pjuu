@@ -13,7 +13,7 @@
             {% if config.TESTING %}
             <!-- delete:post:{{ item._id }} -->
             {% endif %}
-            <form action="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+            <form action="{{ url_for('posts.delete_post', username=item.username, post_id=item._id, next=request.full_path) }}" method="post">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                 <button title="Delete post" class="fa fa-remove fa-lg delete buttonlink"></button>
             </form>
@@ -21,7 +21,7 @@
             {% if config.TESTING %}
             <!-- remove:post:{{ item._id }} -->
             {% endif %}
-            <form action="{{ url_for('users.remove_from_feed', post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+            <form action="{{ url_for('users.remove_from_feed', post_id=item._id, next=request.full_path) }}" method="post">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                 <button title="Remove item from feed" class="fa fa-eye-slash hide buttonlink"></button>
             </form>
@@ -102,7 +102,7 @@
                             <!-- upvote:post:{{ item._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.upvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.upvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Up vote" class="fa fa-arrow-up fa-lg link {% if voted_on > 0 %}upvoted{% else %}upvote{% endif %}  buttonlink"></button>
                         </form>
@@ -121,7 +121,7 @@
                             <!-- downvote:post:{{ item._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.downvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.downvote', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Down vote" class="fa fa-arrow-down fa-lg link {% if voted_on < 0 %}downvoted{% else %}downvote{% endif %} buttonlink"></button>
                         </form>

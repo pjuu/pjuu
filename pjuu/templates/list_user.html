@@ -14,24 +14,24 @@
             <div class="action you">You</div>
         </a>
         {% elif item|following %}
-        <form action="{{ url_for('users.unfollow', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+        <form action="{{ url_for('users.unfollow', username=item.username, next=request.full_path|string) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <button class="action unfollow">Following</button>
         </form>
         {% else %}
-        <form action="{{ url_for('users.follow', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+        <form action="{{ url_for('users.follow', username=item.username, next=request.full_path|string) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <button class="action follow">Follow</button>
         </form>
         {% endif %}
         {% if (request.endpoint == 'users.followers' or request.endpoint == 'users.trusted') and profile._id == current_user._id %}
             {% if item|trusted %}
-            <form action="{{ url_for('users.unapprove', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+            <form action="{{ url_for('users.unapprove', username=item.username, next=request.full_path|string) }}" method="post">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                 <button class="action unapprove">Trusted</button>
             </form>
             {% else %}
-            <form action="{{ url_for('users.approve', username=item.username, next=request.path + '?' + request.query_string) }}" method="post">
+            <form action="{{ url_for('users.approve', username=item.username, next=request.full_path|string) }}" method="post">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                 <button class="action approve">Trust</button>
             </form>

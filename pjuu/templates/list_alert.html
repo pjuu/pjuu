@@ -9,7 +9,7 @@
     <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
     {% endif %}
     <div class="control">
-        <a href="{{ url_for('users.delete_alert', alert_id=item.alert_id, next=request.path + '?' + request.query_string) }}" class="fa fa-eye-slash fa-lg hide"></a>
+        <a href="{{ url_for('users.delete_alert', alert_id=item.alert_id, next=request.full_path) }}" class="fa fa-eye-slash fa-lg hide"></a>
     </div>
     <div class="content alert clearfix">
         <div class="body">
