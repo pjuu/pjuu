@@ -492,7 +492,7 @@ class PostFrontendTests(FrontendTestCase):
 
         post1 = create_post(user1, 'user1', 'Test post')
 
-        for i in xrange(100):
+        for i in range(100):
             create_post(user1, 'user1', 'Reply {}'.format(i), post1)
 
         # Test reply sort order for logged out users
@@ -506,7 +506,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1, sort=-1),
                                follow_redirects=True)
 
-        for i in xrange(99, 75, -1):
+        for i in range(99, 75, -1):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         resp = self.client.get(url_for('posts.view_post', username='user1',
@@ -516,7 +516,7 @@ class PostFrontendTests(FrontendTestCase):
         # Check reverse-chronological sort link is present
         self.assertIn('fa-sort-numeric-desc', resp.data)
 
-        for i in xrange(24):
+        for i in range(24):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         # Ensure an invalid sort order is treated correctly.
@@ -525,7 +525,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1, sort="bob"),
                                follow_redirects=True)
 
-        for i in xrange(99, 75, -1):
+        for i in range(99, 75, -1):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         self.client.post(url_for('auth.signin'), data={
@@ -540,7 +540,7 @@ class PostFrontendTests(FrontendTestCase):
         # Check chronological sort link is present
         self.assertIn('fa-sort-numeric-asc', resp.data)
 
-        for i in xrange(99, 75, -1):
+        for i in range(99, 75, -1):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         # Explicit default sort
@@ -548,7 +548,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1, sort=-1),
                                follow_redirects=True)
 
-        for i in xrange(99, 75, -1):
+        for i in range(99, 75, -1):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         # Explicit chronological sort
@@ -559,7 +559,7 @@ class PostFrontendTests(FrontendTestCase):
         # Check reverse-chronological sort link is present
         self.assertIn('fa-sort-numeric-desc', resp.data)
 
-        for i in xrange(24):
+        for i in range(24):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         # Update the user profile and test again.
@@ -572,7 +572,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        for i in xrange(24):
+        for i in range(24):
             self.assertIn('Reply {}'.format(i), resp.data)
 
         # Ensure an incorrect sort renders the user default
@@ -580,7 +580,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1, sort='cheese'),
                                follow_redirects=True)
 
-        for i in xrange(24):
+        for i in range(24):
             self.assertIn('Reply {}'.format(i), resp.data)
 
     def test_replies(self):
@@ -1718,7 +1718,7 @@ class PostFrontendTests(FrontendTestCase):
         activate(user2)
 
         for i in [('public', 0), ('pjuu', 1), ('trusted', 2)]:
-            for j in xrange(1, 4):
+            for j in range(1, 4):
                 create_post(user1, 'user1', '{} post #{}'.format(i[0], j),
                             permission=i[1])
 

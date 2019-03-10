@@ -111,7 +111,7 @@ class AlertManager(object):
         # Ensure uids is iterable
         # Stopped strings being passed in
         if not isinstance(user_ids, Iterable) or isinstance(user_ids, str) or \
-           isinstance(user_ids, unicode):
+           isinstance(user_ids, str):
             raise TypeError('user_ids must be iterable')
 
         # Create the alert object

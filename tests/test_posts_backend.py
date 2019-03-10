@@ -199,7 +199,7 @@ class PostBackendTests(BackendTestCase):
         follow_user(user1, user2)
 
         # Create lots of posts so they apear in user1's feed.
-        for i in xrange(101):
+        for i in range(101):
             create_post(user2, 'user2', 'Post {}'.format(i))
 
         FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
@@ -246,7 +246,7 @@ class PostBackendTests(BackendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         # Create loads of posts
-        for i in xrange(100):
+        for i in range(100):
             create_post(user1, 'user1', 'Test post {}'.format(i))
 
         FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')
@@ -302,7 +302,7 @@ class PostBackendTests(BackendTestCase):
         post1 = create_post(user1, 'user1', 'Test post')
 
         # Create loads of posts
-        for i in xrange(100):
+        for i in range(100):
             create_post(user1, 'user1', 'Test post {}'.format(i), post1)
 
         REPLIES_ITEMS_PER_PAGE = app.config.get('REPLIES_ITEMS_PER_PAGE')
@@ -743,7 +743,7 @@ class PostBackendTests(BackendTestCase):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
 
         # Create loads of posts
-        for i in xrange(100):
+        for i in range(100):
             create_post(user1, 'user1', 'Test post {} #test'.format(i))
 
         FEED_ITEMS_PER_PAGE = app.config.get('FEED_ITEMS_PER_PAGE')

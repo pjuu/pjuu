@@ -221,13 +221,13 @@ class BackendTests(BackendTestCase):
         """
         users = []
         # Creae 101 users (0 - 100)
-        for i in xrange(101):
+        for i in range(101):
             users.append(create_account('user{}'.format(i),
                                         'user{}@pjuu.com'.format(i),
                                         'Password'))
 
         # Make user0 follow all users and visa versa
-        for i in xrange(1, 101):
+        for i in range(1, 101):
             follow_user(users[0], users[i])
             follow_user(users[i], users[0])
 
@@ -465,7 +465,7 @@ class BackendTests(BackendTestCase):
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
 
         # Generate lots of following alerts
-        for i in xrange(101):
+        for i in range(101):
             follow_user(user2, user1)
             unfollow_user(user2, user1)
 

@@ -8,7 +8,7 @@
 """
 
 # Stdlib imports
-from __future__ import division
+
 from datetime import datetime
 import math
 # 3rd party imports

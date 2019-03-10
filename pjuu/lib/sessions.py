@@ -12,7 +12,7 @@ Armin Ronacher @ flask.pocoo.org snippets
 
 # Stdlib imports
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except ImportError:  # pragma: no cover
     import pickle
 from datetime import timedelta

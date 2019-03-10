@@ -23,7 +23,7 @@ class PaginationTests(BackendTestCase):
 
     def test_pagination(self):
         # Create a simple list of numbers to check pagination
-        ls = [i for i in xrange(1000)]
+        ls = [i for i in range(1000)]
 
         p = Pagination(ls[:50], len(ls), 1, 50)
 

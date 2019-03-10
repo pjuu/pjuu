@@ -61,20 +61,20 @@ def postify_filter(post, limit_lines=False):
         replace_text = post_body[left:right]
 
         if 'link' in item:
-            html = u'<a href="{0}" target="_blank">{1}</a>'.format(
+            html = '<a href="{0}" target="_blank">{1}</a>'.format(
                 item['link'],
                 replace_text
             )
 
         elif 'username' in item:
-            html = u'<a href="{0}">{1}</a>'.format(
+            html = '<a href="{0}">{1}</a>'.format(
                 url_for('users.profile', username=item['username']),
                 replace_text
             )
 
         elif 'hashtag' in item:  # pragma: no branch
             # The pragma above is because the `else` should never be called
-            html = u'<a href="{0}">{1}</a>'.format(
+            html = '<a href="{0}">{1}</a>'.format(
                 url_for('posts.hashtags', hashtag=item['hashtag']),
                 replace_text
             )
@@ -270,7 +270,7 @@ def post(username=None, post_id=None):
 
         # Create the post
         if create_post(current_user['_id'], current_user['username'],
-                       unicode(escape(form.body.data)), post_id, upload,
+                       str(escape(form.body.data)), post_id, upload,
                        permission=permission):
             # Inform the user we have created the post
             flash('Your post has been added', 'success')
@@ -280,7 +280,7 @@ def post(username=None, post_id=None):
     else:
         # Will print out all errors that happen in a post form.
         # This is better than "There is an error in your post"
-        for key, value in form.errors.iteritems():
+        for key, value in form.errors.items():
             for error in value:
                 flash(error, 'error')
 
