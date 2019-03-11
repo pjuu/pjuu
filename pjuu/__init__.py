@@ -123,8 +123,8 @@ def create_app(config_dict=None):
         """This is will write the time to the console in DEBUG mode"""
         if app.debug and not app.testing:  # pragma: no cover
             if request.endpoint != 'static':
-                print(request.path, request.endpoint, \
-                    str((timestamp() - g.start_time) * 100) + 'ms')
+                print(request.path, request.endpoint,
+                      str((timestamp() - g.start_time) * 100) + 'ms')
         return response
 
     @app.url_defaults

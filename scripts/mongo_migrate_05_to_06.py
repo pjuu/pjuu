@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # DUPLICATES SHOULD NEVER HAPPEN HERE.
     for key in r.keys('{post:*}'):
         if POST_RE.match(key) is not None:
-            print 'Converting post:', key
+            print('Converting post:', key)
             # Get the original post from Redis
             post = r.hgetall(key)
             # Convert `uid` to new `user_id`
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # readability to be a priority (this could brick some installations).
     for key in r.keys('{comment:*}'):
         if COMMENT_RE.match(key) is not None:
-            print 'Converting comment:', key
+            print('Converting comment:', key)
             # Get the original comment from Redis (called post here)
             post = r.hgetall(key)
             # Convert `uid` to new `user_id`
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     for key in r.keys('{user:*}'):
         user_match = USER_RE.match(key)
         if user_match is not None:
-            print 'Converting user:', key
+            print('Converting user:', key)
             user_id = user_match.groups(1)[0]
             user = r.hgetall(USER.format(user_id))
 
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 
     # Convert the alert pickles to the new naming convention
     for key in r.keys("{alert:*"):
-        print 'Converting alert:', key
+        print('Converting alert:', key)
         # Get the alert from Redis and convert it to a dict
         alert_pickle = r.get(key)
         alert = ast.literal_eval(alert_pickle)

@@ -77,9 +77,12 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 2, Post 1!', resp.get_data(as_text=True))
         # Check the pagination button for next is there are not prev
         self.assertIn('<!-- pagination:older -->', resp.get_data(as_text=True))
-        self.assertIn('<!-- pagination:oldest -->', resp.get_data(as_text=True))
-        self.assertNotIn('<!-- pagination:newer -->', resp.get_data(as_text=True))
-        self.assertNotIn('<!-- pagination:newerest -->', resp.get_data(as_text=True))
+        self.assertIn('<!-- pagination:oldest -->',
+                      resp.get_data(as_text=True))
+        self.assertNotIn('<!-- pagination:newer -->',
+                         resp.get_data(as_text=True))
+        self.assertNotIn('<!-- pagination:newerest -->',
+                         resp.get_data(as_text=True))
 
         # Let's go to page 2 in the pagination and check there are posts there
         resp = self.client.get(url_for('users.feed', page=2))
@@ -91,9 +94,12 @@ class FrontendTests(FrontendTestCase):
         self.assertNotIn('User 2, Post 5!', resp.get_data(as_text=True))
         # Check that both pagination buttons are there
         self.assertIn('<!-- pagination:older -->', resp.get_data(as_text=True))
-        self.assertIn('<!-- pagination:oldest -->', resp.get_data(as_text=True))
-        self.assertIn('<!-- pagination:newer -->', resp.get_data(as_text=True))
-        self.assertIn('<!-- pagination:newest -->', resp.get_data(as_text=True))
+        self.assertIn('<!-- pagination:oldest -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<!-- pagination:newer -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<!-- pagination:newest -->',
+                      resp.get_data(as_text=True))
 
         # Let's go back to the first page
         resp = self.client.get(url_for('users.feed'))
@@ -131,16 +137,20 @@ class FrontendTests(FrontendTestCase):
         # We should not be able to see it
         resp = self.client.post(url_for('users.follow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
         resp = self.client.post(url_for('users.unfollow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
         resp = self.client.get(url_for('users.following', username='user1'),
                                follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
         resp = self.client.get(url_for('users.followers', username='user1'),
                                follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
 
         # Ensure that test1 can follow and unfollow test2
         # Signin
@@ -164,10 +174,12 @@ class FrontendTests(FrontendTestCase):
         # Try follow and unfollow yourself
         resp = self.client.post(url_for('users.follow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You can\'t follow/unfollow yourself', resp.get_data(as_text=True))
+        self.assertIn('You can\'t follow/unfollow yourself',
+                      resp.get_data(as_text=True))
         resp = self.client.post(url_for('users.unfollow', username='user1'),
                                 follow_redirects=True)
-        self.assertIn('You can\'t follow/unfollow yourself', resp.get_data(as_text=True))
+        self.assertIn('You can\'t follow/unfollow yourself',
+                      resp.get_data(as_text=True))
 
         # Visit test2 and ensure followers count is 0
         resp = self.client.get(url_for('users.followers', username='user2'))
@@ -180,12 +192,14 @@ class FrontendTests(FrontendTestCase):
                                              username='user2')),
                                 follow_redirects=True)
         # Ensure the flash message has informed use we are following
-        self.assertIn('You have started following user2', resp.get_data(as_text=True))
+        self.assertIn('You have started following user2',
+                      resp.get_data(as_text=True))
         # Ensure test2's followers count has been incremented
         self.assertIn('<!-- followers:1 -->', resp.get_data(as_text=True))
         # This should match inside a link (Test1 due to capitalization)
         # Not the best test but it works for now
-        self.assertIn('<!-- list:user:{} -->'.format(user1), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user1),
+                      resp.get_data(as_text=True))
 
         # Attempt to follow test2 again
         resp = self.client.post(url_for('users.follow', username='user2',
@@ -193,13 +207,15 @@ class FrontendTests(FrontendTestCase):
                                              username='user2')),
                                 follow_redirects=True)
         # Check we got no confirmation
-        self.assertNotIn('You have started following test2', resp.get_data(as_text=True))
+        self.assertNotIn('You have started following test2',
+                         resp.get_data(as_text=True))
         # Check that the followers count has not incremented
         self.assertIn('<!-- followers:1 -->', resp.get_data(as_text=True))
 
         # Ensure test2 is in from YOUR (test1s) following page
         resp = self.client.get(url_for('users.following', username='user1'))
-        self.assertNotIn('<!-- list:user:{} -->'.format(user1), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:user:{} -->'.format(user1),
+                         resp.get_data(as_text=True))
 
         # Unfollow test2
         # Ensure that all the previous has been reversed
@@ -207,22 +223,26 @@ class FrontendTests(FrontendTestCase):
                                 next=url_for('users.followers',
                                              username='user2')),
                                 follow_redirects=True)
-        self.assertIn('You are no longer following user2', resp.get_data(as_text=True))
+        self.assertIn('You are no longer following user2',
+                      resp.get_data(as_text=True))
         self.assertIn('<!-- followers:0 -->', resp.get_data(as_text=True))
         # Check the list testing tag has gone
-        self.assertNotIn('<!-- list:user:test1 -->', resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:user:test1 -->',
+                         resp.get_data(as_text=True))
 
         # Attempt to unfollow the user again
         resp = self.client.post(url_for('users.unfollow', username='user2',
                                 next=url_for('users.followers',
                                              username='user2')),
                                 follow_redirects=True)
-        self.assertNotIn('You are no longer following user2', resp.get_data(as_text=True))
+        self.assertNotIn('You are no longer following user2',
+                         resp.get_data(as_text=True))
         self.assertIn('<!-- followers:0 -->', resp.get_data(as_text=True))
 
         # Ensure test2 is missing from YOUR (test1s) following page
         resp = self.client.get(url_for('users.following', username='user1'))
-        self.assertNotIn('<!-- list:user:{} -->'.format(user2), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:user:{} -->'.format(user2),
+                         resp.get_data(as_text=True))
         # Done for now
 
     def test_approve_unapprove(self):
@@ -244,21 +264,24 @@ class FrontendTests(FrontendTestCase):
 
         resp = self.client.get(url_for('users.followers', username='user1'),
                                follow_redirects=True)
-        self.assertIn('<!-- list:user:{} -->'.format(user2), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user2),
+                      resp.get_data(as_text=True))
         self.assertIn(url_for('users.approve', username='user2'),
-            resp.get_data(as_text=True))
+                      resp.get_data(as_text=True))
 
         # Approve user2
         resp = self.client.post(url_for('users.approve', username='user2'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(url_for('users.unapprove', username='user2'), resp.get_data(as_text=True))
+        self.assertIn(url_for('users.unapprove', username='user2'),
+                      resp.get_data(as_text=True))
 
         # Unapprove user2
         resp = self.client.post(url_for('users.unapprove', username='user2'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(url_for('users.approve', username='user2'), resp.get_data(as_text=True))
+        self.assertIn(url_for('users.approve', username='user2'),
+                      resp.get_data(as_text=True))
 
         # Try to unapprove user2 again
         resp = self.client.post(url_for('users.unapprove', username='user2'),
@@ -286,13 +309,15 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('users.approve', username='user1'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You should already trust yourself ;-P', resp.get_data(as_text=True))
+        self.assertIn('You should already trust yourself ;-P',
+                      resp.get_data(as_text=True))
 
         # Try and unapprove self
         resp = self.client.post(url_for('users.unapprove', username='user1'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You can\'t untrust your self', resp.get_data(as_text=True))
+        self.assertIn('You can\'t untrust your self',
+                      resp.get_data(as_text=True))
 
         # Try and approve/unapprove a user that doesn't exist
         resp = self.client.post(url_for('users.approve', username='user5'),
@@ -307,7 +332,8 @@ class FrontendTests(FrontendTestCase):
         # Let's try and access the endpoint feature when we are not logged in
         # We should not be able to see it
         resp = self.client.get(url_for('users.search'), follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
 
         # We need some users with usernames different enough that we can test
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -336,40 +362,49 @@ class FrontendTests(FrontendTestCase):
 
         # Lets search for ourselves
         resp = self.client.get(url_for('users.search', query='joe'))
-        self.assertIn('<!-- list:user:{} -->'.format(user3), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user3),
+                      resp.get_data(as_text=True))
 
         # Lets check that this is case-insensitive
         resp = self.client.get(url_for('users.search', query='JOE'))
-        self.assertIn('<!-- list:user:{} -->'.format(user3), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user3),
+                      resp.get_data(as_text=True))
 
         # Lets try this partially
         resp = self.client.get(url_for('users.search', query='j'))
-        self.assertIn('<!-- list:user:{} -->'.format(user3), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user3),
+                      resp.get_data(as_text=True))
 
         # Lets check we see two users if two match
         resp = self.client.get(url_for('users.search', query='user'))
-        self.assertIn('<!-- list:user:{} -->'.format(user1), resp.get_data(as_text=True))
-        self.assertIn('<!-- list:user:{} -->'.format(user2), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user1),
+                      resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user2),
+                      resp.get_data(as_text=True))
 
         # Lets check to see if inactive users show up. THEY SHOULD
         resp = self.client.get(url_for('users.search', query='fil'))
-        self.assertNotIn('<!-- list:user:{} -->'.format(user5), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:user:{} -->'.format(user5),
+                         resp.get_data(as_text=True))
 
         # Lets check that we can find ant because we are going to delete him
         # to ensure he goes! This has caused issues on the live site
         resp = self.client.get(url_for('users.search', query='ant'))
-        self.assertIn('<!-- list:user:{} -->'.format(user4), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user4),
+                      resp.get_data(as_text=True))
 
         # Lets check that we can find ant because we are going to delete him
         # to ensure he goes! This has caused issues on the live site
         resp = self.client.get(url_for('users.search', query='ant'))
-        self.assertIn('<!-- list:user:{} -->'.format(user4), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:user:{} -->'.format(user4),
+                      resp.get_data(as_text=True))
 
         # We will just backend delete the account.
         delete_account(user4)
         # Account is gone, lets ensure this has gone
         resp = self.client.get(url_for('users.search', query='ant'))
-        self.assertNotIn('<!-- list:user:{} -->'.format(user4), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:user:{} -->'.format(user4),
+                         resp.get_data(as_text=True))
         # Done for now!
 
     def test_avatars_hashtag_search(self):
@@ -400,7 +435,8 @@ class FrontendTests(FrontendTestCase):
         post1 = create_post(user1, 'user1', 'Hello #pjuuie\'s')
 
         resp = self.client.get(url_for('users.search', query='#pjuuie'))
-        self.assertIn('<!-- list:post:{} -->'.format(post1), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:post:{} -->'.format(post1),
+                      resp.get_data(as_text=True))
         self.assertIn(url_for('posts.get_upload', filename=user.get('avatar')),
                       resp.get_data(as_text=True))
 
@@ -412,7 +448,8 @@ class FrontendTests(FrontendTestCase):
         # We should not be able to see it
         resp = self.client.get(url_for('users.settings_profile'),
                                follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
+        self.assertIn('You need to be signed in to view that',
+                      resp.get_data(as_text=True))
 
         # Create a test user
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -431,8 +468,10 @@ class FrontendTests(FrontendTestCase):
 
         # Go to our settings page and ensure everything is there
         resp = self.client.get(url_for('users.settings_profile'))
-        self.assertIn('<div class="content">user1</div>', resp.get_data(as_text=True))
-        self.assertIn('<div class="content">user1@pjuu.com</div>', resp.get_data(as_text=True))
+        self.assertIn('<div class="content">user1</div>',
+                      resp.get_data(as_text=True))
+        self.assertIn('<div class="content">user1@pjuu.com</div>',
+                      resp.get_data(as_text=True))
         # Post to the form and update our about. We should also be this on
         # this page
         resp = self.client.post(url_for('users.settings_profile'), data={
@@ -445,7 +484,8 @@ class FrontendTests(FrontendTestCase):
             'about': 'Otters' * 100
         }, follow_redirects=True)
         # Check we get the form error
-        self.assertIn('Oh no! There are errors in your form', resp.get_data(as_text=True))
+        self.assertIn('Oh no! There are errors in your form',
+                      resp.get_data(as_text=True))
         # Ensure the about did not change
         self.assertIn('Otters love fish!', resp.get_data(as_text=True))
 
@@ -553,7 +593,8 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(json.loads(resp.get_data(as_text=True)).get('new_alerts'), 0)
+        self.assertEqual(
+            json.loads(resp.get_data(as_text=True)).get('new_alerts'), 0)
 
         # Ensure that /alerts returns nothing
         resp = self.client.get(url_for('users.alerts'))
@@ -567,7 +608,8 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(json.loads(resp.get_data(as_text=True)).get('new_alerts'), 1)
+        self.assertEqual(
+            json.loads(resp.get_data(as_text=True)).get('new_alerts'), 1)
 
         # Ensure the count goes up correctly
         follow_user(user3, user1)
@@ -575,7 +617,8 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(json.loads(resp.get_data(as_text=True)).get('new_alerts'), 2)
+        self.assertEqual(
+            json.loads(resp.get_data(as_text=True)).get('new_alerts'), 2)
 
         resp = self.client.get(url_for('users.alerts'))
         # We don't know the alert ID but we can check that one is there by
@@ -591,7 +634,8 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.new_alerts'))
         # Check the JSON response
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(json.loads(resp.get_data(as_text=True)).get('new_alerts'), 0)
+        self.assertEqual(
+            json.loads(resp.get_data(as_text=True)).get('new_alerts'), 0)
 
         # Check that we can delete the alert
         # Get the both alert ids from the backend function
@@ -608,8 +652,10 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.delete_alert', alert_id=alert1),
                                follow_redirects=True)
         self.assertIn('Alert has been hidden', resp.get_data(as_text=True))
-        self.assertNotIn('<!-- list:alert:{} -->'.format(alert1), resp.get_data(as_text=True))
-        self.assertIn('<!-- list:alert:{} -->'.format(alert2), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- list:alert:{} -->'.format(alert1),
+                         resp.get_data(as_text=True))
+        self.assertIn('<!-- list:alert:{} -->'.format(alert2),
+                      resp.get_data(as_text=True))
 
         # Check when the last alert is deleted we get an empty list
         resp = self.client.get(url_for('users.delete_alert', alert_id=alert2),
@@ -652,7 +698,8 @@ class FrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         self.assertIn('User 2, is here', resp.get_data(as_text=True))
-        self.assertIn('remove:post:{}'.format(post), resp.get_data(as_text=True))
+        self.assertIn('remove:post:{}'.format(post),
+                      resp.get_data(as_text=True))
 
         # Hide the post
         resp = self.client.post(url_for('users.remove_from_feed',
@@ -660,8 +707,10 @@ class FrontendTests(FrontendTestCase):
                                 follow_redirects=True)
 
         self.assertNotIn('User 2, is here', resp.get_data(as_text=True))
-        self.assertNotIn('remove:post:{}'.format(post), resp.get_data(as_text=True))
-        self.assertIn('Message has been removed from feed', resp.get_data(as_text=True))
+        self.assertNotIn('remove:post:{}'.format(post),
+                         resp.get_data(as_text=True))
+        self.assertIn('Message has been removed from feed',
+                      resp.get_data(as_text=True))
 
         # Can a user remove their own post?
         post = create_post(user1, 'user1', 'User 1, is here')
@@ -669,7 +718,8 @@ class FrontendTests(FrontendTestCase):
         # The user should not see a hide button though
         resp = self.client.get(url_for('users.feed'))
         self.assertIn('User 1, is here', resp.get_data(as_text=True))
-        self.assertNotIn('remove:post:{}'.format(post), resp.get_data(as_text=True))
+        self.assertNotIn('remove:post:{}'.format(post),
+                         resp.get_data(as_text=True))
 
         # Ensure the URL hides the post
         resp = self.client.post(url_for('users.remove_from_feed',
@@ -677,7 +727,8 @@ class FrontendTests(FrontendTestCase):
                                 follow_redirects=True)
 
         self.assertNotIn('User 1, is here', resp.get_data(as_text=True))
-        self.assertIn('Message has been removed from feed', resp.get_data(as_text=True))
+        self.assertIn('Message has been removed from feed',
+                      resp.get_data(as_text=True))
 
         # Ensure removing a post that is not in your feed does not displau a
         # flash message
@@ -685,7 +736,8 @@ class FrontendTests(FrontendTestCase):
                                         post_id=''),
                                 follow_redirects=True)
 
-        self.assertNotIn('Message has been removed from feed', resp.get_data(as_text=True))
+        self.assertNotIn('Message has been removed from feed',
+                         resp.get_data(as_text=True))
 
     def test_avatars(self):
         """Can a user set there own avatar?"""
@@ -704,7 +756,7 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.settings_profile',
                                username='user1'))
         self.assertIn('<!-- user:avatar:default -->',
-            resp.get_data(as_text=True))
+                      resp.get_data(as_text=True))
         self.assertIn(
             url_for('static', filename='img/otter_avatar.png'),
             resp.get_data(as_text=True))
@@ -737,7 +789,8 @@ class FrontendTests(FrontendTestCase):
                       resp.get_data(as_text=True))
 
         grid = gridfs.GridFS(m.db, collection='uploads')
-        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(), 1)
+        self.assertEqual(
+            grid.find({'filename': user.get('avatar')}).count(), 1)
 
         resp = self.client.get(url_for('posts.get_upload',
                                filename=user.get('avatar')))
@@ -889,8 +942,10 @@ class FrontendTests(FrontendTestCase):
         # Check that the profile trust button does not show if you are not
         # logged in
         resp = self.client.get(url_for('users.profile', username='user1'))
-        self.assertNotIn('trust:{}'.format(user1), resp.get_data(as_text=True))
-        self.assertNotIn('untrust:{}'.format(user1), resp.get_data(as_text=True))
+        self.assertNotIn('trust:{}'.format(user1),
+                         resp.get_data(as_text=True))
+        self.assertNotIn('untrust:{}'.format(user1),
+                         resp.get_data(as_text=True))
 
         # Ensure we can't see a users trusted list
         # Should be redirected to login (we will test Forbidden)
@@ -904,14 +959,17 @@ class FrontendTests(FrontendTestCase):
         })
         resp = self.client.get(url_for('users.profile', username='user2'))
         self.assertNotIn('trust:{}'.format(user1), resp.get_data(as_text=True))
-        self.assertNotIn('untrust:{}'.format(user1), resp.get_data(as_text=True))
+        self.assertNotIn('untrust:{}'.format(user1),
+                         resp.get_data(as_text=True))
 
         # user2 follows user1
         follow_user(user2, user1)
 
         resp = self.client.get(url_for('users.profile', username='user2'))
-        self.assertIn('<!-- trust:{} -->'.format(user2), resp.get_data(as_text=True))
-        self.assertNotIn('<!-- untrust:{} -->'.format(user2), resp.get_data(as_text=True))
+        self.assertIn('<!-- trust:{} -->'.format(user2),
+                      resp.get_data(as_text=True))
+        self.assertNotIn('<!-- untrust:{} -->'.format(user2),
+                         resp.get_data(as_text=True))
 
         # Ensure a trust count is none on our own profile
         resp = self.client.get(url_for('users.profile', username='user1'))
@@ -919,15 +977,18 @@ class FrontendTests(FrontendTestCase):
 
         # Ensure user2 is not in our trusted list
         resp = self.client.get(url_for('users.trusted', username='user1'))
-        self.assertNotIn('list:user:{}'.format(user2), resp.get_data(as_text=True))
+        self.assertNotIn('list:user:{}'.format(user2),
+                         resp.get_data(as_text=True))
 
         # user1 trusts user2
         approve_user(user1, user2)
         self.assertTrue(is_trusted(user1, user2))
 
         resp = self.client.get(url_for('users.profile', username='user2'))
-        self.assertIn('<!-- untrust:{} -->'.format(user2), resp.get_data(as_text=True))
-        self.assertNotIn('<!-- trust:{} -->'.format(user2), resp.get_data(as_text=True))
+        self.assertIn('<!-- untrust:{} -->'.format(user2),
+                      resp.get_data(as_text=True))
+        self.assertNotIn('<!-- trust:{} -->'.format(user2),
+                         resp.get_data(as_text=True))
 
         # Ensure our trust count has incremented
         resp = self.client.get(url_for('users.profile', username='user1'))
@@ -935,7 +996,8 @@ class FrontendTests(FrontendTestCase):
 
         # Ensure user2 appears in our trusted list
         resp = self.client.get(url_for('users.trusted', username='user1'))
-        self.assertIn('list:user:{}'.format(user2), resp.get_data(as_text=True))
+        self.assertIn('list:user:{}'.format(user2),
+                      resp.get_data(as_text=True))
 
         # Ensure we can't see user2's trusted list
         resp = self.client.get(url_for('users.trusted', username='user2'))

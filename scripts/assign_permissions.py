@@ -26,8 +26,8 @@ if __name__ == '__main__':
     ctx = app.app_context()
     ctx.push()
 
-    print m.db.posts.update(
+    print(m.db.posts.update(
         {'reply_to': {'$exists': False}},  # Update only posts
         {'$set': {'permission': 1}},  # Default PERM_PJUU
         upsert=False, multi=True
-    )
+    ))

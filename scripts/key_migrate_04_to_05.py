@@ -73,19 +73,19 @@ if __name__ == "__main__":
     # Change this to match the Redis settings you use
     r = redis.StrictRedis()
 
-    print "Pjuu, Redis key migration script v0.4 to v0.5"
-    print "---"
-    print "Getting all keys..."
+    print("Pjuu, Redis key migration script v0.4 to v0.5")
+    print("---")
+    print("Getting all keys...")
     keys = r.keys("*")
 
-    print "Converting keys..."
+    print("Converting keys...")
     for key in keys:
         #######################################################################
         # Users
         #######################################################################
         user = USER_RE.match(key)
         if user:
-            print "Migrating user key"
+            print("Migrating user key")
             if r.exists(key):
                 r.rename(key,
                          USER.format(user.groups(1)[0]))
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         #######################################################################
         post = POST_RE.match(key)
         if post:
-            print "Migrating post key"
+            print("Migrating post key")
             if r.exists(key):
                 r.rename(key,
                          POST.format(post.groups(1)[0]))
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         #######################################################################
         comment = COMMENT_RE.match(key)
         if comment:
-            print "Migrating comment key"
+            print("Migrating comment key")
             if r.exists(key):
                 r.rename(key,
                          COMMENT.format(comment.groups(1)[0]))
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         #######################################################################
         alert = ALERT_RE.match(key)
         if alert:
-            print "Removing alert key"
+            print("Removing alert key")
             if r.exists(key):
                 r.delete(key)
             continue
