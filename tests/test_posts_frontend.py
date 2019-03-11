@@ -73,9 +73,9 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure our new post appears in the output
-        self.assertIn('Test post', resp.data)
+        self.assertIn('Test post', resp.get_data(as_text=True))
         # We should be on the posts view as we did not pass a next qs
-        self.assertIn('<!-- author post -->', resp.data)
+        self.assertIn('<!-- author post -->', resp.get_data(as_text=True))
 
         # Let's post again but this time lets redirect ourselves back to feed.
         # We will ensure both posts exist in the feed
@@ -86,8 +86,8 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure both posts are their
-        self.assertIn('Test post', resp.data)
-        self.assertIn('Second test post', resp.data)
+        self.assertIn('Test post', resp.get_data(as_text=True))
+        self.assertIn('Second test post', resp.get_data(as_text=True))
 
         # The post endpoint also handles populating followers feeds. We will
         # create a couple of users (in the backend, we will not test the
@@ -109,11 +109,11 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure all posts are their
-        self.assertIn('Test post', resp.data)
-        self.assertIn('Second test post', resp.data)
-        self.assertIn('Hello followers', resp.data)
+        self.assertIn('Test post', resp.get_data(as_text=True))
+        self.assertIn('Second test post', resp.get_data(as_text=True))
+        self.assertIn('Hello followers', resp.get_data(as_text=True))
         # Let's ensure the post form is their
-        self.assertIn('<!-- author post -->', resp.data)
+        self.assertIn('<!-- author post -->', resp.get_data(as_text=True))
 
         # We are using the test client so lets log out properly
         self.client.get(url_for('auth.signout'))
@@ -124,7 +124,7 @@ class PostFrontendTests(FrontendTestCase):
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Hello followers', resp.data)
+        self.assertIn('Hello followers', resp.get_data(as_text=True))
         # Log out
         self.client.get(url_for('auth.signout'))
 
@@ -134,7 +134,7 @@ class PostFrontendTests(FrontendTestCase):
             'password': 'Password'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Hello followers', resp.data)
+        self.assertIn('Hello followers', resp.get_data(as_text=True))
         # Log out
         self.client.get(url_for('auth.signout'))
 
@@ -155,10 +155,10 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure all posts are their
-        self.assertIn('Test post', resp.data)
-        self.assertIn('Second test post', resp.data)
-        self.assertIn('Hello followers', resp.data)
-        self.assertIn('光铸钥匙', resp.data)
+        self.assertIn('Test post', resp.get_data(as_text=True))
+        self.assertIn('Second test post', resp.get_data(as_text=True))
+        self.assertIn('Hello followers', resp.get_data(as_text=True))
+        self.assertIn('光铸钥匙', resp.get_data(as_text=True))
 
         # Check that a muted user can not create a post
         # Mute out user
@@ -170,8 +170,8 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure the warning is there
-        self.assertIn('You have been silenced!', resp.data)
-        self.assertNotIn('Muting test', resp.data)
+        self.assertIn('You have been silenced!', resp.get_data(as_text=True))
+        self.assertNotIn('Muting test', resp.get_data(as_text=True))
         # Un-mute the user and try and post the same thing
         self.assertTrue(mute(user1, False))
         resp = self.client.post(url_for('posts.post',
@@ -181,8 +181,8 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Let's ensure the warning is there
-        self.assertNotIn('You have been silenced!', resp.data)
-        self.assertIn('Muting test', resp.data)
+        self.assertNotIn('You have been silenced!', resp.get_data(as_text=True))
+        self.assertIn('Muting test', resp.get_data(as_text=True))
 
         # Try and post to many characters
         resp = self.client.post(url_for('posts.post',
@@ -191,7 +191,7 @@ class PostFrontendTests(FrontendTestCase):
             'body': ('P' * (MAX_POST_LENGTH + 1))
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than '
-                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.get_data(as_text=True))
 
         # Test that we can post 500 unicode characters
         resp = self.client.post(url_for('posts.post',
@@ -200,7 +200,7 @@ class PostFrontendTests(FrontendTestCase):
             'body': ('光' * (MAX_POST_LENGTH))
         }, follow_redirects=True)
         self.assertNotIn('Posts can not be larger than '
-                         '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+                         '{0} characters'.format(MAX_POST_LENGTH), resp.get_data(as_text=True))
 
         # Test that we can not post more than MAX_POST_LENGTH unicode
         # characters
@@ -210,10 +210,10 @@ class PostFrontendTests(FrontendTestCase):
             'body': ('光' * (MAX_POST_LENGTH + 1))
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than '
-                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.get_data(as_text=True))
 
         # Ensure that posting an image with no text allows it
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         resp = self.client.post(
             url_for('posts.post'),
             data={
@@ -225,7 +225,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
 
         # Test posting with an image
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         resp = self.client.post(
             url_for('posts.post'),
             data={
@@ -243,24 +243,24 @@ class PostFrontendTests(FrontendTestCase):
 
         # So that we can check the data is in the templates, upload a post
         # in the backend and ensure it appears where it should
-        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.png', 'rb').read())
         post1 = create_post(user1, 'user1', 'Test post', upload=image)
         self.assertIsNotNone(post1)
         post = get_post(post1)
         resp = self.client.get(url_for('users.feed'))
-        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.get_data(as_text=True))
         self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
                                                   filename=post.get('upload')),
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         # Although the below belongs in `test_view_post` we are just going to
         # check it here for simplicity
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.get_data(as_text=True))
         self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
                                                   filename=post.get('upload')),
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         # Test posting with no data
         resp = self.client.post(url_for('posts.post',
@@ -269,7 +269,7 @@ class PostFrontendTests(FrontendTestCase):
             'body': ''
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Sorry. A message or an image is required.', resp.data)
+        self.assertIn('Sorry. A message or an image is required.', resp.get_data(as_text=True))
 
     def test_posts_lines(self):
         """Ensure posts are truncated to `LINE_CAP` on feeds and profiles"""
@@ -297,24 +297,24 @@ class PostFrontendTests(FrontendTestCase):
             ])
         }, follow_redirects=True)
 
-        self.assertIn('Line 0<br/>', resp.data)
+        self.assertIn('Line 0<br/>', resp.get_data(as_text=True))
         # The last line wil NOT have a <br/> attached.
-        self.assertIn('Line 4', resp.data)
-        self.assertIn('Read more ...', resp.data)
+        self.assertIn('Line 4', resp.get_data(as_text=True))
+        self.assertIn('Read more ...', resp.get_data(as_text=True))
 
-        self.assertNotIn('Line 5', resp.data)
-        self.assertNotIn('Line 9', resp.data)
+        self.assertNotIn('Line 5', resp.get_data(as_text=True))
+        self.assertNotIn('Line 9', resp.get_data(as_text=True))
 
         # Ensure the same thing happens on the users profile.
         resp = self.client.get(url_for('users.profile', username='user1'))
 
-        self.assertIn('Line 0<br/>', resp.data)
+        self.assertIn('Line 0<br/>', resp.get_data(as_text=True))
         # The last line wil NOT have a <br/> attached.
-        self.assertIn('Line 4', resp.data)
-        self.assertIn('Read more ...', resp.data)
+        self.assertIn('Line 4', resp.get_data(as_text=True))
+        self.assertIn('Read more ...', resp.get_data(as_text=True))
 
-        self.assertNotIn('Line 5', resp.data)
-        self.assertNotIn('Line 9', resp.data)
+        self.assertNotIn('Line 5', resp.get_data(as_text=True))
+        self.assertNotIn('Line 9', resp.get_data(as_text=True))
 
         # Ensure the post shows in full on the actual post page
         post1 = create_post(user1, 'user1', '\n'.join([
@@ -333,13 +333,13 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
 
-        self.assertIn('Line 0<br/>', resp.data)
-        self.assertIn('Line 4<br/>', resp.data)
-        self.assertIn('Line 5<br/>', resp.data)
+        self.assertIn('Line 0<br/>', resp.get_data(as_text=True))
+        self.assertIn('Line 4<br/>', resp.get_data(as_text=True))
+        self.assertIn('Line 5<br/>', resp.get_data(as_text=True))
         # Last item has no <br/>
-        self.assertIn('Line 9', resp.data)
+        self.assertIn('Line 9', resp.get_data(as_text=True))
 
-        self.assertNotIn('Read more ...', resp.data)
+        self.assertNotIn('Read more ...', resp.get_data(as_text=True))
 
         self.assertEqual(resp.status_code, 200)
 
@@ -358,18 +358,18 @@ class PostFrontendTests(FrontendTestCase):
         update_profile_settings(user1, hide_feed_images=True)
 
         # Upload another image
-        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.png', 'rb').read())
         post1 = create_post(user1, 'user1', 'Test post', upload=image)
         self.assertIsNotNone(post1)
 
         post = get_post(post1)
         resp = self.client.get(url_for('users.feed'))
-        self.assertIn('<!-- upload:post:%s -->' % post1, resp.data)
+        self.assertIn('<!-- upload:post:%s -->' % post1, resp.get_data(as_text=True))
         self.assertNotIn('<img src="%s"/>' %
                          url_for('posts.get_upload',
                                  filename=post.get('upload')),
-                         resp.data)
-        self.assertIn('<!-- upload:hidden:%s -->' % post1, resp.data)
+                         resp.get_data(as_text=True))
+        self.assertIn('<!-- upload:hidden:%s -->' % post1, resp.get_data(as_text=True))
 
     def test_get_upload(self):
         """Tests the simple wrapper around ``lib.uploads.get_upload``
@@ -379,7 +379,7 @@ class PostFrontendTests(FrontendTestCase):
         activate(user1)
 
         # Create the post with an upload to get
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         post1 = create_post(user1, 'user1', 'Test post', upload=image)
         self.assertIsNotNone(post1)
 
@@ -422,7 +422,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Test post', resp.data)
+        self.assertIn('Test post', resp.get_data(as_text=True))
 
         # Sign in
         self.client.post(url_for('auth.signin'), data={
@@ -435,10 +435,10 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
         # Use the testing tags to ensure everything is rendered
-        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
-        self.assertIn('Test post', resp.data)
+        self.assertIn('<!-- view:post:%s -->' % post1, resp.get_data(as_text=True))
+        self.assertIn('Test post', resp.get_data(as_text=True))
         # Ensure the comment form is present
-        self.assertIn('<!-- author reply -->', resp.data)
+        self.assertIn('<!-- author reply -->', resp.get_data(as_text=True))
 
         # Create a comment on the post
         comment1 = create_post(user1, 'user1', 'Test comment 1', post1)
@@ -448,8 +448,8 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        self.assertIn('<!-- list:reply:%s -->' % comment1, resp.data)
-        self.assertIn('Test comment 1', resp.data)
+        self.assertIn('<!-- list:reply:%s -->' % comment1, resp.get_data(as_text=True))
+        self.assertIn('Test comment 1', resp.get_data(as_text=True))
 
         # Let's logout and log in as test2
         self.client.get(url_for('auth.signout'))
@@ -461,10 +461,10 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1),
                                follow_redirects=True)
-        self.assertIn('<!-- view:post:%s -->' % post1, resp.data)
-        self.assertIn('Test post', resp.data)
-        self.assertIn('<!-- list:reply:%s -->' % comment1, resp.data)
-        self.assertIn('Test comment', resp.data)
+        self.assertIn('<!-- view:post:%s -->' % post1, resp.get_data(as_text=True))
+        self.assertIn('Test post', resp.get_data(as_text=True))
+        self.assertIn('<!-- list:reply:%s -->' % comment1, resp.get_data(as_text=True))
+        self.assertIn('Test comment', resp.get_data(as_text=True))
 
         comment2 = create_post(user2, 'user2', 'Test comment 2', post1)
 
@@ -473,8 +473,8 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        self.assertIn('<!-- list:reply:%s -->' % comment2, resp.data)
-        self.assertIn('Test comment 2', resp.data)
+        self.assertIn('<!-- list:reply:%s -->' % comment2, resp.get_data(as_text=True))
+        self.assertIn('Test comment 2', resp.get_data(as_text=True))
         # Done for now
 
         # Attempt to view_post on a reply. Shouldn't work
@@ -500,24 +500,24 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        self.assertIn('fa-sort-numeric-asc', resp.data)
+        self.assertIn('fa-sort-numeric-asc', resp.get_data(as_text=True))
 
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1, sort=-1),
                                follow_redirects=True)
 
         for i in range(99, 75, -1):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1, sort=1),
                                follow_redirects=True)
 
         # Check reverse-chronological sort link is present
-        self.assertIn('fa-sort-numeric-desc', resp.data)
+        self.assertIn('fa-sort-numeric-desc', resp.get_data(as_text=True))
 
         for i in range(24):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         # Ensure an invalid sort order is treated correctly.
         # Default is reverse chronological
@@ -526,7 +526,7 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         for i in range(99, 75, -1):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         self.client.post(url_for('auth.signin'), data={
             'username': 'user1',
@@ -538,10 +538,10 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         # Check chronological sort link is present
-        self.assertIn('fa-sort-numeric-asc', resp.data)
+        self.assertIn('fa-sort-numeric-asc', resp.get_data(as_text=True))
 
         for i in range(99, 75, -1):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         # Explicit default sort
         resp = self.client.get(url_for('posts.view_post', username='user1',
@@ -549,7 +549,7 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         for i in range(99, 75, -1):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         # Explicit chronological sort
         resp = self.client.get(url_for('posts.view_post', username='user1',
@@ -557,10 +557,10 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         # Check reverse-chronological sort link is present
-        self.assertIn('fa-sort-numeric-desc', resp.data)
+        self.assertIn('fa-sort-numeric-desc', resp.get_data(as_text=True))
 
         for i in range(24):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         # Update the user profile and test again.
         # Should yield the same result as above but without expilict sort
@@ -573,7 +573,7 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         for i in range(24):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
         # Ensure an incorrect sort renders the user default
         resp = self.client.get(url_for('posts.view_post', username='user1',
@@ -581,7 +581,7 @@ class PostFrontendTests(FrontendTestCase):
                                follow_redirects=True)
 
         for i in range(24):
-            self.assertIn('Reply {}'.format(i), resp.data)
+            self.assertIn('Reply {}'.format(i), resp.get_data(as_text=True))
 
     def test_replies(self):
         """
@@ -620,9 +620,9 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         # Lets check that we can see the comment
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Test comment', resp.data)
+        self.assertIn('Test comment', resp.get_data(as_text=True))
         # Lets also make sure the form is visible on the page
-        self.assertIn('<!-- author reply -->', resp.data)
+        self.assertIn('<!-- author reply -->', resp.get_data(as_text=True))
 
         # Lets signout
         resp = self.client.get(url_for('auth.signout'))
@@ -645,7 +645,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Test comment', resp.data)
+        self.assertIn('Test comment', resp.get_data(as_text=True))
 
         # Lets comment ourselves
         resp = self.client.post(url_for('posts.post', username='user1',
@@ -654,8 +654,8 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Check that the 2 comments exist
-        self.assertIn('Test comment', resp.data)
-        self.assertIn('Test comment 2', resp.data)
+        self.assertIn('Test comment', resp.get_data(as_text=True))
+        self.assertIn('Test comment 2', resp.get_data(as_text=True))
 
         # Lets check we can not comment if we are muted
         mute(user2)
@@ -665,8 +665,8 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Check that the comment was never posted
-        self.assertIn('You have been silenced!', resp.data)
-        self.assertNotIn('Muting test', resp.data)
+        self.assertIn('You have been silenced!', resp.get_data(as_text=True))
+        self.assertNotIn('Muting test', resp.get_data(as_text=True))
 
         # Reverse the muting and test again
         mute(user2, False)
@@ -676,8 +676,8 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         # Check that the comment was never posted
-        self.assertNotIn('You have been silenced!', resp.data)
-        self.assertIn('Muting test', resp.data)
+        self.assertNotIn('You have been silenced!', resp.get_data(as_text=True))
+        self.assertIn('Muting test', resp.get_data(as_text=True))
 
         # Try and post to many characters
         resp = self.client.post(url_for('posts.post', username='user1',
@@ -685,10 +685,10 @@ class PostFrontendTests(FrontendTestCase):
             'body': ('P' * (MAX_POST_LENGTH + 1))
         }, follow_redirects=True)
         self.assertIn('Posts can not be larger than '
-                      '{0} characters'.format(MAX_POST_LENGTH), resp.data)
+                      '{0} characters'.format(MAX_POST_LENGTH), resp.get_data(as_text=True))
 
         # Test replies with an image
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         resp = self.client.post(
             url_for('posts.post', username='user1', post_id=post1),
             data={
@@ -702,19 +702,19 @@ class PostFrontendTests(FrontendTestCase):
 
         # So that we can check the data is in the templates, upload a post
         # in the backend and ensure it appears where it should
-        image = io.BytesIO(open('tests/upload_test_files/otter.png').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.png', 'rb').read())
         reply_img = create_post(user1, 'user1', 'Test post', reply_to=post1,
                                 upload=image)
         self.assertIsNotNone(reply_img)
         reply = get_post(reply_img)
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('<!-- upload:reply:%s -->' % reply_img, resp.data)
+        self.assertIn('<!-- upload:reply:%s -->' % reply_img, resp.get_data(as_text=True))
         self.assertIn('<img src="%s"/>' % url_for(
-            'posts.get_upload', filename=reply.get('upload')), resp.data)
+            'posts.get_upload', filename=reply.get('upload')), resp.get_data(as_text=True))
 
         # Ensure that posting an image with no text allows it
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         resp = self.client.post(
             url_for('posts.post', username='user1', post_id=post1),
             data={
@@ -726,7 +726,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
 
         # Ensure that an invalid filename is stopped by the forms
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         resp = self.client.post(
             url_for('posts.post', username='user1', post_id=post1),
             data={
@@ -737,7 +737,7 @@ class PostFrontendTests(FrontendTestCase):
         )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Only "gif", "jpg", "jpeg" and "png" files are '
-                      'supported', resp.data)
+                      'supported', resp.get_data(as_text=True))
 
         # Check a user can not reply to an invalid post
         resp = self.client.post(
@@ -788,10 +788,10 @@ class PostFrontendTests(FrontendTestCase):
         # Lets ensure both vote links are there
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
-        self.assertIn('<!-- upvote:post:%s -->' % post2, resp.data)
-        self.assertIn('<!-- downvote:post:%s -->' % post2, resp.data)
-        self.assertNotIn('<!-- upvoted:post:%s -->' % post2, resp.data)
-        self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.data)
+        self.assertIn('<!-- upvote:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertIn('<!-- downvote:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertNotIn('<!-- upvoted:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.get_data(as_text=True))
 
         # Visit user 2's comment and UPVOTE that
         resp = self.client.post(url_for('posts.upvote', username='user2',
@@ -799,15 +799,15 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('You upvoted the post', resp.data)
+        self.assertIn('You upvoted the post', resp.get_data(as_text=True))
         # You can reverse votes so the downvote button should still
         # be present on the page.
         # So shoudl the upvote button button it should be marked as
         # Upvoted.
-        self.assertIn('<!-- upvoted:post:%s -->' % post2, resp.data)
-        self.assertNotIn('<!-- upvote:post:%s -->' % post2, resp.data)
-        self.assertIn('<!-- downvote:post:%s -->' % post2, resp.data)
-        self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.data)
+        self.assertIn('<!-- upvoted:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertNotIn('<!-- upvote:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertIn('<!-- downvote:post:%s -->' % post2, resp.get_data(as_text=True))
+        self.assertNotIn('<!-- downvoted:post:%s -->' % post2, resp.get_data(as_text=True))
 
         # Let's try and vote on that post again
         resp = self.client.post(url_for('posts.upvote', username='user2',
@@ -816,58 +816,58 @@ class PostFrontendTests(FrontendTestCase):
         # We should now be at the posts page
         self.assertEqual(resp.status_code, 200)
         # The vote shoudl have been reversed and we should be informed
-        self.assertIn('You reversed your vote on the post', resp.data)
+        self.assertIn('You reversed your vote on the post', resp.get_data(as_text=True))
 
         # Visit our own post and ensure that user 2s comment is there
         # There will be only one set of arrows as we can't vote on our own post
         # we will check that part later on
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('Comment user 2', resp.data)
+        self.assertIn('Comment user 2', resp.get_data(as_text=True))
         self.assertIn('<!-- upvote:reply:{0} -->'.format(comment1),
-                      resp.data)
+                      resp.get_data(as_text=True))
         self.assertIn('<!-- downvote:reply:{0} -->'.format(comment1),
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         # Down vote the users comment (it's nothing personal test2 :P)
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post1, reply_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You downvoted the comment', resp.data)
+        self.assertIn('You downvoted the comment', resp.get_data(as_text=True))
         self.assertIn('<!-- downvoted:reply:{0} -->'.format(comment1),
-                      resp.data)
+                      resp.get_data(as_text=True))
         self.assertNotIn('<!-- downvote:reply:{0} -->'.format(comment1),
-                         resp.data)
+                         resp.get_data(as_text=True))
         self.assertIn('<!-- upvote:reply:{0} -->'.format(comment1),
-                      resp.data)
+                      resp.get_data(as_text=True))
         self.assertNotIn('<!-- downvote:reply:{0} -->'.format(comment1),
-                         resp.data)
+                         resp.get_data(as_text=True))
 
         # Lets check that we can't vote on this comment again
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post1, reply_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You reversed your vote on the comment', resp.data)
+        self.assertIn('You reversed your vote on the comment', resp.get_data(as_text=True))
 
         # Now lets double check we can't vote on our own comments or posts
         # We will visit post 3 first and ensure there is no buttons being shown
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post3))
-        self.assertNotIn('<!-- action:upvote -->', resp.data)
-        self.assertNotIn('<!-- action:downvote -->', resp.data)
+        self.assertNotIn('<!-- action:upvote -->', resp.get_data(as_text=True))
+        self.assertNotIn('<!-- action:downvote -->', resp.get_data(as_text=True))
         # Check that the comment is there
-        self.assertIn('Comment user 1', resp.data)
+        self.assertIn('Comment user 1', resp.get_data(as_text=True))
 
         # Lets ensure we can't vote on either the comment or the post
         resp = self.client.post(url_for('posts.upvote', username='user1',
                                         post_id=post3),
                                 follow_redirects=True)
-        self.assertIn('You can not vote on your own posts', resp.data)
+        self.assertIn('You can not vote on your own posts', resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.upvote', username='user1',
                                         post_id=post3, reply_id=comment2),
                                 follow_redirects=True)
-        self.assertIn('You can not vote on your own posts', resp.data)
+        self.assertIn('You can not vote on your own posts', resp.get_data(as_text=True))
 
         # Try and vote on a comment or post that does not exist
         # Vote on a post
@@ -894,12 +894,12 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.upvote', username='user1',
                                         post_id=post3),
                                 follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
         # Vote on a comment
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post3, reply_id=comment2),
                                 follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
 
         # Log in as user3 and try and catch some situations which are missing
         # from coverage.
@@ -917,7 +917,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.downvote', username='user3',
                                         post_id=post4),
                                 follow_redirects=True)
-        self.assertIn('You can not vote on your own posts', resp.data)
+        self.assertIn('You can not vote on your own posts', resp.get_data(as_text=True))
 
         # Log back in as user1 and vote on the previous posts we
         # reversed. Becasue we reversed them there is no vote logged so
@@ -931,12 +931,12 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.upvote', username='user2',
                                         post_id=post2),
                                 follow_redirects=True)
-        self.assertIn('You upvoted the post', resp.data)
+        self.assertIn('You upvoted the post', resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.upvote', username='user1',
                                         post_id=post1, reply_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You upvoted the comment', resp.data)
+        self.assertIn('You upvoted the comment', resp.get_data(as_text=True))
 
         # With the new time based vote reversal/revote it is VERY hard
         # to test from the front end that you have already voted because
@@ -951,12 +951,12 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.upvote', username='user2',
                                         post_id=post2),
                                 follow_redirects=True)
-        self.assertIn('You have already voted on this post', resp.data)
+        self.assertIn('You have already voted on this post', resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post1, reply_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You have already voted on this post', resp.data)
+        self.assertIn('You have already voted on this post', resp.get_data(as_text=True))
 
         # Reset the value just in case we change it
         pjuu.lib.keys.VOTE_TIMEOUT = k.VOTE_TIMEOUT
@@ -983,7 +983,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.upvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'), 'You upvoted the post')
 
         # Ensure we can reverse a vote
@@ -991,7 +991,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.upvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You reversed your vote on the post')
 
@@ -1000,14 +1000,14 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.downvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'), 'You downvoted the post')
 
         resp = self.client.post(
             url_for('posts.downvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You reversed your vote on the post')
 
@@ -1017,7 +1017,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.downvote', username='user1', post_id='cheese'),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'), 'Post not found')
 
         # Vote on own
@@ -1025,7 +1025,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.downvote', username='user2', post_id=post2),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You can not vote on your own posts')
 
@@ -1043,7 +1043,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.upvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You have already voted on this post')
 
@@ -1051,7 +1051,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.downvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You have already voted on this post')
 
@@ -1080,33 +1080,33 @@ class PostFrontendTests(FrontendTestCase):
             'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
-        self.assertIn('<h1>Feed</h1>', resp.data)
+        self.assertIn('<h1>Feed</h1>', resp.get_data(as_text=True))
 
-        self.assertIn('<!-- list:post:{0} -->'.format(post1), resp.data)
-        self.assertIn('<!-- list:post:{0} -->'.format(post2), resp.data)
+        self.assertIn('<!-- list:post:{0} -->'.format(post1), resp.get_data(as_text=True))
+        self.assertIn('<!-- list:post:{0} -->'.format(post2), resp.get_data(as_text=True))
 
         # You can not flag a top level post without visiting it.
-        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.data)
-        self.assertNotIn('<!-- flag:post:{0} -->'.format(post2), resp.data)
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post2), resp.get_data(as_text=True))
 
         # Ensure user1 can't see a flag on his post or comments but can on
         # user2s reply
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.data)
-        self.assertNotIn('<!-- flag:post:{0} -->'.format(comment2), resp.data)
-        self.assertIn('<!-- flag:post:{0} -->'.format(comment1), resp.data)
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(post1), resp.get_data(as_text=True))
+        self.assertNotIn('<!-- flag:post:{0} -->'.format(comment2), resp.get_data(as_text=True))
+        self.assertIn('<!-- flag:post:{0} -->'.format(comment1), resp.get_data(as_text=True))
 
         # Ensure a user can not flag his own post or comment
         resp = self.client.post(url_for('posts.flag', username='user1',
                                         post_id=post1),
                                 follow_redirects=True)
-        self.assertIn('You can not flag on your own posts', resp.data)
+        self.assertIn('You can not flag on your own posts', resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.flag', username='user1',
                                         post_id=post1, reply_id=comment2),
                                 follow_redirects=True)
-        self.assertIn('You can not flag on your own posts', resp.data)
+        self.assertIn('You can not flag on your own posts', resp.get_data(as_text=True))
 
         # Post should not be flagged
         self.assertFalse(has_flagged(user1, post2))
@@ -1116,7 +1116,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.flag', username='user2',
                                         post_id=post2),
                                 follow_redirects=True)
-        self.assertIn('You flagged the post', resp.data)
+        self.assertIn('You flagged the post', resp.get_data(as_text=True))
 
         # Are they listed as flagged
         self.assertTrue(has_flagged(user1, post2))
@@ -1126,7 +1126,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.flag', username='user2',
                                         post_id=post2),
                                 follow_redirects=True)
-        self.assertIn('You have already flagged this post', resp.data)
+        self.assertIn('You have already flagged this post', resp.get_data(as_text=True))
 
         # Are they listed as flagged
         self.assertTrue(has_flagged(user1, post2))
@@ -1140,7 +1140,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.flag', username='user2',
                                         post_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You flagged the comment', resp.data)
+        self.assertIn('You flagged the comment', resp.get_data(as_text=True))
 
         # Are they listed as flagged
         self.assertTrue(has_flagged(user1, comment1))
@@ -1150,7 +1150,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.post(url_for('posts.flag', username='user2',
                                         post_id=comment1),
                                 follow_redirects=True)
-        self.assertIn('You have already flagged this post', resp.data)
+        self.assertIn('You have already flagged this post', resp.get_data(as_text=True))
 
         # Are they listed as flagged
         self.assertTrue(has_flagged(user1, comment1))
@@ -1198,7 +1198,7 @@ class PostFrontendTests(FrontendTestCase):
 
         resp = self.client.get(url_for('posts.unflag_post', post_id=post1),
                                follow_redirects=True)
-        self.assertIn('Flags have been reset for post', resp.data)
+        self.assertIn('Flags have been reset for post', resp.get_data(as_text=True))
 
         self.assertEqual(m.db.posts.find_one({'_id': post1}).get('flags'), 0)
 
@@ -1229,16 +1229,16 @@ class PostFrontendTests(FrontendTestCase):
             'username': 'user1',
             'password': 'Password'
         }, follow_redirects=True)
-        self.assertIn('<h1>Feed</h1>', resp.data)
+        self.assertIn('<h1>Feed</h1>', resp.get_data(as_text=True))
 
         # Visit our own post and ensure the delete button is there
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('<!-- delete:post:{0} -->'.format(post1), resp.data)
+        self.assertIn('<!-- delete:post:{0} -->'.format(post1), resp.get_data(as_text=True))
         # Visit test2's post and ensure button is not there
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
-        self.assertNotIn('<!-- delete:post:{0} -->'.format(post2), resp.data)
+        self.assertNotIn('<!-- delete:post:{0} -->'.format(post2), resp.get_data(as_text=True))
 
         # Try and delete user two's post this should fail
         resp = self.client.post(url_for('posts.delete_post', username='user2',
@@ -1247,7 +1247,7 @@ class PostFrontendTests(FrontendTestCase):
         # Ensure the post is still actuall there
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
-        self.assertIn('Test post, user 2', resp.data)
+        self.assertIn('Test post, user 2', resp.get_data(as_text=True))
 
         # Try and delete a non-existant post
         resp = self.client.post(url_for('posts.delete_post',
@@ -1261,7 +1261,7 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('Post has been deleted along with all replies',
-                      resp.data)
+                      resp.get_data(as_text=True))
         # Let's ensure the post no longer exists
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
@@ -1277,27 +1277,27 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
         # Make sure both comments are there
-        self.assertIn('Test comment, user 1', resp.data)
-        self.assertIn('Test comment, user 2', resp.data)
-        self.assertIn('Test comment, user 3', resp.data)
+        self.assertIn('Test comment, user 1', resp.get_data(as_text=True))
+        self.assertIn('Test comment, user 2', resp.get_data(as_text=True))
+        self.assertIn('Test comment, user 3', resp.get_data(as_text=True))
 
         # Check that the URL's are correct for deleting these comments
         # This was an issue previously, see Github issue #24
         # We can only check this for user1's comment as its ours
         self.assertIn(url_for('posts.delete_post', username='user2',
-                              post_id=post2, reply_id=comment1), resp.data)
+                              post_id=post2, reply_id=comment1), resp.get_data(as_text=True))
 
         # Let's delete are own comment
         resp = self.client.post(url_for('posts.delete_post', username='user2',
                                         post_id=post2, reply_id=comment1),
                                 follow_redirects=True)
         # Check we have confirmation
-        self.assertIn('Post has been deleted', resp.data)
+        self.assertIn('Post has been deleted', resp.get_data(as_text=True))
         # Lets check that comment 2 is there
-        self.assertIn('Test comment, user 2', resp.data)
-        self.assertIn('Test comment, user 3', resp.data)
+        self.assertIn('Test comment, user 2', resp.get_data(as_text=True))
+        self.assertIn('Test comment, user 3', resp.get_data(as_text=True))
         # Lets ensure our comment is gone
-        self.assertNotIn('Test comment, user 1', resp.data)
+        self.assertNotIn('Test comment, user 1', resp.get_data(as_text=True))
 
         # Attempt to delete user 2's comment. This should fail with a 403
         # as we are neither the comment author nor the post author
@@ -1315,7 +1315,7 @@ class PostFrontendTests(FrontendTestCase):
         # Let's just ensure the comment wasn't deleted
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
-        self.assertIn('Test comment, user 2', resp.data)
+        self.assertIn('Test comment, user 2', resp.get_data(as_text=True))
 
         # Try and delete a non-existant comment
         resp = self.client.post(url_for('posts.delete_post',
@@ -1335,15 +1335,15 @@ class PostFrontendTests(FrontendTestCase):
             'username': 'user2',
             'password': 'Password'
         }, follow_redirects=True)
-        self.assertIn('<h1>Feed</h1>', resp.data)
+        self.assertIn('<h1>Feed</h1>', resp.get_data(as_text=True))
 
         # Goto test2s post
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
         # Ensure test2 and test3s comments are there but not test1
-        self.assertIn('Test comment, user 2', resp.data)
-        self.assertIn('Test comment, user 3', resp.data)
-        self.assertNotIn('Test comment, user 1', resp.data)
+        self.assertIn('Test comment, user 2', resp.get_data(as_text=True))
+        self.assertIn('Test comment, user 3', resp.get_data(as_text=True))
+        self.assertNotIn('Test comment, user 1', resp.get_data(as_text=True))
 
         # No need to test that test2 can delete there own post as we have
         # tested this already with test1.
@@ -1352,12 +1352,12 @@ class PostFrontendTests(FrontendTestCase):
                                         post_id=post2, reply_id=comment3),
                                 follow_redirects=True)
         # Check we have confirmation
-        self.assertIn('Post has been deleted', resp.data)
+        self.assertIn('Post has been deleted', resp.get_data(as_text=True))
         # Lets check that comment 2 is there
-        self.assertIn('Test comment, user 2', resp.data)
+        self.assertIn('Test comment, user 2', resp.get_data(as_text=True))
         # Lets ensure our comment is gone
-        self.assertNotIn('Test comment, user 1', resp.data)
-        self.assertNotIn('Test comment, user 3', resp.data)
+        self.assertNotIn('Test comment, user 1', resp.get_data(as_text=True))
+        self.assertNotIn('Test comment, user 3', resp.get_data(as_text=True))
 
         # Done for now
 
@@ -1395,16 +1395,16 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.data)
+        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.get_data(as_text=True))
 
         # Unsubscribe via the frontend and ensure the button is removed and
         # we get a flash message
         resp = self.client.post(url_for('posts.unsubscribe', username='user1',
                                         post_id=post1),
                                 follow_redirects=True)
-        self.assertIn('You have been unsubscribed from this post', resp.data)
+        self.assertIn('You have been unsubscribed from this post', resp.get_data(as_text=True))
         self.assertNotIn('<!-- unsubscribe:post:{0} -->'.format(post1),
-                         resp.data)
+                         resp.get_data(as_text=True))
 
         # Logout as user1
         self.client.get(url_for('auth.signout'))
@@ -1417,7 +1417,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.data)
+        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.get_data(as_text=True))
 
         # Check that unsubscribing from a non-existant (wont pass check post)
         # post will raise a 404
@@ -1441,7 +1441,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.data)
+        self.assertIn('<!-- unsubscribe:post:{0} -->'.format(post1), resp.get_data(as_text=True))
 
         # Create a post as user1 which we will not be subscribed too and ensure
         # that no message is shown
@@ -1451,9 +1451,9 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertNotIn('You have been unsubscribed from this post',
-                         resp.data)
+                         resp.get_data(as_text=True))
         # Ensure we have gone to that post
-        self.assertIn("Test post, for cant unsubscribe", resp.data)
+        self.assertIn("Test post, for cant unsubscribe", resp.get_data(as_text=True))
 
     def test_template_filters(self):
         """
@@ -1523,7 +1523,7 @@ class PostFrontendTests(FrontendTestCase):
             'body': 'Hello @joe'
         }, follow_redirects=True)
 
-        self.assertIn('Hello @joe', resp.data)
+        self.assertIn('Hello @joe', resp.get_data(as_text=True))
 
         # Create another user and then tag them
         user2 = create_account('user2', 'user2@pjuu.com', 'Password')
@@ -1534,7 +1534,7 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         self.assertIn('Hello <a href="{0}">@user2</a>'.format(
-            url_for('users.profile', username='user2')), resp.data)
+            url_for('users.profile', username='user2')), resp.get_data(as_text=True))
 
         # Check a link
         resp = self.client.post(url_for('posts.post'), data={
@@ -1542,7 +1542,7 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         self.assertIn('Visit <a href="https://pjuu.com" target="_blank">'
-                      'https://pjuu.com</a>', resp.data)
+                      'https://pjuu.com</a>', resp.get_data(as_text=True))
 
         # Test a hashtag
         resp = self.client.post(url_for('posts.post'), data={
@@ -1550,7 +1550,7 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         self.assertIn('Wow <a href="{0}">#hashtag</a>'.format(
-            url_for('posts.hashtags', hashtag='hashtag')), resp.data)
+            url_for('posts.hashtags', hashtag='hashtag')), resp.get_data(as_text=True))
 
     def test_hashtags(self):
         """Ensure the hashtags endpoint gives acts and gives the posts we
@@ -1562,7 +1562,7 @@ class PostFrontendTests(FrontendTestCase):
         # Ensure you can't get to the end point when no logged in.
         resp = self.client.get(url_for('posts.hashtags', hashtag='test'),
                                follow_redirects=True)
-        self.assertIn('You need to be signed in to view that', resp.data)
+        self.assertIn('You need to be signed in to view that', resp.get_data(as_text=True))
 
         # Sign in
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
@@ -1586,8 +1586,8 @@ class PostFrontendTests(FrontendTestCase):
         # hashtag back at us
         resp = self.client.get(url_for('posts.hashtags', hashtag='pjuu'))
         self.assertEqual(200, resp.status_code)
-        self.assertIn('<h1>Hashtag: pjuu</h1>', resp.data)
-        self.assertIn('Empty', resp.data)
+        self.assertIn('<h1>Hashtag: pjuu</h1>', resp.get_data(as_text=True))
+        self.assertIn('Empty', resp.get_data(as_text=True))
 
         # Create a post with a hash tag to ensure we can get it
         resp = self.client.post(
@@ -1595,9 +1595,9 @@ class PostFrontendTests(FrontendTestCase):
                                                hashtag='ace')), data={
                 'body': 'This is a new hashtag #ace'
             }, follow_redirects=True)
-        self.assertIn('<h1>Hashtag: ace</h1>', resp.data)
+        self.assertIn('<h1>Hashtag: ace</h1>', resp.get_data(as_text=True))
         self.assertIn('This is a new hashtag <a href="{0}">#ace</a>'.format(
-            url_for('posts.hashtags', hashtag='ace')), resp.data)
+            url_for('posts.hashtags', hashtag='ace')), resp.get_data(as_text=True))
 
     def test_permissions_post_actions(self):
         """Ensure permission prevent actions"""
@@ -1622,21 +1622,21 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You do not have permission to vote on this post',
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.downvote', username='user1',
                                         post_id=post1, next='/'),
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You do not have permission to vote on this post',
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         # Test voting with XHR
         resp = self.client.post(
             url_for('posts.upvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You do not have permission to vote on this post')
 
@@ -1644,7 +1644,7 @@ class PostFrontendTests(FrontendTestCase):
             url_for('posts.downvote', username='user1', post_id=post1),
             headers=[('X-Requested-With', 'XMLHttpRequest')]
         )
-        resp_json = json.loads(resp.data)
+        resp_json = json.loads(resp.get_data(as_text=True))
         self.assertEqual(resp_json.get('message'),
                          'You do not have permission to vote on this post')
 
@@ -1653,7 +1653,7 @@ class PostFrontendTests(FrontendTestCase):
                                 follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You do not have permission to flag this post',
-                      resp.data)
+                      resp.get_data(as_text=True))
 
         # Ensure user 2 can't comment on post1
         resp = self.client.post(url_for('posts.post', username='user1',
@@ -1671,7 +1671,7 @@ class PostFrontendTests(FrontendTestCase):
             'body': 'Test'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Test', resp.data)
+        self.assertIn('Test', resp.get_data(as_text=True))
 
         # Signout as user2 and ensure user1 can comment on the post.
         self.client.get(url_for('auth.signout'))
@@ -1685,8 +1685,8 @@ class PostFrontendTests(FrontendTestCase):
             'body': 'Cheese'
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('Test', resp.data)
-        self.assertIn('Cheese', resp.data)
+        self.assertIn('Test', resp.get_data(as_text=True))
+        self.assertIn('Cheese', resp.get_data(as_text=True))
 
     def test_posting_with_permissions(self):
         """Ensure only the correct permissions can be applied to a post"""
@@ -1702,13 +1702,13 @@ class PostFrontendTests(FrontendTestCase):
             'body': 'Test post',
             'permission': 4
         }, follow_redirects=True)
-        self.assertIn('Not a valid choice', resp.data)
+        self.assertIn('Not a valid choice', resp.get_data(as_text=True))
 
         resp = self.client.post(url_for('posts.post'), data={
             'body': 'Test post',
             'permission': 'cheese'
         }, follow_redirects=True)
-        self.assertIn('Not a valid choice', resp.data)
+        self.assertIn('Not a valid choice', resp.get_data(as_text=True))
 
     def test_global_feeds(self):
         """"""
@@ -1724,17 +1724,17 @@ class PostFrontendTests(FrontendTestCase):
 
         # Test a non-logged in use
         resp = self.client.get(url_for('posts.global_feed'))
-        self.assertIn('public post #1', resp.data)
-        self.assertIn('public post #2', resp.data)
-        self.assertIn('public post #3', resp.data)
+        self.assertIn('public post #1', resp.get_data(as_text=True))
+        self.assertIn('public post #2', resp.get_data(as_text=True))
+        self.assertIn('public post #3', resp.get_data(as_text=True))
 
-        self.assertNotIn('pjuu post #1', resp.data)
-        self.assertNotIn('pjuu post #2', resp.data)
-        self.assertNotIn('pjuu post #3', resp.data)
+        self.assertNotIn('pjuu post #1', resp.get_data(as_text=True))
+        self.assertNotIn('pjuu post #2', resp.get_data(as_text=True))
+        self.assertNotIn('pjuu post #3', resp.get_data(as_text=True))
 
-        self.assertNotIn('trusted post #1', resp.data)
-        self.assertNotIn('trusted post #2', resp.data)
-        self.assertNotIn('trusted post #3', resp.data)
+        self.assertNotIn('trusted post #1', resp.get_data(as_text=True))
+        self.assertNotIn('trusted post #2', resp.get_data(as_text=True))
+        self.assertNotIn('trusted post #3', resp.get_data(as_text=True))
 
         # Test logged in user
         self.client.post(url_for('auth.signin'), data={
@@ -1743,14 +1743,14 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         resp = self.client.get(url_for('posts.global_feed'))
-        self.assertIn('public post #1', resp.data)
-        self.assertIn('public post #2', resp.data)
-        self.assertIn('public post #3', resp.data)
+        self.assertIn('public post #1', resp.get_data(as_text=True))
+        self.assertIn('public post #2', resp.get_data(as_text=True))
+        self.assertIn('public post #3', resp.get_data(as_text=True))
 
-        self.assertIn('pjuu post #1', resp.data)
-        self.assertIn('pjuu post #2', resp.data)
-        self.assertIn('pjuu post #3', resp.data)
+        self.assertIn('pjuu post #1', resp.get_data(as_text=True))
+        self.assertIn('pjuu post #2', resp.get_data(as_text=True))
+        self.assertIn('pjuu post #3', resp.get_data(as_text=True))
 
-        self.assertNotIn('trusted post #1', resp.data)
-        self.assertNotIn('trusted post #2', resp.data)
-        self.assertNotIn('trusted post #3', resp.data)
+        self.assertNotIn('trusted post #1', resp.get_data(as_text=True))
+        self.assertNotIn('trusted post #2', resp.get_data(as_text=True))
+        self.assertNotIn('trusted post #3', resp.get_data(as_text=True))

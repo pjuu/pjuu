@@ -65,7 +65,7 @@ class PostBackendTests(BackendTestCase):
         self.assertIsNone(get_post(K.NIL_VALUE))
 
         # Create a post with an image
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         post2 = create_post(user1, 'user1', 'Test post #2', upload=image)
 
         self.assertIsNotNone(post2)
@@ -74,7 +74,7 @@ class PostBackendTests(BackendTestCase):
         self.assertIn('upload', post)
         self.assertIsNotNone(post.get('upload'))
 
-        image = io.BytesIO(open('tests/upload_test_files/otter.gif').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.gif', 'rb').read())
         post3 = create_post(user1, 'user1', 'Test post #2', upload=image)
 
         self.assertIsNotNone(post3)
@@ -140,7 +140,7 @@ class PostBackendTests(BackendTestCase):
         self.assertNotIn('upload', comment)
 
         # Create a post with an image
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         reply1 = create_post(user1, 'user1', 'Test post #2', reply_to=post1,
                              upload=image)
 
@@ -522,7 +522,7 @@ class PostBackendTests(BackendTestCase):
         # Test deleting posts with uploads
         # Ensuring that the images are gone.
         # The actual deleting is tested in 'test_uploads.py'
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         post1 = create_post(user1, 'user1', 'Test post #2', upload=image)
         self.assertIsNotNone(post1)
         post1_filename = get_post(post1).get('upload')
@@ -728,7 +728,7 @@ class PostBackendTests(BackendTestCase):
         post1 = create_post(user1, 'user1', 'Test post 1')
         create_post(user1, 'user1', 'Test reply 1', post1)
 
-        image = io.BytesIO(open('tests/upload_test_files/otter.jpg').read())
+        image = io.BytesIO(open('tests/upload_test_files/otter.jpg', 'rb').read())
         create_post(user1, 'user1', 'Test post #2', upload=image)
 
         stats = dict(get_stats())

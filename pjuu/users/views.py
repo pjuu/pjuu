@@ -305,8 +305,6 @@ def follow(username):
     redirect_url = handle_next(request, url_for('users.following',
                                username=current_user.get('username')))
 
-    print("Redirect:", redirect_url)
-
     user_id = get_uid(username)
 
     # If we don't get a uid from the username the page doesn't exist
