@@ -22,40 +22,28 @@ This is the primary code base for https://pjuu.com, the website is deployed dire
 
 The main goal of Pjuu as an application is privacy.
 
-Pjuu is written in Python/Flask and uses Redis and MongoDB as the data stores.
+Pjuu is written in Python3/Flask and uses Redis and MongoDB as the data stores.
 
 ### Getting started
 
-Getting started with Pjuu or deploying it yourself is quite easy if you are familiar with Python. We will only cover development here and the following documentation is for Debian 8 (Jessie) Linux (we are big fans). Pjuu should work with and any other Linux distribution, however you will need to change the commands to fit your envionment. It has also been tested with FreeBSD, but this is beyond the scope of the README.
+Getting started with Pjuu or deploying it yourself is quite easy if you are familiar with Python. We will only cover development here and the following documentation is for Debian 9 (Stretch) Linux (we are big fans). Pjuu should work with and any other Linux distribution, however you will need to change the commands to fit your envionment. It has also been tested with FreeBSD, but this is beyond the scope of the README.
 
 For a fresh installation these commands will setup the environment:
 
 ```
 $ sudo apt-get update
 
-$ sudo apt-get install build-essential python-dev python-setuptools libmagickwand-dev redis-server mongodb
-
-$ sudo easy_install virtualenv
+$ sudo apt-get install build-essential python3-dev python-virtualenv python-setuptools libmagickwand-dev redis-server mongodb
 
 $ git clone https://github.com/pjuu/pjuu.git
 
 $ cd pjuu
 
-$ virtualenv venv
+$ virtualenv -p python3 venv
 
 $ source venv/bin/activate
 
 $ pip install -r requirements-dev.txt
-```
-
-#### Vagrant
-
-You can also use [Vagrant](https://www.vagrantup.com/) to setup the environment:
-
-```
-$ vagrant up
-
-$ vagrant ssh
 ```
 
 #### Testing

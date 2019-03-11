@@ -67,7 +67,12 @@ class PaginationTests(BackendTestCase):
         self.assertIsNone(p.next_page)
         self.assertIsNotNone(p.prev_page)
 
-        # Done for now
+        # Ensure last_page shows items / per_page
+        p = Pagination(ls[:50], len(ls), 1, 50)
+        self.assertEqual(p.last_page, 20)
+
+        p = Pagination(ls[:50], len(ls), 1, 100)
+        self.assertEqual(p.last_page, 10)
 
     def test_handle_page(self):
         """Check the handle_page function, this is important as it stops Redis
