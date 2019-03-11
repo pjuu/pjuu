@@ -255,17 +255,17 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIsNotNone(post1)
         post = get_post(post1)
         resp = self.client.get(url_for('users.feed'))
-        self.assertIn('<!-- upload:post:%s -->' % post1,
+        self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
-        self.assertIn('<img src="%s"/>' % url_for('posts.get_upload',
-                                                  filename=post.get('upload')),
+        self.assertIn('<img src="{}"/>'.format(
+            url_for('posts.get_upload', filename=post.get('upload'))),
                       resp.get_data(as_text=True))
 
         # Although the below belongs in `test_view_post` we are just going to
         # check it here for simplicity
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('<!-- upload:post:%s -->' % post1,
+        self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
         self.assertIn(
             '<img src="{}"/>'.format(url_for('posts.get_upload',
@@ -376,13 +376,12 @@ class PostFrontendTests(FrontendTestCase):
 
         post = get_post(post1)
         resp = self.client.get(url_for('users.feed'))
-        self.assertIn('<!-- upload:post:%s -->' % post1,
+        self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
-        self.assertNotIn('<img src="%s"/>' %
-                         url_for('posts.get_upload',
-                                 filename=post.get('upload')),
+        self.assertNotIn('<img src="{}"/>'.format(
+            url_for('posts.get_upload', filename=post.get('upload'))),
                          resp.get_data(as_text=True))
-        self.assertIn('<!-- upload:hidden:%s -->' % post1,
+        self.assertIn('<!-- upload:hidden:{} -->'.format(post1),
                       resp.get_data(as_text=True))
 
     def test_get_upload(self):
@@ -450,7 +449,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
         # Use the testing tags to ensure everything is rendered
-        self.assertIn('<!-- view:post:%s -->' % post1,
+        self.assertIn('<!-- view:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
         self.assertIn('Test post', resp.get_data(as_text=True))
         # Ensure the comment form is present
@@ -464,7 +463,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        self.assertIn('<!-- list:reply:%s -->' % comment1,
+        self.assertIn('<!-- list:reply:{} -->'.format(comment1),
                       resp.get_data(as_text=True))
         self.assertIn('Test comment 1', resp.get_data(as_text=True))
 
@@ -478,7 +477,7 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1),
                                follow_redirects=True)
-        self.assertIn('<!-- view:post:%s -->' % post1,
+        self.assertIn('<!-- view:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
         self.assertIn('Test post', resp.get_data(as_text=True))
         self.assertIn('<!-- list:reply:{} -->'.format(comment1),
@@ -492,7 +491,7 @@ class PostFrontendTests(FrontendTestCase):
                                        post_id=post1),
                                follow_redirects=True)
 
-        self.assertIn('<!-- list:reply:%s -->' % comment2,
+        self.assertIn('<!-- list:reply:{} -->'.format(comment2),
                       resp.get_data(as_text=True))
         self.assertIn('Test comment 2', resp.get_data(as_text=True))
         # Done for now
@@ -733,10 +732,10 @@ class PostFrontendTests(FrontendTestCase):
         reply = get_post(reply_img)
         resp = self.client.get(url_for('posts.view_post', username='user1',
                                        post_id=post1))
-        self.assertIn('<!-- upload:reply:%s -->' % reply_img,
+        self.assertIn('<!-- upload:reply:{} -->'.format(reply_img),
                       resp.get_data(as_text=True))
-        self.assertIn('<img src="%s"/>' % url_for(
-            'posts.get_upload', filename=reply.get('upload')),
+        self.assertIn('<img src="{}"/>'.format(
+            url_for('posts.get_upload', filename=reply.get('upload'))),
             resp.get_data(as_text=True))
 
         # Ensure that posting an image with no text allows it
@@ -816,13 +815,13 @@ class PostFrontendTests(FrontendTestCase):
         # Lets ensure both vote links are there
         resp = self.client.get(url_for('posts.view_post', username='user2',
                                        post_id=post2))
-        self.assertIn('<!-- upvote:post:%s -->' % post2,
+        self.assertIn('<!-- upvote:post:{} -->'.format(post2),
                       resp.get_data(as_text=True))
-        self.assertIn('<!-- downvote:post:%s -->' % post2,
+        self.assertIn('<!-- downvote:post:{} -->'.format(post2),
                       resp.get_data(as_text=True))
-        self.assertNotIn('<!-- upvoted:post:%s -->' % post2,
+        self.assertNotIn('<!-- upvoted:post:{} -->'.format(post2),
                          resp.get_data(as_text=True))
-        self.assertNotIn('<!-- downvoted:post:%s -->' % post2,
+        self.assertNotIn('<!-- downvoted:post:{} -->'.format(post2),
                          resp.get_data(as_text=True))
 
         # Visit user 2's comment and UPVOTE that
@@ -836,13 +835,13 @@ class PostFrontendTests(FrontendTestCase):
         # be present on the page.
         # So shoudl the upvote button button it should be marked as
         # Upvoted.
-        self.assertIn('<!-- upvoted:post:%s -->' % post2,
+        self.assertIn('<!-- upvoted:post:{} -->'.format(post2),
                       resp.get_data(as_text=True))
-        self.assertNotIn('<!-- upvote:post:%s -->' % post2,
+        self.assertNotIn('<!-- upvote:post:{} -->'.format(post2),
                          resp.get_data(as_text=True))
-        self.assertIn('<!-- downvote:post:%s -->' % post2,
+        self.assertIn('<!-- downvote:post:{} -->'.format(post2),
                       resp.get_data(as_text=True))
-        self.assertNotIn('<!-- downvoted:post:%s -->' % post2,
+        self.assertNotIn('<!-- downvoted:post:{} -->'.format(post2),
                          resp.get_data(as_text=True))
 
         # Let's try and vote on that post again

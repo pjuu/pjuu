@@ -51,8 +51,10 @@ class FrontendTests(FrontendTestCase):
         # We need to store a list of the pids since UUIDs became available
         posts = []
         for i in range(0, 51):
-            posts.append(create_post(user1, 'user1', 'User 1, Post %d!' % i))
-            posts.append(create_post(user2, 'user1', 'User 2, Post %d!' % i))
+            posts.append(
+                create_post(user1, 'user1', 'User 1, Post {}!'.format(i)))
+            posts.append(
+                create_post(user2, 'user1', 'User 2, Post {}!'.format(i)))
         # We now have 60 posts on each feed
 
         # Try and visit the feed when not logged in
