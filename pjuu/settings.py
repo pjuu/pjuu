@@ -1,7 +1,5 @@
 # -*- coding: utf8 -*-
 
-import os
-
 # Attempt to load .env file
 # Useful in development
 from environs import Env
