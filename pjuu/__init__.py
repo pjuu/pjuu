@@ -19,7 +19,7 @@ from celery import Celery
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from pjuu.configurator import load
+from pjuu.configurator import load as load_config
 from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
 
@@ -30,7 +30,7 @@ __version__ = 'master'
 
 # Load configuration
 # We need this for initializing the Celery broker
-config = load("settings.py")
+config = load_config()
 
 # Global Flask-Mail object
 mail = Mail()

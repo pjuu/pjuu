@@ -9,6 +9,7 @@ WTForms==2.2.1
 Werkzeug==0.14.1
 blinker==1.4
 celery==4.2.1
+environs==4.1.0
 gevent==1.4.0
 gunicorn==19.9.0
 hiredis==1.0.0

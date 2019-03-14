@@ -68,3 +68,5 @@ tags
 
 # VSCode
 .vscode
+
+.env
