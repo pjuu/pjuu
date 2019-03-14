@@ -10,7 +10,7 @@ This package also provides generic server data to the dashboard itself. Things
 such as hostname, uname, time, etc.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2018 Joe Doherty
+:copyright: 2014-2019 Joe Doherty
 
 """
 

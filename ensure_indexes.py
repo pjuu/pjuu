@@ -7,7 +7,7 @@ Ensure indexes is in lib to aid in unit testing. This script allows this to be
 run from outside of the application. This is useful for post deployment.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2018 Joe Doherty
+:copyright: 2014-2019 Joe Doherty
 
 """
 
