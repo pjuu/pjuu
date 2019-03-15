@@ -9,11 +9,12 @@ WTForms==2.2.1
 Werkzeug==0.14.1
 blinker==1.4
 celery==4.2.1
+environs==4.1.0
 gevent==1.4.0
 gunicorn==19.9.0
 hiredis==1.0.0
 itsdangerous==1.1.0
 jsonpickle==1.1
 redis==3.2.0
-sentry-sdk==0.7.3
+sentry-sdk==0.7.6
 Wand==0.5.1

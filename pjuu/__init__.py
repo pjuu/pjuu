@@ -19,7 +19,7 @@ from celery import Celery
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from pjuu.configurator import load
+from pjuu.configurator import load as load_config
 from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
 
@@ -30,7 +30,7 @@ __version__ = 'master'
 
 # Load configuration
 # We need this for initializing the Celery broker
-config = load("settings.py")
+config = load_config()
 
 # Global Flask-Mail object
 mail = Mail()
@@ -123,8 +123,8 @@ def create_app(config_dict=None):
         """This is will write the time to the console in DEBUG mode"""
         if app.debug and not app.testing:  # pragma: no cover
             if request.endpoint != 'static':
-                print request.path, request.endpoint, \
-                    str((timestamp() - g.start_time) * 100) + 'ms'
+                print(request.path, request.endpoint,
+                      str((timestamp() - g.start_time) * 100) + 'ms')
         return response
 
     @app.url_defaults

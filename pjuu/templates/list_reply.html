@@ -13,7 +13,7 @@
         {% if config.TESTING %}
         <!-- delete:reply:{{ item._id }} -->
         {% endif %}
-        <form action="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+        <form action="{{ url_for('posts.delete_post', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.full_path|string) }}" method="post">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             <button title="Delete post" class="fa fa-remove fa-lg delete buttonlink"></button>
         </form>
@@ -63,7 +63,7 @@
                             <!-- upvote:reply:{{ item._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.upvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.full_path|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Up vote" class="fa fa-arrow-up fa-lg link {% if voted_on > 0 %}upvoted{% else %}upvote{% endif %}  buttonlink"></button>
                         </form>
@@ -82,7 +82,7 @@
                             <!-- downvote:reply:{{ item._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.downvote', username=post.username, post_id=item.reply_to, reply_id=item._id, next=request.full_path|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Down vote" class="fa fa-arrow-down fa-lg link {% if voted_on < 0 %}downvoted{% else %}downvote{% endif %} buttonlink"></button>
                         </form>
@@ -99,7 +99,7 @@
                     {% if item._id|flagged %}
                     <i class="fa fa-flag fa-lg flagged"></i>
                     {% else %}
-                    <form action="{{ url_for('posts.flag', username=item.username, post_id=item._id, next=request.path + '?' + request.query_string) }}" method="post">
+                    <form action="{{ url_for('posts.flag', username=item.username, post_id=item._id, next=request.full_path|string) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                         <button title="Flag post" class="fa fa-flag fa-lg link buttonlink flag"></button>
                     </form>

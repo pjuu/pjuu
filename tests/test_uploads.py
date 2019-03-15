@@ -44,7 +44,7 @@ class PagesTests(FrontendTestCase):
                 continue
 
             image = io.BytesIO(
-                open(f).read()
+                open(f, 'rb').read()
             )
             filename, animated = process_upload(image)
 

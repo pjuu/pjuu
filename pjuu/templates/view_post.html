@@ -78,7 +78,7 @@
                             <!-- upvote:post:{{ post._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.upvote', username=post.username, post_id=post._id, next=request.full_path|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Up vote" class="fa fa-arrow-up fa-lg link {% if voted_on > 0 %}upvoted{% else %}upvote{% endif %}  buttonlink"></button>
                         </form>
@@ -97,7 +97,7 @@
                             <!-- downvote:post:{{ post._id }} -->
                             {% endif %}
                         {% endif %}
-                        <form action="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.downvote', username=post.username, post_id=post._id, next=request.full_path|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Down vote" class="fa fa-arrow-down fa-lg link {% if voted_on < 0 %}downvoted{% else %}downvote{% endif %} buttonlink"></button>
                         </form>
@@ -114,7 +114,7 @@
                         {% endif %}
                         <i class="fa fa-flag fa-lg flagged"></i>
                         {% else %}
-                        <form action="{{ url_for('posts.flag', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                        <form action="{{ url_for('posts.flag', username=post.username, post_id=post._id, next=request.full_path|string) }}" method="post">
                             <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                             <button title="Flag post" class="fa fa-flag fa-lg link buttonlink flag"></button>
                         </form>
@@ -126,7 +126,7 @@
                     {% if config.TESTING %}
                     <!-- unsubscribe:post:{{ post._id }} -->
                     {% endif %}
-                    <form action="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.path + '?' + request.query_string) }}" method="post">
+                    <form action="{{ url_for('posts.unsubscribe', username=post.username, post_id=post._id, next=request.full_path|string) }}" method="post">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                         <button class="fa fa-bell-slash fa-lg link unsubscribe"></button>
                     </form>
@@ -146,11 +146,11 @@
         <div class="left">Replies</div>
         <div class="right">
             {% if sort == -1 %}
-            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('sort', 1)])) }}">
+            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items()|list + request.args.lists()|list + [('sort', 1)])) }}">
                 <i class="fa fa-lg fa-sort-numeric-asc"></i>
             </a>
             {% else %}
-            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items() + request.args.items() + [('sort', -1)])) }}">
+            <a href="{{ url_for(request.endpoint, **dict(request.view_args.items()|list + request.args.lists()|list + [('sort', -1)])) }}">
                 <i class="fa fa-lg fa-sort-numeric-desc"></i>
             </a>
             {% endif %}

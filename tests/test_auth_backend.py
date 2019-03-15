@@ -453,5 +453,5 @@ class AuthBackendTests(BackendTestCase):
         user_list = ['user5', 'user4', 'user3', 'user2', 'user1']
         newest_users = stats.get('Newest users')
 
-        for i in xrange(len(newest_users)):
+        for i in range(len(newest_users)):
             self.assertIn(user_list[i], newest_users[i])

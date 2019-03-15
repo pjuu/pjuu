@@ -19,6 +19,7 @@ import importlib
 import pkgutil
 import os
 import socket
+import sys
 import time
 
 from flask import Blueprint, render_template, abort
@@ -39,6 +40,7 @@ def get_stats():
         ('Uname', ' '.join(os.uname())),
         ('Time UTC', datetime.datetime.utcnow()),
         ('Timestamp', time.time()),
+        ('Python Version', "{}.{}.{}{}{}".format(*sys.version_info))
     ]
 
 

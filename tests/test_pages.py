@@ -27,26 +27,31 @@ class PagesTests(FrontendTestCase):
         # Abouts
         resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>About Pjuu</h1>', resp.data)
+        self.assertIn('<!-- menu: not logged in -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<h1>About Pjuu</h1>', resp.get_data(as_text=True))
 
         # Terms
         resp = self.client.get(url_for('pages.terms'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>Terms of Service</h1>', resp.data)
+        self.assertIn('<!-- menu: not logged in -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<h1>Terms of Service</h1>', resp.get_data(as_text=True))
 
         # Privacy
         resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>Privacy bothers us!</h1>', resp.data)
+        self.assertIn('<!-- menu: not logged in -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<h1>Privacy bothers us!</h1>',
+                      resp.get_data(as_text=True))
 
         # Donations
         resp = self.client.get(url_for('pages.donations'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: not logged in -->', resp.data)
-        self.assertIn('<h1>Donations</h1>', resp.data)
+        self.assertIn('<!-- menu: not logged in -->',
+                      resp.get_data(as_text=True))
+        self.assertIn('<h1>Donations</h1>', resp.get_data(as_text=True))
 
     def test_logged_in(self):
         """Check the pages work when logged in
@@ -65,23 +70,24 @@ class PagesTests(FrontendTestCase):
         # About
         resp = self.client.get(url_for('pages.about'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>About Pjuu</h1>', resp.data)
+        self.assertIn('<!-- menu: logged in -->', resp.get_data(as_text=True))
+        self.assertIn('<h1>About Pjuu</h1>', resp.get_data(as_text=True))
 
         # Terms
         resp = self.client.get(url_for('pages.terms'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>Terms of Service</h1>', resp.data)
+        self.assertIn('<!-- menu: logged in -->', resp.get_data(as_text=True))
+        self.assertIn('<h1>Terms of Service</h1>', resp.get_data(as_text=True))
 
         # Privacy
         resp = self.client.get(url_for('pages.privacy'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>Privacy bothers us!</h1>', resp.data)
+        self.assertIn('<!-- menu: logged in -->', resp.get_data(as_text=True))
+        self.assertIn('<h1>Privacy bothers us!</h1>',
+                      resp.get_data(as_text=True))
 
         # Donations
         resp = self.client.get(url_for('pages.donations'))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('<!-- menu: logged in -->', resp.data)
-        self.assertIn('<h1>Donations</h1>', resp.data)
+        self.assertIn('<!-- menu: logged in -->', resp.get_data(as_text=True))
+        self.assertIn('<h1>Donations</h1>', resp.get_data(as_text=True))

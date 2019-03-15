@@ -406,7 +406,7 @@ def dump_account(user_id):
 
         # Clear the user_id's from mentions
         if post.get('mentions'):
-            for i in xrange(len(post['mentions'])):
+            for i in range(len(post['mentions'])):
                 post['mentions'][i]['user_id'] = '<UID>'
         posts.append(post)
 

@@ -9,7 +9,7 @@
 
 # Stdlib imports
 from time import time
-from urlparse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin
 from uuid import uuid1
 
 from flask import request, flash

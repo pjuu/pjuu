@@ -28,7 +28,7 @@ def generate_token(data):
     # Convert the data to a JSON pickle, you can store anything you want.
     data = jsonpickle.encode(data)
     # Get our token id.
-    tid = sha1(urandom(32) + data).hexdigest()
+    tid = sha1((str(urandom(32)) + data).encode('utf-8')).hexdigest()
     # Set the token to JSON pickle value and place a 24HR timeout
     r.setex(K.TOKEN.format(tid), K.EXPIRE_24HRS, data)
 

@@ -54,7 +54,7 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
         try:
             exif_data = {
                 k[5:]: v
-                for k, v in img.metadata.items()
+                for k, v in list(img.metadata.items())
                 if k.startswith('exif:')
             }
 

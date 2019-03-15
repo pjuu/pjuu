@@ -52,23 +52,23 @@ class DashboardTests(FrontendTestCase):
 
         # Ensure there are some stats for the different libraries we expect
         # 'Server' is provided by the dashboard itself
-        self.assertIn('Server', resp.data)
+        self.assertIn('Server', resp.get_data(as_text=True))
 
         # We can further check the 'Server' section as we need to anyway.
-        self.assertIn('Hostname', resp.data)
-        self.assertIn('Uname', resp.data)
-        self.assertIn('Time UTC', resp.data)
-        self.assertIn('Timestamp', resp.data)
+        self.assertIn('Hostname', resp.get_data(as_text=True))
+        self.assertIn('Uname', resp.get_data(as_text=True))
+        self.assertIn('Time UTC', resp.get_data(as_text=True))
+        self.assertIn('Timestamp', resp.get_data(as_text=True))
 
         # Check the values we can
-        self.assertIn(' '.join(os.uname()), resp.data)
-        self.assertIn(socket.gethostname(), resp.data)
+        self.assertIn(' '.join(os.uname()), resp.get_data(as_text=True))
+        self.assertIn(socket.gethostname(), resp.get_data(as_text=True))
 
         # 'Auth' is provided by pjuu.auth
-        self.assertIn('Auth', resp.data)
+        self.assertIn('Auth', resp.get_data(as_text=True))
 
         # 'Posts' is provided by pjuu.posts
-        self.assertIn('Posts', resp.data)
+        self.assertIn('Posts', resp.get_data(as_text=True))
 
         # 'Users' does not provide ANY stats at the moment
 
@@ -114,7 +114,7 @@ class DashboardTests(FrontendTestCase):
                     post_id=post1),
             post1,
             url_for('posts.unflag_post', post_id=post1)
-        ), resp.data)
+        ), resp.get_data(as_text=True))
 
         self.assertIn(s.format(
             1,
@@ -126,4 +126,4 @@ class DashboardTests(FrontendTestCase):
                     post_id=post1),
             comment1,
             url_for('posts.unflag_post', post_id=comment1)
-        ) + ' (comment)', resp.data)
+        ) + ' (comment)', resp.get_data(as_text=True))
