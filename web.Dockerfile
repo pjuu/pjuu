@@ -6,4 +6,4 @@ EXPOSE 8000
 
 # Run Gunicorn
 ENTRYPOINT ["/data/venv/bin/gunicorn"]
-CMD ["-b 0.0.0.0:8000", "-k gevent", "-e PJUU_SETTINGS=/data/conf/pjuu.conf", "pjuu.wsgi:application"]
+CMD ["-b 0.0.0.0:8000", "-k gevent", "pjuu.wsgi:application"]
