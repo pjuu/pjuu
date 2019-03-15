@@ -102,7 +102,7 @@ def create_app(config_dict=None):
     mail.init_app(app)
 
     # Create the Redis session interface
-    redis_sessions.init_app(app, 'SESSION_REDIS')
+    redis_sessions.init_app(app, 'REDIS_SESSION')
 
     # Initialize CSRF protection
     csrf.init_app(app)
