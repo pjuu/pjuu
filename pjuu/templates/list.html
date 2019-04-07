@@ -30,13 +30,13 @@
         {% if config.TESTING %}
         <!-- pagination:newest -->
         {% endif %}
-        <a href="{{ url_for(request.endpoint, **kwargs) }}">
+        <a href="{{ url_for(request.endpoint, **dict(kwargs, **{'page': pagination.first_page})) }}">
             <i class="fa fa-angle-double-left"></i>
         </a>
         {% if config.TESTING %}
         <!-- pagination:newer -->
         {% endif %}
-        <a href="{{ url_for(request.endpoint, **kwargs) }}">
+        <a href="{{ url_for(request.endpoint, **dict(kwargs, **{'page': pagination.prev_page})) }}">
             <i class="fa fa-angle-left"></i>
         </a>
     </div>
@@ -46,13 +46,13 @@
         {% if config.TESTING %}
         <!-- pagination:older -->
         {% endif %}
-        <a href="{{ url_for(request.endpoint, **kwargs) }}">
+        <a href="{{ url_for(request.endpoint, **dict(kwargs, **{'page': pagination.next_page})) }}">
             <i class="fa fa-angle-right"></i>
         </a>
         {% if config.TESTING %}
         <!-- pagination:oldest -->
         {% endif %}
-        <a href="{{ url_for(request.endpoint, **kwargs) }}">
+        <a href="{{ url_for(request.endpoint, **dict(kwargs, **{'page': pagination.last_page})) }}">
             <i class="fa fa-angle-double-right"></i>
         </a>
     </div>
