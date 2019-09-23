@@ -1,4 +1,4 @@
-Flask==1.0.3
+Flask==1.1.1
 Flask-And-Redis==1.0.0
 Flask-Mail==0.9.1
 Flask-PyMongo==2.3.0
@@ -6,15 +6,15 @@ Flask-WTF==0.14.2
 Jinja2==2.10.1
 MarkupSafe==1.1.1
 WTForms==2.2.1
-Werkzeug==0.15.4
+Werkzeug==0.16.0
 blinker==1.4
 celery==4.3.0
-environs==4.2.0
+environs==6.0.0
 gevent==1.4.0
 gunicorn==19.9.0
 hiredis==1.0.0
 itsdangerous==1.1.0
 jsonpickle==1.2
-redis==3.2.1
-sentry-sdk==0.9.5
-Wand==0.5.4
+redis==3.3.8
+sentry-sdk==0.12.2
+Wand==0.5.7
