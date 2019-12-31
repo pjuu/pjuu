@@ -2,7 +2,7 @@
 # Used for quickly testing, running and ensuring code quality
 # during development.
 
-all: flake cover
+all: flake test coverage
 
 test:
 	@echo 'Running test suite...'
