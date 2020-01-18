@@ -1,0 +1,38 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [3.6, 3.7, 3.8]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: x64
+
+    - name: Set up MongoDB
+      uses: superchargejs/mongodb-github-action@v1
+      with:
+        mongodb-version: 3.4
+
+    - name: Set up Redis
+      uses: zhulik/redis-action@1.1.0
+      with:
+        redis-version: 3.2
+
+    - name: Install dependencies
+      run: pip install -r requirements-dev.txt
+  
+    - name: Lint
+      run: make lint
+
+    - name: Test
+      run: make test
