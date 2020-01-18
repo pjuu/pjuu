@@ -19,7 +19,7 @@ jobs:
         architecture: x64
 
     - name: Set up MongoDB
-      uses: zhulik/redis-action@1.1.0
+      uses: wbari/start-mongoDB@v0.2
       with:
         mongoDBVersion: 3.4
 
