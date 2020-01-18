@@ -49,3 +49,16 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: .coverage
         fail_ci_if_error: true
+
+    - name: Build Docker images
+      run: |
+        docker build -t pjuu/base:latest -f base.Dockerfile
+        docker build -t pjuu/web:latest -f web.Dockerfile
+        docker build -t pjuu/worker:latest -f worker.Dockerfile
+
+    - name: Push Docker images
+      run: |
+        echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        docker push pjuu/base
+        docker push pjuu/web
+        docker push pjuu/worker
