@@ -52,9 +52,10 @@ jobs:
 
     - name: Build Docker images
       run: |
-        docker build -t pjuu/base:latest -f base.Dockerfile
-        docker build -t pjuu/web:latest -f web.Dockerfile
-        docker build -t pjuu/worker:latest -f worker.Dockerfile
+        docker build -t pjuu/base:latest -f base.Dockerfile .
+        docker build -t pjuu/web:latest -f web.Dockerfile .
+        docker build -t pjuu/worker:latest -f worker.Dockerfile .
+      if: github.ref == 'master'
 
     - name: Push Docker images
       run: |
@@ -62,3 +63,4 @@ jobs:
         docker push pjuu/base
         docker push pjuu/web
         docker push pjuu/worker
+      if: github.ref == 'master'
