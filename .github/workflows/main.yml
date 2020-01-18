@@ -46,13 +46,11 @@ jobs:
       run: make test
 
     - name: Upload coverage to Codecov
-      run: cat .coverage
-      #uses: codecov/codecov-action@v1
-      #with:
-      #  token: ${{ secrets.CODECOV_TOKEN }}
-      #  file: ./.coverage
-      #  fail_ci_if_error: true
-      #if: matrix.python-version == 3.7
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+      if: matrix.python-version == 3.7
 
     - name: Build Docker images
       run: |
