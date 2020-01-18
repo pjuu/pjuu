@@ -5,6 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python_version: [3.6, 3.7, 3.8]
@@ -13,31 +14,33 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-        architecture: x64
 
-    - name: Set up MongoDB
-      uses: wbari/start-mongoDB@v0.2
-      with:
-        mongoDBVersion: 3.4
+    - name: Check Python version
+      run: python -c "import sys; print(sys.version)"
 
-    - name: Set up Redis
-      uses: zhulik/redis-action@1.1.0
-      with:
-        redis-version: 3.2
-
-    - name: Install dependencies
-      run: |
-        python --version
-        pip --version
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
-  
-    - name: Lint
-      run: make lint
-
-    - name: Test
-      run: make test
+        #    - name: Set up MongoDB
+        #      uses: wbari/start-mongoDB@v0.2
+        #      with:
+        #        mongoDBVersion: 3.4
+        #
+        #    - name: Set up Redis
+        #      uses: zhulik/redis-action@1.1.0
+        #      with:
+        #        redis-version: 3.2
+        #
+        #    - name: Install dependencies
+        #      run: |
+        #        python --version
+        #        pip --version
+        #        python -m pip install --upgrade pip
+        #        pip install -r requirements-dev.txt
+        #  
+        #    - name: Lint
+        #      run: make lint
+        #
+        #    - name: Test
+        #      run: make test
