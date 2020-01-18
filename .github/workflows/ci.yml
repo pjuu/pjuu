@@ -43,6 +43,9 @@ jobs:
     - name: Test
       run: make test
 
+    - name: Locate coverage file
+      run: ls -lash | grep coverage
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
