@@ -1,0 +1,66 @@
+name: main 
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Check Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Set up MongoDB
+      uses: wbari/start-mongoDB@v0.2
+      with:
+        mongoDBVersion: 3.4
+
+    - name: Set up Redis
+      uses: zhulik/redis-action@1.1.0
+      with:
+        redis-version: 3.2
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Lint with Flake8
+      run: make flake
+
+    - name: Test
+      run: make test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: .coverage
+        fail_ci_if_error: true
+
+    - name: Build Docker images
+      run: |
+        docker build -t pjuu/base:latest -f base.Dockerfile .
+        docker build -t pjuu/web:latest -f web.Dockerfile .
+        docker build -t pjuu/worker:latest -f worker.Dockerfile .
+      if: github.ref == 'master'
+
+    - name: Push Docker images
+      run: |
+        echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        docker push pjuu/base
+        docker push pjuu/web
+        docker push pjuu/worker
+      if: github.ref == 'master'
