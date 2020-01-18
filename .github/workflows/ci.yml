@@ -1,6 +1,6 @@
 name: Python application
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -19,9 +19,9 @@ jobs:
         architecture: x64
 
     - name: Set up MongoDB
-      uses: superchargejs/mongodb-github-action@v1
+      uses: zhulik/redis-action@1.1.0
       with:
-        mongodb-version: 3.4
+        mongoDBVersion: 3.4
 
     - name: Set up Redis
       uses: zhulik/redis-action@1.1.0
