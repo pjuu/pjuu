@@ -22,25 +22,23 @@ jobs:
     - name: Check Python version
       run: python -c "import sys; print(sys.version)"
 
-        #    - name: Set up MongoDB
-        #      uses: wbari/start-mongoDB@v0.2
-        #      with:
-        #        mongoDBVersion: 3.4
-        #
-        #    - name: Set up Redis
-        #      uses: zhulik/redis-action@1.1.0
-        #      with:
-        #        redis-version: 3.2
-        #
-        #    - name: Install dependencies
-        #      run: |
-        #        python --version
-        #        pip --version
-        #        python -m pip install --upgrade pip
-        #        pip install -r requirements-dev.txt
-        #  
-        #    - name: Lint
-        #      run: make lint
-        #
-        #    - name: Test
-        #      run: make test
+    - name: Set up MongoDB
+      uses: wbari/start-mongoDB@v0.2
+      with:
+        mongoDBVersion: 3.4
+
+    - name: Set up Redis
+      uses: zhulik/redis-action@1.1.0
+      with:
+        redis-version: 3.2
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Lint
+      run: make lint
+
+    - name: Test
+      run: make test
