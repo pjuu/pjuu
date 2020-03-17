@@ -13,7 +13,7 @@ from jinja2 import escape
 
 from pjuu.auth import current_user
 from pjuu.auth.decorators import login_required
-from pjuu.lib import handle_next, keys as k, timestamp, xflash
+from pjuu.lib import handle_next, keys as k, timestamp, xflash, is_xhr
 from pjuu.lib.pagination import handle_page
 from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
@@ -314,7 +314,7 @@ def vote(username, post_id, reply_id=None):
                                username=username, post_id=post_id))
 
     if not check_post(get_uid(username), post_id, reply_id):
-        if request.is_xhr:
+        if is_xhr():
             return jsonify({'message': 'Post not found'}), 404
 
         return abort(404)
@@ -337,7 +337,7 @@ def vote(username, post_id, reply_id=None):
     if permission < _post.get('permission', k.PERM_PUBLIC):
         message = 'You do not have permission to vote on this post'
 
-        if request.is_xhr:
+        if is_xhr():
             return jsonify({'message': message}), 403
 
         xflash(message, 'error')
@@ -351,14 +351,14 @@ def vote(username, post_id, reply_id=None):
     except AlreadyVoted:
         message = 'You have already voted on this post'
 
-        if request.is_xhr:
+        if is_xhr():
             return jsonify({'message': message}), 400
 
         xflash(message, 'error')
     except CantVoteOnOwn:
         message = 'You can not vote on your own posts'
 
-        if request.is_xhr:
+        if is_xhr():
             return jsonify({'message': message}), 400
 
         xflash(message, 'error')
@@ -372,7 +372,7 @@ def vote(username, post_id, reply_id=None):
                                                           else "post")
             xflash(message, 'success')
 
-    if request.is_xhr:
+    if is_xhr():
         return jsonify({'message': message}), 200
 
     return redirect(redirect_url)

@@ -58,7 +58,13 @@ def fix_url(url):
     return _url.geturl()
 
 
+def is_xhr():
+    """Check if the request was sent witha XMLHttpRequest"""
+    return request.environ.get("HTTP_X_REQUESTED_WITH", "").lower() == \
+        "xmlhttprequest"
+
+
 def xflash(message, category='message'):
     """Will only flash the message if the request is NOT XHR"""
-    if not request.is_xhr:
+    if not is_xhr():
         flash(message, category)

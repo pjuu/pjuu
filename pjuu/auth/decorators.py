@@ -12,6 +12,7 @@ from functools import wraps
 from flask import abort, redirect, request, url_for, flash
 # Pjuu imports
 from pjuu.auth import current_user
+from pjuu.lib import is_xhr
 
 
 def anonymous_required(func):
@@ -34,7 +35,7 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if not current_user:
-            if request.is_xhr:
+            if is_xhr():
                 return abort(403)
 
             flash('You need to be signed in to view that', 'information')
