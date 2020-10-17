@@ -19,4 +19,4 @@ flake:
 
 run:
 	@echo 'Starting Pjuu (Gunicorn with Gevent)...'
-	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload dev_server:application
+	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload --access-logfile=- --access-logformat='%(r)s %(D)sus' dev_server:application

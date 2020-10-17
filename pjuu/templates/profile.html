@@ -6,7 +6,7 @@
 <div id="profile" class="block clearfix">
     <div class="top clearfix">
         {% if profile.avatar %}
-        <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=profile.avatar) }}"/>
+        <img class="avatar size48" src="{{ storage_url_for('posts.get_upload', filename=profile.avatar) }}"/>
         {% else %}
         <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
         {% endif %}

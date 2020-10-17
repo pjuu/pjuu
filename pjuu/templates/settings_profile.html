@@ -33,7 +33,7 @@
                     {% endif %}
                     <div>
                         {% if current_user.avatar %}
-                        <img class="size96" src="{{ url_for('posts.get_upload', filename=current_user.avatar) }}" />
+                        <img class="size96" src="{{ storage_url_for('posts.get_upload', filename=current_user.avatar) }}" />
                         {% else %}
                         <img class="size96" src="{{ url_for('static', filename='img/otter_avatar.png') }}" />
                         {% endif %}

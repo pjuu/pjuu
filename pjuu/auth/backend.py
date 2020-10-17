@@ -16,10 +16,9 @@ from pymongo.errors import DuplicateKeyError
 from werkzeug.security import (generate_password_hash as generate_password,
                                check_password_hash as check_password)
 # Pjuu imports
-from pjuu import mongo as m, redis as r
+from pjuu import mongo as m, redis as r, storage
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp, get_uuid
-from pjuu.lib.uploads import delete_upload
 from pjuu.posts.backend import delete_post
 
 
@@ -315,7 +314,7 @@ def delete_account(user_id):
 
     # If the user has an avatar remove it
     if user.get('avatar'):
-        delete_upload(user.get('avatar'))
+        storage.delete(user.get('avatar'))
 
     # Remove all posts a user has ever made. This includes all votes
     # on the posts and all comments of the posts.

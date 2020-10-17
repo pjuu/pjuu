@@ -10,10 +10,9 @@
 import io
 
 from flask import url_for
-import gridfs
 import json
 
-from pjuu import mongo as m
+from pjuu import mongo as m, storage
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.lib import keys as k, timestamp
 from pjuu.posts.backend import create_post
@@ -439,7 +438,8 @@ class FrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.search', query='#pjuuie'))
         self.assertIn('<!-- list:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
-        self.assertIn(url_for('posts.get_upload', filename=user.get('avatar')),
+        self.assertIn(storage.url_for('posts.get_upload',
+                                      filename=user.get('avatar')),
                       resp.get_data(as_text=True))
 
     def test_settings_profile(self):
@@ -790,11 +790,9 @@ class FrontendTests(FrontendTestCase):
         self.assertIn('<!-- user:avatar:{} -->'.format(user.get('avatar')),
                       resp.get_data(as_text=True))
 
-        grid = gridfs.GridFS(m.db, collection='uploads')
-        self.assertEqual(
-            grid.find({'filename': user.get('avatar')}).count(), 1)
+        self.assertTrue(storage.exists(user.get('avatar')))
 
-        resp = self.client.get(url_for('posts.get_upload',
+        resp = self.client.get(storage.url_for('posts.get_upload',
                                filename=user.get('avatar')))
         self.assertEqual(resp.status_code, 200)
 
@@ -807,14 +805,12 @@ class FrontendTests(FrontendTestCase):
         }, follow_redirects=True)
 
         user = get_user(user1)
-        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
-                         1)
+        self.assertTrue(storage.exists(user.get('avatar')))
 
         # This is technically an auth test but if we delete the account we can
         # ensure the avatar is removed.
         delete_account(user1)
-        self.assertEqual(grid.find({'filename': user.get('avatar')}).count(),
-                         0)
+        self.assertFalse(storage.exists(user.get('avatar')))
 
     def test_permissions(self):
         """Ensure only users with the correct permissions can see posts"""

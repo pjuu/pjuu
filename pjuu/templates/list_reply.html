@@ -4,7 +4,7 @@
 
 <li class="item{% if loop_last %} last{% endif %} post clearfix">
     {% if item.user_avatar %}
-    <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.user_avatar) }}"/>
+    <img class="avatar size48" src="{{ storage_url_for('posts.get_upload', filename=item.user_avatar) }}"/>
     {% else %}
     <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
     {% endif %}
@@ -37,8 +37,8 @@
         <!-- upload:reply:{{ item._id }} -->
         {% endif %}
         <div class="image">
-            <a href="{{ url_for('posts.get_upload', filename=item.upload_animated if item.upload_animated else item.upload) }}">
-                <img{% if item.upload_animated %} class="gif"{% endif %} src="{{ url_for('posts.get_upload', filename=item.upload) }}"/>
+            <a href="{{ storage_url_for('posts.get_upload', filename=item.upload_animated if item.upload_animated else item.upload) }}">
+                <img{% if item.upload_animated %} class="gif"{% endif %} src="{{ storage_url_for('posts.get_upload', filename=item.upload) }}"/>
             </a>
         </div>
         {% endif %}

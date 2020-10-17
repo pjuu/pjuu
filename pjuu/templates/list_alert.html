@@ -4,7 +4,7 @@
 
 <li class="item{% if loop_last %} last{% elif loop_first %} first{% endif %} alert clearfix">
     {% if item.user.avatar %}
-    <img class="avatar size48" src="{{ url_for('posts.get_upload', filename=item.user.avatar) }}"/>
+    <img class="avatar size48" src="{{ storage_url_for('posts.get_upload', filename=item.user.avatar) }}"/>
     {% else %}
     <img class="avatar size48" src="{{ url_for('static', filename='img/otter_avatar.png') }}"/>
     {% endif %}

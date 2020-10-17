@@ -8,11 +8,10 @@
 """
 
 import io
-import gridfs
 
 from flask import current_app as app
 
-from pjuu import mongo as m, redis as r
+from pjuu import mongo as m, redis as r, storage
 from pjuu.auth.backend import create_account, delete_account, activate
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as K, timestamp
@@ -544,20 +543,17 @@ class PostBackendTests(BackendTestCase):
         self.assertIsNotNone(reply2)
         reply2_filename = get_post(reply2).get('upload')
 
-        # Create GridFS file checker
-        grid = gridfs.GridFS(m.db, 'uploads')
-
         # Check that each file exists
-        self.assertTrue(grid.exists({'filename': post1_filename}))
-        self.assertTrue(grid.exists({'filename': reply1_filename}))
-        self.assertTrue(grid.exists({'filename': reply2_filename}))
+        self.assertTrue(storage.exists(post1_filename))
+        self.assertTrue(storage.exists(reply1_filename))
+        self.assertTrue(storage.exists(reply2_filename))
 
         self.assertIsNone(delete_post(post1))
 
         # Check that all the files no longer exist
-        self.assertFalse(grid.exists({'filename': post1_filename}))
-        self.assertFalse(grid.exists({'filename': reply1_filename}))
-        self.assertFalse(grid.exists({'filename': reply2_filename}))
+        self.assertFalse(storage.exists(post1_filename))
+        self.assertFalse(storage.exists(reply1_filename))
+        self.assertFalse(storage.exists(reply2_filename))
 
     def test_subscriptions(self):
         """
