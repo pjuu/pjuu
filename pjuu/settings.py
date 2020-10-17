@@ -49,7 +49,8 @@ STORE_CDN_URL = env.str('STORE_CDN_URL', '')
 STORE_FILE_DIR = env.str('STORE_FILE_DIR', '/tmp')
 
 # Storage: gridfs
-STORE_GRIDFS_MONGO_URI = env.str('STORE_GRIDFS_MONGO_URI', 'mongodb://localhost:27017/pjuu')
+STORE_GRIDFS_MONGO_URI = env.str('STORE_GRIDFS_MONGO_URI',
+                                 'mongodb://localhost:27017/pjuu')
 STORE_GRIDFS_COLLECTION = env.str('STORE_GRIDFS_COLLECTION', 'uploads')
 
 # Storage: s3
