@@ -28,18 +28,18 @@ class Storage:
 
     def init_app(self, app, *args, **kwargs):
         self.app = app
+        self.backend = app.config.get('STORE_BACKEND', None).lower()
         self.cdn_url = app.config.get('STORE_CDN_URL', '')
         self.cdn = True if self.cdn_url.strip() != '' else False
 
         # Inject storage_url_for in to apps template environment
         app.jinja_env.globals.update(storage_url_for=self.url_for)
 
-        backend = app.config.get('STORE_BACKEND', None).lower()
-        if backend == 'file':
+        if self.backend == 'file':
             self.store = Filesystem(app.config, *args, **kwargs)
-        elif backend == 'gridfs':
+        elif self.backend == 'gridfs':
             self.store = GridFS(app.config, *args, **kwargs)
-        elif backend == 's3':
+        elif self.backend == 's3':
             self.store = S3(app.config, *args, **kwargs)
         else:
             raise InvalidStorageBackend
@@ -61,6 +61,7 @@ class Storage:
         send user to correct url
         """
         if self.cdn:
-            return '{0}/{1}'.format(self.cdn_url, values.get('filename'))
+            return '{0}/{1}'.format(
+                self.cdn_url, values.get('filename'))  # pragma: nocover
         else:
             return url_for(endpoint, **values)

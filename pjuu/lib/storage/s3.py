@@ -13,14 +13,19 @@ from botocore.exceptions import ClientError
 
 class S3:
     def __init__(self, config):
+        self.region = config.get('STORE_S3_REGION')
+        self.endpoint = config.get('STORE_S3_ENDPOINT')
+        self.access_key = config.get('STORE_S3_ACCESS_KEY')
+        self.secret_key = config.get('STORE_S3_SECRET_KEY')
         self.bucket = config.get('STORE_S3_BUCKET')
+
         self.session = session.Session()
         self.client = self.session.client(
             's3',
-            region_name=config.get('STORE_S3_REGION'),
-            endpoint_url=config.get('STORE_S3_ENDPOINT'),
-            aws_access_key_id=config.get('STORE_S3_ACCESS_KEY'),
-            aws_secret_access_key=config.get('STORE_S3_SECRET_KEY')
+            region_name=self.region,
+            endpoint_url=self.endpoint,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key
         )
 
     def get(self, filename):

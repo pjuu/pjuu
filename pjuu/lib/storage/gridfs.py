@@ -11,23 +11,24 @@ import gridfs
 
 
 class GridFS:
-    def __init__(self, config, client=None):
-        if client is None:
-            parsed_uri = uri_parser.parse_uri(
-                config.get('STORE_GRIDFS_MONGO_URI'))
-            database_name = parsed_uri['database']
+    def __init__(self, config):
+        self.uri = config.get('STORE_GRIDFS_MONGO_URI')
+        self.collection = config.get('STORE_GRIDFS_COLLECTION')
 
-            self.cx = MongoClient(config.get('STORE_GRIDFS_MONGO_URI'))
+        parsed_uri = uri_parser.parse_uri(self.uri)
+        database_name = parsed_uri['database']
 
-            if database_name:
-                self.db = self.cx[database_name]
-            else:
-                self.db = self.cx.db  # No real fall back
+        self.cx = MongoClient(self.uri)
+
+        if database_name:
+            self.db = self.cx[database_name]
         else:
-            self.db = client
+            # If a database isn't provide in the URI
+            # lostfound will be used as the database
+            self.db = self.cx.lostfound  # pragma: nocover
 
         self.grid = gridfs.GridFS(
-            self.db, collection=config.get('STORE_GRIDFS_COLLECTION'))
+            self.db, collection=self.collection)
 
     def get(self, filename):
         return self.grid.get_version(filename=filename)

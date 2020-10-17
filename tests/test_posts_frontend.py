@@ -417,6 +417,11 @@ class PostFrontendTests(FrontendTestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers['Content-Type'], 'image/png')
 
+        # Ensure a 404 is returned if the file is not there
+        resp = self.client.get(storage.url_for('posts.get_upload',
+                                               filename='idontexist.png'))
+        self.assertEqual(resp.status_code, 404)
+
     def test_view_post(self):
         """
         Similar to above but check the same for the view_post page. This is
