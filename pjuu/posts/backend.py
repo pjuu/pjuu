@@ -14,12 +14,12 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 
 # Pjuu imports
-from pjuu import mongo as m, redis as r, celery
+from pjuu import mongo as m, redis as r, celery, storage
 from pjuu.lib import keys as k, timestamp, get_uuid
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
 from pjuu.lib.parser import parse_post
-from pjuu.lib.uploads import process_upload, delete_upload
+from pjuu.lib.uploads import process_upload
 
 
 # Allow chaning the maximum length of a post
@@ -647,7 +647,7 @@ def delete_post(post_id):
 
         if 'upload' in post:
             # If there is an upload, delete it!
-            delete_upload(post['upload'])
+            storage.delete(post['upload'])
 
         if 'reply_to' in post:
             m.db.posts.update({'_id': post['reply_to']},
@@ -677,7 +677,7 @@ def delete_post_replies(post_id):
 
         # Remove any uploaded files
         if 'upload' in reply:
-            delete_upload(reply['upload'])
+            storage.delete(reply['upload'])
 
         # Delete votes from Redis
         r.delete(k.POST_VOTES.format(reply_id))

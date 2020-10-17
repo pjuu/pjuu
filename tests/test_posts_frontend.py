@@ -14,7 +14,7 @@ from time import sleep
 from flask import url_for
 
 import pjuu  # Used to monkey patch VOTE_TIMEOUT
-from pjuu import mongo as m
+from pjuu import mongo as m, storage
 from pjuu.auth.backend import create_account, activate, mute, bite
 from pjuu.lib import keys as k
 from pjuu.posts.backend import (create_post, get_post, MAX_POST_LENGTH,
@@ -257,9 +257,11 @@ class PostFrontendTests(FrontendTestCase):
         resp = self.client.get(url_for('users.feed'))
         self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
-        self.assertIn('<img src="{}"/>'.format(
-            url_for('posts.get_upload', filename=post.get('upload'))),
-                      resp.get_data(as_text=True))
+        self.assertIn(
+            '<img src="{}"/>'.format(
+                storage.url_for('posts.get_upload',
+                                filename=post.get('upload'))),
+            resp.get_data(as_text=True))
 
         # Although the below belongs in `test_view_post` we are just going to
         # check it here for simplicity
@@ -268,8 +270,9 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
         self.assertIn(
-            '<img src="{}"/>'.format(url_for('posts.get_upload',
-                                             filename=post.get('upload'))),
+            '<img src="{}"/>'.format(
+                storage.url_for('posts.get_upload',
+                                filename=post.get('upload'))),
             resp.get_data(as_text=True))
 
         # Test posting with no data
@@ -379,15 +382,12 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<!-- upload:post:{} -->'.format(post1),
                       resp.get_data(as_text=True))
         self.assertNotIn('<img src="{}"/>'.format(
-            url_for('posts.get_upload', filename=post.get('upload'))),
+            storage.url_for('posts.get_upload', filename=post.get('upload'))),
                          resp.get_data(as_text=True))
         self.assertIn('<!-- upload:hidden:{} -->'.format(post1),
                       resp.get_data(as_text=True))
 
     def test_get_upload(self):
-        """Tests the simple wrapper around ``lib.uploads.get_upload``
-
-        """
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
         activate(user1)
 
@@ -401,8 +401,8 @@ class PostFrontendTests(FrontendTestCase):
 
         # You can download an upload when you are NOT logged in
         # This allows web tier caching
-        resp = self.client.get(url_for('posts.get_upload',
-                                       filename=post.get('upload')))
+        resp = self.client.get(storage.url_for('posts.get_upload',
+                                               filename=post.get('upload')))
         self.assertEqual(resp.status_code, 200)
 
         # Log in as user1 and get the upload
@@ -412,10 +412,15 @@ class PostFrontendTests(FrontendTestCase):
         }, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get(url_for('posts.get_upload',
-                                       filename=post.get('upload')))
+        resp = self.client.get(storage.url_for('posts.get_upload',
+                                               filename=post.get('upload')))
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers['Content-Type'], 'image/png')
+
+        # Ensure a 404 is returned if the file is not there
+        resp = self.client.get(storage.url_for('posts.get_upload',
+                                               filename='idontexist.png'))
+        self.assertEqual(resp.status_code, 404)
 
     def test_view_post(self):
         """
@@ -735,7 +740,7 @@ class PostFrontendTests(FrontendTestCase):
         self.assertIn('<!-- upload:reply:{} -->'.format(reply_img),
                       resp.get_data(as_text=True))
         self.assertIn('<img src="{}"/>'.format(
-            url_for('posts.get_upload', filename=reply.get('upload'))),
+            storage.url_for('posts.get_upload', filename=reply.get('upload'))),
             resp.get_data(as_text=True))
 
         # Ensure that posting an image with no text allows it

@@ -8,6 +8,7 @@ MarkupSafe==1.1.1
 WTForms==2.2.1
 Werkzeug==1.0.0
 blinker==1.4
+boto3==1.15.18
 celery==4.4.2
 environs==7.3.0
 gevent==1.4.0

@@ -12,9 +12,8 @@ At this time this only includes images so Wand and GridFS are used.
 import io
 from wand.image import Image
 from wand.exceptions import MissingDelegateError
-import gridfs
 
-from pjuu import mongo as m
+from pjuu import storage
 from pjuu.lib import get_uuid
 
 
@@ -115,50 +114,14 @@ def process_upload(upload, collection='uploads', image_size=(1280, 720),
         output.seek(0)
 
         # Place file inside GridFS
-        m.save_file(filename, output, base=collection)
+        storage.put(output, filename, 'image/png')
 
         animated_filename = ''
         if animated_gif:
             animated_filename = '{0}.{1}'.format(uuid, 'gif')
-            m.save_file(animated_filename, animated_output, base=collection)
+            storage.put(animated_output, animated_filename, 'image/gif')
 
         return filename, animated_filename
     except (IOError, MissingDelegateError):
         # File will not have been uploaded
         return None, None
-
-
-def get_upload(filename, collection='uploads', cache_for=3600):
-    """Returns a Flask response object which should contain the uploaded file
-    with filename from collection.
-
-    This function will normally be hidden behind a Flask view which corresponds
-    to what it is you are trying to get.
-
-    :param filename: The filename to look for
-    :param collection: The GridFS collection to look for filename in.
-
-    """
-    # Flask-PyMongo will handle 404's etc.
-    return m.send_file(filename, base=collection, cache_for=cache_for)
-
-
-def delete_upload(filename, collection='uploads'):
-    """Deletes file with ``filename`` from GridFS ``collection.
-
-    :param filename: The filename to delete
-    :param collection: The collection to look for the file in
-
-    """
-    grid = gridfs.GridFS(m.db, collection=collection)
-
-    # There should only be one file but unfortunately pymongo's docs are wrong
-    # and there is no `find_one` method :(
-    cursor = grid.find({'filename': filename})
-    for file in cursor:
-        return grid.delete(file._id)
-
-    # If there is no file with the filename then return True.
-    # This function does the same as the MongoDB, no files is always True.
-    # This can't be hit without manually deleting the file from GridFS
-    return True  # pragma: nocover

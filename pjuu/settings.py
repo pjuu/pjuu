@@ -27,18 +27,38 @@ SECRET_KEY = env.str('SECRET_KEY', 'ChangeMePlease')
 MONGO_URI = env.str('MONGO_URI', 'mongodb://localhost:27017/pjuu')
 
 # Redis settings (this is just the datastore, not sessions)
-REDIS_URL = env.str('REDIS_URL', 'redis://localhost/0')
+REDIS_URL = env.str('REDIS_URL', 'redis://localhost:6379/0')
 # Ensure that Unicode string are decoded
 REDIS_DECODE_RESPONSES = True
 
 # Sessions
 # Redis settings for sessions
-REDIS_SESSION_URL = env.str('REDIS_SESSION_URL', 'redis://localhost/1')
+REDIS_SESSION_URL = env.str('REDIS_SESSION_URL', 'redis://localhost:6379/1')
 
 SESSION_COOKIE_HTTPONLY = True
 # Ensure this is True in productions
 # This will only work if communicating over HTTPS
 SESSION_COOKIE_SECURE = env.bool('SECURE', False)
+
+# Storage sub system
+# General values
+STORE_BACKEND = env.str('STORE_BACKEND', 'gridfs')
+STORE_CDN_URL = env.str('STORE_CDN_URL', '')
+
+# Storage: filesystem
+STORE_FILE_DIR = env.str('STORE_FILE_DIR', '/tmp')
+
+# Storage: gridfs
+STORE_GRIDFS_MONGO_URI = env.str('STORE_GRIDFS_MONGO_URI',
+                                 'mongodb://localhost:27017/pjuu')
+STORE_GRIDFS_COLLECTION = env.str('STORE_GRIDFS_COLLECTION', 'uploads')
+
+# Storage: s3
+STORE_S3_REGION = env.str('STORE_S3_REGION', '')
+STORE_S3_ENDPOINT = env.str('STORE_S3_ENDPOINT', '')
+STORE_S3_BUCKET = env.str('STORE_S3_BUCKET', '')
+STORE_S3_ACCESS_KEY = env.str('STORE_S3_ACCESS_KEY', '')
+STORE_S3_SECRET_KEY = env.str('STORE_S3_SECRET_KEY', '')
 
 # Flask-Mail
 # Ensure this is True in production to send e-mails

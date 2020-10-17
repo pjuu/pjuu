@@ -10,7 +10,7 @@ provide the create_app() function to build an instance of Pjuu.
 
 import os
 
-from flask import Flask, request, g
+from flask import Flask
 from flask_mail import Mail
 from flask_pymongo import PyMongo
 from flask_redis import Redis
@@ -20,8 +20,8 @@ import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from pjuu.configurator import load as load_config
-from pjuu.lib import timestamp
 from pjuu.lib.sessions import RedisSessionInterface
+from pjuu.lib.storage import Storage
 
 
 # Application information
@@ -40,6 +40,9 @@ mongo = PyMongo()
 # redis_sessions is only used by Flask for sessions
 redis = Redis()
 redis_sessions = Redis()
+
+# Storage subsystem
+storage = Storage()
 
 celery = Celery(__name__, broker=config.get('CELERY_BROKER_URL', ''))
 
@@ -107,25 +110,11 @@ def create_app(config_dict=None):
     # Initialize CSRF protection
     csrf.init_app(app)
 
+    # Initialize storage subsystem
+    storage.init_app(app)
+
     # Set session handler to Redis
     app.session_interface = RedisSessionInterface(redis=redis_sessions)
-
-    # Generic handles
-    @app.before_request
-    def gather_time():
-        """This is used to measure the request time for each page"""
-        if app.debug and not app.testing:  # pragma: no cover
-            if request.endpoint != 'static':
-                g.start_time = timestamp()
-
-    @app.after_request
-    def display_time(response):
-        """This is will write the time to the console in DEBUG mode"""
-        if app.debug and not app.testing:  # pragma: no cover
-            if request.endpoint != 'static':
-                print(request.path, request.endpoint,
-                      str((timestamp() - g.start_time) * 100) + 'ms')
-        return response
 
     @app.url_defaults
     def cache_buster(endpoint, values):

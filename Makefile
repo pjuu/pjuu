@@ -8,9 +8,7 @@ test:
 	@echo 'Running test suite...'
 	coverage run --source=pjuu --omit=pjuu/wsgi.py,pjuu/celery_app.py,*.html,*.txt --branch run_tests.py
 	coverage xml
-
-coverage:
-	@echo 'Generating code coverage report...'
+	coverage html
 	coverage report
 
 flake:
@@ -19,4 +17,4 @@ flake:
 
 run:
 	@echo 'Starting Pjuu (Gunicorn with Gevent)...'
-	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload dev_server:application
+	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload --access-logfile=- --access-logformat='%(r)s %(D)sus' dev_server:application

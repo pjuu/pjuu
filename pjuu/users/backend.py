@@ -14,12 +14,12 @@ from flask import current_app as app, url_for
 from jinja2.filters import do_capitalize
 import pymongo
 
-from pjuu import mongo as m, redis as r
+from pjuu import mongo as m, redis as r, storage
 from pjuu.auth.utils import get_user
 from pjuu.lib import keys as k, timestamp, fix_url
 from pjuu.lib.alerts import BaseAlert, AlertManager
 from pjuu.lib.pagination import Pagination
-from pjuu.lib.uploads import process_upload, delete_upload
+from pjuu.lib.uploads import process_upload
 from pjuu.posts.backend import back_feed
 
 
@@ -429,7 +429,7 @@ def update_profile_settings(user_id, about="", hide_feed_images=False,
         if user.get('avatar'):
             # Clean up any old avatars
             # There is no update in GridFS
-            delete_upload(user.get('avatar'))
+            storage.delete(user.get('avatar'))
 
     # Update the users profile
     m.db.users.update({'_id': user_id}, {'$set': update_dict})

@@ -7,15 +7,16 @@
 
 """
 
+import mimetypes
 from flask import (abort, flash, redirect, request, url_for, render_template,
-                   Blueprint, current_app as app, jsonify)
+                   Blueprint, current_app as app, jsonify, send_file)
 from jinja2 import escape
 
+from pjuu import storage
 from pjuu.auth import current_user
 from pjuu.auth.decorators import login_required
 from pjuu.lib import handle_next, keys as k, timestamp, xflash, is_xhr
 from pjuu.lib.pagination import handle_page
-from pjuu.lib.uploads import get_upload as be_get_upload
 from .backend import (create_post, check_post, has_voted, is_subscribed,
                       vote_post, get_post, delete_post as be_delete_post,
                       get_replies, unsubscribe as be_unsubscribe,
@@ -292,7 +293,11 @@ def get_upload(filename):
     """Simple function to get the uploaded content from GridFS.
 
     """
-    return be_get_upload(filename)
+    if not storage.exists(filename):
+        abort(404)
+
+    return send_file(storage.get(filename),
+                     mimetype=mimetypes.guess_type(filename)[0])
 
 
 @posts_bp.route('/<username>/<post_id>/upvote', methods=['POST'],
