@@ -1,4 +1,4 @@
-FROM pjuu/pjuu:base
+FROM pjuu/base:latest
 LABEL maintainer ant@pjuu.com
 
 WORKDIR /data

@@ -8,7 +8,7 @@
 version: "3"
 services:
   pjuu:
-    image: pjuu/pjuu:web
+    image: pjuu/web:latest
     deploy:
       restart_policy:
         condition: any
@@ -23,7 +23,7 @@ services:
       - redis
 
   worker:
-    image: pjuu/pjuu:worker
+    image: pjuu/worker:latest
     deploy:
       restart_policy:
         condition: any
