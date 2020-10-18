@@ -18,4 +18,3 @@ RUN python3 -m venv /data/venv
 RUN /data/venv/bin/pip install -r /data/requirements-base.txt
 
 RUN apk del .build-deps
-
