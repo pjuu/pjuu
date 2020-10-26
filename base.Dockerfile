@@ -3,8 +3,8 @@ LABEL maintainer ant@pjuu.com
 
 ENV MAGICK_HOME=/usr
 
-RUN apk add --no-cache --virtual .build-deps build-base wget curl git \
-    libffi-dev imagemagick imagemagick-dev
+RUN apk add --no-cache --virtual .build-deps build-base wget curl git && \
+    apk add --no-cache imagemagick imagemagick-dev
 
 RUN mkdir -p /data/conf /data/pjuu
 
