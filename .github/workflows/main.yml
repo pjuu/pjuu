@@ -36,8 +36,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        pip install pipenv
+        pipenv install --system --dev --deploy --ignore-pipfile
 
     - name: Lint with Flake8
       run: make flake
@@ -57,19 +57,19 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
         fail_ci_if_error: true
-      if: matrix.python-version == 3.7
+      if: matrix.python-version == 3.8
 
     - name: Build Docker images
       run: |
-        docker build -t pjuu/base:latest -f base.Dockerfile .
-        docker build -t pjuu/web:latest -f web.Dockerfile .
-        docker build -t pjuu/worker:latest -f worker.Dockerfile .
-      if: github.ref == 'refs/heads/master'
+        docker build -t pjuu/base:latest -f docker/base .
+        docker build -t pjuu/web:latest -f docker/web .
+        docker build -t pjuu/worker:latest -f docker/worker .
+      if: github.ref == 'refs/heads/master' && matrix.python-version == 3.8
 
     - name: Push Docker images
       run: |
         echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-        docker push pjuu/base
-        docker push pjuu/web
-        docker push pjuu/worker
-      if: github.ref == 'refs/heads/master'
+        docker push pjuu/base:latest
+        docker push pjuu/web:latest
+        docker push pjuu/worker:latest
+      if: github.ref == 'refs/heads/master' && matrix.python-version == 3.8

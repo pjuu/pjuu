@@ -59,14 +59,11 @@ target/
 .DS_Store
 *~
 .idea/
+.vscode/
 *.sublime*
 *.swp
 tags
 
-# Vagrant
+# Other files
 .vagrant
-
-# VSCode
-.vscode
-
 .env
