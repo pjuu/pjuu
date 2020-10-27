@@ -6,15 +6,15 @@ ENV MAGICK_HOME=/usr
 RUN apk add --no-cache --virtual .build-deps build-base wget curl git libffi-dev && \
     apk add --no-cache imagemagick imagemagick-dev
 
-RUN mkdir -p /data/conf /data/pjuu
-
+RUN mkdir -p /data
 WORKDIR /data
 
 # add stuff to image requirements, entrypoint and pjuu src
-ADD ./requirements-base.txt /data/requirements-base.txt
-ADD ./pjuu /data/pjuu
+RUN pip3 install pipenv
 
-RUN python3 -m venv /data/venv
-RUN /data/venv/bin/pip install -r /data/requirements-base.txt
+COPY ./Pipfile ./Pipfile.lock ./
+RUN pipenv install --system --deploy --ignore-pipfile
+
+ADD ./pjuu ./pjuu
 
 RUN apk del .build-deps

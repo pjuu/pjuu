@@ -26,17 +26,15 @@ For a fresh installation these commands will setup the environment:
 ```
 $ sudo apt-get update
 
-$ sudo apt-get install build-essential python3-dev python-virtualenv python-setuptools libmagickwand-dev redis-server mongodb
+$ sudo apt-get install build-essential python3-dev pipenv libmagickwand-dev redis-server mongodb
 
 $ git clone https://github.com/pjuu/pjuu.git
 
 $ cd pjuu
 
-$ virtualenv -p python3 venv
+$ pipenv install
 
-$ source venv/bin/activate
-
-$ pip install -r requirements-dev.txt
+$ pipenv shell
 ```
 
 #### Testing
@@ -45,12 +43,6 @@ To run the unit tests with coverage the following commands can be used:
 
 ```
 $ make test
-```
-
-To obtain a code coverage report
-
-```
-$ make coverage
 ```
 
 Checking code quality and PEP8 compliance:
