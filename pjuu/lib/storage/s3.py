@@ -18,6 +18,7 @@ class S3:
         self.access_key = config.get('STORE_S3_ACCESS_KEY')
         self.secret_key = config.get('STORE_S3_SECRET_KEY')
         self.bucket = config.get('STORE_S3_BUCKET')
+        self.acl = config.get('STORE_S3_ACL')
 
         self.session = session.Session()
         self.client = self.session.client(
@@ -37,7 +38,7 @@ class S3:
             Bucket=self.bucket,
             Key=filename,
             Body=file,
-            ACL='public-read',
+            ACL=self.acl,
             ContentType=content_type
         )
 
