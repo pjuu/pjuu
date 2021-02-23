@@ -10,7 +10,7 @@ codecov = "==2.1.11"
 
 [packages]
 blinker = "==1.4"
-boto3 = "==1.17.13"
+boto3 = "==1.17.14"
 celery = "==5.0.5"
 environs = "==9.3.1"
 gevent = "==21.1.2"
