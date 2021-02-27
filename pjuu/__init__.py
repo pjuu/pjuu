@@ -4,7 +4,7 @@
 provide the create_app() function to build an instance of Pjuu.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2020 Joe Doherty
+:copyright: 2014-2021 Joe Doherty
 
 """
 

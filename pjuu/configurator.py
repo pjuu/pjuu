@@ -7,7 +7,7 @@ We need to load the config before creating the Flask app for initializing
 Celery.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2020 Joe Doherty
+:copyright: 2014-2021 Joe Doherty
 
 """
 

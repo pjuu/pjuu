@@ -6,7 +6,7 @@ This may be changed in the future to support extra types of pages such as
 the help system etc. May also become a package in its own right.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2020 Joe Doherty
+:copyright: 2014-2021 Joe Doherty
 
 """
 

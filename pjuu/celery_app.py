@@ -3,7 +3,7 @@
 """Create a celery application for use with the celery worker
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2020 Joe Doherty
+:copyright: 2014-2021 Joe Doherty
 
 """
 
