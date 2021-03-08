@@ -1,6 +1,4 @@
-name: main
-
-on: [push]
+name: release
 
 env:
   PLATFORMS: "linux/amd64,linux/arm64"
@@ -11,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.8]
 
     steps:
     - name: Checkout
@@ -35,7 +33,7 @@ jobs:
     - name: Set up Redis
       uses: zhulik/redis-action@1.1.0
       with:
-        redisVersion: 3.2
+        redis version: 3.2
 
     - name: Install dependencies
       run: |
@@ -60,22 +58,18 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
         fail_ci_if_error: true
-      if: matrix.python-version == 3.8
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
-      if: matrix.python-version == 3.8
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
-      if: matrix.python-version == 3.8
 
-    - name: Build and push
+    - name: Docker build and push
       uses: docker/build-push-action@v2
       with:
         context: .
         file: ./Dockerfile
-        push: false
-        platforms: ${{ env.PLATFORMS }}
-        tags: ${{ github.ref }}
-      if: matrix.python-version == 3.8
+        push: github.event_name != 'pull_request && github.ref == 'refs/heads/master' && matrix.python-version == 3.8
+        platforms: env.PLATFORMS
+        tags: latest
