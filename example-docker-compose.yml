@@ -24,6 +24,8 @@ services:
 
   worker:
     image: pjuu/worker:latest
+    entrypoint: celery
+    command: ["-A", "pjuu.celery_app", "worker"]
     deploy:
       restart_policy:
         condition: any

@@ -1,5 +1,4 @@
 FROM python:3.8-alpine
-LABEL maintainer ant@pjuu.com
 
 ENV MAGICK_HOME=/usr
 
@@ -9,7 +8,6 @@ RUN apk add --no-cache --virtual .build-deps build-base wget curl git libffi-dev
 RUN mkdir -p /data
 WORKDIR /data
 
-# add stuff to image requirements, entrypoint and pjuu src
 RUN pip3 install pipenv
 
 COPY ./Pipfile ./Pipfile.lock ./
@@ -17,4 +15,7 @@ RUN pipenv install --system --deploy --ignore-pipfile
 
 ADD ./pjuu ./pjuu
 
-RUN apk del .build-deps
+EXPOSE 8000
+
+ENTRYPOINT ["gunicorn"]
+CMD ["-b", "0.0.0.0:8000", "-k", "gevent", "pjuu.wsgi:application"]
