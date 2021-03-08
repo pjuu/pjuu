@@ -88,3 +88,4 @@ jobs:
         tags: pjuu/pjuu:latest
         cache-from: type=registry,ref=pjuu/pjuu:latest
         cache-to: type=inline
+      if: matrix.python-version == 3.8
