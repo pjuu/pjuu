@@ -76,6 +76,6 @@ jobs:
       with:
         context: .
         file: ./Dockerfile
-        push: ${{ github.event_name != 'pull_request && github.ref == 'refs/heads/master' && matrix.python-version == 3.8 }}
+        push: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && matrix.python-version == 3.8 }}
         platforms: ${{ env.PLATFORMS }}
         tags: latest
