@@ -1,4 +1,8 @@
-name: release
+name: main
+
+on:
+  - push
+  - pull_request
 
 env:
   PLATFORMS: "linux/amd64,linux/arm64"
