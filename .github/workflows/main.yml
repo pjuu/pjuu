@@ -2,13 +2,16 @@ name: main
 
 on: [push]
 
+env:
+  PLATFORMS: "linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64"
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
     - name: Checkout
@@ -59,17 +62,17 @@ jobs:
         fail_ci_if_error: true
       if: matrix.python-version == 3.8
 
-    - name: Build Docker images
-      run: |
-        docker build -t pjuu/base:latest -f docker/base .
-        docker build -t pjuu/web:latest -f docker/web .
-        docker build -t pjuu/worker:latest -f docker/worker .
-      if: github.ref == 'refs/heads/master' && matrix.python-version == 3.8
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
 
-    - name: Push Docker images
-      run: |
-        echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-        docker push pjuu/base:latest
-        docker push pjuu/web:latest
-        docker push pjuu/worker:latest
-      if: github.ref == 'refs/heads/master' && matrix.python-version == 3.8
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        platorms: ${{ env.PLATFORMS }}
+        tags: ${{ github.ref }}
