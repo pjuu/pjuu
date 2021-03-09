@@ -8,7 +8,7 @@
 version: "3"
 services:
   pjuu:
-    image: pjuu/web:latest
+    image: pjuu/pjuu:latest
     deploy:
       restart_policy:
         condition: any
@@ -23,7 +23,9 @@ services:
       - redis
 
   worker:
-    image: pjuu/worker:latest
+    image: pjuu/pjuu:latest
+    entrypoint: celery
+    command: ["-A", "pjuu.celery_app", "worker"]
     deploy:
       restart_policy:
         condition: any
