@@ -1,19 +1,14 @@
 FROM python:3.8-slim-buster
 
-ENV MAGICK_HOME=/usr
-
 RUN apt-get update && \
-    apt-get -y install build-essential python3-dev pipenv libmagickwand-dev
+    apt-get -y install libmagickwand-6.q16-6
 
-RUN mkdir -p /data
-WORKDIR /data
-
+RUN pip install pipenv
 COPY ./Pipfile ./Pipfile.lock ./
-RUN pipenv install --system --deploy --ignore-pipfile
+RUN pipenv install --deploy --system
 
 ADD ./pjuu ./pjuu
 
 EXPOSE 8000
-
 ENTRYPOINT ["gunicorn"]
 CMD ["-b", "0.0.0.0:8000", "-k", "gevent", "pjuu.wsgi:application"]
