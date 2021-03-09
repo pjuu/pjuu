@@ -1,14 +1,12 @@
-FROM python:3.8-alpine
+FROM python:3.8-slim-buster
 
 ENV MAGICK_HOME=/usr
 
-RUN apk add --no-cache --virtual .build-deps build-base wget curl git libffi-dev && \
-    apk add --no-cache imagemagick imagemagick-dev
+RUN apt-get update && \
+    apt-get -y install build-essential python3-dev pipenv libmagickwand-dev
 
 RUN mkdir -p /data
 WORKDIR /data
-
-RUN pip3 install pipenv
 
 COPY ./Pipfile ./Pipfile.lock ./
 RUN pipenv install --system --deploy --ignore-pipfile
