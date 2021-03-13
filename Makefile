@@ -2,7 +2,9 @@
 # Used for quickly testing, running and ensuring code quality
 # during development.
 
-all: flake test coverage
+.PHONY: all test flake styles run celery
+
+all: flake styles test coverage
 
 test:
 	@echo 'Running test suite...'
@@ -14,6 +16,10 @@ test:
 flake:
 	@echo 'Checking coding standards...'
 	flake8 --exclude=docs,venv,venv3,venvpypy .
+
+styles:
+	@echo 'Building stylesheets...'
+	@npx postcss-cli -o pjuu/static/css/styles.css pjuu/static/css/styles.tailwind.css
 
 run:
 	@echo 'Starting Pjuu (Gunicorn with Gevent)...'

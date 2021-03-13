@@ -67,3 +67,9 @@ tags
 # Other files
 .vagrant
 .env
+
+# Nodes
+node_modules/
+
+# Build artifacts
+pjuu/static/css/styles.css
