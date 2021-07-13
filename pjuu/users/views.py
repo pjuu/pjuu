@@ -100,37 +100,25 @@ def timeify_filter(time):
     If this conversion fails this function will return "Err"
     """
     try:
-        # Please not that time is now a floating point value for extra
-        # precision. We don't really need this when displaying it to the users
-        # however.
-        # Time can't be coverted directly to a int as it is a float point repr
-        time = int(timestamp() - float(time))
+        # Get age from timestamp
+        age_in = datetime.now() - datetime.fromtimestamp(time)
 
-        multiples = [
-            (31536000, 'year'),
-            (2592000, 'month'),
-            (604800, 'week'),
-            (86400, 'day'),
-            (3600, 'hour'),
-            (60, 'minute'),
-            (1, 'second')
-        ]
+        # Return closest largest denominator, e.g.
+        # if age_in.days >= 365, return "n.n years ago" immediately
+        if age_in.days > 0:
+            if age_in.days >= 365:
+                return "{0} years ago".format(round(age_in.days / 365,1))
+            elif age_in.days >= 30:
+                return "{0} months ago".format(round(age_in.days / 30,1))
+            elif age_in.days >= 7:
+                return "{0} weeks ago".format(round(age_in.days / 7,1))
 
-        # Find the closest time multiple since this post was posted
-        # Work out the number of these multiples and return the string
-        for multiple in multiples:
-            if time < multiple[0]:
-                continue
-            number_of = math.floor(time / multiple[0])
-            if number_of > 1:
-                time_frame = multiple[1] + 's'
-            else:
-                time_frame = multiple[1]
-
-            return "{0} {1} ago".format(int(number_of), time_frame)
-
-        # Default return means that this was checked less than a second ago
-        return "Less than a second ago"
+        if age_in.seconds >= 3600:
+            return "{0} hours ago".format(round(age_in.seconds / 3600,1))
+        elif age_in.seconds >= 60:
+            return "{0} minutes ago".format(round(age_in.seconds / 60,1))
+        else:
+            return "{0} seconds ago".format(age_in.seconds)
 
     except (TypeError, ValueError):
         return "Err"
