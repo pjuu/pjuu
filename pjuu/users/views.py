@@ -119,9 +119,14 @@ def timeify_filter(time):
         # Find the closest time multiple since this post was posted
         # Work out the number of these multiples and return the string
         for multiple in multiples:
-            if time < multiple[0]: continue            
-            number_of = round( time / multiple[0] , 1) # N.n years
-            time_frame = multiple[1] # with decimals we can always use plural
+            if time < multiple[0]:
+                continue
+
+            # round float to 1 decimal
+            number_of = round(time / multiple[0], 1)
+
+            # With decimals we just use plural
+            time_frame = multiple[1]
 
             return "{0} {1} ago".format(number_of, time_frame)
 
