@@ -107,27 +107,23 @@ def timeify_filter(time):
         time = int(timestamp() - float(time))
 
         multiples = [
-            (31536000, 'year'),
-            (2592000, 'month'),
-            (604800, 'week'),
-            (86400, 'day'),
-            (3600, 'hour'),
-            (60, 'minute'),
-            (1, 'second')
+            (31536000, 'years'),
+            (2592000, 'months'),
+            (604800, 'weeks'),
+            (86400, 'days'),
+            (3600, 'hours'),
+            (60, 'minutes'),
+            (1, 'seconds')
         ]
 
         # Find the closest time multiple since this post was posted
         # Work out the number of these multiples and return the string
         for multiple in multiples:
-            if time < multiple[0]:
-                continue
-            number_of = math.floor(time / multiple[0])
-            if number_of > 1:
-                time_frame = multiple[1] + 's'
-            else:
-                time_frame = multiple[1]
+            if time < multiple[0]: continue            
+            number_of = round( time / multiple[0] , 1) # N.n years
+            time_frame = multiple[1] # with decimals we can always use plural
 
-            return "{0} {1} ago".format(int(number_of), time_frame)
+            return "{0} {1} ago".format(number_of, time_frame)
 
         # Default return means that this was checked less than a second ago
         return "Less than a second ago"
