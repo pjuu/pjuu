@@ -3,7 +3,7 @@
 """S3 adapter for Pjuu
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2021 Joe Doherty
+:copyright: 2014-2023 Joe Doherty
 
 """
 import io

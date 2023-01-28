@@ -43,6 +43,22 @@ jobs:
       with:
         redis version: 3.2
 
+    - name: Set up Minio
+      run: |
+        docker run -d -p 9000:9000 --name minio \
+          -e "MINIO_ACCESS_KEY=minioadmin" \
+          -e "MINIO_SECRET_KEY=minioadmin" \
+          -v /tmp/data:/data \
+          -v /tmp/config:/root/.minio \
+          minio/minio server /data
+
+        export AWS_ACCESS_KEY_ID=minioadmin
+        export AWS_SECRET_ACCESS_KEY=minioadmin
+        export AWS_EC2_METADATA_DISABLED=true
+
+      aws --endpoint-url http://127.0.0.1:9000/ s3 mb s3://testbucket
+
+
     - name: Install dependencies
       run: |
         pip install pipenv
@@ -53,11 +69,10 @@ jobs:
 
     - name: Test
       env:
-        STORE_S3_REGION: ${{ secrets.STORE_S3_REGION }}
-        STORE_S3_ENDPOINT: ${{ secrets.STORE_S3_ENDPOINT }}
-        STORE_S3_BUCKET: ${{ secrets.STORE_S3_BUCKET }}
-        STORE_S3_ACCESS_KEY: ${{ secrets.STORE_S3_ACCESS_KEY }}
-        STORE_S3_SECRET_KEY: ${{ secrets.STORE_S3_SECRET_KEY }}
+        STORE_S3_ENDPOINT: http://127.0.0.1:900
+        STORE_S3_BUCKET: testbucket
+        STORE_S3_ACCESS_KEY: minioadmin
+        STORE_S3_SECRET_KEY: minioadmin
       run: make test
 
     - name: Upload coverage to Codecov

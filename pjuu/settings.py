@@ -59,7 +59,7 @@ STORE_S3_ENDPOINT = env.str('STORE_S3_ENDPOINT', '')
 STORE_S3_BUCKET = env.str('STORE_S3_BUCKET', '')
 STORE_S3_ACCESS_KEY = env.str('STORE_S3_ACCESS_KEY', '')
 STORE_S3_SECRET_KEY = env.str('STORE_S3_SECRET_KEY', '')
-STORE_S3_ACL = env.str('', 'private')
+STORE_S3_ACL = env.str('STORE_S3_ACL', 'private')
 
 # Flask-Mail
 # Ensure this is True in production to send e-mails
