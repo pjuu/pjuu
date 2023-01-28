@@ -3,13 +3,12 @@ FROM python:3.8-slim-buster AS builder
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         gcc \
-        libmagickwand-dev && \
-    pip install pipenv
+        libmagickwand-dev
 
-COPY ./Pipfile ./Pipfile.lock ./
+COPY ./requirements.txt requirements.txt
 
-ENV PIPENV_VENV_IN_PROJECT=1
-RUN pipenv install --deploy
+RUN python3 -m venv .venv
+RUN .venv/bin/pip install -r /requirements.txt
 
 FROM python:3.8-slim-buster
 
