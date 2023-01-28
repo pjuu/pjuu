@@ -72,7 +72,7 @@ jobs:
 
     - name: Test
       env:
-        STORE_S3_ENDPOINT: http://127.0.0.1:900
+        STORE_S3_ENDPOINT: http://127.0.0.1:9000
         STORE_S3_BUCKET: testbucket
         STORE_S3_ACCESS_KEY: minioadmin
         STORE_S3_SECRET_KEY: minioadmin
