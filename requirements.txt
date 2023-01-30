@@ -4,7 +4,7 @@ blinker==1.4
 boto3==1.17.17
 botocore==1.20.112
 celery==5.1.2
-certifi==2021.5.30
+certifi==2022.12.7
 charset-normalizer==2.0.6
 click==7.1.2
 click-didyoumean==0.3.0
