@@ -29,10 +29,14 @@ $ git clone https://github.com/pjuu/pjuu.git
 
 $ cd pjuu
 
-$ pipenv install
+$ python3 -m venv venv
 
-$ pipenv shell
+$ source venv/bin/activate
+
+$ pip install -r requirements.txt
 ```
+
+> Please note: To get full test coverage you will need an S3 compatible endpoint to test the S3 storage integration. A great solution is to run [Minio](https://min.io/) but you could also use a hosted solution.
 
 #### Testing
 

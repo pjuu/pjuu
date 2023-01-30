@@ -3,7 +3,7 @@
 """Tests for uploading of files in to MongoDB GridFS.
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2021 Joe Doherty
+:copyright: 2014-2023 Joe Doherty
 
 """
 

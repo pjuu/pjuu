@@ -3,7 +3,7 @@
 """MongoDB GridFS adapter for Pjuu
 
 :license: AGPL v3, see LICENSE for more details
-:copyright: 2014-2021 Joe Doherty
+:copyright: 2014-2023 Joe Doherty
 
 """
 from pymongo import MongoClient, uri_parser
