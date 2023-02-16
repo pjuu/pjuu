@@ -10,7 +10,7 @@
 import mimetypes
 from flask import (abort, flash, redirect, request, url_for, render_template,
                    Blueprint, current_app as app, jsonify, send_file)
-from jinja2 import escape
+from markupsafe import escape
 
 from pjuu import storage
 from pjuu.auth import current_user
