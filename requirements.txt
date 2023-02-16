@@ -48,7 +48,7 @@ urllib3==1.26.7
 vine==5.0.0
 Wand==0.6.11
 wcwidth==0.2.5
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 WTForms==2.3.3
 zope.event==4.5.0
 zope.interface==5.4.0
