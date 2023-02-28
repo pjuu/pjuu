@@ -1,18 +1,18 @@
-name: main
+name: Testing
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - main
   pull_request:
+    branches:
+      - master
   pull_request_target:
     types: [ opened, synchronize, reopened ]
 
-
-env:
-  PLATFORMS: "linux/amd64,linux/arm64"
-
 jobs:
-  build:
+  testing:
+    name: Testing
     runs-on: ubuntu-latest
 
     strategy:
@@ -81,32 +81,9 @@ jobs:
         make test
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
         fail_ci_if_error: true
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-    - name: Docker build and push
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: ./Dockerfile
-        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.python-version == 3.8 }}
-        platforms: ${{ env.PLATFORMS }}
-        tags: pjuu/pjuu:latest
-        cache-from: type=registry,ref=pjuu/pjuu:latest
-        cache-to: type=inline
-      if: matrix.python-version == 3.8
