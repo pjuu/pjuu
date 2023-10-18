@@ -44,7 +44,7 @@ requests==2.26.0
 s3transfer==0.3.7
 sentry-sdk==0.20.3
 six==1.16.0
-urllib3==1.26.7
+urllib3==1.26.18
 vine==5.0.0
 Wand==0.6.11
 wcwidth==0.2.5
