@@ -675,13 +675,13 @@ class FrontendTests(FrontendTestCase):
         self.assertEqual(timeify_filter(timestamp()), 'Less than a second ago')
         # Check one year ago
         time_yearago = timestamp() - 31536000
-        self.assertEqual(timeify_filter(time_yearago), '1 year ago')
+        self.assertEqual(timeify_filter(time_yearago), '1.0 years ago')
         # Check two months ago
         time_yearago = timestamp() - 5184000
-        self.assertEqual(timeify_filter(time_yearago), '2 months ago')
+        self.assertEqual(timeify_filter(time_yearago), '2.0 months ago')
         # Check 3 weeks ago
         time_yearago = timestamp() - 1814400
-        self.assertEqual(timeify_filter(time_yearago), '3 weeks ago')
+        self.assertEqual(timeify_filter(time_yearago), '3.0 weeks ago')
 
     def test_remove_from_feed(self):
         user1 = create_account('user1', 'user1@pjuu.com', 'Password')
