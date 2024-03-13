@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -10,7 +10,7 @@ COPY ./requirements.txt requirements.txt
 RUN python3 -m venv .venv
 RUN .venv/bin/pip install -r /requirements.txt
 
-FROM python:3.8-slim-buster
+FROM python:3.12-slim-bookworm
 
 RUN apt-get update && \
     apt-get -y install libmagickwand-6.q16-6
