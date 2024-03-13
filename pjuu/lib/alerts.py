@@ -15,7 +15,7 @@ own purposes.
 """
 
 # Stdlib imports
-from collections import Iterable
+from collections.abc import Iterable
 # 3rd party imports
 import jsonpickle
 from werkzeug.utils import cached_property

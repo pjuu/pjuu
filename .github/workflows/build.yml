@@ -5,7 +5,6 @@ on:
     branches:
       - master
 
-
 jobs:
   build:
     name: Build Images
@@ -16,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.11, 3.12]
 
     steps:
     - name: Checkout
@@ -46,4 +45,4 @@ jobs:
           pjuu/pjuu:${GITHUB_SHA::8}
         cache-from: type=registry,ref=pjuu/pjuu:latest
         cache-to: type=inline
-      if: matrix.python-version == 3.8
+      if: matrix.python-version == 3.12

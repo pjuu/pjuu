@@ -70,7 +70,7 @@ MAIL_USE_TLS = env.bool('MAIL_USE_TLS', False)
 MAIL_USE_SSL = env.bool('MAIL_USE_SSL', False)
 MAIL_USERNAME = env.str('MAIL_USERNAME', None)
 MAIL_PASSWORD = env.str('MAIL_PASSWORD', None)
-MAIL_DEFAULT_SENDER = 'Pjuu <noreply@pjuu.com>'
+MAIL_DEFAULT_SENDER = env.str('MAIL_DEFAULT_SENDER', 'Pjuu <noreply@pjuu.com>')
 
 # Flask-WTF (Cross site request forgery)
 # CSRF should be off during testing to allow us to submit forms
