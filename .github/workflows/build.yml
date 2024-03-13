@@ -38,11 +38,9 @@ jobs:
       with:
         context: .
         file: ./Dockerfile
-        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.python-version == 3.8 }}
+        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.python-version == 3.12 }}
         platforms: ${{ env.PLATFORMS }}
-        tags: |
-          pjuu/pjuu:latest
-          pjuu/pjuu:${GITHUB_SHA::8}
+        tags: pjuu/pjuu:latest
         cache-from: type=registry,ref=pjuu/pjuu:latest
         cache-to: type=inline
       if: matrix.python-version == 3.12
